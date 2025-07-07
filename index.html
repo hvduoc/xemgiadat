@@ -756,36 +756,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (lat && lng) {
                 const sharedLatLng = L.latLng(parseFloat(lat), parseFloat(lng));
-                let foundMarker = null;
-                let minDistance = Infinity;
-                let closestDocId = null;
 
-                // 1. Tìm điểm ghim gần nhất với vị trí được chia sẻ
-                querySnapshot.forEach(doc => {
-                    const item = doc.data();
-                    const itemLatLng = L.latLng(item.lat, item.lng);
-                    const distance = sharedLatLng.distanceTo(itemLatLng);
-                    if (distance < minDistance) {
-                        minDistance = distance;
-                        closestDocId = doc.id;
-                    }
-                });
+                // 1. Zoom lớn đến vị trí ngay lập tức
+                map.setView(sharedLatLng, 19); // Bạn có thể đổi lại thành 20 nếu muốn
 
-                // 2. Nếu điểm gần nhất ở trong phạm vi 5 mét, coi như trùng khớp
-                if (closestDocId && minDistance < 5) {
-                    foundMarker = allMarkers[closestDocId];
-                }
-
-                // 3. Zoom đến vị trí và mở popup tương ứng
-                map.setView(sharedLatLng, 19);
-                if (foundMarker) {
-                    // Nếu tìm thấy, mở popup của chính ghim đó
-                    foundMarker.openPopup();
-                } else {
-                    // Nếu không, hiển thị ghim chung chung
-                    L.marker(sharedLatLng, { icon: yellowIcon }).addTo(map)
-                        .bindPopup("<strong>Vị trí được chia sẻ</strong>").openPopup();
-                }
+                // 2. Tạo một ghim tạm thời để đánh dấu
+                L.marker(sharedLatLng, { icon: yellowIcon })
+                    .addTo(map)
+                    .bindPopup("<strong>Vị trí được chia sẻ</strong>")
+                    .openPopup();
             }
         } catch (error) {
             console.error("Lỗi khi xử lý URL được chia sẻ:", error);
