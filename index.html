@@ -181,7 +181,7 @@
         <button id="add-location-btn" title="Thêm địa điểm" class="w-12 h-12 bg-blue-600 text-white font-bold rounded-lg shadow-lg hover:bg-blue-700 flex items-center justify-center text-xl transition opacity-50 cursor-not-allowed" disabled>
             <i class="fas fa-plus"></i>
         </button>
-        <button id="query-btn" title="Tra cứu Địa chính" class="w-12 h-12 bg-purple-600 text-white font-bold rounded-lg shadow-lg hover:bg-purple-700 flex items-center justify-center text-xl transition opacity-50 cursor-not-allowed" disabled>
+        <button id="query-btn" title="Tra cứu Địa chính" class="w-12 h-12 bg-purple-600 text-white font-bold rounded-lg shadow-lg hover:bg-purple-700 flex items-center justify-center text-xl transition">
             <i class="fas fa-search-location"></i>
         </button>
         <button id="donate-btn" title="Ủng hộ" class="w-12 h-12 bg-yellow-400 text-black font-bold rounded-lg shadow-lg hover:bg-yellow-500 flex items-center justify-center text-xl transition">
@@ -497,13 +497,7 @@ document.addEventListener('DOMContentLoaded', () => {
         isAddMode ? exitAllModes() : enterAddMode();
     });
 
-    queryBtn.addEventListener('click', () => {
-        if (!currentUser) {
-            instructionBanner.textContent = 'Vui lòng đăng nhập để tra cứu!';
-            instructionBanner.classList.remove('hidden');
-            setTimeout(() => instructionBanner.classList.add('hidden'), 3000);
-            return;
-        }
+    queryBtn.addEventListener('click', () => {       
         isQueryMode ? exitAllModes() : enterQueryMode();
     });
 
@@ -609,7 +603,7 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             // Mở khóa các nút chức năng
-            [addLocationBtn, listBtn, queryBtn].forEach(btn => {
+            [addLocationBtn, listBtn].forEach(btn => {
                 btn.disabled = false;
                 btn.classList.remove('opacity-50', 'cursor-not-allowed');
             });
