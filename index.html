@@ -368,47 +368,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const donateModal = document.getElementById('donate-modal');
     const closeDonateModalBtn = document.getElementById('close-donate-modal');
    // --- BẮT ĐẦU CODE MỚI: XỬ LÝ LINK CHIA SẺ SAU KHI DỮ LIỆU ĐÃ TẢI ---
-    try {
-        const urlParams = new URLSearchParams(window.location.search);
-        const lat = urlParams.get('lat');
-        const lng = urlParams.get('lng');
-
-        if (lat && lng) {
-            const sharedLatLng = L.latLng(parseFloat(lat), parseFloat(lng));
-            let foundMarker = null;
-            let minDistance = Infinity;
-            let closestDocId = null;
-
-            // 1. Tìm điểm ghim gần nhất với vị trí được chia sẻ
-            querySnapshot.forEach(doc => {
-                const item = doc.data();
-                const itemLatLng = L.latLng(item.lat, item.lng);
-                const distance = sharedLatLng.distanceTo(itemLatLng);
-                if (distance < minDistance) {
-                    minDistance = distance;
-                    closestDocId = doc.id;
-                }
-            });
-
-            // 2. Nếu điểm gần nhất ở trong phạm vi 5 mét, coi như trùng khớp
-            if (closestDocId && minDistance < 5) {
-                foundMarker = allMarkers[closestDocId];
-            }
-
-            // 3. Zoom đến vị trí và mở popup tương ứng
-            map.setView(sharedLatLng, 19);
-            if (foundMarker) {
-                // Nếu tìm thấy, mở popup của chính ghim đó
-                foundMarker.openPopup();
-            } else {
-                // Nếu không, hiển thị ghim chung chung
-                L.marker(sharedLatLng, { icon: yellowIcon }).addTo(map)
-                    .bindPopup("<strong>Vị trí được chia sẻ</strong>").openPopup();
-            }
-        }
-    } catch (error) {
-        console.error("Lỗi khi xử lý URL được chia sẻ:", error);
-    }
+    
     // --- KẾT THÚC CODE MỚI ---
     donateBtn.addEventListener('click', () => {
         donateModal.classList.remove('hidden');
@@ -766,7 +726,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         actionsHTML += `<button onclick="likePlace('${doc.id}')" class="text-red-500 text-lg">❤️ <span id="like-${doc.id}">${likeCount}</span></button>`;
                         actionsHTML += `<div class="flex space-x-3 text-gray-600">`;
                         actionsHTML += `<a href="https://www.facebook.com/sharer/sharer.php?u=${encodedPermalink}" target="_blank" title="Chia sẻ Facebook"><i class="fas fa-share-alt hover:text-blue-600"></i></a>`;
-                        actionsHTML += `</div></div>`;
+                        actionsHTML += `</div>`;
 
                         // 4. Trả về toàn bộ chuỗi HTML được tạo ra                        
                         return contactHTML + `<div><a href="https://www.google.com/maps?q&layer=c&cbll=${item.lat},${item.lng}" target="_blank" class="block mt-2 px-3 py-1 text-center text-sm font-semibold bg-green-100 text-green-800 rounded hover:bg-green-200">👁️ Xem Street View</a></div>` + actionsHTML;
@@ -787,6 +747,47 @@ document.addEventListener('DOMContentLoaded', () => {
             };
             priceList.appendChild(listItem);
         });
+        try {
+            const urlParams = new URLSearchParams(window.location.search);
+            const lat = urlParams.get('lat');
+            const lng = urlParams.get('lng');
+
+            if (lat && lng) {
+                const sharedLatLng = L.latLng(parseFloat(lat), parseFloat(lng));
+                let foundMarker = null;
+                let minDistance = Infinity;
+                let closestDocId = null;
+
+                // 1. Tìm điểm ghim gần nhất với vị trí được chia sẻ
+                querySnapshot.forEach(doc => {
+                    const item = doc.data();
+                    const itemLatLng = L.latLng(item.lat, item.lng);
+                    const distance = sharedLatLng.distanceTo(itemLatLng);
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        closestDocId = doc.id;
+                    }
+                });
+
+                // 2. Nếu điểm gần nhất ở trong phạm vi 5 mét, coi như trùng khớp
+                if (closestDocId && minDistance < 5) {
+                    foundMarker = allMarkers[closestDocId];
+                }
+
+                // 3. Zoom đến vị trí và mở popup tương ứng
+                map.setView(sharedLatLng, 19);
+                if (foundMarker) {
+                    // Nếu tìm thấy, mở popup của chính ghim đó
+                    foundMarker.openPopup();
+                } else {
+                    // Nếu không, hiển thị ghim chung chung
+                    L.marker(sharedLatLng, { icon: yellowIcon }).addTo(map)
+                        .bindPopup("<strong>Vị trí được chia sẻ</strong>").openPopup();
+                }
+            }
+        } catch (error) {
+            console.error("Lỗi khi xử lý URL được chia sẻ:", error);
+        }
     });
 
     // --- SỰ KIỆN SUBMIT FORM THÊM ĐỊA ĐIỂM ---
