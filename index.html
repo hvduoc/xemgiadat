@@ -367,6 +367,29 @@ document.addEventListener('DOMContentLoaded', () => {
     const donateBtn = document.getElementById('donate-btn');
     const donateModal = document.getElementById('donate-modal');
     const closeDonateModalBtn = document.getElementById('close-donate-modal');
+    // --- XỬ LÝ LINK ĐƯỢC CHIA SẺ ---
+    try {
+        // 1. Đọc các tham số 'lat' và 'lng' từ đường dẫn URL của trang
+        const urlParams = new URLSearchParams(window.location.search);
+        const lat = urlParams.get('lat');
+        const lng = urlParams.get('lng');
+
+        // 2. Kiểm tra xem cả lat và lng có tồn tại không
+        if (lat && lng) {
+            const sharedLatLng = L.latLng(lat, lng);
+
+            // 3. Di chuyển và zoom bản đồ đến đúng tọa độ
+            map.setView(sharedLatLng, 18); // Zoom 18 cho gần và rõ
+
+            // 4. TẠO MỘT GHIM MỚI tại vị trí đó để người dùng dễ nhận biết
+            L.marker(sharedLatLng, { icon: yellowIcon }) // Dùng icon màu vàng nổi bật
+                .addTo(map)
+                .bindPopup("Vị trí được chia sẻ") // Thêm một popup đơn giản
+                .openPopup(); // Tự động mở popup ngay khi tải trang
+        }
+    } catch (error) {
+        console.error("Lỗi khi xử lý URL được chia sẻ:", error);
+    }
 
     donateBtn.addEventListener('click', () => {
         donateModal.classList.remove('hidden');
@@ -432,14 +455,32 @@ document.addEventListener('DOMContentLoaded', () => {
     map.on('overlayremove', e => { if (e.layer === parcelLayer) opacityControl.classList.add('hidden'); });
     if (map.hasLayer(parcelLayer)) opacityControl.classList.remove('hidden');
 
-    // --- CHỨC NĂNG PHỤ: LIKE (Gắn vào window để HTML có thể gọi) ---
-    window.likePlace = function(id) {
-        const el = document.getElementById(`like-${id}`);
-        let count = parseInt(localStorage.getItem(`like-${id}`) || 0, 10);
-        count++;
-        localStorage.setItem(`like-${id}`, count);
-        if (el) el.textContent = count;
-    };
+    // --- CHỨC NĂNG PHỤ: LIKE (Gắn vào window để HTML có thể gọi) ---    
+    window.likePlace = function(docId) {
+        const likedKey = `liked-${docId}`;
+
+        // 1. Kiểm tra trong localStorage xem người này đã tim bài này chưa
+        if (localStorage.getItem(likedKey) === 'true') {
+            showToast('Bạn đã thích địa điểm này rồi!');
+            return;
+        }
+
+        // 2. Nếu chưa, tiến hành cập nhật trên Firestore
+        const docRef = db.collection('listings').doc(docId);
+
+        docRef.update({
+            likeCount: firebase.firestore.FieldValue.increment(1)
+        })
+        .then(() => {
+            showToast('Cảm ơn bạn đã yêu thích!');
+            // 3. Đánh dấu là đã tim trong localStorage để không cho tim lại
+            localStorage.setItem(likedKey, 'true');
+        })
+        .catch(error => {
+            console.error("Lỗi khi cập nhật tim: ", error);
+            showToast('Có lỗi xảy ra, vui lòng thử lại.');
+        });
+    }
     
     // --- QUẢN LÝ CÁC CHẾ ĐỘ CỦA BẢN ĐỒ ---
     function enterAddMode() {
@@ -665,26 +706,54 @@ document.addEventListener('DOMContentLoaded', () => {
             const item = doc.data();
             if (!item.lat || !item.lng) return; // Bỏ qua dữ liệu thiếu tọa độ
 
-            const likeCount = localStorage.getItem(`like-${doc.id}`) || 0;
+            const likeCount = item.likeCount || 0;
             const formattedPrice = `${item.priceValue} ${item.priceUnit}`;
+            // Bắt đầu xây dựng nội dung popup
             const popupContent = `
                 <div class="p-2 text-sm leading-5 space-y-2 max-w-[260px]">
                     <h3 class="font-bold text-base text-gray-800">${item.name}</h3>
                     <p><strong>Giá:</strong> <span class="font-semibold text-red-600">${formattedPrice}</span></p>
                     <p><strong>Diện tích:</strong> ${item.area ? item.area + ' m²' : 'N/A'}</p>
                     <p><strong>Ghi chú:</strong> ${item.notes || 'N/A'}</p>
-                    <div class="flex space-x-3 text-xl justify-start pt-1 text-blue-600">
-                        ${item.contactPhone ? `<a href="tel:${item.contactPhone}" title="Gọi"><i class="fas fa-phone text-red-500 hover:scale-110"></i></a>` : ''}
-                        ${item.contactPhone ? `<a href="https://zalo.me/${item.contactPhone}" title="Zalo" target="_blank"><i class="fas fa-comment-dots text-blue-500 hover:scale-110"></i></a>` : ''}
-                        ${item.contactEmail ? `<a href="mailto:${item.contactEmail}" title="Email"><i class="fas fa-envelope text-yellow-500 hover:scale-110"></i></a>` : ''}
-                        ${item.contactFacebook ? `<a href="${item.contactFacebook}" title="Facebook" target="_blank"><i class="fab fa-facebook text-blue-700 hover:scale-110"></i></a>` : ''}
-                    </div>
-                    ${item.lat && item.lng ? `<div><a href="https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${item.lat},${item.lng}" target="_blank" class="block mt-2 px-3 py-1 text-center text-sm font-semibold bg-green-100 text-green-800 rounded hover:bg-green-200">👁️ Xem Street View</a></div>` : ''}
-                    <div class="flex items-center justify-between pt-2">
-                        <button onclick="likePlace('${doc.id}')" class="text-red-500 text-lg">❤️ <span id="like-${doc.id}">${likeCount}</span></button>
-                        <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(location.href)}" target="_blank" title="Chia sẻ Facebook"><i class="fas fa-share text-gray-600 hover:text-blue-600"></i></a>
-                    </div>
-                </div>`;
+
+                    ${(() => {
+                        // ---- BÊN TRONG "HỘP ĐEN" LOGIC ----
+                        
+                        // 1. Tạo permalink và tin nhắn mặc định
+                        const permalink = `${window.location.origin}?lat=${item.lat}&lng=${item.lng}`;
+                        const message = `Chào bạn, tôi quan tâm đến địa điểm '${item.name}' tại XemGiaDat.com. Link: ${permalink}`;
+                        const encodedMessage = encodeURIComponent(message);
+                        const encodedPermalink = encodeURIComponent(permalink);
+                        
+                        // 2. Tạo HTML cho các nút liên hệ
+                        let contactHTML = '<div class="flex space-x-3 text-xl justify-start pt-1">';
+                        if (item.contactPhone) {
+                            contactHTML += `<a href="tel:${item.contactPhone}" title="Gọi điện"><i class="fas fa-phone text-red-500 hover:scale-110"></i></a>`;
+                            contactHTML += `<a href="https://zalo.me/${item.contactPhone}?text=${encodedMessage}" target="_blank" title="Nhắn tin Zalo"><i class="fas fa-comment-dots text-blue-500 hover:scale-110"></i></a>`;
+                            contactHTML += `<a href="https://wa.me/${item.contactPhone}?text=${encodedMessage}" target="_blank" title="Nhắn tin WhatsApp"><i class="fab fa-whatsapp text-green-500 hover:scale-110"></i></a>`;
+                        }
+                        if (item.contactEmail) {
+                            const mailtoLink = `mailto:${item.contactEmail}?subject=${encodeURIComponent(`Hỏi về địa điểm: ${item.name}`)}&body=${encodedMessage}`;
+                            contactHTML += `<a href="${mailtoLink}" title="Gửi Email"><i class="fas fa-envelope text-yellow-500 hover:scale-110"></i></a>`;
+                        }
+                        if (item.contactFacebook) {
+                            contactHTML += `<a href="${item.contactFacebook}" target="_blank" title="Facebook"><i class="fab fa-facebook text-blue-700 hover:scale-110"></i></a>`;
+                        }
+                        contactHTML += '</div>';
+
+                        // 3. Tạo HTML cho các nút hành động (Like, Share)
+                        const likeCount = item.likeCount || 0;
+                        let actionsHTML = `<hr class="my-2"><div class="flex items-center justify-between pt-1">`;
+                        actionsHTML += `<button onclick="likePlace('${doc.id}')" class="text-red-500 text-lg">❤️ <span id="like-${doc.id}">${likeCount}</span></button>`;
+                        actionsHTML += `<div class="flex space-x-3 text-gray-600">`;
+                        actionsHTML += `<a href="https://www.facebook.com/sharer/sharer.php?u=${encodedPermalink}" target="_blank" title="Chia sẻ Facebook"><i class="fas fa-share-alt hover:text-blue-600"></i></a>`;
+                        actionsHTML += `</div></div>`;
+
+                        // 4. Trả về toàn bộ chuỗi HTML được tạo ra
+                        return contactHTML + actionsHTML;
+                    })()}
+
+                </div>`; // Kết thúc div chính của popup
             
             const marker = L.marker([item.lat, item.lng]).bindPopup(popupContent);
             priceMarkers.addLayer(marker);
