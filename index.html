@@ -369,23 +369,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeDonateModalBtn = document.getElementById('close-donate-modal');
     // --- XỬ LÝ LINK ĐƯỢC CHIA SẺ ---
     try {
-        // 1. Đọc các tham số 'lat' và 'lng' từ đường dẫn URL của trang
         const urlParams = new URLSearchParams(window.location.search);
         const lat = urlParams.get('lat');
         const lng = urlParams.get('lng');
 
-        // 2. Kiểm tra xem cả lat và lng có tồn tại không
         if (lat && lng) {
             const sharedLatLng = L.latLng(lat, lng);
 
-            // 3. Di chuyển và zoom bản đồ đến đúng tọa độ
-            map.setView(sharedLatLng, 18); // Zoom 18 cho gần và rõ
+            // Zoom tối đa và đặt vị trí ghim ở trung tâm
+            map.setView(sharedLatLng, 20); // <-- THAY ĐỔI ZOOM LÊN 20
 
-            // 4. TẠO MỘT GHIM MỚI tại vị trí đó để người dùng dễ nhận biết
-            L.marker(sharedLatLng, { icon: yellowIcon }) // Dùng icon màu vàng nổi bật
+            L.marker(sharedLatLng, { icon: yellowIcon })
                 .addTo(map)
-                .bindPopup("Vị trí được chia sẻ") // Thêm một popup đơn giản
-                .openPopup(); // Tự động mở popup ngay khi tải trang
+                .bindPopup("<strong>Vị trí được chia sẻ</strong>")
+                .openPopup();
         }
     } catch (error) {
         console.error("Lỗi khi xử lý URL được chia sẻ:", error);
@@ -749,8 +746,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         actionsHTML += `<a href="https://www.facebook.com/sharer/sharer.php?u=${encodedPermalink}" target="_blank" title="Chia sẻ Facebook"><i class="fas fa-share-alt hover:text-blue-600"></i></a>`;
                         actionsHTML += `</div></div>`;
 
-                        // 4. Trả về toàn bộ chuỗi HTML được tạo ra
-                        return contactHTML + actionsHTML;
+                        // 4. Trả về toàn bộ chuỗi HTML được tạo ra                        
+                        return contactHTML + `<div><a href="https://www.google.com/maps?q&layer=c&cbll=${item.lat},${item.lng}" target="_blank" class="block mt-2 px-3 py-1 text-center text-sm font-semibold bg-green-100 text-green-800 rounded hover:bg-green-200">👁️ Xem Street View</a></div>` + actionsHTML;
                     })()}
 
                 </div>`; // Kết thúc div chính của popup
