@@ -593,6 +593,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ✅ HÀM AUTHENTICATION ĐÃ SỬA LỖI
     // Thay thế toàn bộ hàm auth.onAuthStateChanged cũ bằng hàm này
 
+    // ✅ HÀM AUTHENTICATION ĐÃ SỬA LỖI
     auth.onAuthStateChanged((user) => {
         const loginBtn = document.getElementById('login-btn');
         const userProfileWidget = document.getElementById('user-profile-widget');
@@ -602,20 +603,20 @@ document.addEventListener('DOMContentLoaded', () => {
             loginBtn.classList.add('hidden');
             userProfileWidget.classList.remove('hidden');
 
-            // Cập nhật avatar
+            const userAvatarBtn = document.getElementById('user-avatar-btn');
+            const logoutBtn = document.getElementById('logout-btn');
+
             document.getElementById('user-avatar').src = user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName || 'A'}&background=random`;
-            
-            // Sự kiện nhấn vào widget để trượt
-            userProfileWidget.onclick = function() {
-                this.classList.toggle('is-open');
+
+            userAvatarBtn.onclick = function() {
+                this.parentElement.classList.toggle('is-open');
             };
 
-            // Sự kiện cho nút đăng xuất
-            document.getElementById('logout-btn').onclick = () => {
+            logoutBtn.onclick = () => {
                 auth.signOut();
             };
 
-            // Mở khóa các nút chức năng
+            // Mở khóa các nút yêu cầu đăng nhập
             [addLocationBtn, listBtn].forEach(btn => {
                 btn.disabled = false;
                 btn.classList.remove('opacity-50', 'cursor-not-allowed');
@@ -624,10 +625,11 @@ document.addEventListener('DOMContentLoaded', () => {
             currentUser = null;
             loginBtn.classList.remove('hidden');
             userProfileWidget.classList.add('hidden');
-            userProfileWidget.classList.remove('is-open'); // Reset trạng thái trượt
-            
+            userProfileWidget.classList.remove('is-open');
+
             exitAllModes();
-            
+
+            // Khóa các nút yêu cầu đăng nhập
             [addLocationBtn, listBtn].forEach(btn => {
                 btn.disabled = true;
                 btn.classList.add('opacity-50', 'cursor-not-allowed');
