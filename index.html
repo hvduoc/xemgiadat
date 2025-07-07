@@ -673,40 +673,41 @@ document.addEventListener('DOMContentLoaded', () => {
     const listingsCol = db.collection("listings");
     const q = listingsCol.where("status", "==", "approved").orderBy("createdAt", "desc");
 
+    // ✅ THAY THẾ TOÀN BỘ HÀM q.onSnapshot CŨ BẰNG HÀM NÀY
+
     q.onSnapshot((querySnapshot) => {
         priceMarkers.clearLayers();
         const priceList = document.getElementById('price-list');
         priceList.innerHTML = '';
+        // Giả sử bạn đã có hàm showToast và yellowIcon được định nghĩa ở nơi khác
+        // document.getElementById('loading-spinner').style.display = 'none';
 
         if (querySnapshot.empty) {
             priceList.innerHTML = '<p class="text-center text-gray-500 py-4">📭 Không có dữ liệu.</p>';
             return;
         }
 
+        const allMarkers = {}; // Dùng để lưu trữ tất cả marker đã tạo
+
         querySnapshot.forEach((doc) => {
             const item = doc.data();
-            if (!item.lat || !item.lng) return; // Bỏ qua dữ liệu thiếu tọa độ
+            if (!item.lat || !item.lng) return;
 
-            const likeCount = item.likeCount || 0;
             const formattedPrice = `${item.priceValue} ${item.priceUnit}`;
-            // Bắt đầu xây dựng nội dung popup
+            
+            // Code tạo popupContent của bạn giữ nguyên ở đây
             const popupContent = `
                 <div class="p-2 text-sm leading-5 space-y-2 max-w-[260px]">
                     <h3 class="font-bold text-base text-gray-800">${item.name}</h3>
                     <p><strong>Giá:</strong> <span class="font-semibold text-red-600">${formattedPrice}</span></p>
                     <p><strong>Diện tích:</strong> ${item.area ? item.area + ' m²' : 'N/A'}</p>
                     <p><strong>Ghi chú:</strong> ${item.notes || 'N/A'}</p>
-
                     ${(() => {
-                        // ---- BÊN TRONG "HỘP ĐEN" LOGIC ----
-                        
-                        // 1. Tạo permalink và tin nhắn mặc định
                         const permalink = `${window.location.origin}?lat=${item.lat}&lng=${item.lng}`;
                         const message = `Chào bạn, tôi quan tâm đến địa điểm '${item.name}' tại XemGiaDat.com. Link: ${permalink}`;
                         const encodedMessage = encodeURIComponent(message);
                         const encodedPermalink = encodeURIComponent(permalink);
                         
-                        // 2. Tạo HTML cho các nút liên hệ
                         let contactHTML = '<div class="flex space-x-3 text-xl justify-start pt-1">';
                         if (item.contactPhone) {
                             contactHTML += `<a href="tel:${item.contactPhone}" title="Gọi điện"><i class="fas fa-phone text-red-500 hover:scale-110"></i></a>`;
@@ -722,33 +723,35 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                         contactHTML += '</div>';
 
-                        // 3. Tạo HTML cho các nút hành động (Like, Share)
                         const likeCount = item.likeCount || 0;
                         let actionsHTML = `<hr class="my-2"><div class="flex items-center justify-between pt-1">`;
                         actionsHTML += `<button onclick="likePlace('${doc.id}')" class="text-red-500 text-lg">❤️ <span id="like-${doc.id}">${likeCount}</span></button>`;
-                        actionsHTML += `<div class="flex space-x-3 text-gray-600">`;
-                        actionsHTML += `<a href="https://www.facebook.com/sharer/sharer.php?u=${encodedPermalink}" target="_blank" title="Chia sẻ Facebook"><i class="fas fa-share-alt hover:text-blue-600"></i></a>`;
+                        actionsHTML += `<a href="https://www.facebook.com/sharer/sharer.php?u=${encodedPermalink}" target="_blank" title="Chia sẻ Facebook"><i class="fas fa-share text-gray-600 hover:text-blue-600"></i></a>`;
                         actionsHTML += `</div>`;
+                        
+                        const streetViewHTML = `<div><a href="http://googleusercontent.com/maps.google.com/7{item.lat},${item.lng}" target="_blank" class="block mt-2 px-3 py-1 text-center text-sm font-semibold bg-green-100 text-green-800 rounded hover:bg-green-200">👁️ Xem Street View</a></div>`;
 
-                        // 4. Trả về toàn bộ chuỗi HTML được tạo ra                        
-                        return contactHTML + `<div><a href="https://www.google.com/maps?q&layer=c&cbll=${item.lat},${item.lng}" target="_blank" class="block mt-2 px-3 py-1 text-center text-sm font-semibold bg-green-100 text-green-800 rounded hover:bg-green-200">👁️ Xem Street View</a></div>` + actionsHTML;
+                        return contactHTML + streetViewHTML + actionsHTML;
                     })()}
-
-                </div>`; // Kết thúc div chính của popup
+                </div>`;
             
-            const marker = L.marker([item.lat, item.lng]).bindPopup(popupContent);
+            const marker = L.marker([item.lat, item.lng], { icon: yellowIcon }).bindPopup(popupContent);
             priceMarkers.addLayer(marker);
+            allMarkers[doc.id] = marker; // Lưu lại marker với key là ID của document
 
+            // Tạo danh sách bên trái
             const listItem = document.createElement('div');
             listItem.className = 'p-2 border-b cursor-pointer hover:bg-gray-100';
             listItem.innerHTML = `<p class="font-semibold">${item.name}</p><p class="text-sm text-red-600">${formattedPrice}</p>`;
             listItem.onclick = () => {
-                listModal.classList.add('hidden');
+                // listModal.classList.add('hidden');
                 map.setView([item.lat, item.lng], 18);
                 marker.openPopup();
             };
             priceList.appendChild(listItem);
         });
+
+        // --- BẮT ĐẦU CODE MỚI: XỬ LÝ LINK CHIA SẺ SAU KHI DỮ LIỆU ĐÃ TẢI ---
         try {
             const urlParams = new URLSearchParams(window.location.search);
             const lat = urlParams.get('lat');
@@ -756,19 +759,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (lat && lng) {
                 const sharedLatLng = L.latLng(parseFloat(lat), parseFloat(lng));
+                let minDistance = Infinity;
+                let closestDocId = null;
 
-                // 1. Zoom lớn đến vị trí ngay lập tức
-                map.setView(sharedLatLng, 19); // Bạn có thể đổi lại thành 20 nếu muốn
+                // 1. Tìm điểm ghim gần nhất với vị trí được chia sẻ
+                querySnapshot.forEach(doc => {
+                    const item = doc.data();
+                    const itemLatLng = L.latLng(item.lat, item.lng);
+                    const distance = sharedLatLng.distanceTo(itemLatLng);
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        closestDocId = doc.id;
+                    }
+                });
 
-                // 2. Tạo một ghim tạm thời để đánh dấu
-                L.marker(sharedLatLng, { icon: yellowIcon })
-                    .addTo(map)
-                    .bindPopup("<strong>Vị trí được chia sẻ</strong>")
-                    .openPopup();
+                // 2. Nếu điểm gần nhất ở trong phạm vi 5 mét, coi như trùng khớp
+                if (closestDocId && minDistance < 5) {
+                    const foundMarker = allMarkers[closestDocId];
+                    map.setView(sharedLatLng, 19);
+                    foundMarker.openPopup(); // Mở popup của chính ghim đó
+                } else {
+                    // Nếu không, chỉ zoom và hiển thị ghim chung chung
+                    map.setView(sharedLatLng, 19);
+                    L.marker(sharedLatLng, { icon: yellowIcon }).addTo(map)
+                        .bindPopup("<strong>Vị trí được chia sẻ</strong>").openPopup();
+                }
             }
         } catch (error) {
             console.error("Lỗi khi xử lý URL được chia sẻ:", error);
         }
+        // --- KẾT THÚC CODE MỚI ---
     });
 
     // --- SỰ KIỆN SUBMIT FORM THÊM ĐỊA ĐIỂM ---
