@@ -234,8 +234,6 @@
             </div>
         </div>
     </div>
-
-
     
     <!-- Modal Danh sách giá đất -->
     <div id="price-list-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-[1001]">
@@ -610,7 +608,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             exitAllModes();
             
-            [addLocationBtn, listBtn, queryBtn].forEach(btn => {
+            [addLocationBtn, listBtn].forEach(btn => {
                 btn.disabled = true;
                 btn.classList.add('opacity-50', 'cursor-not-allowed');
             });
