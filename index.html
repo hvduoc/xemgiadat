@@ -367,27 +367,49 @@ document.addEventListener('DOMContentLoaded', () => {
     const donateBtn = document.getElementById('donate-btn');
     const donateModal = document.getElementById('donate-modal');
     const closeDonateModalBtn = document.getElementById('close-donate-modal');
-    // --- XỬ LÝ LINK ĐƯỢC CHIA SẺ ---
+   // --- BẮT ĐẦU CODE MỚI: XỬ LÝ LINK CHIA SẺ SAU KHI DỮ LIỆU ĐÃ TẢI ---
     try {
         const urlParams = new URLSearchParams(window.location.search);
         const lat = urlParams.get('lat');
         const lng = urlParams.get('lng');
 
         if (lat && lng) {
-            const sharedLatLng = L.latLng(lat, lng);
+            const sharedLatLng = L.latLng(parseFloat(lat), parseFloat(lng));
+            let foundMarker = null;
+            let minDistance = Infinity;
+            let closestDocId = null;
 
-            // Zoom tối đa và đặt vị trí ghim ở trung tâm
-            map.setView(sharedLatLng, 20); // <-- THAY ĐỔI ZOOM LÊN 20
+            // 1. Tìm điểm ghim gần nhất với vị trí được chia sẻ
+            querySnapshot.forEach(doc => {
+                const item = doc.data();
+                const itemLatLng = L.latLng(item.lat, item.lng);
+                const distance = sharedLatLng.distanceTo(itemLatLng);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    closestDocId = doc.id;
+                }
+            });
 
-            L.marker(sharedLatLng, { icon: yellowIcon })
-                .addTo(map)
-                .bindPopup("<strong>Vị trí được chia sẻ</strong>")
-                .openPopup();
+            // 2. Nếu điểm gần nhất ở trong phạm vi 5 mét, coi như trùng khớp
+            if (closestDocId && minDistance < 5) {
+                foundMarker = allMarkers[closestDocId];
+            }
+
+            // 3. Zoom đến vị trí và mở popup tương ứng
+            map.setView(sharedLatLng, 19);
+            if (foundMarker) {
+                // Nếu tìm thấy, mở popup của chính ghim đó
+                foundMarker.openPopup();
+            } else {
+                // Nếu không, hiển thị ghim chung chung
+                L.marker(sharedLatLng, { icon: yellowIcon }).addTo(map)
+                    .bindPopup("<strong>Vị trí được chia sẻ</strong>").openPopup();
+            }
         }
     } catch (error) {
         console.error("Lỗi khi xử lý URL được chia sẻ:", error);
     }
-
+    // --- KẾT THÚC CODE MỚI ---
     donateBtn.addEventListener('click', () => {
         donateModal.classList.remove('hidden');
     });
