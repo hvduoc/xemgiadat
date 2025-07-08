@@ -1,3 +1,7 @@
+// ✅ THAY THẾ TOÀN BỘ SCRIPT.JS CŨ BẰNG FILE NÀY
+
+// --- PHẦN 1: KHỞI TẠO TOÀN CỤC (CHẠY NGAY LẬP TỨC) ---
+
 // Cấu hình Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyDu9tYpJdMPT7Hvk2_Ug8XHwxRQXoakRfs",
@@ -162,3 +166,14 @@ document.addEventListener('DOMContentLoaded', () => {
     copyBtn.addEventListener('click', () => {
         navigator.clipboard.writeText("68068793979").then(() => showToast('Đã sao chép STK!'));
     });
+
+    // --- XỬ LÝ DỮ LIỆU TỪ FIRESTORE ---
+    // (Phần này bạn có thể thêm lại sau khi các tính năng chính đã ổn định)
+    /*
+    const listingsCol = db.collection("listings");
+    const q = listingsCol.where("status", "==", "approved").orderBy("createdAt", "desc");
+    q.onSnapshot((querySnapshot) => {
+        // ...
+    });
+    */
+});
