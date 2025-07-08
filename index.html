@@ -161,6 +161,16 @@
         .thong-tin-dia-chinh .actions button:hover {
             color: #000;
         }
+        /* ✅ CSS cho nhãn kích thước */
+        .dimension-label {
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid #aaa;
+            border-radius: 4px;
+            padding: 2px 5px;
+            font-size: 12px;
+            white-space: nowrap;
+            text-shadow: 0 0 2px white;
+        }
     </style>
 </head>
 <body class="relative overflow-hidden">
@@ -303,11 +313,13 @@ const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png
     attribution: myAttribution + ' | © OpenStreetMap'
 });
 
-// Lớp bản đồ phân lô (Dùng cho cả hiển thị và tra cứu)
-const parcelLayer = L.esri.dynamicMapLayer({
-    url: 'https://gisportal.danang.gov.vn/server/rest/services/DiaChinh/DaNangLand_DiaChinh/MapServer',
-    opacity: 0.7,
-    useCors: false
+// ✅ Code mới để lấy dữ liệu hình học
+const parcelLayer = L.esri.featureLayer({
+    url: 'https://gisportal.danang.gov.vn/server/rest/services/DiaChinh/DaNangLand_DiaChinh/MapServer/0', // Quan trọng: có thêm số 0 ở cuối
+    style: function (feature) {
+        // Định dạng cho các thửa đất
+        return { color: '#0078A8', weight: 1.5, fillOpacity: 0.1 }; 
+    }
 });
 
 const baseMaps = {
@@ -550,42 +562,55 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } 
         // 2. Nếu ở chế độ TRA CỨU
-        else if (isQueryMode) {
-            L.popup().setLatLng(e.latlng).setContent('<p>Đang tìm kiếm...</p>').openOn(map);
-            parcelLayer.identify().on(map).at(e.latlng).run((error, featureCollection) => {
-                exitAllModes();
-                if (error) {
-                    console.error(error);
-                    return L.popup().setLatLng(e.latlng).setContent('Có lỗi xảy ra khi tra cứu.').openOn(map);
-                }
-                if (featureCollection.features.length > 0) {
-                    const props = featureCollection.features[0].properties;
-                    const lat = e.latlng.lat.toFixed(6);
-                    const lng = e.latlng.lng.toFixed(6);
-                    const popupContent = `
-                        <div class="thong-tin-dia-chinh">
-                                <h3 class="font-bold text-base mb-2 text-center">Thông tin địa chính</h3>
-                                <table>
-                                    <tr><td><strong>Số tờ:</strong></td><td>${props['Số hiệu tờ bản đồ'] ?? 'N/A'}</td></tr>
-                                    <tr><td><strong>Số thửa:</strong></td><td>${props['Số thửa'] ?? 'N/A'}</td></tr>
-                                    <tr><td><strong>Loại đất:</strong></td><td>${props['Ký hiệu mục đích sử dụng'] ?? 'N/A'}</td></tr>
-                                    <tr><td><strong>Diện tích:</strong></td><td>${props['Diện tích'] ? parseFloat(props['Diện tích']).toFixed(1) : 'N/A'}</td></tr>
-                                    <tr><td><strong>Địa chỉ:</strong></td><td>${props['Địa chỉ'] && props['Địa chỉ'] !== 'Null' ? props['Địa chỉ'] : 'N/A'}</td></tr>
-                                </table>
-                                <hr class="my-2">
-                                <div class="actions">
-                                    <button onclick="toggleLike(this)" title="Yêu thích"><i class="far fa-heart"></i></button>
-                                    <button onclick="shareOnFacebook(${lat}, ${lng})" title="Chia sẻ Facebook"><i class="fas fa-share-alt"></i></button>
-                                    <button onclick="copyLocationLink(${lat}, ${lng})" title="Sao chép liên kết"><i class="fas fa-link"></i></button>
-                                </div>
-                            </div>
-                    `;
-                    L.popup({ minWidth: 180, maxWidth: 250  }).setLatLng(e.latlng).setContent(popupContent).openOn(map);
-                } else {
-                    L.popup().setLatLng(e.latlng).setContent('Không tìm thấy thông tin tại vị trí này.').openOn(map);
-                }
-            });
-        }
+        // ✅ Code mới xử lý click và vẽ kích thước
+
+// Tạo một group để chứa các nhãn kích thước, dễ dàng xóa đi sau này
+const dimensionLayers = L.layerGroup().addTo(map);
+
+parcelLayer.on('click', function (evt) {
+    // Mỗi lần click, xóa các kích thước cũ đi
+    dimensionLayers.clearLayers();
+
+    const layer = evt.layer;
+    const props = layer.feature.properties; // Thông tin thuộc tính
+    const latlngs = layer.getLatLngs()[0]; // Tọa độ các góc
+
+    // 1. Vẽ các đường kích thước
+    drawDimensions(latlngs);
+
+    // 2. Hiển thị popup thông tin địa chính
+    const popupContent = `
+        <div class="thong-tin-dia-chinh" style="min-width: 220px;">
+            <h3 class="font-bold text-base mb-2 text-center">Thông tin địa chính</h3>
+            <table>
+                <tr><td><strong>Số tờ:</strong></td><td>${props['Số hiệu tờ bản đồ'] ?? 'N/A'}</td></tr>
+                <tr><td><strong>Số thửa:</strong></td><td>${props['Số thửa'] ?? 'N/A'}</td></tr>
+                <tr><td><strong>Loại đất:</strong></td><td>${props['Ký hiệu mục đích sử dụng'] ?? 'N/A'}</td></tr>
+                <tr><td><strong>Diện tích (m²):</strong></td><td>${props['Diện tích'] ? parseFloat(props['Diện tích']).toFixed(1) : 'N/A'}</td></tr>
+                <tr><td><strong>Địa chỉ:</strong></td><td>${props['Địa chỉ'] && props['Địa chỉ'] !== 'Null' ? props['Địa chỉ'] : 'N/A'}</td></tr>
+            </table>
+        </div>`;
+    L.popup().setLatLng(evt.latlng).setContent(popupContent).openOn(map);
+});
+
+// Hàm để vẽ kích thước các cạnh
+function drawDimensions(latlngs) {
+    // Lặp qua từng cặp điểm để tạo thành một cạnh
+    for (let i = 0; i < latlngs.length - 1; i++) {
+        const p1 = latlngs[i];
+        const p2 = latlngs[i + 1];
+
+        const distance = map.distance(p1, p2);
+        const midPoint = L.latLng((p1.lat + p2.lat) / 2, (p1.lng + p2.lng) / 2);
+
+        const dimensionIcon = L.divIcon({
+            className: 'dimension-label',
+            html: `<b>${distance.toFixed(1)}m</b>`
+        });
+
+        L.marker(midPoint, { icon: dimensionIcon }).addTo(dimensionLayers);
+    }
+}
     }); // Dấu ngoặc đóng đúng của hàm map.on('click')
 
     // --- LOGIC XÁC THỰC FIREBASE ---  
