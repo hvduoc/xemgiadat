@@ -693,37 +693,44 @@ document.addEventListener('DOMContentLoaded', () => {
                     <p><strong>Giá:</strong> <span class="font-semibold text-red-600">${formattedPrice}</span></p>
                     <p><strong>Diện tích:</strong> ${item.area ? item.area + ' m²' : 'N/A'}</p>
                     <p><strong>Ghi chú:</strong> ${item.notes || 'N/A'}</p>
-                    ${(() => {
-                        const permalink = `${window.location.origin}?lat=${item.lat}&lng=${item.lng}`;
-                        const message = `Chào bạn, tôi quan tâm đến địa điểm '${item.name}' tại XemGiaDat.com. Link: ${permalink}`;
-                        const encodedMessage = encodeURIComponent(message);
-                        const encodedPermalink = encodeURIComponent(permalink);
-                        
-                        let contactHTML = '<div class="flex space-x-3 text-xl justify-start pt-1">';
-                        if (item.contactPhone) {
-                            contactHTML += `<a href="tel:${item.contactPhone}" title="Gọi điện"><i class="fas fa-phone text-red-500 hover:scale-110"></i></a>`;
-                            contactHTML += `<a href="https://zalo.me/${item.contactPhone}?text=${encodedMessage}" target="_blank" title="Nhắn tin Zalo"><i class="fas fa-comment-dots text-blue-500 hover:scale-110"></i></a>`;
-                            contactHTML += `<a href="https://wa.me/${item.contactPhone}?text=${encodedMessage}" target="_blank" title="Nhắn tin WhatsApp"><i class="fab fa-whatsapp text-green-500 hover:scale-110"></i></a>`;
-                        }
-                        if (item.contactEmail) {
-                            const mailtoLink = `mailto:${item.contactEmail}?subject=${encodeURIComponent(`Hỏi về địa điểm: ${item.name}`)}&body=${encodedMessage}`;
-                            contactHTML += `<a href="${mailtoLink}" title="Gửi Email"><i class="fas fa-envelope text-yellow-500 hover:scale-110"></i></a>`;
-                        }
-                        if (item.contactFacebook) {
-                            contactHTML += `<a href="${item.contactFacebook}" target="_blank" title="Facebook"><i class="fab fa-facebook text-blue-700 hover:scale-110"></i></a>`;
-                        }
-                        contactHTML += '</div>';
+                    ${// Thay thế toàn bộ khối IIFE cũ trong popupContent
+                (() => {
+                    // 1. Tạo permalink và tin nhắn mặc định
+                    const permalink = `${window.location.origin}?lat=${item.lat}&lng=${item.lng}`;
+                    const message = `Chào bạn, tôi quan tâm đến địa điểm '${item.name}' tại XemGiaDat.com. Link: ${permalink}`;
+                    const encodedMessage = encodeURIComponent(message);
+                    const encodedPermalink = encodeURIComponent(permalink);
 
-                        const likeCount = item.likeCount || 0;
-                        let actionsHTML = `<hr class="my-2"><div class="flex items-center justify-between pt-1">`;
-                        actionsHTML += `<button onclick="likePlace('${doc.id}')" class="text-red-500 text-lg">❤️ <span id="like-${doc.id}">${likeCount}</span></button>`;
-                        actionsHTML += `<a href="https://www.facebook.com/sharer/sharer.php?u=${encodedPermalink}" target="_blank" title="Chia sẻ Facebook"><i class="fas fa-share text-gray-600 hover:text-blue-600"></i></a>`;
-                        actionsHTML += `</div>`;
-                        
-                        const streetViewHTML = `<div><a href="http://googleusercontent.com/maps.google.com/7{item.lat},${item.lng}" target="_blank" class="block mt-2 px-3 py-1 text-center text-sm font-semibold bg-green-100 text-green-800 rounded hover:bg-green-200">👁️ Xem Street View</a></div>`;
+                    // 2. Tạo HTML cho các nút liên hệ
+                    let contactHTML = '<div class="flex space-x-3 text-xl justify-start pt-1">';
+                    if (item.contactPhone) {
+                        contactHTML += `<a href="tel:${item.contactPhone}" title="Gọi điện"><i class="fas fa-phone text-red-500 hover:scale-110"></i></a>`;
+                        contactHTML += `<a href="https://zalo.me/${item.contactPhone}?text=${encodedMessage}" target="_blank" title="Nhắn tin Zalo"><i class="fas fa-comment-dots text-blue-500 hover:scale-110"></i></a>`;
+                        contactHTML += `<a href="https://wa.me/${item.contactPhone}?text=${encodedMessage}" target="_blank" title="Nhắn tin WhatsApp"><i class="fab fa-whatsapp text-green-500 hover:scale-110"></i></a>`;
+                    }
+                    if (item.contactEmail) {
+                        const mailtoLink = `mailto:${item.contactEmail}?subject=${encodeURIComponent(`Hỏi về địa điểm: ${item.name}`)}&body=${encodedMessage}`;
+                        contactHTML += `<a href="${mailtoLink}" title="Gửi Email"><i class="fas fa-envelope text-yellow-500 hover:scale-110"></i></a>`;
+                    }
+                    if (item.contactFacebook) {
+                        contactHTML += `<a href="${item.contactFacebook}" target="_blank" title="Facebook"><i class="fab fa-facebook text-blue-700 hover:scale-110"></i></a>`;
+                    }
+                    contactHTML += '</div>';
 
-                        return contactHTML + streetViewHTML + actionsHTML;
-                    })()}
+                    // 3. Tạo HTML cho nút Street View
+                    const streetViewLink = `https://www.google.com/maps?q&layer=c&cbll=${item.lat},${item.lng}`;
+                    const streetViewHTML = `<div><a href="${streetViewLink}" target="_blank" class="block mt-2 px-3 py-1 text-center text-sm font-semibold bg-green-100 text-green-800 rounded hover:bg-green-200">👁️ Xem Street View</a></div>`;
+
+                    // 4. Tạo HTML cho các nút hành động (Like, Share)
+                    const likeCount = item.likeCount || 0;
+                    let actionsHTML = `<hr class="my-2"><div class="flex items-center justify-between pt-1">`;
+                    actionsHTML += `<button onclick="likePlace('${doc.id}')" class="text-red-500 text-lg">❤️ <span id="like-${doc.id}">${likeCount}</span></button>`;
+                    actionsHTML += `<a href="https://www.facebook.com/sharer/sharer.php?u=${encodedPermalink}" target="_blank" title="Chia sẻ Facebook"><i class="fas fa-share text-gray-600 hover:text-blue-600"></i></a>`;
+                    actionsHTML += `</div>`;
+
+                    // 5. Trả về toàn bộ chuỗi HTML được tạo ra
+                    return contactHTML + streetViewHTML + actionsHTML;
+                })()}
                 </div>`;
             
             const marker = L.marker([item.lat, item.lng]).bindPopup(popupContent);
