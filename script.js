@@ -185,29 +185,108 @@ document.addEventListener('DOMContentLoaded', () => {
     const q = listingsCol.where("status", "==", "approved").orderBy("createdAt", "desc");
 
     q.onSnapshot((querySnapshot) => {
-        priceMarkers.clearLayers();
-        const priceList = document.getElementById('price-list');
-        priceList.innerHTML = '';
-        document.getElementById('loading-spinner').style.display = 'none';
+    // Xóa các ghim và danh sách cũ
+    priceMarkers.clearLayers();
+    const priceList = document.getElementById('price-list');
+    priceList.innerHTML = '';
+    document.getElementById('loading-spinner').style.display = 'none';
 
-        if (querySnapshot.empty) {
-            priceList.innerHTML = '<p class="text-center text-gray-500 py-4">📭 Không có dữ liệu.</p>';
-            return;
-        }
+    if (querySnapshot.empty) {
+        priceList.innerHTML = '<p class="text-center text-gray-500 py-4">📭 Không có dữ liệu.</p>';
+        return;
+    }
 
-        const allMarkers = {};
+    const allMarkers = {}; // Dùng để lưu trữ tất cả marker đã tạo
 
-        querySnapshot.forEach((doc) => {
-            // ... (code tạo popupContent và marker cho ghim giá đất)
-        });
+    // --- VÒNG LẶP 1: TẠO TẤT CẢ GHIM VÀ DANH SÁCH ---
+    querySnapshot.forEach((doc) => {
+        const item = doc.data();
+        if (!item.lat || !item.lng) return;
 
-        // Xử lý link chia sẻ sau khi đã có dữ liệu
-        try {
-            // ... (code xử lý link chia sẻ)
-        } catch (error) {
-            console.error("Lỗi khi xử lý URL:", error);
-        }
+        const formattedPrice = `${item.priceValue} ${item.priceUnit}`;
+        
+        const popupContent = `
+            <div class="p-2 text-sm leading-5 space-y-2 max-w-[260px]">
+                <h3 class="font-bold text-base text-gray-800">${item.name}</h3>
+                <p><strong>Giá:</strong> <span class="font-semibold text-red-600">${formattedPrice}</span></p>
+                <p><strong>Diện tích:</strong> ${item.area ? item.area + ' m²' : 'N/A'}</p>
+                <p><strong>Địa chỉ:</strong> ${item.address || 'N/A'}</p>
+                <p><strong>Ghi chú:</strong> ${item.notes || 'N/A'}</p>
+                ${(() => {
+                    const permalink = `${window.location.origin}?lat=${item.lat}&lng=${item.lng}`;
+                    const message = `Chào bạn, tôi quan tâm đến địa điểm '${item.name}' tại XemGiaDat.com. Link: ${permalink}`;
+                    const encodedMessage = encodeURIComponent(message);
+                    const encodedPermalink = encodeURIComponent(permalink);
+                    let contactHTML = '<div class="flex space-x-3 text-xl justify-start pt-1">';
+                    if (item.contactPhone) {
+                        contactHTML += `<a href="tel:${item.contactPhone}" title="Gọi điện"><i class="fas fa-phone text-red-500 hover:scale-110"></i></a>`;
+                        contactHTML += `<a href="https://zalo.me/${item.contactPhone}?text=${encodedMessage}" target="_blank" title="Nhắn tin Zalo"><i class="fas fa-comment-dots text-blue-500 hover:scale-110"></i></a>`;
+                        contactHTML += `<a href="https://wa.me/${item.contactPhone}?text=${encodedMessage}" target="_blank" title="Nhắn tin WhatsApp"><i class="fab fa-whatsapp text-green-500 hover:scale-110"></i></a>`;
+                    }
+                    if (item.contactEmail) {
+                        const mailtoLink = `mailto:${item.contactEmail}?subject=${encodeURIComponent(`Hỏi về địa điểm: ${item.name}`)}&body=${encodedMessage}`;
+                        contactHTML += `<a href="${mailtoLink}" title="Gửi Email"><i class="fas fa-envelope text-yellow-500 hover:scale-110"></i></a>`;
+                    }
+                    contactHTML += '</div>';
+                    const streetViewHTML = `<div><a href="https://googleusercontent.com/maps.google.com/7%7Bitem.lat%7D,108.23387145996095{item.lat},${item.lng}" target="_blank" class="block mt-2 px-3 py-1 text-center text-sm font-semibold bg-green-100 text-green-800 rounded hover:bg-green-200">👁️ Xem Street View</a></div>`;
+                    const likeCount = item.likeCount || 0;
+                    let actionsHTML = `<hr class="my-2"><div class="flex items-center justify-between pt-1">`;
+                    actionsHTML += `<button onclick="likePlace('${doc.id}')" class="text-red-500 text-lg">❤️ <span id="like-${doc.id}">${likeCount}</span></button>`;
+                    actionsHTML += `<a href="https://www.facebook.com/sharer/sharer.php?u=${encodedPermalink}" target="_blank" title="Chia sẻ Facebook"><i class="fas fa-share text-gray-600 hover:text-blue-600"></i></a>`;
+                    actionsHTML += `</div>`;
+                    return contactHTML + streetViewHTML + actionsHTML;
+                })()}
+            </div>`;
+        
+        const marker = L.marker([item.lat, item.lng]).bindPopup(popupContent);
+        priceMarkers.addLayer(marker);
+        allMarkers[doc.id] = marker;
+
+        const listItem = document.createElement('div');
+        listItem.className = 'p-2 border-b cursor-pointer hover:bg-gray-100';
+        listItem.innerHTML = `<p class="font-semibold">${item.name}</p><p class="text-sm text-red-600">${formattedPrice}</p>`;
+        listItem.onclick = () => {
+            listModal.classList.add('hidden');
+            map.setView([item.lat, item.lng], 18);
+            marker.openPopup();
+        };
+        priceList.appendChild(listItem);
     });
 
-    // ... (logic submit form và các event listener khác)
+    // --- LOGIC XỬ LÝ LINK CHIA SẺ (CHẠY SAU KHI ĐÃ CÓ DỮ LIỆU) ---
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const lat = urlParams.get('lat');
+        const lng = urlParams.get('lng');
+
+        if (lat && lng) {
+            const sharedLatLng = L.latLng(parseFloat(lat), parseFloat(lng));
+            let minDistance = Infinity;
+            let closestDocId = null;
+
+            // Vòng lặp 2: Chỉ để tìm ghim gần nhất
+            querySnapshot.forEach(doc => {
+                const item = doc.data();
+                if (!item.lat || !item.lng) return;
+                const itemLatLng = L.latLng(item.lat, item.lng);
+                const distance = sharedLatLng.distanceTo(itemLatLng);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    closestDocId = doc.id;
+                }
+            });
+
+            if (closestDocId && minDistance < 5) {
+                const foundMarker = allMarkers[closestDocId];
+                map.setView(sharedLatLng, 19);
+                foundMarker.openPopup();
+            } else {
+                map.setView(sharedLatLng, 19);
+                L.marker(sharedLatLng).addTo(map)
+                    .bindPopup("<strong>Vị trí được chia sẻ</strong>").openPopup();
+            }
+        }
+    } catch (error) {
+        console.error("Lỗi khi xử lý URL được chia sẻ:", error);
+    }
 });
