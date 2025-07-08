@@ -3,133 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Xem Giá Đất - Đà Nẵng (Firebase Edition)</title>
-    <meta property="og:title" content="Xem Giá Đất | Nắm thông tin, làm chủ quyết định." />
+    <title>Xem Giá Đất - Đà Nẵng</title>
+    
+    <meta property="og:title" content="Xem Giá Đất Đà Nẵng - Bản đồ giá đất cộng đồng" />
     <meta property="og:description" content="Tra cứu thông tin địa chính, tham khảo giá đất được đóng góp bởi cộng đồng một cách trực quan trên bản đồ Đà Nẵng." />
     <meta property="og:image" content="https://xemgiadat.com/images/thumbnail.png" />
     <meta property="og:url" content="https://xemgiadat.com" />
     <meta property="og:type" content="website" />
     
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-    <!-- Thêm dòng này vào trong thẻ <head> -->
-    <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/4.8.1/firebase-ui-auth.css" />
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <!-- 📌 THÊM VÀO TRONG <head> -->
-    <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
-    />
-    <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
-    />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+    <link rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/4.8.1/firebase-ui-auth.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
     <link rel="stylesheet" href="https://unpkg.com/esri-leaflet-geocoder@3.1.4/dist/esri-leaflet-geocoder.css" crossorigin="">
-        
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>    
+    
+    <link rel="stylesheet" href="style.css">
 </head>
 <body class="relative overflow-hidden">
 
     <div id="map"></div>
 
-    <!-- Bảng điều khiển công cụ nổi -->
-    <div class="absolute top-4 left-4 z-[1000] flex flex-col space-y-2 mt-12">
-
-        <button id="list-btn" title="Danh sách" class="w-12 h-12 bg-white text-gray-800 font-bold rounded-lg shadow-lg hover:bg-gray-100 flex items-center justify-center text-xl transition opacity-50 cursor-not-allowed" disabled>
-            <i class="fas fa-list-ul"></i>
-        </button>
-        <button id="add-location-btn" title="Thêm địa điểm" class="w-12 h-12 bg-blue-600 text-white font-bold rounded-lg shadow-lg hover:bg-blue-700 flex items-center justify-center text-xl transition opacity-50 cursor-not-allowed" disabled>
-            <i class="fas fa-plus"></i>
-        </button>
-        <button id="query-btn" title="Tra cứu Địa chính" class="w-12 h-12 bg-purple-600 text-white font-bold rounded-lg shadow-lg hover:bg-purple-700 flex items-center justify-center text-xl transition">
-            <i class="fas fa-search-location"></i>
-        </button>
-        <button id="donate-btn" title="Ủng hộ" class="w-12 h-12 bg-yellow-400 text-black font-bold rounded-lg shadow-lg hover:bg-yellow-500 flex items-center justify-center text-xl transition">
-            <i class="fas fa-mug-hot"></i>
-        </button>    
-        
-    </div>
-    
-    <!-- Bảng điều khiển độ mờ mới -->
-    <div id="opacity-control" class="hidden absolute top-1/2 -translate-y-1/2 right-4 z-[1000] bg-white p-2 rounded-lg shadow-lg flex flex-col items-center">
-        <button id="opacity-plus" class="font-bold text-lg">+</button>
-        <input id="opacity-slider" type="range" min="0" max="1" step="0.1" value="0.7" orient="vertical">
-        <button id="opacity-minus" class="font-bold text-lg">-</button>
+    <div id="loading-spinner" class="fixed inset-0 bg-white bg-opacity-80 z-[9999] flex items-center justify-center">
+        <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
     </div>
 
-    <!-- Hướng dẫn cho người dùng -->
-    <div id="instruction-banner" class="hidden absolute top-4 left-1/2 -translate-x-1/2 z-[1000] bg-yellow-400 text-black font-semibold py-2 px-4 rounded-lg shadow-lg"></div>
+    <div class="absolute top-4 left-4 z-[1000] flex flex-col space-y-2 mt-14">
+        <button id="list-btn" title="Danh sách" class="w-12 h-12 bg-white text-gray-800 font-bold rounded-lg shadow-lg hover:bg-gray-100 flex items-center justify-center text-xl transition opacity-50 cursor-not-allowed" disabled><i class="fas fa-list-ul"></i></button>
+        <button id="add-location-btn" title="Thêm địa điểm" class="w-12 h-12 bg-blue-600 text-white font-bold rounded-lg shadow-lg hover:bg-blue-700 flex items-center justify-center text-xl transition opacity-50 cursor-not-allowed" disabled><i class="fas fa-plus"></i></button>
+        <button id="donate-btn" title="Ủng hộ" class="w-12 h-12 bg-yellow-400 text-black font-bold rounded-lg shadow-lg hover:bg-yellow-500 flex items-center justify-center text-xl transition"><i class="fas fa-mug-hot"></i></button>
+    </div>
 
-    <!-- Modal Form thêm địa điểm -->
-    <div id="form-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-[1001]">
-        <div class="relative top-10 mx-auto p-4 w-full max-w-sm shadow-lg rounded-md bg-white">
-            <div class="text-center">
-            <h3 class="text-base font-semibold text-gray-900 mb-3">📝 Đóng góp địa điểm</h3>
-            <form id="location-form" class="space-y-3 text-left text-sm">
-                <!-- Địa điểm -->
-                <input type="text" name="name" placeholder="📌 VD: Lô B2.14" required class="px-3 py-2 w-full border rounded bg-white text-gray-700" />
-                <input type="text" id="address-input" name="address" placeholder="📍 Địa chỉ sẽ tự động điền..." class="px-3 py-2 w-full border rounded bg-gray-100 text-gray-700" readonly />    
-                <div class="flex space-x-2">
-                <input type="number" name="priceValue" step="any" placeholder="💰 VD: 5.9" required class="px-3 py-2 w-full border rounded bg-white text-gray-700" />
-                <select name="priceUnit" class="px-2 py-2 border rounded bg-white text-gray-700 text-sm">
-                    <option value="tỷ VNĐ">tỷ VNĐ</option>
-                    <option value="triệu/m²">triệu/m²</option>
-                    <option value="triệu VNĐ">triệu VNĐ</option>
-                </select>
-                </div>
-
-                <input type="number" name="area" placeholder="📐 Diện tích (m²) VD: 100" class="px-3 py-2 w-full border rounded bg-white text-gray-700" />
-                <textarea name="notes" rows="2" placeholder="🗒 Ghi chú: Hướng Tây Bắc, mặt tiền 7m..." class="px-3 py-2 w-full border rounded bg-white text-gray-700"></textarea>
-
-                <!-- Liên hệ -->
-                <div class="pt-2 border-t">
-                <p class="text-sm font-medium text-gray-700 mb-2">📞 Thông tin liên hệ (tuỳ chọn)</p>
-                <input type="text" name="contactName" placeholder="Tên người liên hệ" class="mb-2 px-3 py-2 w-full border rounded bg-white text-gray-700" />
-                <input type="email" name="contactEmail" placeholder="Email" class="mb-2 px-3 py-2 w-full border rounded bg-white text-gray-700" />
-                <input type="tel" name="contactPhone" placeholder="Số điện thoại" class="mb-2 px-3 py-2 w-full border rounded bg-white text-gray-700" />
-                <input type="url" name="contactFacebook" placeholder="Link Facebook (https://...)" class="px-3 py-2 w-full border rounded bg-white text-gray-700" />
-                </div>
-
-                <!-- Hành động -->
-                <div class="pt-3 space-y-2">
-                <button id="submit-form-btn" type="submit" class="w-full px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-medium rounded shadow-sm">Gửi Dữ Liệu</button>
-                <button id="close-modal-btn" type="button" class="w-full px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded shadow-sm">Hủy</button>
-                </div>
-            </form>
+    <div id="auth-widget-container" class="absolute top-4 right-16 z-[1000]">
+        <button id="login-btn" title="Đăng nhập" class="w-12 h-12 bg-green-500 text-white font-bold rounded-full shadow-lg hover:bg-green-600 flex items-center justify-center text-xl transition"><i class="fas fa-sign-in-alt"></i></button>
+        <div id="user-profile-widget" class="hidden">
+            <div class="slider">
+                <div class="slide avatar-slide"><img id="user-avatar" class="w-12 h-12 rounded-full border-2 border-white cursor-pointer"></div>
+                <div class="slide logout-slide"><button id="logout-btn" title="Đăng xuất" class="w-12 h-12 flex items-center justify-center text-xl text-white"><i class="fas fa-sign-out-alt"></i></button></div>
             </div>
         </div>
     </div>
     
-    <!-- Modal Danh sách giá đất -->
     <div id="price-list-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-[1001]">
         <div class="relative top-10 mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white">
-             <div class="flex justify-between items-center border-b pb-3">
+            <div class="flex justify-between items-center border-b pb-3">
                 <h3 class="text-lg leading-6 font-medium text-gray-900">Danh sách giá đất</h3>
                 <button id="close-list-btn" class="text-black close-modal">✖</button>
             </div>
-            <div id="price-list" class="mt-4 h-96 overflow-y-auto">
-                <!-- Nội dung danh sách -->
+            <div id="price-list" class="mt-4 h-96 overflow-y-auto"></div>
+        </div>
+    </div>
+    
+    <div id="donate-modal" class="hidden fixed inset-0 bg-gray-800 bg-opacity-75 z-[2000] flex items-center justify-center p-4">
+        <div class="relative bg-white p-8 rounded-2xl shadow-xl max-w-xs w-full text-center space-y-4">
+            <button id="close-donate-modal" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <div class="text-4xl text-yellow-500">☕️</div>
+            <div>
+                <h3 class="text-xl font-bold text-gray-800">Mời tác giả một ly cafe</h3>
+                <p class="text-gray-500 mt-1 text-sm">Sự đóng góp của bạn giúp duy trì và phát triển dự án.</p>
+            </div>
+            <img src="images/qr-code.png" alt="Mã QR ủng hộ" class="mx-auto w-52 h-52 rounded-lg shadow-sm">
+            <a id="deep-link-btn" href="https://my.vietqr.io/68068793979" target="_blank" class="block w-full px-4 py-3 bg-blue-600 text-white font-bold rounded-lg shadow-lg hover:bg-blue-700 transition">Mở ứng dụng Ngân hàng</a>
+            <div class="bg-gray-50 p-3 rounded-lg">
+                <p class="font-semibold text-gray-700">HUYNH VAN DUOC</p>
+                <div class="flex items-center justify-center text-gray-500 mt-1">
+                    <span id="bank-account-number">68068793979</span><span class="font-bold mx-1">·</span><span>MB Bank</span>
+                    <button id="copy-stk-btn" title="Sao chép số tài khoản" class="ml-2 text-blue-500 hover:text-blue-700">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="text-sm">
+                <span class="text-gray-500">Người dùng quốc tế?</span>
+                <a href="https://paypal.me/huynhvanduoc?country.x=VN&locale.x=vi_VN" target="_blank" class="font-semibold text-blue-600 hover:underline">Dùng PayPal</a>
             </div>
         </div>
     </div>
+    
+    <div id="firebaseui-auth-container" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[2000] flex items-center justify-center">
+        <div id="firebaseui-widget" class="bg-white p-6 rounded shadow-lg w-full max-w-sm"></div>
+    </div>
 
-    <!-- --- BẮT ĐẦU ĐOẠN MÃ CẦN THAY THẾ --- -->
 
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <!-- Esri-Leaflet Plugin -->
-    <script src="https://unpkg.com/esri-leaflet@3.0.10/dist/esri-leaflet.js"></script>
-    <!-- Firebase SDK (Compat version - Bắt buộc cho FirebaseUI) -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script src="https://unpkg.com/esri-leaflet@3.0.10/dist/esri-leaflet.js" crossorigin=""></script>
+    <script src="https://unpkg.com/esri-leaflet-geocoder@3.1.4/dist/esri-leaflet-geocoder.js" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-    <!-- FirebaseUI -->
     <script src="https://www.gstatic.com/firebasejs/ui/4.8.1/firebase-ui-auth.js"></script>
-    <div id="firebaseui-auth-container" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[2000] flex items-center justify-center">
-    <div id="firebaseui-widget" class="bg-white p-6 rounded shadow-lg w-full max-w-sm"></div>
-
-</div>
+    
+    <script src="script.js" defer></script>
 </body>
 </html>
