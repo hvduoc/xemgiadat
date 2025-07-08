@@ -1,55 +1,130 @@
-/* General Styles */
 #map { height: 100vh; width: 100vw; }
-.leaflet-popup-content-wrapper { border-radius: 8px; }
-.map-add-mode { cursor: crosshair !important; }
+        .leaflet-popup-content-wrapper { border-radius: 8px; }
+        .leaflet-control-layers { border-radius: 5px; box-shadow: 0 1px 5px rgba(0,0,0,0.4); }
+        .map-add-mode { cursor: crosshair !important; }
+        .map-query-mode { cursor: help !important; }
+        /* Thêm đoạn này vào trong thẻ <style> */
 
-/* Controls Layout */
-.leaflet-control-geocoder.leaflet-bar { left: 10px; }
-.leaflet-top.leaflet-right .leaflet-control-layers { margin-top: 64px; }
+        /* Căn chỉnh thanh tìm kiếm cho bằng lề với các nút bên dưới */
+        .leaflet-control-geocoder.leaflet-bar {
+            left: 10px; /* Di chuyển thanh tìm kiếm sang phải một chút */
+        }
+        /* Thêm đoạn này vào trong thẻ <style> */
 
-/* Search Control UI Upgrade */
-.leaflet-control-geocoder.leaflet-bar a {
-    width: 48px; height: 48px; background-color: white; border-radius: 0.5rem;
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-    display: flex; align-items: center; justify-content: center;
-}
-.leaflet-control-geocoder.leaflet-bar a::before { font-size: 1.25rem; color: #374151; }
-.leaflet-control-geocoder-form input { width: 250px; height: 48px; border-radius: 0.5rem; padding-left: 1rem; font-size: 1rem; }
+        /* Đẩy nút chọn lớp bản đồ xuống dưới khu vực avatar */
+        .leaflet-top.leaflet-right .leaflet-control-layers {
+            margin-top: 74px; /* w-14/h-14 của avatar là 56px + 8px khoảng cách */
+        }
+        /* Thêm vào trong thẻ <style> */
+            /* Thêm đoạn này vào trong thẻ <style> */
 
-/* Auth Widget (Slider) */
-#auth-widget-container { position: absolute; top: 16px; right: 16px; z-index: 1000; }
-#user-profile-widget {
-    position: relative; width: 48px; height: 48px; border-radius: 9999px;
-    overflow: hidden; cursor: pointer; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-}
-#user-profile-widget .slider { display: flex; position: absolute; top: 0; left: 0; width: 200%; height: 100%; transition: transform 0.3s ease-in-out; }
-#user-profile-widget .slide { width: 50%; height: 100%; display: flex; align-items: center; justify-content: center; }
-#user-profile-widget .logout-slide { background-color: #ef4444; }
-#user-profile-widget.is-open .slider { transform: translateX(-50%); }
+        /* --- Nâng cấp giao diện nút tìm kiếm --- */
 
-/* Cadastral Info Popup */
-.thong-tin-dia-chinh table { width: 100%; border-collapse: collapse; }
-.thong-tin-dia-chinh td { padding: 4px 0; }
-.thong-tin-dia-chinh td:first-child { padding-right: 8px; white-space: nowrap; }
-.thong-tin-dia-chinh .actions { display: flex; justify-content: space-around; align-items: center; padding-top: 5px; }
-.thong-tin-dia-chinh .actions button { background: none; border: none; cursor: pointer; font-size: 18px; color: #555; transition: color 0.2s; }
-.thong-tin-dia-chinh .actions button:hover { color: #000; }
+        /* 1. Thay đổi kích thước và giao diện nút bấm chính */
+        .leaflet-control-geocoder.leaflet-bar a {
+            width: 48px; /* w-12 */
+            height: 48px; /* h-12 */
+            background-color: white;
+            border-radius: 0.5rem; /* rounded-lg */
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); /* shadow-lg */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-/* Dimension Label */
-.dimension-label {
-    background: rgba(255, 255, 255, 0.8); border: 1px solid #aaa; border-radius: 4px;
-    padding: 2px 5px; font-size: 12px; white-space: nowrap; text-shadow: 0 0 2px white;
-}
+        /* 2. Tăng kích thước icon kính lúp bên trong */
+        .leaflet-control-geocoder.leaflet-bar a::before {
+            font-size: 1.25rem; /* text-xl */
+            color: #374151; /* text-gray-700 */
+        }
 
-/* Yellow Marker Cluster */
-.marker-cluster-yellow { background-color: rgba(241, 211, 87, 0.6) !important; }
-.marker-cluster-yellow div { background-color: rgba(240, 194, 12, 0.6) !important; }
+        /* 3. Định dạng ô nhập liệu khi mở ra */
+        .leaflet-control-geocoder-form input {
+            width: 250px;
+            height: 48px;
+            border-radius: 0.5rem;
+            padding-left: 1rem;
+            font-size: 1rem;
+        }
 
-/* Toast Notification */
-.toast-notification {
-    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-    background-color: #2d3748; color: white; padding: 10px 20px;
-    border-radius: 9999px; z-index: 9999; opacity: 0;
-    transition: opacity 0.3s, bottom 0.3s;
-}
-.toast-notification.show { opacity: 1; bottom: 40px; }
+        /* --- CSS cho Widget trượt --- */
+        #user-profile-widget {
+            position: relative;
+            width: 48px; /* Bằng kích thước avatar w-12 */
+            height: 48px; /* Bằng kích thước avatar h-12 */
+            border-radius: 9999px; /* Bo tròn */
+            overflow: hidden; /* Quan trọng: ẩn phần bị trượt ra ngoài */
+            cursor: pointer;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        #user-profile-widget .slider {
+            display: flex;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 200%; /* Gấp đôi chiều rộng để chứa 2 slide */
+            height: 100%;
+            transition: transform 0.3s ease-in-out; /* Hiệu ứng trượt */
+        }
+
+        #user-profile-widget .slide {
+            width: 50%; /* Mỗi slide chiếm 1 nửa */
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #user-profile-widget .logout-slide {
+            background-color: #ef4444; /* Màu đỏ cho nút đăng xuất */
+        }
+
+        /* Khi widget có class 'is-open', trượt slider sang trái */
+        #user-profile-widget.is-open .slider {
+            transform: translateX(-50%);
+        }
+        /* Style cho thanh trượt dọc */
+        input[type=range][orient=vertical] {
+            writing-mode: bt-lr; /* IE */
+            -webkit-appearance: slider-vertical; /* WebKit */
+            width: 8px;
+            height: 100px;
+            padding: 0 5px;
+        }
+        /* --- CSS CHO GHIM NHÓM MÀU VÀNG --- */
+        .marker-cluster-yellow {
+            background-color: rgba(241, 211, 87, 0.6) !important; /* Màu nền vàng nhạt */
+        }
+        .marker-cluster-yellow div {
+            background-color: rgba(240, 194, 12, 0.6) !important; /* Màu nền vàng đậm hơn */
+        }
+        /* Thêm vào trong thẻ <style> */
+        .thong-tin-dia-chinh table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .thong-tin-dia-chinh td {
+            padding: 4px 0;
+        }
+        .thong-tin-dia-chinh td:first-child {
+            padding-right: 8px; /* Tạo khoảng cách giữa nhãn và giá trị */
+            white-space: nowrap;
+        }
+        .thong-tin-dia-chinh .actions {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding-top: 5px;
+        }
+        .thong-tin-dia-chinh .actions button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            color: #555;
+            transition: color 0.2s;
+        }
+        .thong-tin-dia-chinh .actions button:hover {
+            color: #000;
+        }
