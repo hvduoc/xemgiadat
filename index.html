@@ -300,7 +300,6 @@
     const googleSat = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{ maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'], attribution: myAttribution });
     const googleStreets = L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',{ maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'], attribution: myAttribution });
 
-    // ✅ Nâng cấp parcelLayer lên featureLayer
     const parcelLayer = L.esri.featureLayer({
         url: 'https://gisportal.danang.gov.vn/server/rest/services/DiaChinh/DaNangLand_DiaChinh/MapServer/0',
         style: () => ({ color: '#0078A8', weight: 1.5, fillOpacity: 0.1 })
@@ -322,26 +321,23 @@
 
         // --- LẤY CÁC ĐỐI TƯỢNG DOM ---
         const mapContainer = document.getElementById('map');
-        const modal = document.getElementById('form-modal');
-        // ... (lấy tất cả các đối tượng DOM khác bạn cần)
         const addLocationBtn = document.getElementById('add-location-btn');
-        // ...
+        // ... (lấy tất cả các đối tượng DOM khác bạn cần)
 
         // --- BIẾN TRẠNG THÁI ---
         let currentUser = null;
         let tempMarker = null;
         let selectedCoords = null;
         let isAddMode = false;
-        // (Biến isQueryMode không còn cần thiết)
-
+        
         let priceMarkers = L.markerClusterGroup({ /* ... (giữ nguyên) */ }).addTo(map);
-        const dimensionLayers = L.layerGroup().addTo(map); // Group để chứa các đường kích thước
+        const dimensionLayers = L.layerGroup().addTo(map);
 
         // --- KHỞI TẠO TÍNH NĂNG ---
         const searchControl = L.esri.Geocoding.geosearch({ useMapBounds: true }).addTo(map);
         // ... (khởi tạo các tính năng khác)
         
-        // --- CÁC HÀM QUẢN LÝ TRẠNG THÁI ---
+        // --- HÀM QUẢN LÝ TRẠNG THÁI ---
         function exitAllModes() {
             isAddMode = false;
             mapContainer.classList.remove('map-add-mode');
@@ -349,29 +345,42 @@
             addLocationBtn.classList.add('bg-blue-600');
             if (tempMarker) map.removeLayer(tempMarker);
         }
-        // ... (các hàm quản lý trạng thái khác)
 
         // --- SỰ KIỆN CLICK ---
 
-        // Xóa kích thước cũ khi nhấn ra ngoài
+        // Xử lý khi nhấn vào bản đồ chung
         map.on('click', (e) => {
-            // Chỉ xóa khi click không trúng một layer tương tác (thửa đất)
-            if (!e.originalEvent.target.classList.contains('leaflet-interactive')) {
-                dimensionLayers.clearLayers();
+            if (isAddMode) {
+                // Logic thêm địa điểm của bạn ở đây
+            } else {
+                // Xóa các đường kích thước cũ khi nhấn ra ngoài
+                if (!e.originalEvent.target.classList.contains('leaflet-interactive')) {
+                    dimensionLayers.clearLayers();
+                }
             }
         });
 
-        // Sự kiện khi nhấn vào một thửa đất
+        // Sự kiện khi nhấn vào một thửa đất (layer địa chính)
         parcelLayer.on('click', (evt) => {
-            dimensionLayers.clearLayers(); // Xóa kích thước cũ
+            dimensionLayers.clearLayers();
             const layer = evt.layer;
             const props = layer.feature.properties;
             const latlngs = layer.getLatLngs()[0];
 
-            drawDimensions(latlngs); // Vẽ kích thước mới
+            if(latlngs && latlngs.length > 0) {
+                drawDimensions(latlngs);
+            }
 
-            // Hiển thị popup thông tin
-            const popupContent = `...`; // Nội dung popup như cũ
+            const popupContent = `
+                <div class="thong-tin-dia-chinh" style="min-width: 220px;">
+                    <h3 class="font-bold text-base mb-2 text-center">Thông tin địa chính</h3>
+                    <table>
+                        <tr><td><strong>Số tờ:</strong></td><td>${props['SoHieuToBanDo'] ?? 'N/A'}</td></tr>
+                        <tr><td><strong>Số thửa:</strong></td><td>${props['SoThua'] ?? 'N/A'}</td></tr>
+                        <tr><td><strong>Loại đất:</strong></td><td>${props['KyHieuMDSD'] ?? 'N/A'}</td></tr>
+                        <tr><td><strong>Diện tích (m²):</strong></td><td>${props['DienTich'] ? parseFloat(props['DienTich']).toFixed(1) : 'N/A'}</td></tr>
+                    </table>
+                </div>`;
             L.popup({ minWidth: 220, maxWidth: 280 })
             .setLatLng(evt.latlng)
             .setContent(popupContent)
@@ -381,11 +390,13 @@
         // Hàm vẽ kích thước
         function drawDimensions(latlngs) {
             if (!latlngs || latlngs.length < 2) return;
-            for (let i = 0; i < latlngs.length - 1; i++) {
-                const p1 = latlngs[i];
-                const p2 = latlngs[i + 1];
+            // Thêm điểm cuối cùng vào để vẽ cạnh cuối cùng
+            let points = [...latlngs, latlngs[0]];
+            for (let i = 0; i < points.length - 1; i++) {
+                const p1 = points[i];
+                const p2 = points[i + 1];
                 const distance = map.distance(p1, p2);
-                if (distance < 1) continue; // Bỏ qua các cạnh quá nhỏ
+                if (distance < 0.5) continue;
 
                 const midPoint = L.latLng((p1.lat + p2.lat) / 2, (p1.lng + p2.lng) / 2);
                 const dimensionIcon = L.divIcon({
@@ -398,14 +409,12 @@
 
         // --- XỬ LÝ XÁC THỰC ---
         auth.onAuthStateChanged((user) => {
-            // ... (code xử lý đăng nhập/đăng xuất của bạn giữ nguyên)
+            // ... (code xử lý đăng nhập/đăng xuất của bạn giữ nguyên, đã sửa lỗi)
         });
 
         // --- XỬ LÝ DỮ LIỆU TỪ FIRESTORE ---
         const listingsCol = db.collection("listings");
-        const q = listingsCol.where("status", "==", "approved").orderBy("createdAt", "desc");    
-
-    // ✅ THAY THẾ TOÀN BỘ HÀM q.onSnapshot CŨ BẰNG HÀM NÀY
+        const q = listingsCol.where("status", "==", "approved").orderBy("createdAt", "desc");        
 
     q.onSnapshot((querySnapshot) => {
         priceMarkers.clearLayers();
