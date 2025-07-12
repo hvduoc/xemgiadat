@@ -48,4 +48,16 @@
         .thong-tin-dia-chinh .actions button:hover {
             color: #000;
         }
-    
+        .fab-item {
+        background-color: white;
+        color: #333;
+        font-weight: 500;
+        padding: 8px 12px;
+        border-radius: 6px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        font-size: 14px;
+        transition: all 0.2s;
+        }
+        .fab-item:hover {
+        background-color: #f0f0f0;
+        }

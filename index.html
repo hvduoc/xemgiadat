@@ -235,5 +235,27 @@
   </script>
   <script src="script.js">
   </script>
+    <!-- Floating Button Menu -->
+    <div id="fab-menu" class="fixed bottom-6 right-4 z-[1000] flex flex-col items-end space-y-2">
+    <button id="fab-toggle" class="bg-blue-600 hover:bg-blue-700 text-white rounded-full w-14 h-14 shadow-lg flex items-center justify-center text-2xl">
+        <i class="fas fa-plus"></i>
+    </button>
+
+    <div id="fab-actions" class="hidden flex flex-col items-end space-y-2">
+        <button id="list-btn" class="fab-item opacity-50 cursor-not-allowed" disabled>📄 Danh sách</button>
+        <button id="add-location-btn" class="fab-item opacity-50 cursor-not-allowed" disabled>➕ Thêm địa điểm</button>
+        <button id="query-btn" class="fab-item opacity-50 cursor-not-allowed" disabled>📍 Tra cứu</button>
+        <button id="donate-btn" class="fab-item">☕ Ủng hộ</button>
+    </div>
+    </div>
+
+    <!-- Nút đăng nhập / hồ sơ -->
+    <button id="login-btn" class="fixed top-4 right-4 z-[1000] bg-green-500 text-white px-4 py-2 rounded-full shadow hover:bg-green-600">Đăng nhập</button>
+    <div id="user-profile" class="fixed top-4 right-4 z-[1000] hidden items-center bg-white px-3 py-1 rounded-full shadow space-x-2">
+    <img id="user-avatar" class="w-8 h-8 rounded-full">
+    <span id="user-name" class="text-sm font-semibold text-gray-700"></span>
+    <button id="logout-btn" class="text-sm text-red-500 hover:underline">Thoát</button>
+    </div>
+
  </body>
 </html>

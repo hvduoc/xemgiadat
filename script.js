@@ -63,13 +63,23 @@ L.control.layers(baseMaps, overlayMaps, { position: 'topright' }).addTo(map);
 // --- TOÀN BỘ LOGIC CỦA ỨNG DỤNG SẼ NẰM TRONG DOMCONTENTLOADED ---
 document.addEventListener('DOMContentLoaded', () => {
 
+    // Toggle FAB menu
+    const fabToggle = document.getElementById("fab-toggle");
+    const fabActions = document.getElementById("fab-actions");
+
+    fabToggle.addEventListener("click", () => {
+    fabActions.classList.toggle("hidden");
+    });
+
     // --- Lấy các đối tượng DOM ---
     const mapContainer = document.getElementById('map');
     const modal = document.getElementById('form-modal');
     const listModal = document.getElementById('price-list-modal');
+    
     const addLocationBtn = document.getElementById('add-location-btn');
     const listBtn = document.getElementById('list-btn');
     const queryBtn = document.getElementById('query-btn');
+
     const closeModalBtn = document.getElementById('close-modal-btn');
     const closeListBtn = document.getElementById('close-list-btn');
     const form = document.getElementById('location-form');
@@ -82,6 +92,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginBtn = document.getElementById('login-btn');
     const logoutBtn = document.getElementById('logout-btn');
     const userProfileDiv = document.getElementById('user-profile');
+    const userNameSpan = document.getElementById('user-name');
+    const userAvatarImg = document.getElementById('user-avatar');    
     const firebaseuiContainer = document.getElementById('firebaseui-auth-container');
     const ui = new firebaseui.auth.AuthUI(auth);
 
@@ -305,34 +317,31 @@ document.addEventListener('DOMContentLoaded', () => {
     }); // Dấu ngoặc đóng đúng của hàm map.on('click')
 
     // --- LOGIC XÁC THỰC FIREBASE ---
-    auth.onAuthStateChanged((user) => {
-        if (user) {
-            currentUser = user;
-            firebaseuiContainer.classList.add('hidden');
-            loginBtn.classList.add('hidden');
-            userProfileDiv.classList.remove('hidden');
-            userProfileDiv.classList.add('flex');
+        auth.onAuthStateChanged((user) => {
+    if (user) {
+        currentUser = user;
+        loginBtn.classList.add('hidden');
+        userProfileDiv.classList.remove('hidden');
 
-            document.getElementById('user-name').textContent = user.displayName || 'Người dùng mới';
-            document.getElementById('user-avatar').src = user.photoURL || 'https://placehold.co/32x32/e2e8f0/64748b?text=A';
+        userNameSpan.textContent = user.displayName || 'Người dùng mới';
+        userAvatarImg.src = user.photoURL || 'https://placehold.co/32x32/e2e8f0/64748b?text=A';
 
-            [addLocationBtn, listBtn, queryBtn].forEach(btn => {
-                btn.disabled = false;
-                btn.classList.remove('opacity-50', 'cursor-not-allowed');
-            });
-        } else {
-            currentUser = null;
-            loginBtn.classList.remove('hidden');
-            userProfileDiv.classList.add('hidden');
-            userProfileDiv.classList.remove('flex');
-            exitAllModes();
-            
-            [addLocationBtn, listBtn, queryBtn].forEach(btn => {
-                btn.disabled = true;
-                btn.classList.add('opacity-50', 'cursor-not-allowed');
-            });
-        }
+        [addLocationBtn, listBtn, queryBtn].forEach(btn => {
+        btn.disabled = false;
+        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+        });
+    } else {
+        currentUser = null;
+        loginBtn.classList.remove('hidden');
+        userProfileDiv.classList.add('hidden');
+
+        [addLocationBtn, listBtn, queryBtn].forEach(btn => {
+        btn.disabled = true;
+        btn.classList.add('opacity-50', 'cursor-not-allowed');
+        });
+    }
     });
+
 
     loginBtn.addEventListener('click', () => {
         if (ui.isPendingRedirect()) return;
