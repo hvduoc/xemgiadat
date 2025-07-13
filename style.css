@@ -1,63 +1,69 @@
+/* General Layout */
+#map { 
+    height: 100vh;
+    width: 100vw; [cite_start]/* [cite: 3] */
+}
 
-        #map { height: 100vh; width: 100vw; }
-        .leaflet-popup-content-wrapper { border-radius: 8px; }
-        .leaflet-control-layers { border-radius: 5px; box-shadow: 0 1px 5px rgba(0,0,0,0.4); }
-        .map-add-mode { cursor: crosshair !important; }
-        .map-query-mode { cursor: help !important; }
-        /* Style cho thanh trượt dọc */
-        input[type=range][orient=vertical] {
-            writing-mode: bt-lr; /* IE */
-            -webkit-appearance: slider-vertical; /* WebKit */
-            width: 8px;
-            height: 100px;
-            padding: 0 5px;
-        }
-        /* --- CSS CHO GHIM NHÓM MÀU VÀNG --- */
-        .marker-cluster-yellow {
-            background-color: rgba(241, 211, 87, 0.6) !important; /* Màu nền vàng nhạt */
-        }
-        .marker-cluster-yellow div {
-            background-color: rgba(240, 194, 12, 0.6) !important; /* Màu nền vàng đậm hơn */
-        }
-        /* Thêm vào trong thẻ <style> */
-        .thong-tin-dia-chinh table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .thong-tin-dia-chinh td {
-            padding: 4px 0;
-        }
-        .thong-tin-dia-chinh td:first-child {
-            padding-right: 10px; /* Tạo khoảng cách giữa nhãn và giá trị */
-            white-space: nowrap;
-        }
-        .thong-tin-dia-chinh .actions {
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            padding-top: 5px;
-        }
-        .thong-tin-dia-chinh .actions button {
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 18px;
-            color: #555;
-            transition: color 0.2s;
-        }
-        .thong-tin-dia-chinh .actions button:hover {
-            color: #000;
-        }
-        .fab-item {
-        background-color: white;
-        color: #333;
-        font-weight: 500;
-        padding: 8px 12px;
-        border-radius: 6px;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-        font-size: 14px;
-        transition: all 0.2s;
-        }
-        .fab-item:hover {
-        background-color: #f0f0f0;
-        }
+/* Leaflet Customizations */
+.leaflet-popup-content-wrapper { 
+    border-radius: 8px; [cite_start]/* [cite: 4] */
+}
+.leaflet-control-layers { 
+    border-radius: 5px; [cite_start]/* [cite: 5] */
+    box-shadow: 0 1px 5px rgba(0,0,0,0.4); [cite_start]/* [cite: 5] */
+}
+
+/* Map Interaction Modes */
+.map-add-mode { 
+    cursor: crosshair !important; [cite_start]/* [cite: 6] */
+}
+.map-query-mode { 
+    cursor: help !important; [cite_start]/* [cite: 7] */
+}
+
+/* Vertical Slider Styles */
+input[type=range][orient=vertical] {
+    writing-mode: bt-lr; [cite_start]/* [cite: 8] */
+    -webkit-appearance: slider-vertical; [cite_start]/* [cite: 9] */
+    width: 8px;
+    height: 100px;
+    padding: 0 5px; [cite_start]/* [cite: 10] */
+}
+
+/* Custom Marker Cluster Styles */
+.marker-cluster-yellow {
+    background-color: rgba(241, 211, 87, 0.6) !important; [cite_start]/* [cite: 11] */
+}
+.marker-cluster-yellow div {
+    background-color: rgba(240, 194, 12, 0.6) !important; [cite_start]/* [cite: 12] */
+}
+
+/* Cadastral Info Popup Styles */
+.thong-tin-dia-chinh table {
+    width: 100%; [cite_start]/* [cite: 13] */
+    border-collapse: collapse; [cite_start]/* [cite: 13] */
+}
+.thong-tin-dia-chinh td {
+    padding: 4px 0; [cite_start]/* [cite: 14] */
+}
+.thong-tin-dia-chinh td:first-child {
+    padding-right: 10px; [cite_start]/* [cite: 15] */
+    white-space: nowrap; [cite_start]/* [cite: 16] */
+}
+.thong-tin-dia-chinh .actions {
+    display: flex; [cite_start]/* [cite: 17] */
+    justify-content: space-around; [cite_start]/* [cite: 17] */
+    align-items: center;
+    padding-top: 5px;
+}
+.thong-tin-dia-chinh .actions button {
+    background: none; [cite_start]/* [cite: 18] */
+    border: none; [cite_start]/* [cite: 18] */
+    cursor: pointer;
+    font-size: 18px;
+    color: #555;
+    transition: color 0.2s; [cite_start]/* [cite: 19] */
+}
+.thong-tin-dia-chinh .actions button:hover {
+    color: #000; [cite_start]/* [cite: 20] */
+}
