@@ -311,10 +311,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         } 
-        else if (isQueryMode) {
-            if (!currentUser) { alert("Vui lòng đăng nhập để tra cứu địa chính!"); exitAllModes(); return; }
+        else if (isQueryMode) {            
             parcelLayer.identify().on(map).at(e.latlng).run((error, featureCollection) => {
-                exitAllModes();
+                
                 if (error || featureCollection.features.length === 0) { return; } 
                 else {
                     const feature = featureCollection.features[0];
