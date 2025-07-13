@@ -339,24 +339,49 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (error || featureCollection.features.length === 0) {
                     L.popup().setLatLng(e.latlng).setContent('Không tìm thấy thông tin địa chính tại vị trí này.').openOn(map);
                 } else {
+                    // Thay thế đoạn mã tạo popupContent cũ bằng đoạn này
                     const props = featureCollection.features[0].properties;
                     const lat = e.latlng.lat.toFixed(6);
                     const lng = e.latlng.lng.toFixed(6);
+
+                    // Chuẩn bị dữ liệu để truyền vào hàm chia sẻ
+                    const soTo = props['Số hiệu tờ bản đồ'] ?? 'N/A';
+                    const soThua = props['Số thửa'] ?? 'N/A';
+                    const diaChi = (props['Địa chỉ'] && props['Địa chỉ'] !== 'Null') ? props['Địa chỉ'] : '';
+
                     const popupContent = `
-                        <div class="thong-tin-dia-chinh">
-                            <h3 class="font-bold text-base mb-2 text-center">Thông tin địa chính</h3>
-                            <table>
-                                <tr><td><strong>Số tờ:</strong></td><td>${props['Số hiệu tờ bản đồ'] ?? 'N/A'}</td></tr>
-                                <tr><td><strong>Số thửa:</strong></td><td>${props['Số thửa'] ?? 'N/A'}</td></tr>
-                                <tr><td><strong>Loại đất:</strong></td><td>${props['Ký hiệu mục đích sử dụng'] ?? 'N/A'}</td></tr>
-                                <tr><td><strong>Diện tích:</strong></td><td>${props['Diện tích'] ? parseFloat(props['Diện tích']).toFixed(1) + ' m²' : 'N/A'}</td></tr>
-                                <tr><td><strong>Địa chỉ:</strong></td><td>${props['Địa chỉ'] && props['Địa chỉ'] !== 'Null' ? props['Địa chỉ'] : 'N/A'}</td></tr>
-                            </table>
-                            <hr class="my-2">
-                            <div class="actions">
-                                <button onclick="toggleLike(this)" title="Yêu thích"><i class="far fa-heart"></i></button>
-                                <button onclick="shareOnFacebook(${lat}, ${lng})" title="Chia sẻ Facebook"><i class="fas fa-share-alt"></i></button>
-                                <button onclick="copyLocationLink(${lat}, ${lng})" title="Sao chép liên kết"><i class="fas fa-link"></i></button>
+                        <div class="w-64 p-1 font-sans">
+                            <div class="p-3 bg-white rounded-lg shadow-md">
+                                <h3 class="text-base font-bold text-gray-800 text-center mb-3 border-b pb-2">Thông tin Thửa đất</h3>
+
+                                <div class="space-y-2 text-sm text-gray-700">
+                                    <div class="flex justify-between"><span>Số tờ:</span><span class="font-semibold">${soTo}</span></div>
+                                    <div class="flex justify-between"><span>Số thửa:</span><span class="font-semibold">${soThua}</span></div>
+                                    <div class="flex justify-between"><span>Loại đất:</span><span class="font-semibold bg-gray-100 px-2 rounded-full text-blue-600">${props['Ký hiệu mục đích sử dụng'] ?? 'N/A'}</span></div>
+                                    <div class="flex justify-between"><span>Diện tích:</span><span class="font-semibold">${props['Diện tích'] ? parseFloat(props['Diện tích']).toFixed(1) : 'N/A'} m²</span></div>
+                                    <div class="flex justify-between items-start"><span class="flex-shrink-0 mr-2">Địa chỉ:</span><span class="font-semibold text-right">${diaChi}</span></div>
+                                </div>
+
+                                <div class="mt-4 pt-3 border-t grid grid-cols-3 gap-2 text-center text-gray-600">
+                                    <div>
+                                        <button onclick="toggleLike(this)" class="w-full text-center p-1 rounded-lg hover:bg-gray-100">
+                                            <i class="far fa-heart text-xl text-red-500"></i>
+                                            <span class="block text-xs mt-1">Thích</span>
+                                        </button>
+                                    </div>
+                                    <div>
+                                        <button onclick="copyLocationLink(${lat}, ${lng})" class="w-full text-center p-1 rounded-lg hover:bg-gray-100">
+                                            <i class="fas fa-link text-xl text-gray-500"></i>
+                                            <span class="block text-xs mt-1">Sao chép</span>
+                                        </button>
+                                    </div>
+                                    <div>
+                                        <button onclick="shareOnFacebook(${lat}, ${lng}, '${soTo}', '${soThua}')" class="w-full text-center p-1 rounded-lg hover:bg-gray-100">
+                                            <i class="fab fa-facebook-f text-xl text-blue-600"></i>
+                                            <span class="block text-xs mt-1">Chia sẻ</span>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     `;
