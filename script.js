@@ -311,9 +311,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         } 
-        else if (isQueryMode) {            
+        else if (isQueryMode) {
+            // Không cần kiểm tra đăng nhập cho chế độ tra cứu
             parcelLayer.identify().on(map).at(e.latlng).run((error, featureCollection) => {
-                
+                exitAllModes();
                 if (error || featureCollection.features.length === 0) { return; } 
                 else {
                     const feature = featureCollection.features[0];
@@ -350,16 +351,18 @@ document.addEventListener('DOMContentLoaded', () => {
     map.on('overlayadd', e => { if (e.layer === parcelLayer) opacityControl.classList.remove('hidden'); });
     map.on('overlayremove', e => { if (e.layer === parcelLayer) opacityControl.classList.add('hidden'); });
     if (map.hasLayer(parcelLayer)) { opacityControl.classList.remove('hidden'); } else { opacityControl.classList.add('hidden'); }
+    
     donateBtn.addEventListener('click', () => donateModal.classList.remove('hidden'));
     closeDonateModalBtn.addEventListener('click', () => donateModal.classList.add('hidden'));
     donateModal.addEventListener('click', (e) => { if (e.target === donateModal) donateModal.classList.add('hidden'); });
     copyBtn.addEventListener('click', () => { navigator.clipboard.writeText(accountNumber).then(() => { const originalIcon = copyBtn.innerHTML; copyBtn.innerHTML = '<svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>'; setTimeout(() => { copyBtn.innerHTML = originalIcon; }, 1500); }).catch(err => console.error('Không thể sao chép: ', err)); });
+    
     fabMainBtn.addEventListener('click', () => {
         fabActions.classList.toggle('hidden');
         fabMainBtn.querySelector('i').classList.toggle('fa-bars');
         fabMainBtn.querySelector('i').classList.toggle('fa-xmark');
     });
-    addLocationBtn.addEventListener('click', () => { if (!currentUser) return; isAddMode ? exitAllModes() : enterAddMode(); });
+    addLocationBtn.addEventListener('click', () => { if (!currentUser) { alert("Vui lòng đăng nhập để thêm địa điểm!"); return; } isAddMode ? exitAllModes() : enterAddMode(); });
     queryBtn.addEventListener('click', () => { isQueryMode ? exitAllModes() : enterQueryMode(); });
     listBtn.addEventListener('click', () => listModal.classList.remove('hidden'));
     document.getElementById('close-list-btn').addEventListener('click', () => listModal.classList.add('hidden'));
