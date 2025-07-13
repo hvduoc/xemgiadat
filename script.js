@@ -298,7 +298,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 lng: selectedCoords.lng,
                 priceValue: parseFloat(data.priceValue),
                 area: data.area ? parseFloat(data.area) : null,
-                status: 'pending',
+                status: 'approved',
                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                 name: data.name, priceUnit: data.priceUnit,
                 notes: data.notes || '',
