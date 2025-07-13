@@ -265,45 +265,109 @@ document.addEventListener('DOMContentLoaded', () => {
         searchInput.value = '';
     });
     
-    map.on('click', function(e) {
-        searchResultsContainer.classList.add('hidden');
-        if (highlightedParcel) {
-            map.removeLayer(highlightedParcel);
-            highlightedParcel = null;
-        }
+    // --- THAY THẾ TOÀN BỘ HÀM map.on('click',...) CŨ BẰNG HÀM NÀY ---
+map.on('click', function(e) {
+    // Luôn ẩn kết quả tìm kiếm và xóa highlight cũ khi click ra bản đồ
+    searchResultsContainer.classList.add('hidden');
+    if (highlightedParcel) {
+        map.removeLayer(highlightedParcel);
+        highlightedParcel = null;
+    }
 
-        if (isAddMode) {
-            if (!currentUser) { alert("Vui lòng đăng nhập để thêm địa điểm!"); exitAllModes(); return; }
-            selectedCoords = e.latlng;
-            tempMarker = L.marker(selectedCoords).addTo(map);
-            modal.classList.remove('hidden');
-            const geocodeService = L.esri.Geocoding.geocodeService();
-            geocodeService.reverse().latlng(selectedCoords).run(function (error, result) {
-                if (error || !result.address) {
-                    document.getElementById('address-input').value = 'Không tìm thấy địa chỉ';
-                } else {
-                    document.getElementById('address-input').value = result.address.Match_addr;
+    // Logic cho chế độ Thêm địa điểm (giữ nguyên)
+    if (isAddMode) {
+        if (!currentUser) { alert("Vui lòng đăng nhập để thêm địa điểm!"); exitAllModes(); return; }
+        selectedCoords = e.latlng;
+        tempMarker = L.marker(selectedCoords).addTo(map);
+        modal.classList.remove('hidden');
+        
+        const geocodeService = L.esri.Geocoding.geocodeService(); 
+        geocodeService.reverse().latlng(selectedCoords).run(function (error, result) {
+            if (error || !result.address) {
+                document.getElementById('address-input').value = 'Không tìm thấy địa chỉ';
+            } else {
+                document.getElementById('address-input').value = result.address.Match_addr;
+            }
+        });
+    } 
+    // Logic cho chế độ Tra cứu địa chính (đã nâng cấp)
+    else if (isQueryMode) {
+        if (!currentUser) { alert("Vui lòng đăng nhập để tra cứu địa chính!"); exitAllModes(); return; }
+        L.popup().setLatLng(e.latlng).setContent('<p>Đang tìm kiếm thông tin thửa đất...</p>').openOn(map);
+        
+        parcelLayer.identify().on(map).at(e.latlng).run((error, featureCollection) => {
+            exitAllModes();
+            if (error || featureCollection.features.length === 0) {
+                L.popup().setLatLng(e.latlng).setContent('Không tìm thấy thông tin địa chính tại vị trí này.').openOn(map);
+            } else {
+                const feature = featureCollection.features[0];
+                const props = feature.properties;
+
+                // --- BƯỚC 1: VẼ HIGHLIGHT LÊN THỬA ĐẤT ---
+                highlightedParcel = L.geoJSON(feature.geometry, {
+                    style: {
+                        color: '#ff00ff', // Màu tím nổi bật
+                        weight: 4,
+                        opacity: 0.8,
+                        fillOpacity: 0.2
+                    }
+                }).addTo(map);
+
+                // --- BƯỚC 2: TÍNH TOÁN KÍCH THƯỚC CÁC CẠNH ---
+                let dimensionsText = 'Không thể tính';
+                const coords = feature.geometry.coordinates[0]; // Lấy mảng tọa độ
+                if (coords.length > 2) {
+                    const sideLengths = [];
+                    // Lặp qua từng cặp điểm để tính khoảng cách
+                    for (let i = 0; i < coords.length - 1; i++) {
+                        const point1 = L.latLng(coords[i][1], coords[i][0]);
+                        const point2 = L.latLng(coords[i+1][1], coords[i+1][0]);
+                        const distance = point1.distanceTo(point2);
+                        sideLengths.push(distance.toFixed(1) + 'm');
+                    }
+                    dimensionsText = sideLengths.join(' - ');
                 }
-            });
-        } 
-        else if (isQueryMode) {
-            if (!currentUser) { alert("Vui lòng đăng nhập để tra cứu địa chính!"); exitAllModes(); return; }
-            L.popup().setLatLng(e.latlng).setContent('<p>Đang tìm kiếm thông tin thửa đất...</p>').openOn(map);
-            parcelLayer.identify().on(map).at(e.latlng).run((error, featureCollection) => {
-                exitAllModes();
-                if (error || featureCollection.features.length === 0) {
-                    L.popup().setLatLng(e.latlng).setContent('Không tìm thấy thông tin địa chính tại vị trí này.').openOn(map);
-                } else {
-                    const props = featureCollection.features[0].properties;
-                    const lat = e.latlng.lat.toFixed(6), lng = e.latlng.lng.toFixed(6);
-                    const soTo = props['Số hiệu tờ bản đồ'] ?? 'N/A', soThua = props['Số thửa'] ?? 'N/A';
-                    const diaChi = (props['Địa chỉ'] && props['Địa chỉ'] !== 'Null') ? props['Địa chỉ'] : '';
-                    const popupContent = `<div class="w-64 p-1 font-sans"><div class="p-3 bg-white rounded-lg shadow-md"><h3 class="text-base font-bold text-gray-800 text-center mb-3 border-b pb-2">Thông tin Thửa đất</h3><div class="space-y-2 text-sm text-gray-700"><div class="flex justify-between"><span>Số tờ:</span><span class="font-semibold">${soTo}</span></div><div class="flex justify-between"><span>Số thửa:</span><span class="font-semibold">${soThua}</span></div><div class="flex justify-between"><span>Loại đất:</span><span class="font-semibold bg-gray-100 px-2 rounded-full text-blue-600">${props['Ký hiệu mục đích sử dụng'] ?? 'N/A'}</span></div><div class="flex justify-between"><span>Diện tích:</span><span class="font-semibold">${props['Diện tích'] ? parseFloat(props['Diện tích']).toFixed(1) : 'N/A'} m²</span></div><div class="flex justify-between items-start"><span class="flex-shrink-0 mr-2">Địa chỉ:</span><span class="font-semibold text-right">${diaChi}</span></div></div><div class="mt-4 pt-3 border-t grid grid-cols-3 gap-2 text-center text-gray-600"><div><button onclick="toggleLike(this)" class="w-full text-center p-1 rounded-lg hover:bg-gray-100"><i class="far fa-heart text-xl text-red-500"></i><span class="block text-xs mt-1">Thích</span></button></div><div><button onclick="copyLocationLink(${lat}, ${lng})" class="w-full text-center p-1 rounded-lg hover:bg-gray-100"><i class="fas fa-link text-xl text-gray-500"></i><span class="block text-xs mt-1">Sao chép</span></button></div><div><button onclick="shareOnFacebook(${lat}, ${lng}, '${soTo}', '${soThua}')" class="w-full text-center p-1 rounded-lg hover:bg-gray-100"><i class="fab fa-facebook-f text-xl text-blue-600"></i><span class="block text-xs mt-1">Chia sẻ</span></button></div></div></div></div>`;
-                    L.popup({ minWidth: 280, closeButton: true }).setLatLng(e.latlng).setContent(popupContent).openOn(map);
-                }
-            });
-        }
-    });
+
+                // --- BƯỚC 3: HIỂN THỊ KẾT QUẢ TRONG POPUP ---
+                const lat = e.latlng.lat.toFixed(6), lng = e.latlng.lng.toFixed(6);
+                const soTo = props['Số hiệu tờ bản đồ'] ?? 'N/A', soThua = props['Số thửa'] ?? 'N/A';
+                const diaChi = (props['Địa chỉ'] && props['Địa chỉ'] !== 'Null') ? props['Địa chỉ'] : '';
+                
+                const popupContent = `
+                    <div class="w-64 p-1 font-sans">
+                        <div class="p-3 bg-white rounded-lg shadow-md">
+                            <h3 class="text-base font-bold text-gray-800 text-center mb-3 border-b pb-2">Thông tin Thửa đất</h3>
+                            <div class="space-y-2 text-sm text-gray-700">
+                                <div class="flex justify-between"><span>Số tờ:</span><span class="font-semibold">${soTo}</span></div>
+                                <div class="flex justify-between"><span>Số thửa:</span><span class="font-semibold">${soThua}</span></div>
+                                <div class="flex justify-between"><span>Loại đất:</span><span class="font-semibold bg-gray-100 px-2 rounded-full text-blue-600">${props['Ký hiệu mục đích sử dụng'] ?? 'N/A'}</span></div>
+                                <div class="flex justify-between"><span>Diện tích:</span><span class="font-semibold">${props['Diện tích'] ? parseFloat(props['Diện tích']).toFixed(1) : 'N/A'} m²</span></div>
+                                <div class="flex justify-between items-start"><span class="flex-shrink-0 mr-2">Địa chỉ:</span><span class="font-semibold text-right">${diaChi}</span></div>
+                                <div class="flex justify-between items-start pt-1 border-t mt-1"><span class="flex-shrink-0 mr-2">Kích thước:</span><span class="font-semibold text-right text-xs">${dimensionsText}</span></div>
+                            </div>
+                            <div class="mt-4 pt-3 border-t grid grid-cols-3 gap-2 text-center text-gray-600">
+                                <div><button onclick="toggleLike(this)" class="w-full text-center p-1 rounded-lg hover:bg-gray-100"><i class="far fa-heart text-xl text-red-500"></i><span class="block text-xs mt-1">Thích</span></button></div>
+                                <div><button onclick="copyLocationLink(${lat}, ${lng})" class="w-full text-center p-1 rounded-lg hover:bg-gray-100"><i class="fas fa-link text-xl text-gray-500"></i><span class="block text-xs mt-1">Sao chép</span></button></div>
+                                <div><button onclick="shareOnFacebook(${lat}, ${lng}, '${soTo}', '${soThua}')" class="w-full text-center p-1 rounded-lg hover:bg-gray-100"><i class="fab fa-facebook-f text-xl text-blue-600"></i><span class="block text-xs mt-1">Chia sẻ</span></button></div>
+                            </div>
+                        </div>
+                    </div>`;
+                
+                const popup = L.popup({ minWidth: 280, closeButton: true })
+                    .setLatLng(e.latlng)
+                    .setContent(popupContent)
+                    // Xóa lớp highlight khi popup được đóng
+                    .on('remove', function() {
+                        if (highlightedParcel) {
+                            map.removeLayer(highlightedParcel);
+                            highlightedParcel = null;
+                        }
+                    })
+                    .openOn(map);
+            }
+        });
+    }
+});
 
     opacitySlider.addEventListener('input', (e) => parcelLayer.setOpacity(e.target.value));
     map.on('overlayadd', e => { if (e.layer === parcelLayer) opacityControl.classList.remove('hidden'); });
