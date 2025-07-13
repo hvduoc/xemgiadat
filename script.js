@@ -129,6 +129,56 @@ document.addEventListener('DOMContentLoaded', () => {
         dimensionMarkers.clearLayers();
         highlightedParcel = null;
     }
+
+    function performCadastralQuery(latlng) {
+        hideInfoPanel();
+        L.popup().setLatLng(latlng).setContent('<p>Đang tìm kiếm thông tin thửa đất...</p>').openOn(map);
+        parcelLayer.identify().on(map).at(latlng).run((error, featureCollection) => {
+            map.closePopup();
+            if (error || featureCollection.features.length === 0) {
+                L.popup().setLatLng(latlng).setContent('Không tìm thấy thông tin địa chính tại vị trí này.').openOn(map);
+            } else {
+                const feature = featureCollection.features[0];
+                const props = feature.properties;
+                const lat = latlng.lat.toFixed(6), lng = latlng.lng.toFixed(6);
+                
+                const outlineStyle = { color: '#4A5568', weight: 5, opacity: 0.7 };
+                const fillStyle = { color: '#FFD700', weight: 3, opacity: 1 };
+                const outlineLayer = L.geoJSON(feature.geometry, { style: outlineStyle });
+                const fillLayer = L.geoJSON(feature.geometry, { style: fillStyle });
+                highlightedParcel = L.layerGroup([outlineLayer, fillLayer]).addTo(map);
+
+                dimensionMarkers.clearLayers();
+                const coords = feature.geometry.coordinates[0];
+                if (coords.length > 2) {
+                    for (let i = 0; i < coords.length - 1; i++) {
+                        const p1 = coords[i], p2 = coords[i+1];
+                        const point1 = L.latLng(p1[1], p1[0]), point2 = L.latLng(p2[1], p2[0]);
+                        const distance = point1.distanceTo(point2);
+                        const midPoint = L.latLng((point1.lat + point2.lat) / 2, (point1.lng + point2.lng) / 2);
+                        const angle = Math.atan2(p2[1] - p1[1], p2[0] - p1[0]) * 180 / Math.PI;
+                        const displayDistance = Math.round(distance * 10) / 10;
+                        const dimensionLabel = L.marker(midPoint, { icon: L.divIcon({ className: 'dimension-label-container', html: `<div class="dimension-label" style="transform: rotate(${angle}deg);">${displayDistance}</div>` }) });
+                        dimensionMarkers.addLayer(dimensionLabel);
+                    }
+                    dimensionMarkers.addTo(map);
+                }
+                showInfoPanel('Thông tin Thửa đất', props, lat, lng);
+            }
+        });
+    }
+    
+    function handleUrlParameters() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const lat = urlParams.get('lat');
+        const lng = urlParams.get('lng');
+        if (lat && lng) {
+            const targetLatLng = L.latLng(parseFloat(lat), parseFloat(lng));
+            map.setView(targetLatLng, 19);
+            setTimeout(() => { performCadastralQuery(targetLatLng); }, 1000);
+        }
+    }
+
     function enterAddMode() {
         exitAllModes();
         isAddMode = true;
@@ -304,46 +354,12 @@ document.addEventListener('DOMContentLoaded', () => {
             modal.classList.remove('hidden');
             const geocodeService = L.esri.Geocoding.geocodeService();
             geocodeService.reverse().latlng(selectedCoords).run(function (error, result) {
-                if (error || !result.address) {
-                    document.getElementById('address-input').value = 'Không tìm thấy địa chỉ';
-                } else {
-                    document.getElementById('address-input').value = result.address.Match_addr;
-                }
+                if (error || !result.address) { document.getElementById('address-input').value = 'Không tìm thấy địa chỉ';
+                } else { document.getElementById('address-input').value = result.address.Match_addr; }
             });
         } 
         else if (isQueryMode) {
-            // Không cần kiểm tra đăng nhập cho chế độ tra cứu
-            parcelLayer.identify().on(map).at(e.latlng).run((error, featureCollection) => {
-                exitAllModes();
-                if (error || featureCollection.features.length === 0) { return; } 
-                else {
-                    const feature = featureCollection.features[0];
-                    const props = feature.properties;
-                    const lat = e.latlng.lat.toFixed(6), lng = e.latlng.lng.toFixed(6);
-                    if (highlightedParcel) map.removeLayer(highlightedParcel);
-                    const outlineStyle = { color: '#4A5568', weight: 5, opacity: 0.7 };
-                    const fillStyle = { color: '#FFD700', weight: 3, opacity: 1 };
-                    const outlineLayer = L.geoJSON(feature.geometry, { style: outlineStyle });
-                    const fillLayer = L.geoJSON(feature.geometry, { style: fillStyle });
-                    highlightedParcel = L.layerGroup([outlineLayer, fillLayer]).addTo(map);
-                    dimensionMarkers.clearLayers();
-                    const coords = feature.geometry.coordinates[0];
-                    if (coords.length > 2) {
-                        for (let i = 0; i < coords.length - 1; i++) {
-                            const p1 = coords[i], p2 = coords[i+1];
-                            const point1 = L.latLng(p1[1], p1[0]), point2 = L.latLng(p2[1], p2[0]);
-                            const distance = point1.distanceTo(point2);
-                            const midPoint = L.latLng((point1.lat + point2.lat) / 2, (point1.lng + point2.lng) / 2);
-                            const angle = Math.atan2(p2[1] - p1[1], p2[0] - p1[0]) * 180 / Math.PI;
-                            const displayDistance = Math.round(distance * 10) / 10;
-                            const dimensionLabel = L.marker(midPoint, { icon: L.divIcon({ className: 'dimension-label-container', html: `<div class="dimension-label" style="transform: rotate(${angle}deg);">${displayDistance}</div>` }) });
-                            dimensionMarkers.addLayer(dimensionLabel);
-                        }
-                        dimensionMarkers.addTo(map);
-                    }
-                    showInfoPanel('Thông tin Thửa đất', props, lat, lng);
-                }
-            });
+            performCadastralQuery(e.latlng);
         }
     });
 
@@ -436,5 +452,7 @@ document.addEventListener('DOMContentLoaded', () => {
             priceList.appendChild(listItem);
         });
     });
+    
+    handleUrlParameters();
 
 }); // --- END OF DOMContentLoaded ---
