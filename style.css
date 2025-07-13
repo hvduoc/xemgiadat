@@ -84,51 +84,53 @@ input[type=range][orient=vertical] {
 .thong-tin-dia-chinh .actions button:hover {
     color: #000; [cite_start]/* [cite: 20] */
 }
-/* --- CSS CHO THANH TRƯỢT DỌC (ĐÃ SỬA LỖI) --- */
+/* --- CSS TỐI ƯU CHO THANH TRƯỢT DỌC --- */
 
-/* 1. Định dạng cho khung trắng chứa thanh trượt */
+/* 1. Khung trắng chứa thanh trượt */
 #opacity-control {
-    width: 45px;  /* Chiều rộng của khung */
-    height: 180px; /* Chiều cao của khung */
+    /* Thuộc tính vị trí mới */
+    position: absolute;
+    top: 140px;      /* Khoảng cách từ cạnh trên */
+    right: 18px;    /* Khoảng cách từ cạnh phải (tương đương right-4 của Tailwind) */
+    z-index: 1000;
+    width: 15px;      /* Giảm chiều rộng khung */
+    height: 100px;    /* Giảm chiều cao khung */
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
-/* 2. Định dạng cho chính thanh trượt */
+/* 2. Chính thanh trượt */
 #opacity-slider {
-    /* Quan trọng: Xóa style mặc định và xoay dọc */
-    -webkit-appearance: slider-vertical; /* Dành cho Chrome, Safari, Edge */
-    writing-mode: bt-lr;                 /* Dành cho Firefox */
-    
-    /* Kích thước của thanh trượt */
-    width: 8px;      /* Độ dày của rãnh trượt */
-    height: 140px;   /* Chiều dài của rãnh trượt */
-    
-    /* Màu sắc (tùy chỉnh) */
-    background: #e2e8f0; /* Màu rãnh trượt (xám nhạt) */
-    border-radius: 4px;
+    -webkit-appearance: slider-vertical;
+    writing-mode: bt-lr;
+    width: 8px;       /* Giữ nguyên độ dày */
+    height: 90px;    /* Giảm chiều dài thanh trượt */
+    background: #e2e8f0;
+    border-radius: 2px;
     outline: none;
 }
 
-/* 3. Định dạng cho nút kéo (thumb) trên Chrome, Safari, Edge */
+/* 3. Nút kéo (thumb) trên Chrome, Safari, Edge */
 #opacity-slider::-webkit-slider-thumb {
-  -webkit-appearance: none; /* Bỏ style mặc định của nút kéo */
+  -webkit-appearance: none;
   appearance: none;
-  width: 24px;      /* Chiều rộng nút kéo */
-  height: 24px;     /* Chiều cao nút kéo */
-  background: #3b82f6;  /* Màu nút kéo (xanh dương) */
-  cursor: pointer;      /* Biểu tượng con trỏ tay */
-  border-radius: 50%; /* Bo tròn thành hình tròn */
-  border: 2px solid white; /* Thêm viền trắng */
-}
-
-/* 4. Định dạng cho nút kéo (thumb) trên Firefox */
-#opacity-slider::-moz-range-thumb {
-  width: 24px;
-  height: 24px;
+  width: 20px;      /* Giảm kích thước nút kéo */
+  height: 20px;     /* Giảm kích thước nút kéo */
   background: #3b82f6;
   cursor: pointer;
   border-radius: 50%;
   border: 2px solid white;
+  box-shadow: 0 0 2px rgba(0,0,0,0.5); /* Thêm đổ bóng nhẹ cho nổi bật */
+}
+
+/* 4. Nút kéo (thumb) trên Firefox */
+#opacity-slider::-moz-range-thumb {
+  width: 20px;      /* Giảm kích thước nút kéo */
+  height: 20px;     /* Giảm kích thước nút kéo */
+  background: #3b82f6;
+  cursor: pointer;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 0 2px rgba(0,0,0,0.5);
 }
