@@ -180,52 +180,85 @@ input[type=range][orient=vertical] {
     box-shadow: 0 1px 3px rgba(0,0,0,0.3);
     border: 1px solid rgba(0,0,0,0.2);
 }
-/* --- CSS CHO SIDEBAR --- */
+/* --- CSS CHO BOTTOM SHEET PANEL --- */
+/* --- CSS CHO BOTTOM SHEET PANEL (ĐÃ TỐI ƯU) --- */
 
-/* Lớp "is-open" sẽ được thêm bằng JS để hiển thị sidebar */
-#info-sidebar.is-open {
-    transform: translateX(0);
+#info-panel {
+    transition: transform 0.3s ease-in-out, height 0.3s ease-in-out;
 }
 
-/* Định dạng cho các dòng thông tin trong sidebar */
-#sidebar-content .info-row {
+#info-panel.is-open {
+    transform: translateY(0);
+}
+
+/* Trạng thái thu gọn */
+#info-panel.is-collapsed {
+    height: 65px !important; 
+    overflow-y: hidden;
+}
+#info-panel.is-collapsed #panel-content {
+    display: none;
+}
+
+/* Các nút điều khiển trên Header */
+.panel-header-btn {
+    padding: 0.25rem 0.5rem;
+    color: #6b7280;
+    transition: color 0.2s;
+}
+.panel-header-btn:hover {
+    color: #111827;
+}
+
+/* Các dòng thông tin - Bố cục 1 hàng */
+#panel-content .info-row {
     display: flex;
-    justify-content: space-between;
-    padding-bottom: 8px;
-    border-bottom: 1px solid #f3f4f6;
+    justify-content: center; /* Căn giữa cho đẹp */
+    flex-wrap: wrap; /* Cho phép xuống dòng trên màn hình quá nhỏ */
+    padding: 4px 0;
+    text-align: center;
+    font-size: 14px;
 }
-#sidebar-content .info-row span:first-child {
-    color: #6b7280; /* Màu chữ cho nhãn */
+#panel-content .info-group {
+    flex-basis: 50%;
 }
-#sidebar-content .info-row span:last-child {
-    font-weight: 600; /* In đậm giá trị */
-    text-align: right;
+#panel-content .info-label {
+    color: #6b7280;
+    margin-right: 8px;
+}
+#panel-content .info-value {
+    font-weight: 600;
+    color: #1f2937;
 }
 
-/* Định dạng cho các nút action */
-#sidebar-actions {
+/* Các nút Action (Thích, Sao chép, Chia sẻ) */
+#panel-actions {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-    margin-top: 16px;
-    padding-top: 16px;
+    gap: 12px;
+    margin-top: 12px;
+    padding-top: 12px;
     border-top: 1px solid #e5e7eb;
 }
-#sidebar-actions button {
+#panel-actions button {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     padding: 8px;
     border-radius: 8px;
     transition: background-color 0.2s;
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
 }
-#sidebar-actions button:hover {
+#panel-actions button:hover {
     background-color: #f3f4f6;
 }
-#sidebar-actions .icon {
+#panel-actions .icon {
     font-size: 20px;
     margin-bottom: 4px;
 }
-#sidebar-actions .text {
+#panel-actions .text {
     font-size: 12px;
+    font-weight: 500;
 }

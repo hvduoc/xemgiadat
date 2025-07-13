@@ -63,9 +63,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const queryBtn = document.getElementById('query-btn');
     const searchInput = document.getElementById('search-input');
     const searchResultsContainer = document.getElementById('search-results');
-    const sidebar = document.getElementById('info-sidebar');
-    const sidebarContent = document.getElementById('sidebar-content');
-    const closeSidebarBtn = document.getElementById('close-sidebar-btn');
+    const infoPanel = document.getElementById('info-panel');
+    const panelTitle = document.getElementById('panel-title');
+    const panelContent = document.getElementById('panel-content');
+    const closePanelBtn = document.getElementById('close-panel-btn');
+    const togglePanelBtn = document.getElementById('toggle-panel-btn');
 
     // --- STATE & GLOBAL VARIABLES ---
     let currentUser = null;
@@ -87,32 +89,42 @@ document.addEventListener('DOMContentLoaded', () => {
     }).addTo(map);
 
     // --- HELPER FUNCTIONS ---
-    function showInfoSidebar(props, lat, lng) {
-        // Cập nhật nội dung sidebar
+    function showInfoPanel(title, props, lat, lng) {
+        infoPanel.classList.remove('is-collapsed');
+        const icon = togglePanelBtn.querySelector('i');
+        icon.classList.remove('fa-chevron-up');
+        icon.classList.add('fa-chevron-down');
+
+        panelTitle.textContent = title;
         const soTo = props['Số hiệu tờ bản đồ'] ?? 'N/A';
         const soThua = props['Số thửa'] ?? 'N/A';
+        const loaiDat = props['Ký hiệu mục đích sử dụng'] ?? 'N/A';
+        const dienTich = props['Diện tích'] ? parseFloat(props['Diện tích']).toFixed(1) : 'N/A';
         const diaChi = (props['Địa chỉ'] && props['Địa chỉ'] !== 'Null') ? props['Địa chỉ'] : 'Chưa có';
 
-        sidebarContent.innerHTML = `
-            <div class="info-row"><span>Số tờ:</span><span>${soTo}</span></div>
-            <div class="info-row"><span>Số thửa:</span><span>${soThua}</span></div>
-            <div class="info-row"><span>Loại đất:</span><span>${props['Ký hiệu mục đích sử dụng'] ?? 'N/A'}</span></div>
-            <div class="info-row"><span>Diện tích:</span><span>${props['Diện tích'] ? parseFloat(props['Diện tích']).toFixed(1) : 'N/A'} m²</span></div>
-            <div class="info-row"><span>Địa chỉ:</span><span>${diaChi}</span></div>
-
-            <div id="sidebar-actions">
+        panelContent.innerHTML = `
+            <div class="info-row">
+                <span class="text-gray-500">Tờ:</span><strong class="text-gray-800 ml-1 mr-3">${soTo}</strong>
+                <span class="text-gray-500">Thửa:</span><strong class="text-gray-800 ml-1 mr-3">${soThua}</strong>
+                <span class="text-gray-500">Loại:</span><strong class="text-gray-800 ml-1 mr-3">${loaiDat}</strong>
+                <span class="text-gray-500">DT:</span><strong class="text-gray-800 ml-1">${dienTich} m²</strong>
+            </div>
+             <div class="info-row pt-1">
+                <span class="text-gray-500 mr-2">Địa chỉ:</span>
+                <span class="font-semibold text-gray-800 text-left">${diaChi}</span>
+            </div>
+            <div id="panel-actions">
                 <button onclick="toggleLike(this)"><i class="icon far fa-heart text-red-500"></i><span class="text">Thích</span></button>
                 <button onclick="copyLocationLink(${lat}, ${lng})"><i class="icon fas fa-link text-gray-500"></i><span class="text">Sao chép</span></button>
                 <button onclick="shareOnFacebook(${lat}, ${lng}, '${soTo}', '${soThua}')"><i class="icon fab fa-facebook-f text-blue-600"></i><span class="text">Chia sẻ</span></button>
             </div>
         `;
-        // Hiển thị sidebar
-        sidebar.classList.add('is-open');
+        
+        infoPanel.classList.add('is-open');
     }
-
-    function hideInfoSidebar() {
-        sidebar.classList.remove('is-open');
-        // Xóa các lớp highlight cũ
+    
+    function hideInfoPanel() {
+        infoPanel.classList.remove('is-open');
         if (highlightedParcel) map.removeLayer(highlightedParcel);
         dimensionMarkers.clearLayers();
         highlightedParcel = null;
@@ -248,8 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
     searchResultsContainer.addEventListener('click', (e) => {
         const item = e.target.closest('.result-item');
         if (!item) return;
-        if (highlightedParcel) map.removeLayer(highlightedParcel);
-        dimensionMarkers.clearLayers();
+        hideInfoPanel();
         const type = item.dataset.type;
         if (type === 'location') {
             map.setView([parseFloat(item.dataset.lat), parseFloat(item.dataset.lng)], 17);
@@ -263,102 +274,87 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } else if (type === 'parcel') {
             const geometry = JSON.parse(item.dataset.geometry);
-            highlightedParcel = L.geoJSON(geometry, { style: { color: '#ff00ff', weight: 4, opacity: 0.8, fillOpacity: 0.2 } }).addTo(map);
-            map.fitBounds(highlightedParcel.getBounds());
+            const outlineStyle = { color: '#4A5568', weight: 5, opacity: 0.7 };
+            const fillStyle = { color: '#FFD700', weight: 3, opacity: 1 };
+            const outlineLayer = L.geoJSON(geometry, { style: outlineStyle });
+            const fillLayer = L.geoJSON(geometry, { style: fillStyle });
+            highlightedParcel = L.layerGroup([outlineLayer, fillLayer]).addTo(map);
+            map.fitBounds(L.geoJSON(geometry).getBounds());
         }
         searchResultsContainer.classList.add('hidden');
         searchInput.value = '';
     });
     
-    // Thêm listener cho nút đóng sidebar
-    closeSidebarBtn.addEventListener('click', hideInfoSidebar);
+    closePanelBtn.addEventListener('click', hideInfoPanel);
+    
+    togglePanelBtn.addEventListener('click', () => {
+        infoPanel.classList.toggle('is-collapsed');
+        const icon = togglePanelBtn.querySelector('i');
+        icon.classList.toggle('fa-chevron-down');
+        icon.classList.toggle('fa-chevron-up');
+    });
 
-    // THAY THẾ TOÀN BỘ HÀM map.on('click',...) BẰNG HÀM NÀY
-    // --- THAY THẾ TOÀN BỘ HÀM map.on('click',...) CŨ BẰNG HÀM NÀY ---
-map.on('click', function(e) {
-    // Luôn ẩn/xóa các thành phần cũ khi click
-    searchResultsContainer.classList.add('hidden');
-    hideInfoSidebar(); // Dùng hàm mới để dọn dẹp
-
-    // Logic cho chế độ Thêm địa điểm (giữ nguyên)
-    if (isAddMode) {
-        if (!currentUser) { alert("Vui lòng đăng nhập để thêm địa điểm!"); exitAllModes(); return; }
-        selectedCoords = e.latlng;
-        tempMarker = L.marker(selectedCoords).addTo(map);
-        modal.classList.remove('hidden');
-        
-        const geocodeService = L.esri.Geocoding.geocodeService(); 
-        geocodeService.reverse().latlng(selectedCoords).run(function (error, result) {
-            if (error || !result.address) {
-                document.getElementById('address-input').value = 'Không tìm thấy địa chỉ';
-            } else {
-                document.getElementById('address-input').value = result.address.Match_addr;
-            }
-        });
-    } 
-    // Logic cho chế độ Tra cứu địa chính (đã được bổ sung lại đầy đủ)
-    else if (isQueryMode) {
-        if (!currentUser) { alert("Vui lòng đăng nhập để tra cứu địa chính!"); exitAllModes(); return; }
-        
-        parcelLayer.identify().on(map).at(e.latlng).run((error, featureCollection) => {
-            exitAllModes();
-            if (error || featureCollection.features.length === 0) {
-                // Không tìm thấy thửa đất, không làm gì thêm
-            } else {
-                const feature = featureCollection.features[0];
-                const props = feature.properties;
-                const lat = e.latlng.lat.toFixed(6);
-                const lng = e.latlng.lng.toFixed(6);
-                
-                // Vẽ highlight
-                highlightedParcel = L.geoJSON(feature.geometry, { style: { color: '#ff00ff', weight: 4, opacity: 0.8, fillOpacity: 0.2 } }).addTo(map);
-                
-                // --- PHẦN ĐƯỢC BỔ SUNG LẠI ---
-                // Tính toán và hiển thị kích thước trên các cạnh
-                const coords = feature.geometry.coordinates[0];
-                if (coords.length > 2) {
-                    for (let i = 0; i < coords.length - 1; i++) {
-                        const p1 = coords[i], p2 = coords[i+1];
-                        const point1 = L.latLng(p1[1], p1[0]), point2 = L.latLng(p2[1], p2[0]);
-                        const distance = point1.distanceTo(point2);
-
-                        // --- LOGIC MỚI ĐỂ LÀM TRÒN SỐ THÔNG MINH ---
-                        // Làm tròn đến 1 chữ số thập phân, và tự động bỏ ".0" nếu là số nguyên
-                        const displayDistance = Math.round(distance * 10) / 10;
-
-                        const midPoint = L.latLng((point1.lat + point2.lat) / 2, (point1.lng + point2.lng) / 2);
-                        const angle = Math.atan2(p2[1] - p1[1], p2[0] - p1[0]) * 180 / Math.PI;
-
-                        // Bỏ chữ "m" và dùng giá trị đã được làm tròn
-                        const dimensionLabel = L.marker(midPoint, { 
-                            icon: L.divIcon({ 
-                                className: 'dimension-label-container', 
-                                html: `<div class="dimension-label" style="transform: rotate(${angle}deg);">${displayDistance}</div>` 
-                            }) 
-                        });
-                        dimensionMarkers.addLayer(dimensionLabel);
-                    }
-                    dimensionMarkers.addTo(map);
+    map.on('click', function(e) {
+        searchResultsContainer.classList.add('hidden');
+        hideInfoPanel();
+        if (isAddMode) {
+            if (!currentUser) { alert("Vui lòng đăng nhập để thêm địa điểm!"); exitAllModes(); return; }
+            selectedCoords = e.latlng;
+            tempMarker = L.marker(selectedCoords).addTo(map);
+            modal.classList.remove('hidden');
+            const geocodeService = L.esri.Geocoding.geocodeService();
+            geocodeService.reverse().latlng(selectedCoords).run(function (error, result) {
+                if (error || !result.address) {
+                    document.getElementById('address-input').value = 'Không tìm thấy địa chỉ';
+                } else {
+                    document.getElementById('address-input').value = result.address.Match_addr;
                 }
-                // --- KẾT THÚC PHẦN BỔ SUNG ---
-
-                // Hiển thị thông tin trong sidebar
-                showInfoSidebar(props, lat, lng);
-            }
-        });
-    }
-});
+            });
+        } 
+        else if (isQueryMode) {
+            if (!currentUser) { alert("Vui lòng đăng nhập để tra cứu địa chính!"); exitAllModes(); return; }
+            parcelLayer.identify().on(map).at(e.latlng).run((error, featureCollection) => {
+                exitAllModes();
+                if (error || featureCollection.features.length === 0) { return; } 
+                else {
+                    const feature = featureCollection.features[0];
+                    const props = feature.properties;
+                    const lat = e.latlng.lat.toFixed(6), lng = e.latlng.lng.toFixed(6);
+                    if (highlightedParcel) map.removeLayer(highlightedParcel);
+                    const outlineStyle = { color: '#4A5568', weight: 5, opacity: 0.7 };
+                    const fillStyle = { color: '#FFD700', weight: 3, opacity: 1 };
+                    const outlineLayer = L.geoJSON(feature.geometry, { style: outlineStyle });
+                    const fillLayer = L.geoJSON(feature.geometry, { style: fillStyle });
+                    highlightedParcel = L.layerGroup([outlineLayer, fillLayer]).addTo(map);
+                    dimensionMarkers.clearLayers();
+                    const coords = feature.geometry.coordinates[0];
+                    if (coords.length > 2) {
+                        for (let i = 0; i < coords.length - 1; i++) {
+                            const p1 = coords[i], p2 = coords[i+1];
+                            const point1 = L.latLng(p1[1], p1[0]), point2 = L.latLng(p2[1], p2[0]);
+                            const distance = point1.distanceTo(point2);
+                            const midPoint = L.latLng((point1.lat + point2.lat) / 2, (point1.lng + point2.lng) / 2);
+                            const angle = Math.atan2(p2[1] - p1[1], p2[0] - p1[0]) * 180 / Math.PI;
+                            const displayDistance = Math.round(distance * 10) / 10;
+                            const dimensionLabel = L.marker(midPoint, { icon: L.divIcon({ className: 'dimension-label-container', html: `<div class="dimension-label" style="transform: rotate(${angle}deg);">${displayDistance}</div>` }) });
+                            dimensionMarkers.addLayer(dimensionLabel);
+                        }
+                        dimensionMarkers.addTo(map);
+                    }
+                    showInfoPanel('Thông tin Thửa đất', props, lat, lng);
+                }
+            });
+        }
+    });
 
     opacitySlider.addEventListener('input', (e) => parcelLayer.setOpacity(e.target.value));
     map.on('overlayadd', e => { if (e.layer === parcelLayer) opacityControl.classList.remove('hidden'); });
     map.on('overlayremove', e => { if (e.layer === parcelLayer) opacityControl.classList.add('hidden'); });
     if (map.hasLayer(parcelLayer)) { opacityControl.classList.remove('hidden'); } else { opacityControl.classList.add('hidden'); }
-    
     donateBtn.addEventListener('click', () => donateModal.classList.remove('hidden'));
     closeDonateModalBtn.addEventListener('click', () => donateModal.classList.add('hidden'));
     donateModal.addEventListener('click', (e) => { if (e.target === donateModal) donateModal.classList.add('hidden'); });
     copyBtn.addEventListener('click', () => { navigator.clipboard.writeText(accountNumber).then(() => { const originalIcon = copyBtn.innerHTML; copyBtn.innerHTML = '<svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>'; setTimeout(() => { copyBtn.innerHTML = originalIcon; }, 1500); }).catch(err => console.error('Không thể sao chép: ', err)); });
-    
     fabMainBtn.addEventListener('click', () => {
         fabActions.classList.toggle('hidden');
         fabMainBtn.querySelector('i').classList.toggle('fa-bars');
