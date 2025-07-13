@@ -21,24 +21,46 @@
     <div id="map"></div>
 
     <div class="absolute top-4 left-4 z-[1000] flex flex-col space-y-2">
-        <button id="list-btn" class="bg-white text-gray-800 font-bold py-2 px-4 rounded-lg shadow-lg hover:bg-gray-100 transition opacity-50 cursor-not-allowed" disabled>Danh sách</button>
-        <button id="add-location-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg shadow-lg hover:bg-blue-700 transition opacity-50 cursor-not-allowed" disabled>+ Thêm địa điểm</button>
-        <button id="query-btn" class="bg-purple-600 text-white font-bold py-2 px-4 rounded-lg shadow-lg hover:bg-purple-700 transition">? Tra cứu Địa chính</button>
-        <button id="donate-btn" class="bg-yellow-400 text-black font-bold py-2 px-4 rounded-lg shadow-lg hover:bg-yellow-500 transition">Ủng hộ</button>            
+        <div id="fab-container" class="absolute top-4 left-4 z-[1001] flex flex-col items-center">
+    <div id="fab-actions" class="flex flex-col items-center space-y-2 mb-2 hidden">
+        <button id="list-btn" title="Danh sách" class="bg-white text-gray-800 w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100 transition disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+            <i class="fa-solid fa-list"></i>
+        </button>
+        <button id="add-location-btn" title="Thêm địa điểm" class="bg-blue-600 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+            <i class="fa-solid fa-plus"></i>
+        </button>
+        <button id="query-btn" title="Tra cứu Địa chính" class="bg-purple-600 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-purple-700 transition">
+            <i class="fa-solid fa-magnifying-glass-location"></i>
+        </button>
+    </div>
+    
+    <button id="fab-main-btn" class="bg-white text-gray-900 w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-2xl">
+        <i class="fa-solid fa-bars"></i>
+    </button>
+</div>
+                
+    </div>
+
+    <div class="absolute bottom-4 right-4 z-[1000] flex flex-col items-center space-y-2">
+        <button id="donate-btn" title="Ủng hộ (Mời cafe)" class="bg-yellow-400 text-black w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-yellow-500 transition">
+            <i class="fa-solid fa-mug-saucer"></i>
+        </button>
+        
         <div id="auth-container">
-            <button id="login-btn" class="w-full bg-green-500 text-white font-bold py-2 px-4 rounded-lg shadow-lg hover:bg-green-600 transition">Đăng nhập</button>
-            <div id="user-profile" class="hidden items-center bg-white p-2 rounded-lg shadow-lg">
-                <img id="user-avatar" class="w-8 h-8 rounded-full mr-2">
-                <span id="user-name" class="text-sm font-semibold text-gray-700"></span>
-                <button id="logout-btn" class="ml-auto text-xs text-red-500 hover:underline">Thoát</button>
+            <button id="login-btn" title="Đăng nhập" class="bg-green-500 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-green-600 transition">
+                <i class="fa-solid fa-user"></i>
+            </button>
+            <div id="user-profile" class="hidden items-center justify-center bg-white w-12 h-12 rounded-full shadow-lg cursor-pointer relative group">
+                <img id="user-avatar" class="w-10 h-10 rounded-full">
+                <button id="logout-btn" class="absolute inset-0 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-90 transition-opacity text-xs">
+                    Thoát
+                </button>
             </div>
         </div>
     </div>
     
-    <div id="opacity-control" class="hidden absolute top-1/2 -translate-y-1/2 right-4 z-[1000] bg-white p-2 rounded-lg shadow-lg flex flex-col items-center">
-        <button id="opacity-plus" class="font-bold text-lg">+</button>
-        <input id="opacity-slider" type="range" min="0" max="1" step="0.1" value="0.7" orient="vertical">
-        <button id="opacity-minus" class="font-bold text-lg">-</button>
+    <div id="opacity-control" class="hidden absolute top-1/2 -translate-y-1/2 right-4 z-[1000] bg-white p-2 rounded-lg shadow-lg flex flex-col items-center h-32">
+        <input id="opacity-slider" type="range" min="0" max="1" step="0.1" value="0.7" orient="vertical" class="h-full">
     </div>
 
     <div id="instruction-banner" class="hidden absolute top-4 left-1/2 -translate-x-1/2 z-[1000] bg-yellow-400 text-black font-semibold py-2 px-4 rounded-lg shadow-lg"></div>

@@ -79,6 +79,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeDonateModalBtn = document.getElementById('close-donate-modal');
     const copyBtn = document.getElementById('copy-stk-btn');
     const accountNumber = document.getElementById('bank-account-number').textContent;
+    // --- FAB (Floating Action Button) Logic ---
+    const fabMainBtn = document.getElementById('fab-main-btn');
+    const fabActions = document.getElementById('fab-actions');
+
+    fabMainBtn.addEventListener('click', () => {
+        fabActions.classList.toggle('hidden');
+        fabMainBtn.querySelector('i').classList.toggle('fa-bars');
+        fabMainBtn.querySelector('i').classList.toggle('fa-xmark');
+    });
 
     // --- STATE & GLOBAL VARIABLES ---
     let currentUser = null;
