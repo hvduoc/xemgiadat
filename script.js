@@ -299,11 +299,72 @@ document.addEventListener('DOMContentLoaded', () => {
         modal.classList.add('hidden');
         exitAllModes();
     });
+    // --- THAY THẾ TOÀN BỘ HÀM map.on('click',...) CŨ BẰNG HÀM NÀY ---
     map.on('click', function(e) {
-        if (isAddMode) { /* ... */ } 
-        else if (isQueryMode) { /* ... */ }
+        // Luôn ẩn kết quả tìm kiếm khi click ra bản đồ
+        searchResultsContainer.classList.add('hidden');
+
+        // Logic cho chế độ Thêm địa điểm
+        if (isAddMode) {
+            if (!currentUser) {
+                alert("Vui lòng đăng nhập để thêm địa điểm!");
+                exitAllModes();
+                return;
+            }
+            selectedCoords = e.latlng;
+            tempMarker = L.marker(selectedCoords).addTo(map);
+            modal.classList.remove('hidden');
+            
+            // Tìm địa chỉ tự động (đã bỏ apikey để tương thích nhiều dịch vụ)
+            const geocodeService = L.esri.Geocoding.geocodeService(); 
+            geocodeService.reverse().latlng(selectedCoords).run(function (error, result) {
+                if (error || !result.address) {
+                    document.getElementById('address-input').value = 'Không tìm thấy địa chỉ';
+                } else {
+                    document.getElementById('address-input').value = result.address.Match_addr;
+                }
+            });
+        } 
+        // Logic cho chế độ Tra cứu địa chính
+        else if (isQueryMode) {
+            if (!currentUser) {
+                alert("Vui lòng đăng nhập để tra cứu địa chính!");
+                exitAllModes();
+                return;
+            }
+            L.popup().setLatLng(e.latlng).setContent('<p>Đang tìm kiếm thông tin thửa đất...</p>').openOn(map);
+            
+            parcelLayer.identify().on(map).at(e.latlng).run((error, featureCollection) => {
+                exitAllModes();
+                if (error || featureCollection.features.length === 0) {
+                    L.popup().setLatLng(e.latlng).setContent('Không tìm thấy thông tin địa chính tại vị trí này.').openOn(map);
+                } else {
+                    const props = featureCollection.features[0].properties;
+                    const lat = e.latlng.lat.toFixed(6);
+                    const lng = e.latlng.lng.toFixed(6);
+                    const popupContent = `
+                        <div class="thong-tin-dia-chinh">
+                            <h3 class="font-bold text-base mb-2 text-center">Thông tin địa chính</h3>
+                            <table>
+                                <tr><td><strong>Số tờ:</strong></td><td>${props['Số hiệu tờ bản đồ'] ?? 'N/A'}</td></tr>
+                                <tr><td><strong>Số thửa:</strong></td><td>${props['Số thửa'] ?? 'N/A'}</td></tr>
+                                <tr><td><strong>Loại đất:</strong></td><td>${props['Ký hiệu mục đích sử dụng'] ?? 'N/A'}</td></tr>
+                                <tr><td><strong>Diện tích:</strong></td><td>${props['Diện tích'] ? parseFloat(props['Diện tích']).toFixed(1) + ' m²' : 'N/A'}</td></tr>
+                                <tr><td><strong>Địa chỉ:</strong></td><td>${props['Địa chỉ'] && props['Địa chỉ'] !== 'Null' ? props['Địa chỉ'] : 'N/A'}</td></tr>
+                            </table>
+                            <hr class="my-2">
+                            <div class="actions">
+                                <button onclick="toggleLike(this)" title="Yêu thích"><i class="far fa-heart"></i></button>
+                                <button onclick="shareOnFacebook(${lat}, ${lng})" title="Chia sẻ Facebook"><i class="fas fa-share-alt"></i></button>
+                                <button onclick="copyLocationLink(${lat}, ${lng})" title="Sao chép liên kết"><i class="fas fa-link"></i></button>
+                            </div>
+                        </div>
+                    `;
+                    L.popup({ minWidth: 250 }).setLatLng(e.latlng).setContent(popupContent).openOn(map);
+                }
+            });
+        }
     });
-    form.addEventListener('submit', async (e) => { /* ... */ });
 
     // --- FIREBASE AUTHENTICATION LOGIC ---
     auth.onAuthStateChanged((user) => {
