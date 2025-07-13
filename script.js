@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     googleStreets.addTo(map);
     parcelLayer.addTo(map);
-    L.control.layers(baseMaps, overlayMaps, { position: 'topright' }).addTo(map);
+    L.control.layers(baseMaps, overlayMaps, { position: 'bottomright' }).addTo(map);
 
     // --- DOM ELEMENT SELECTION ---
     const modal = document.getElementById('form-modal');
