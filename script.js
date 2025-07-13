@@ -63,6 +63,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const queryBtn = document.getElementById('query-btn');
     const searchInput = document.getElementById('search-input');
     const searchResultsContainer = document.getElementById('search-results');
+    const sidebar = document.getElementById('info-sidebar');
+    const sidebarContent = document.getElementById('sidebar-content');
+    const closeSidebarBtn = document.getElementById('close-sidebar-btn');
 
     // --- STATE & GLOBAL VARIABLES ---
     let currentUser = null;
@@ -73,6 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let localListings = [];
     let debounceTimer;
     let highlightedParcel = null; 
+    let dimensionMarkers = L.layerGroup();
     let priceMarkers = L.markerClusterGroup({
         iconCreateFunction: function (cluster) {
             const count = cluster.getChildCount();
@@ -83,6 +87,36 @@ document.addEventListener('DOMContentLoaded', () => {
     }).addTo(map);
 
     // --- HELPER FUNCTIONS ---
+    function showInfoSidebar(props, lat, lng) {
+        // Cập nhật nội dung sidebar
+        const soTo = props['Số hiệu tờ bản đồ'] ?? 'N/A';
+        const soThua = props['Số thửa'] ?? 'N/A';
+        const diaChi = (props['Địa chỉ'] && props['Địa chỉ'] !== 'Null') ? props['Địa chỉ'] : 'Chưa có';
+
+        sidebarContent.innerHTML = `
+            <div class="info-row"><span>Số tờ:</span><span>${soTo}</span></div>
+            <div class="info-row"><span>Số thửa:</span><span>${soThua}</span></div>
+            <div class="info-row"><span>Loại đất:</span><span>${props['Ký hiệu mục đích sử dụng'] ?? 'N/A'}</span></div>
+            <div class="info-row"><span>Diện tích:</span><span>${props['Diện tích'] ? parseFloat(props['Diện tích']).toFixed(1) : 'N/A'} m²</span></div>
+            <div class="info-row"><span>Địa chỉ:</span><span>${diaChi}</span></div>
+
+            <div id="sidebar-actions">
+                <button onclick="toggleLike(this)"><i class="icon far fa-heart text-red-500"></i><span class="text">Thích</span></button>
+                <button onclick="copyLocationLink(${lat}, ${lng})"><i class="icon fas fa-link text-gray-500"></i><span class="text">Sao chép</span></button>
+                <button onclick="shareOnFacebook(${lat}, ${lng}, '${soTo}', '${soThua}')"><i class="icon fab fa-facebook-f text-blue-600"></i><span class="text">Chia sẻ</span></button>
+            </div>
+        `;
+        // Hiển thị sidebar
+        sidebar.classList.add('is-open');
+    }
+
+    function hideInfoSidebar() {
+        sidebar.classList.remove('is-open');
+        // Xóa các lớp highlight cũ
+        if (highlightedParcel) map.removeLayer(highlightedParcel);
+        dimensionMarkers.clearLayers();
+        highlightedParcel = null;
+    }
     function enterAddMode() {
         exitAllModes();
         isAddMode = true;
@@ -146,49 +180,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchByParcelNumber = async (soTo, soThua) => {
         searchResultsContainer.innerHTML = '<div class="p-4 text-center text-gray-500">Đang tìm thửa đất...</div>';
         searchResultsContainer.classList.remove('hidden');
-
         const query = L.esri.query({
             url: 'https://gisportal.danang.gov.vn/server/rest/services/DiaChinh/DaNangLand_DiaChinh/MapServer/35'
         });
-
-        // --- THỬ NGHIỆM CUỐI CÙNG: Dùng cú pháp dấu ngoặc vuông [] ---
         const whereClause = `[Số hiệu tờ bản đồ] = ${soTo} AND [Số thửa] = ${soThua}`;
         query.where(whereClause);
-
         let html = '';
         try {
             const response = await new Promise((resolve, reject) => {
-                query.run((error, featureCollection) => {
-                    if (error) {
-                        reject(error);
-                    } else {
-                        resolve(featureCollection);
-                    }
-                });
+                query.run((error, featureCollection) => error ? reject(error) : resolve(featureCollection));
             });
-
             if (response.features.length > 0) {
                 html += `<div class="result-category">Kết quả cho Tờ: ${soTo} / Thửa: ${soThua}</div>`;
                 response.features.forEach(feature => {
                     const diaChi = feature.properties.DiaChiThuaDat || `Thửa đất ${soThua}, tờ bản đồ ${soTo}`;
                     const geometry = JSON.stringify(feature.geometry);
-                    html += `
-                        <div class="result-item" data-type="parcel" data-geometry='${geometry}'>
-                            <i class="icon fa-solid fa-draw-polygon"></i>
-                            <span>${diaChi}</span>
-                        </div>
-                    `;
+                    html += `<div class="result-item" data-type="parcel" data-geometry='${geometry}'><i class="icon fa-solid fa-draw-polygon"></i><span>${diaChi}</span></div>`;
                 });
             }
-        } catch (error) {
-            console.error("Lỗi truy vấn thửa đất:", error);
-        }
-
-        if (html === '') {
-            searchResultsContainer.innerHTML = '<div class="p-4 text-center text-gray-500">Không tìm thấy thửa đất với số tờ/số thửa này.</div>';
-        } else {
-            searchResultsContainer.innerHTML = html;
-        }
+        } catch (error) { console.error("Lỗi truy vấn thửa đất:", error); }
+        searchResultsContainer.innerHTML = html === '' ? '<div class="p-4 text-center text-gray-500">Không tìm thấy thửa đất với số tờ/số thửa này.</div>' : html;
     };
 
     const performSearch = async (query) => {
@@ -198,16 +209,13 @@ document.addEventListener('DOMContentLoaded', () => {
             searchByParcelNumber(match[1], match[2]);
             return;
         }
-
         if (!query) {
             searchResultsContainer.innerHTML = '';
             searchResultsContainer.classList.add('hidden');
             return;
         }
-        
         searchResultsContainer.innerHTML = '<div class="p-4 text-center text-gray-500">Đang tìm...</div>';
         searchResultsContainer.classList.remove('hidden');
-        
         const listingResults = localListings.filter(item => item.name.toLowerCase().includes(query.toLowerCase()));
         let html = '';
         if (listingResults.length > 0) {
@@ -216,7 +224,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 html += `<div class="result-item" data-type="listing" data-id="${item.id}"><i class="icon fa-solid fa-tag"></i><div><strong>${item.name}</strong><span class="price">${item.priceValue} ${item.priceUnit}</span></div></div>`;
             });
         }
-        
         const mapCenter = map.getCenter();
         const endpointUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxAccessToken}&country=VN&language=vi&autocomplete=true&proximity=${mapCenter.lng},${mapCenter.lat}`;
         try {
@@ -229,7 +236,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
         } catch (error) { console.error("Lỗi tìm kiếm địa chỉ Mapbox:", error); }
-        
         searchResultsContainer.innerHTML = html === '' ? '<div class="p-4 text-center text-gray-500">Không tìm thấy kết quả.</div>' : html;
     };
 
@@ -243,7 +249,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const item = e.target.closest('.result-item');
         if (!item) return;
         if (highlightedParcel) map.removeLayer(highlightedParcel);
-        
+        dimensionMarkers.clearLayers();
         const type = item.dataset.type;
         if (type === 'location') {
             map.setView([parseFloat(item.dataset.lat), parseFloat(item.dataset.lng)], 17);
@@ -260,19 +266,19 @@ document.addEventListener('DOMContentLoaded', () => {
             highlightedParcel = L.geoJSON(geometry, { style: { color: '#ff00ff', weight: 4, opacity: 0.8, fillOpacity: 0.2 } }).addTo(map);
             map.fitBounds(highlightedParcel.getBounds());
         }
-        
         searchResultsContainer.classList.add('hidden');
         searchInput.value = '';
     });
     
+    // Thêm listener cho nút đóng sidebar
+    closeSidebarBtn.addEventListener('click', hideInfoSidebar);
+
+    // THAY THẾ TOÀN BỘ HÀM map.on('click',...) BẰNG HÀM NÀY
     // --- THAY THẾ TOÀN BỘ HÀM map.on('click',...) CŨ BẰNG HÀM NÀY ---
 map.on('click', function(e) {
-    // Luôn ẩn kết quả tìm kiếm và xóa highlight cũ khi click ra bản đồ
+    // Luôn ẩn/xóa các thành phần cũ khi click
     searchResultsContainer.classList.add('hidden');
-    if (highlightedParcel) {
-        map.removeLayer(highlightedParcel);
-        highlightedParcel = null;
-    }
+    hideInfoSidebar(); // Dùng hàm mới để dọn dẹp
 
     // Logic cho chế độ Thêm địa điểm (giữ nguyên)
     if (isAddMode) {
@@ -290,80 +296,47 @@ map.on('click', function(e) {
             }
         });
     } 
-    // Logic cho chế độ Tra cứu địa chính (đã nâng cấp)
+    // Logic cho chế độ Tra cứu địa chính (đã được bổ sung lại đầy đủ)
     else if (isQueryMode) {
         if (!currentUser) { alert("Vui lòng đăng nhập để tra cứu địa chính!"); exitAllModes(); return; }
-        L.popup().setLatLng(e.latlng).setContent('<p>Đang tìm kiếm thông tin thửa đất...</p>').openOn(map);
         
         parcelLayer.identify().on(map).at(e.latlng).run((error, featureCollection) => {
             exitAllModes();
             if (error || featureCollection.features.length === 0) {
-                L.popup().setLatLng(e.latlng).setContent('Không tìm thấy thông tin địa chính tại vị trí này.').openOn(map);
+                // Không tìm thấy thửa đất, không làm gì thêm
             } else {
                 const feature = featureCollection.features[0];
                 const props = feature.properties;
-
-                // --- BƯỚC 1: VẼ HIGHLIGHT LÊN THỬA ĐẤT ---
-                highlightedParcel = L.geoJSON(feature.geometry, {
-                    style: {
-                        color: '#ff00ff', // Màu tím nổi bật
-                        weight: 4,
-                        opacity: 0.8,
-                        fillOpacity: 0.2
-                    }
-                }).addTo(map);
-
-                // --- BƯỚC 2: TÍNH TOÁN KÍCH THƯỚC CÁC CẠNH ---
-                let dimensionsText = 'Không thể tính';
-                const coords = feature.geometry.coordinates[0]; // Lấy mảng tọa độ
+                const lat = e.latlng.lat.toFixed(6);
+                const lng = e.latlng.lng.toFixed(6);
+                
+                // Vẽ highlight
+                highlightedParcel = L.geoJSON(feature.geometry, { style: { color: '#ff00ff', weight: 4, opacity: 0.8, fillOpacity: 0.2 } }).addTo(map);
+                
+                // --- PHẦN ĐƯỢC BỔ SUNG LẠI ---
+                // Tính toán và hiển thị kích thước trên các cạnh
+                const coords = feature.geometry.coordinates[0];
                 if (coords.length > 2) {
-                    const sideLengths = [];
-                    // Lặp qua từng cặp điểm để tính khoảng cách
                     for (let i = 0; i < coords.length - 1; i++) {
-                        const point1 = L.latLng(coords[i][1], coords[i][0]);
-                        const point2 = L.latLng(coords[i+1][1], coords[i+1][0]);
+                        const p1 = coords[i], p2 = coords[i+1];
+                        const point1 = L.latLng(p1[1], p1[0]), point2 = L.latLng(p2[1], p2[0]);
                         const distance = point1.distanceTo(point2);
-                        sideLengths.push(distance.toFixed(1) + 'm');
+                        const midPoint = L.latLng((point1.lat + point2.lat) / 2, (point1.lng + point2.lng) / 2);
+                        const angle = Math.atan2(p2[1] - p1[1], p2[0] - p1[0]) * 180 / Math.PI;
+                        const dimensionLabel = L.marker(midPoint, { 
+                            icon: L.divIcon({ 
+                                className: 'dimension-label-container', 
+                                html: `<div class="dimension-label" style="transform: rotate(${angle}deg);">${distance.toFixed(1)}m</div>` 
+                            }) 
+                        });
+                        dimensionMarkers.addLayer(dimensionLabel);
                     }
-                    dimensionsText = sideLengths.join(' - ');
+                    dimensionMarkers.addTo(map);
                 }
+                // --- KẾT THÚC PHẦN BỔ SUNG ---
 
-                // --- BƯỚC 3: HIỂN THỊ KẾT QUẢ TRONG POPUP ---
-                const lat = e.latlng.lat.toFixed(6), lng = e.latlng.lng.toFixed(6);
-                const soTo = props['Số hiệu tờ bản đồ'] ?? 'N/A', soThua = props['Số thửa'] ?? 'N/A';
-                const diaChi = (props['Địa chỉ'] && props['Địa chỉ'] !== 'Null') ? props['Địa chỉ'] : '';
-                
-                const popupContent = `
-                    <div class="w-64 p-1 font-sans">
-                        <div class="p-3 bg-white rounded-lg shadow-md">
-                            <h3 class="text-base font-bold text-gray-800 text-center mb-3 border-b pb-2">Thông tin Thửa đất</h3>
-                            <div class="space-y-2 text-sm text-gray-700">
-                                <div class="flex justify-between"><span>Số tờ:</span><span class="font-semibold">${soTo}</span></div>
-                                <div class="flex justify-between"><span>Số thửa:</span><span class="font-semibold">${soThua}</span></div>
-                                <div class="flex justify-between"><span>Loại đất:</span><span class="font-semibold bg-gray-100 px-2 rounded-full text-blue-600">${props['Ký hiệu mục đích sử dụng'] ?? 'N/A'}</span></div>
-                                <div class="flex justify-between"><span>Diện tích:</span><span class="font-semibold">${props['Diện tích'] ? parseFloat(props['Diện tích']).toFixed(1) : 'N/A'} m²</span></div>
-                                <div class="flex justify-between items-start"><span class="flex-shrink-0 mr-2">Địa chỉ:</span><span class="font-semibold text-right">${diaChi}</span></div>
-                                <div class="flex justify-between items-start pt-1 border-t mt-1"><span class="flex-shrink-0 mr-2">Kích thước:</span><span class="font-semibold text-right text-xs">${dimensionsText}</span></div>
-                            </div>
-                            <div class="mt-4 pt-3 border-t grid grid-cols-3 gap-2 text-center text-gray-600">
-                                <div><button onclick="toggleLike(this)" class="w-full text-center p-1 rounded-lg hover:bg-gray-100"><i class="far fa-heart text-xl text-red-500"></i><span class="block text-xs mt-1">Thích</span></button></div>
-                                <div><button onclick="copyLocationLink(${lat}, ${lng})" class="w-full text-center p-1 rounded-lg hover:bg-gray-100"><i class="fas fa-link text-xl text-gray-500"></i><span class="block text-xs mt-1">Sao chép</span></button></div>
-                                <div><button onclick="shareOnFacebook(${lat}, ${lng}, '${soTo}', '${soThua}')" class="w-full text-center p-1 rounded-lg hover:bg-gray-100"><i class="fab fa-facebook-f text-xl text-blue-600"></i><span class="block text-xs mt-1">Chia sẻ</span></button></div>
-                            </div>
-                        </div>
-                    </div>`;
-                
-                const popup = L.popup({ minWidth: 280, closeButton: true })
-                    .setLatLng(e.latlng)
-                    .setContent(popupContent)
-                    // Xóa lớp highlight khi popup được đóng
-                    .on('remove', function() {
-                        if (highlightedParcel) {
-                            map.removeLayer(highlightedParcel);
-                            highlightedParcel = null;
-                        }
-                    })
-                    .openOn(map);
+                // Hiển thị thông tin trong sidebar
+                showInfoSidebar(props, lat, lng);
             }
         });
     }
@@ -377,7 +350,8 @@ map.on('click', function(e) {
     donateBtn.addEventListener('click', () => donateModal.classList.remove('hidden'));
     closeDonateModalBtn.addEventListener('click', () => donateModal.classList.add('hidden'));
     donateModal.addEventListener('click', (e) => { if (e.target === donateModal) donateModal.classList.add('hidden'); });
-    copyBtn.addEventListener('click', () => { /* ... */ });
+    copyBtn.addEventListener('click', () => { navigator.clipboard.writeText(accountNumber).then(() => { const originalIcon = copyBtn.innerHTML; copyBtn.innerHTML = '<svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>'; setTimeout(() => { copyBtn.innerHTML = originalIcon; }, 1500); }).catch(err => console.error('Không thể sao chép: ', err)); });
+    
     fabMainBtn.addEventListener('click', () => {
         fabActions.classList.toggle('hidden');
         fabMainBtn.querySelector('i').classList.toggle('fa-bars');
@@ -389,51 +363,22 @@ map.on('click', function(e) {
     document.getElementById('close-list-btn').addEventListener('click', () => listModal.classList.add('hidden'));
     document.getElementById('close-modal-btn').addEventListener('click', () => { modal.classList.add('hidden'); exitAllModes(); });
 
-    // --- FORM SUBMISSION ---
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const submitBtn = document.getElementById('submit-form-btn');
         if (!currentUser) return alert("Vui lòng đăng nhập.");
         const formData = new FormData(form);
         const data = Object.fromEntries(formData.entries());
-        if (!selectedCoords || !data.name || !data.priceValue) {
-            return alert('Vui lòng điền các trường bắt buộc.');
-        }
-        submitBtn.textContent = 'Đang gửi...';
-        submitBtn.disabled = true;
+        if (!selectedCoords || !data.name || !data.priceValue) { return alert('Vui lòng điền các trường bắt buộc.'); }
+        submitBtn.textContent = 'Đang gửi...'; submitBtn.disabled = true;
         try {
-            const docData = {
-                userId: currentUser.uid,
-                userName: currentUser.displayName,
-                userAvatar: currentUser.photoURL,
-                lat: selectedCoords.lat,
-                lng: selectedCoords.lng,
-                priceValue: parseFloat(data.priceValue),
-                area: data.area ? parseFloat(data.area) : null,
-                status: 'pending',
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                name: data.name, priceUnit: data.priceUnit,
-                notes: data.notes || '',
-                contactName: data.contactName || '',
-                contactEmail: data.contactEmail || '',
-                contactPhone: data.contactPhone || '',
-                contactFacebook: data.contactFacebook || ''
-            };
+            const docData = { userId: currentUser.uid, userName: currentUser.displayName, userAvatar: currentUser.photoURL, lat: selectedCoords.lat, lng: selectedCoords.lng, priceValue: parseFloat(data.priceValue), area: data.area ? parseFloat(data.area) : null, status: 'pending', createdAt: firebase.firestore.FieldValue.serverTimestamp(), name: data.name, priceUnit: data.priceUnit, notes: data.notes || '', contactName: data.contactName || '', contactEmail: data.contactEmail || '', contactPhone: data.contactPhone || '', contactFacebook: data.contactFacebook || '' };
             await db.collection("listings").add(docData);
             alert('Gửi dữ liệu thành công, cảm ơn bạn đã đóng góp!');
-            modal.classList.add('hidden');
-            form.reset();
-            exitAllModes();
-        } catch (error) {
-            console.error("Lỗi khi thêm dữ liệu: ", error);
-            alert("Đã xảy ra lỗi khi gửi dữ liệu.");
-        } finally {
-            submitBtn.textContent = 'Gửi Dữ Liệu';
-            submitBtn.disabled = false;
-        }
+            modal.classList.add('hidden'); form.reset(); exitAllModes();
+        } catch (error) { console.error("Lỗi khi thêm dữ liệu: ", error); alert("Đã xảy ra lỗi khi gửi dữ liệu."); } finally { submitBtn.textContent = 'Gửi Dữ Liệu'; submitBtn.disabled = false; }
     });
 
-    // --- FIREBASE AUTHENTICATION LOGIC ---
     auth.onAuthStateChanged((user) => {
         if (user) {
             currentUser = user;
@@ -452,19 +397,10 @@ map.on('click', function(e) {
             [addLocationBtn, listBtn].forEach(btn => { btn.disabled = true; });
         }
     });
-    loginBtn.addEventListener('click', () => {
-        if (ui.isPendingRedirect()) return;
-        firebaseuiContainer.classList.remove('hidden');
-        ui.start('#firebaseui-widget', {
-            signInFlow: 'popup',
-            signInOptions: [ firebase.auth.GoogleAuthProvider.PROVIDER_ID, firebase.auth.EmailAuthProvider.PROVIDER_ID, ],
-            callbacks: { signInSuccessWithAuthResult: function(authResult, redirectUrl) { firebaseuiContainer.classList.add('hidden'); return false; } }
-        });
-    });
+    loginBtn.addEventListener('click', () => { if (ui.isPendingRedirect()) return; firebaseuiContainer.classList.remove('hidden'); ui.start('#firebaseui-widget', { signInFlow: 'popup', signInOptions: [ firebase.auth.GoogleAuthProvider.PROVIDER_ID, firebase.auth.EmailAuthProvider.PROVIDER_ID, ], callbacks: { signInSuccessWithAuthResult: function(authResult, redirectUrl) { firebaseuiContainer.classList.add('hidden'); return false; } } }); });
     logoutBtn.addEventListener('click', () => auth.signOut());
     firebaseuiContainer.addEventListener('click', (e) => { if (e.target === firebaseuiContainer) firebaseuiContainer.classList.add('hidden'); });
 
-    // --- FIRESTORE DATA & RENDERING LOGIC ---
     const listingsCol = db.collection("listings");
     const q = listingsCol.where("status", "==", "approved").orderBy("createdAt", "desc");
     q.onSnapshot((querySnapshot) => {
@@ -472,10 +408,7 @@ map.on('click', function(e) {
         priceMarkers.clearLayers();
         const priceList = document.getElementById('price-list');
         priceList.innerHTML = '';
-        if (querySnapshot.empty) {
-            priceList.innerHTML = '<p class="text-center text-gray-500 py-4">📭 Không có dữ liệu.</p>';
-            return;
-        }
+        if (querySnapshot.empty) { priceList.innerHTML = '<p class="text-center text-gray-500 py-4">📭 Không có dữ liệu.</p>'; return; }
         querySnapshot.forEach((doc) => {
             const item = doc.data();
             item.id = doc.id;

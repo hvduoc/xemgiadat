@@ -168,3 +168,64 @@ input[type=range][orient=vertical] {
     font-size: 0.9rem;
     margin-left: 8px;
 }
+/* --- CSS CHO NHÃN KÍCH THƯỚC TRÊN BẢN ĐỒ --- */
+.dimension-label {
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 4px;
+    padding: 2px 5px;
+    font-size: 12px;
+    font-weight: bold;
+    color: #333;
+    white-space: nowrap;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    border: 1px solid rgba(0,0,0,0.2);
+}
+/* --- CSS CHO SIDEBAR --- */
+
+/* Lớp "is-open" sẽ được thêm bằng JS để hiển thị sidebar */
+#info-sidebar.is-open {
+    transform: translateX(0);
+}
+
+/* Định dạng cho các dòng thông tin trong sidebar */
+#sidebar-content .info-row {
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #f3f4f6;
+}
+#sidebar-content .info-row span:first-child {
+    color: #6b7280; /* Màu chữ cho nhãn */
+}
+#sidebar-content .info-row span:last-child {
+    font-weight: 600; /* In đậm giá trị */
+    text-align: right;
+}
+
+/* Định dạng cho các nút action */
+#sidebar-actions {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #e5e7eb;
+}
+#sidebar-actions button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px;
+    border-radius: 8px;
+    transition: background-color 0.2s;
+}
+#sidebar-actions button:hover {
+    background-color: #f3f4f6;
+}
+#sidebar-actions .icon {
+    font-size: 20px;
+    margin-bottom: 4px;
+}
+#sidebar-actions .text {
+    font-size: 12px;
+}
