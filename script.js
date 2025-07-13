@@ -171,7 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- EVENT LISTENERS ---
 
     // Search Control
-    L.esri.Geocoding.geosearch().addTo(map);
+    //L.esri.Geocoding.geosearch().addTo(map);
 
     // Opacity Slider Events
     opacitySlider.addEventListener('input', (e) => parcelLayer.setOpacity(e.target.value));

@@ -132,3 +132,13 @@ input[type=range][orient=vertical] {
   border-radius: 50%;
   border: 2px solid white;
 }
+/* --- TÙY CHỈNH VỊ TRÍ THANH TÌM KIẾM --- */
+.leaflet-control-geosearch.leaflet-control {
+    position: absolute !important;
+    top: 1rem; /* 16px */
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1001;
+    width: calc(100% - 40px);
+    max-width: 400px;
+}
