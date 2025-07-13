@@ -8,11 +8,16 @@ const firebaseConfig = {
     appId: "1:361952598367:web:c1e2e3b1a6d5d8c797beea",
     measurementId: "G-XT932D9N1N"
 };
+
+// --- MAPBOX ACCESS TOKEN ---
 const mapboxAccessToken = "pk.eyJ1IjoiaHZkdW9jIiwiYSI6ImNtZDFwcjVxYTAzOGUybHEzc3ZrNTJmcnIifQ.D5VlPC8c_n1i3kezgqtzwg";
+
+
 // --- SERVICE INITIALIZATION ---
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
+
 
 // --- APPLICATION LOGIC WRAPPER ---
 document.addEventListener('DOMContentLoaded', () => {
@@ -21,34 +26,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const map = L.map('map', { center: [16.054456, 108.202167], zoom: 13, zoomControl: false });
     const myAttribution = '© XemGiaDat | Dữ liệu © Sở TNMT Đà Nẵng';
     
-    const googleStreets = L.tileLayer('http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',{
-        maxZoom: 20,
-        subdomains:['mt0','mt1','mt2','mt3'],
-        attribution: myAttribution + ' | © Google Maps'
-    });
-    const googleSat = L.tileLayer('http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{
-        maxZoom: 20,
-        subdomains:['mt0','mt1','mt2','mt3'],
-        attribution: myAttribution + ' | © Google Satellite'
-    });
-    const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: myAttribution + ' | © OpenStreetMap'
-    });
-    const parcelLayer = L.esri.dynamicMapLayer({
-        url: 'https://gisportal.danang.gov.vn/server/rest/services/DiaChinh/DaNangLand_DiaChinh/MapServer',
-        opacity: 0.7,
-        useCors: false
-    });
+    const googleStreets = L.tileLayer('http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',{ maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'], attribution: myAttribution + ' | © Google Maps' });
+    const googleSat = L.tileLayer('http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{ maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'], attribution: myAttribution + ' | © Google Satellite' });
+    const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: myAttribution + ' | © OpenStreetMap' });
+    const parcelLayer = L.esri.dynamicMapLayer({ url: 'https://gisportal.danang.gov.vn/server/rest/services/DiaChinh/DaNangLand_DiaChinh/MapServer', opacity: 0.7, useCors: false });
     
-    const baseMaps = {
-        "Ảnh vệ tinh": googleSat,
-        "Bản đồ đường": googleStreets,
-        "OpenStreetMap": osmLayer
-    };
-    const overlayMaps = {
-        "🗺️ Bản đồ phân lô": parcelLayer
-    };
+    const baseMaps = { "Ảnh vệ tinh": googleSat, "Bản đồ đường": googleStreets, "OpenStreetMap": osmLayer };
+    const overlayMaps = { "🗺️ Bản đồ phân lô": parcelLayer };
     
     googleStreets.addTo(map);
     parcelLayer.addTo(map);
@@ -88,18 +72,13 @@ document.addEventListener('DOMContentLoaded', () => {
     let isQueryMode = false;
     let localListings = [];
     let debounceTimer;
+    let highlightedParcel = null; 
     let priceMarkers = L.markerClusterGroup({
         iconCreateFunction: function (cluster) {
             const count = cluster.getChildCount();
             let size = ' marker-cluster-';
-            if (count < 10) size += 'small';
-            else if (count < 100) size += 'medium';
-            else size += 'large';
-            return new L.DivIcon({
-                html: '<div><span>' + count + '</span></div>',
-                className: 'marker-cluster marker-cluster-yellow' + size,
-                iconSize: new L.Point(40, 40)
-            });
+            if (count < 10) size += 'small'; else if (count < 100) size += 'medium'; else size += 'large';
+            return new L.DivIcon({ html: '<div><span>' + count + '</span></div>', className: 'marker-cluster marker-cluster-yellow' + size, iconSize: new L.Point(40, 40) });
         }
     }).addTo(map);
 
@@ -146,11 +125,12 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('Đã sao chép liên kết vị trí!');
         }).catch(err => console.error('Lỗi sao chép: ', err));
     }
-    window.shareOnFacebook = function(lat, lng) {
+    window.shareOnFacebook = function(lat, lng, soTo, soThua) {
         const url = `${window.location.origin}${window.location.pathname}?lat=${lat}&lng=${lng}`;
-        const fbShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
-        window.open(fbShareUrl, '_blank');
-    }
+        const quoteText = `Khám phá thông tin một thửa đất thú vị tại Đà Nẵng! (Số tờ: ${soTo}, Số thửa: ${soThua}). Cùng xem trên Bản đồ Giá đất Cộng đồng!`;
+        const fbShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(quoteText)}`;
+        window.open(fbShareUrl, '_blank', 'width=600,height=400');
+    };
     window.toggleLike = function(button) {
         const icon = button.querySelector('i');
         if (icon.classList.contains('far')) {
@@ -161,162 +141,143 @@ document.addEventListener('DOMContentLoaded', () => {
             icon.classList.add('far');
         }
     }
-
-    // --- SEARCH LOGIC ---      
-    // --- HÀM THỰC HIỆN TÌM KIẾM (PHIÊN BẢN NÂNG CẤP DÙNG MAPBOX) ---
-    const performSearch = async (query) => {
-        if (!query) {
-            searchResultsContainer.innerHTML = '';
-            searchResultsContainer.classList.add('hidden');
-            return;
-        }
-
-        searchResultsContainer.innerHTML = '<div class="p-4 text-center text-gray-500">Đang tìm...</div>';
+    
+    // --- SEARCH LOGIC ---
+    const searchByParcelNumber = async (soTo, soThua) => {
+        searchResultsContainer.innerHTML = '<div class="p-4 text-center text-gray-500">Đang tìm thửa đất...</div>';
         searchResultsContainer.classList.remove('hidden');
 
-        // Tìm kiếm trong danh sách lô đất (local)
-        const listingResults = localListings.filter(item => 
-            item.name.toLowerCase().includes(query.toLowerCase())
-        );
+        const query = L.esri.query({
+            url: 'https://gisportal.danang.gov.vn/server/rest/services/DiaChinh/DaNangLand_DiaChinh/MapServer/35'
+        });
+
+        // --- THỬ NGHIỆM CUỐI CÙNG: Dùng cú pháp dấu ngoặc vuông [] ---
+        const whereClause = `[Số hiệu tờ bản đồ] = ${soTo} AND [Số thửa] = ${soThua}`;
+        query.where(whereClause);
 
         let html = '';
-
-        // Hiển thị kết quả tìm lô đất
-        if (listingResults.length > 0) {
-            html += '<div class="result-category">Tin đăng nổi bật</div>';
-            listingResults.slice(0, 5).forEach(item => {
-                html += `
-                    <div class="result-item" data-type="listing" data-id="${item.id}">
-                        <i class="icon fa-solid fa-tag"></i>
-                        <div>
-                            <strong>${item.name}</strong>
-                            <span class="price">${item.priceValue} ${item.priceUnit}</span>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-        
-        // Tìm kiếm địa chỉ bằng Mapbox API
-        const mapCenter = map.getCenter();
-        const endpointUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxAccessToken}&country=VN&language=vi&autocomplete=true&proximity=${mapCenter.lng},${mapCenter.lat}`;
-
         try {
-            const response = await fetch(endpointUrl);
-            const data = await response.json();
+            const response = await new Promise((resolve, reject) => {
+                query.run((error, featureCollection) => {
+                    if (error) {
+                        reject(error);
+                    } else {
+                        resolve(featureCollection);
+                    }
+                });
+            });
 
-            if (data.features && data.features.length > 0) {
-                html += '<div class="result-category">Địa điểm</div>';
-                data.features.forEach(feature => {
-                    // Mapbox trả về tọa độ [lng, lat]
-                    const lng = feature.center[0];
-                    const lat = feature.center[1];
+            if (response.features.length > 0) {
+                html += `<div class="result-category">Kết quả cho Tờ: ${soTo} / Thửa: ${soThua}</div>`;
+                response.features.forEach(feature => {
+                    const diaChi = feature.properties.DiaChiThuaDat || `Thửa đất ${soThua}, tờ bản đồ ${soTo}`;
+                    const geometry = JSON.stringify(feature.geometry);
                     html += `
-                        <div class="result-item" data-type="location" data-lat="${lat}" data-lng="${lng}">
-                            <i class="icon fa-solid fa-map-marker-alt"></i>
-                            <span>${feature.place_name}</span>
+                        <div class="result-item" data-type="parcel" data-geometry='${geometry}'>
+                            <i class="icon fa-solid fa-draw-polygon"></i>
+                            <span>${diaChi}</span>
                         </div>
                     `;
                 });
             }
         } catch (error) {
-            console.error("Lỗi tìm kiếm địa chỉ Mapbox:", error);
+            console.error("Lỗi truy vấn thửa đất:", error);
         }
 
         if (html === '') {
-            searchResultsContainer.innerHTML = '<div class="p-4 text-center text-gray-500">Không tìm thấy kết quả.</div>';
+            searchResultsContainer.innerHTML = '<div class="p-4 text-center text-gray-500">Không tìm thấy thửa đất với số tờ/số thửa này.</div>';
         } else {
             searchResultsContainer.innerHTML = html;
         }
     };
 
+    const performSearch = async (query) => {
+        const parcelRegex = /^\s*(\d+)\s*\/\s*(\d+)\s*$/;
+        const match = query.match(parcelRegex);
+        if (match) {
+            searchByParcelNumber(match[1], match[2]);
+            return;
+        }
+
+        if (!query) {
+            searchResultsContainer.innerHTML = '';
+            searchResultsContainer.classList.add('hidden');
+            return;
+        }
+        
+        searchResultsContainer.innerHTML = '<div class="p-4 text-center text-gray-500">Đang tìm...</div>';
+        searchResultsContainer.classList.remove('hidden');
+        
+        const listingResults = localListings.filter(item => item.name.toLowerCase().includes(query.toLowerCase()));
+        let html = '';
+        if (listingResults.length > 0) {
+            html += '<div class="result-category">Tin đăng nổi bật</div>';
+            listingResults.slice(0, 5).forEach(item => {
+                html += `<div class="result-item" data-type="listing" data-id="${item.id}"><i class="icon fa-solid fa-tag"></i><div><strong>${item.name}</strong><span class="price">${item.priceValue} ${item.priceUnit}</span></div></div>`;
+            });
+        }
+        
+        const mapCenter = map.getCenter();
+        const endpointUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxAccessToken}&country=VN&language=vi&autocomplete=true&proximity=${mapCenter.lng},${mapCenter.lat}`;
+        try {
+            const response = await fetch(endpointUrl);
+            const data = await response.json();
+            if (data.features && data.features.length > 0) {
+                html += '<div class="result-category">Địa điểm</div>';
+                data.features.forEach(feature => {
+                    html += `<div class="result-item" data-type="location" data-lat="${feature.center[1]}" data-lng="${feature.center[0]}"><i class="icon fa-solid fa-map-marker-alt"></i><span>${feature.place_name}</span></div>`;
+                });
+            }
+        } catch (error) { console.error("Lỗi tìm kiếm địa chỉ Mapbox:", error); }
+        
+        searchResultsContainer.innerHTML = html === '' ? '<div class="p-4 text-center text-gray-500">Không tìm thấy kết quả.</div>' : html;
+    };
+
+    // --- EVENT LISTENERS ---
     searchInput.addEventListener('input', (e) => {
         clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => {
-            performSearch(e.target.value.trim());
-        }, 300);
+        debounceTimer = setTimeout(() => { performSearch(e.target.value.trim()); }, 300);
     });
+
     searchResultsContainer.addEventListener('click', (e) => {
         const item = e.target.closest('.result-item');
         if (!item) return;
+        if (highlightedParcel) map.removeLayer(highlightedParcel);
+        
         const type = item.dataset.type;
         if (type === 'location') {
-            const lat = parseFloat(item.dataset.lat);
-            const lng = parseFloat(item.dataset.lng);
-            map.setView([lat, lng], 17);
+            map.setView([parseFloat(item.dataset.lat), parseFloat(item.dataset.lng)], 17);
         } else if (type === 'listing') {
-            const id = item.dataset.id;
-            const listing = localListings.find(l => l.id === id);
+            const listing = localListings.find(l => l.id === item.dataset.id);
             if (listing) {
                 map.setView([listing.lat, listing.lng], 18);
                 priceMarkers.eachLayer(marker => {
-                    if (marker.getLatLng().lat === listing.lat && marker.getLatLng().lng === listing.lng) {
-                        marker.openPopup();
-                    }
+                    if (marker.getLatLng().lat === listing.lat && marker.getLatLng().lng === listing.lng) marker.openPopup();
                 });
             }
+        } else if (type === 'parcel') {
+            const geometry = JSON.parse(item.dataset.geometry);
+            highlightedParcel = L.geoJSON(geometry, { style: { color: '#ff00ff', weight: 4, opacity: 0.8, fillOpacity: 0.2 } }).addTo(map);
+            map.fitBounds(highlightedParcel.getBounds());
         }
+        
         searchResultsContainer.classList.add('hidden');
         searchInput.value = '';
     });
-    map.on('click', () => {
-        searchResultsContainer.classList.add('hidden');
-    });
-
-    // --- OTHER EVENT LISTENERS ---
-    opacitySlider.addEventListener('input', (e) => parcelLayer.setOpacity(e.target.value));
-    map.on('overlayadd', e => { if (e.layer === parcelLayer) opacityControl.classList.remove('hidden'); });
-    map.on('overlayremove', e => { if (e.layer === parcelLayer) opacityControl.classList.add('hidden'); });
-    if (map.hasLayer(parcelLayer)) { opacityControl.classList.remove('hidden'); } else { opacityControl.classList.add('hidden'); }
     
-    donateBtn.addEventListener('click', () => donateModal.classList.remove('hidden'));
-    closeDonateModalBtn.addEventListener('click', () => donateModal.classList.add('hidden'));
-    donateModal.addEventListener('click', (e) => {
-        if (e.target === donateModal) donateModal.classList.add('hidden');
-    });
-    copyBtn.addEventListener('click', () => {
-        navigator.clipboard.writeText(accountNumber).then(() => {
-            const originalIcon = copyBtn.innerHTML;
-            copyBtn.innerHTML = '<svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
-            setTimeout(() => { copyBtn.innerHTML = originalIcon; }, 1500);
-        }).catch(err => console.error('Không thể sao chép: ', err));
-    });
-    fabMainBtn.addEventListener('click', () => {
-        fabActions.classList.toggle('hidden');
-        fabMainBtn.querySelector('i').classList.toggle('fa-bars');
-        fabMainBtn.querySelector('i').classList.toggle('fa-xmark');
-    });
-    addLocationBtn.addEventListener('click', () => {
-        if (!currentUser) return;
-        isAddMode ? exitAllModes() : enterAddMode();
-    });
-    queryBtn.addEventListener('click', () => {
-        isQueryMode ? exitAllModes() : enterQueryMode();
-    });
-    listBtn.addEventListener('click', () => listModal.classList.remove('hidden'));
-    document.getElementById('close-list-btn').addEventListener('click', () => listModal.classList.add('hidden'));
-    document.getElementById('close-modal-btn').addEventListener('click', () => {
-        modal.classList.add('hidden');
-        exitAllModes();
-    });
-    // --- THAY THẾ TOÀN BỘ HÀM map.on('click',...) CŨ BẰNG HÀM NÀY ---
     map.on('click', function(e) {
-        // Luôn ẩn kết quả tìm kiếm khi click ra bản đồ
         searchResultsContainer.classList.add('hidden');
+        if (highlightedParcel) {
+            map.removeLayer(highlightedParcel);
+            highlightedParcel = null;
+        }
 
-        // Logic cho chế độ Thêm địa điểm
         if (isAddMode) {
-            if (!currentUser) {
-                alert("Vui lòng đăng nhập để thêm địa điểm!");
-                exitAllModes();
-                return;
-            }
+            if (!currentUser) { alert("Vui lòng đăng nhập để thêm địa điểm!"); exitAllModes(); return; }
             selectedCoords = e.latlng;
             tempMarker = L.marker(selectedCoords).addTo(map);
             modal.classList.remove('hidden');
-            
-            // Tìm địa chỉ tự động (đã bỏ apikey để tương thích nhiều dịch vụ)
-            const geocodeService = L.esri.Geocoding.geocodeService(); 
+            const geocodeService = L.esri.Geocoding.geocodeService();
             geocodeService.reverse().latlng(selectedCoords).run(function (error, result) {
                 if (error || !result.address) {
                     document.getElementById('address-input').value = 'Không tìm thấy địa chỉ';
@@ -325,69 +286,86 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         } 
-        // Logic cho chế độ Tra cứu địa chính
         else if (isQueryMode) {
-            if (!currentUser) {
-                alert("Vui lòng đăng nhập để tra cứu địa chính!");
-                exitAllModes();
-                return;
-            }
+            if (!currentUser) { alert("Vui lòng đăng nhập để tra cứu địa chính!"); exitAllModes(); return; }
             L.popup().setLatLng(e.latlng).setContent('<p>Đang tìm kiếm thông tin thửa đất...</p>').openOn(map);
-            
             parcelLayer.identify().on(map).at(e.latlng).run((error, featureCollection) => {
                 exitAllModes();
                 if (error || featureCollection.features.length === 0) {
                     L.popup().setLatLng(e.latlng).setContent('Không tìm thấy thông tin địa chính tại vị trí này.').openOn(map);
                 } else {
-                    // Thay thế đoạn mã tạo popupContent cũ bằng đoạn này
                     const props = featureCollection.features[0].properties;
-                    const lat = e.latlng.lat.toFixed(6);
-                    const lng = e.latlng.lng.toFixed(6);
-
-                    // Chuẩn bị dữ liệu để truyền vào hàm chia sẻ
-                    const soTo = props['Số hiệu tờ bản đồ'] ?? 'N/A';
-                    const soThua = props['Số thửa'] ?? 'N/A';
+                    const lat = e.latlng.lat.toFixed(6), lng = e.latlng.lng.toFixed(6);
+                    const soTo = props['Số hiệu tờ bản đồ'] ?? 'N/A', soThua = props['Số thửa'] ?? 'N/A';
                     const diaChi = (props['Địa chỉ'] && props['Địa chỉ'] !== 'Null') ? props['Địa chỉ'] : '';
-
-                    const popupContent = `
-                        <div class="w-64 p-1 font-sans">
-                            <div class="p-3 bg-white rounded-lg shadow-md">
-                                <h3 class="text-base font-bold text-gray-800 text-center mb-3 border-b pb-2">Thông tin Thửa đất</h3>
-
-                                <div class="space-y-2 text-sm text-gray-700">
-                                    <div class="flex justify-between"><span>Số tờ:</span><span class="font-semibold">${soTo}</span></div>
-                                    <div class="flex justify-between"><span>Số thửa:</span><span class="font-semibold">${soThua}</span></div>
-                                    <div class="flex justify-between"><span>Loại đất:</span><span class="font-semibold bg-gray-100 px-2 rounded-full text-blue-600">${props['Ký hiệu mục đích sử dụng'] ?? 'N/A'}</span></div>
-                                    <div class="flex justify-between"><span>Diện tích:</span><span class="font-semibold">${props['Diện tích'] ? parseFloat(props['Diện tích']).toFixed(1) : 'N/A'} m²</span></div>
-                                    <div class="flex justify-between items-start"><span class="flex-shrink-0 mr-2">Địa chỉ:</span><span class="font-semibold text-right">${diaChi}</span></div>
-                                </div>
-
-                                <div class="mt-4 pt-3 border-t grid grid-cols-3 gap-2 text-center text-gray-600">
-                                    <div>
-                                        <button onclick="toggleLike(this)" class="w-full text-center p-1 rounded-lg hover:bg-gray-100">
-                                            <i class="far fa-heart text-xl text-red-500"></i>
-                                            <span class="block text-xs mt-1">Thích</span>
-                                        </button>
-                                    </div>
-                                    <div>
-                                        <button onclick="copyLocationLink(${lat}, ${lng})" class="w-full text-center p-1 rounded-lg hover:bg-gray-100">
-                                            <i class="fas fa-link text-xl text-gray-500"></i>
-                                            <span class="block text-xs mt-1">Sao chép</span>
-                                        </button>
-                                    </div>
-                                    <div>
-                                        <button onclick="shareOnFacebook(${lat}, ${lng}, '${soTo}', '${soThua}')" class="w-full text-center p-1 rounded-lg hover:bg-gray-100">
-                                            <i class="fab fa-facebook-f text-xl text-blue-600"></i>
-                                            <span class="block text-xs mt-1">Chia sẻ</span>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    L.popup({ minWidth: 250 }).setLatLng(e.latlng).setContent(popupContent).openOn(map);
+                    const popupContent = `<div class="w-64 p-1 font-sans"><div class="p-3 bg-white rounded-lg shadow-md"><h3 class="text-base font-bold text-gray-800 text-center mb-3 border-b pb-2">Thông tin Thửa đất</h3><div class="space-y-2 text-sm text-gray-700"><div class="flex justify-between"><span>Số tờ:</span><span class="font-semibold">${soTo}</span></div><div class="flex justify-between"><span>Số thửa:</span><span class="font-semibold">${soThua}</span></div><div class="flex justify-between"><span>Loại đất:</span><span class="font-semibold bg-gray-100 px-2 rounded-full text-blue-600">${props['Ký hiệu mục đích sử dụng'] ?? 'N/A'}</span></div><div class="flex justify-between"><span>Diện tích:</span><span class="font-semibold">${props['Diện tích'] ? parseFloat(props['Diện tích']).toFixed(1) : 'N/A'} m²</span></div><div class="flex justify-between items-start"><span class="flex-shrink-0 mr-2">Địa chỉ:</span><span class="font-semibold text-right">${diaChi}</span></div></div><div class="mt-4 pt-3 border-t grid grid-cols-3 gap-2 text-center text-gray-600"><div><button onclick="toggleLike(this)" class="w-full text-center p-1 rounded-lg hover:bg-gray-100"><i class="far fa-heart text-xl text-red-500"></i><span class="block text-xs mt-1">Thích</span></button></div><div><button onclick="copyLocationLink(${lat}, ${lng})" class="w-full text-center p-1 rounded-lg hover:bg-gray-100"><i class="fas fa-link text-xl text-gray-500"></i><span class="block text-xs mt-1">Sao chép</span></button></div><div><button onclick="shareOnFacebook(${lat}, ${lng}, '${soTo}', '${soThua}')" class="w-full text-center p-1 rounded-lg hover:bg-gray-100"><i class="fab fa-facebook-f text-xl text-blue-600"></i><span class="block text-xs mt-1">Chia sẻ</span></button></div></div></div></div>`;
+                    L.popup({ minWidth: 280, closeButton: true }).setLatLng(e.latlng).setContent(popupContent).openOn(map);
                 }
             });
+        }
+    });
+
+    opacitySlider.addEventListener('input', (e) => parcelLayer.setOpacity(e.target.value));
+    map.on('overlayadd', e => { if (e.layer === parcelLayer) opacityControl.classList.remove('hidden'); });
+    map.on('overlayremove', e => { if (e.layer === parcelLayer) opacityControl.classList.add('hidden'); });
+    if (map.hasLayer(parcelLayer)) { opacityControl.classList.remove('hidden'); } else { opacityControl.classList.add('hidden'); }
+    
+    donateBtn.addEventListener('click', () => donateModal.classList.remove('hidden'));
+    closeDonateModalBtn.addEventListener('click', () => donateModal.classList.add('hidden'));
+    donateModal.addEventListener('click', (e) => { if (e.target === donateModal) donateModal.classList.add('hidden'); });
+    copyBtn.addEventListener('click', () => { /* ... */ });
+    fabMainBtn.addEventListener('click', () => {
+        fabActions.classList.toggle('hidden');
+        fabMainBtn.querySelector('i').classList.toggle('fa-bars');
+        fabMainBtn.querySelector('i').classList.toggle('fa-xmark');
+    });
+    addLocationBtn.addEventListener('click', () => { if (!currentUser) return; isAddMode ? exitAllModes() : enterAddMode(); });
+    queryBtn.addEventListener('click', () => { isQueryMode ? exitAllModes() : enterQueryMode(); });
+    listBtn.addEventListener('click', () => listModal.classList.remove('hidden'));
+    document.getElementById('close-list-btn').addEventListener('click', () => listModal.classList.add('hidden'));
+    document.getElementById('close-modal-btn').addEventListener('click', () => { modal.classList.add('hidden'); exitAllModes(); });
+
+    // --- FORM SUBMISSION ---
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const submitBtn = document.getElementById('submit-form-btn');
+        if (!currentUser) return alert("Vui lòng đăng nhập.");
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+        if (!selectedCoords || !data.name || !data.priceValue) {
+            return alert('Vui lòng điền các trường bắt buộc.');
+        }
+        submitBtn.textContent = 'Đang gửi...';
+        submitBtn.disabled = true;
+        try {
+            const docData = {
+                userId: currentUser.uid,
+                userName: currentUser.displayName,
+                userAvatar: currentUser.photoURL,
+                lat: selectedCoords.lat,
+                lng: selectedCoords.lng,
+                priceValue: parseFloat(data.priceValue),
+                area: data.area ? parseFloat(data.area) : null,
+                status: 'pending',
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                name: data.name, priceUnit: data.priceUnit,
+                notes: data.notes || '',
+                contactName: data.contactName || '',
+                contactEmail: data.contactEmail || '',
+                contactPhone: data.contactPhone || '',
+                contactFacebook: data.contactFacebook || ''
+            };
+            await db.collection("listings").add(docData);
+            alert('Gửi dữ liệu thành công, cảm ơn bạn đã đóng góp!');
+            modal.classList.add('hidden');
+            form.reset();
+            exitAllModes();
+        } catch (error) {
+            console.error("Lỗi khi thêm dữ liệu: ", error);
+            alert("Đã xảy ra lỗi khi gửi dữ liệu.");
+        } finally {
+            submitBtn.textContent = 'Gửi Dữ Liệu';
+            submitBtn.disabled = false;
         }
     });
 
@@ -400,18 +378,14 @@ document.addEventListener('DOMContentLoaded', () => {
             userProfileDiv.classList.remove('hidden');
             userProfileDiv.classList.add('flex');
             document.getElementById('user-avatar').src = user.photoURL || 'https://placehold.co/40x40/e2e8f0/64748b?text=A';
-            [addLocationBtn, listBtn].forEach(btn => {
-                btn.disabled = false;
-            });
+            [addLocationBtn, listBtn].forEach(btn => { btn.disabled = false; });
         } else {
             currentUser = null;
             loginBtn.classList.remove('hidden');
             userProfileDiv.classList.add('hidden');
             userProfileDiv.classList.remove('flex');
             exitAllModes();
-            [addLocationBtn, listBtn].forEach(btn => {
-                btn.disabled = true;
-            });
+            [addLocationBtn, listBtn].forEach(btn => { btn.disabled = true; });
         }
     });
     loginBtn.addEventListener('click', () => {
@@ -419,22 +393,12 @@ document.addEventListener('DOMContentLoaded', () => {
         firebaseuiContainer.classList.remove('hidden');
         ui.start('#firebaseui-widget', {
             signInFlow: 'popup',
-            signInOptions: [
-                firebase.auth.GoogleAuthProvider.PROVIDER_ID,
-                firebase.auth.EmailAuthProvider.PROVIDER_ID,
-            ],
-            callbacks: {
-                signInSuccessWithAuthResult: function(authResult, redirectUrl) {
-                    firebaseuiContainer.classList.add('hidden');
-                    return false;
-                }
-            }
+            signInOptions: [ firebase.auth.GoogleAuthProvider.PROVIDER_ID, firebase.auth.EmailAuthProvider.PROVIDER_ID, ],
+            callbacks: { signInSuccessWithAuthResult: function(authResult, redirectUrl) { firebaseuiContainer.classList.add('hidden'); return false; } }
         });
     });
     logoutBtn.addEventListener('click', () => auth.signOut());
-    firebaseuiContainer.addEventListener('click', (e) => {
-        if (e.target === firebaseuiContainer) firebaseuiContainer.classList.add('hidden');
-    });
+    firebaseuiContainer.addEventListener('click', (e) => { if (e.target === firebaseuiContainer) firebaseuiContainer.classList.add('hidden'); });
 
     // --- FIRESTORE DATA & RENDERING LOGIC ---
     const listingsCol = db.collection("listings");
