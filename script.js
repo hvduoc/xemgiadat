@@ -321,12 +321,19 @@ map.on('click', function(e) {
                         const p1 = coords[i], p2 = coords[i+1];
                         const point1 = L.latLng(p1[1], p1[0]), point2 = L.latLng(p2[1], p2[0]);
                         const distance = point1.distanceTo(point2);
+
+                        // --- LOGIC MỚI ĐỂ LÀM TRÒN SỐ THÔNG MINH ---
+                        // Làm tròn đến 1 chữ số thập phân, và tự động bỏ ".0" nếu là số nguyên
+                        const displayDistance = Math.round(distance * 10) / 10;
+
                         const midPoint = L.latLng((point1.lat + point2.lat) / 2, (point1.lng + point2.lng) / 2);
                         const angle = Math.atan2(p2[1] - p1[1], p2[0] - p1[0]) * 180 / Math.PI;
+
+                        // Bỏ chữ "m" và dùng giá trị đã được làm tròn
                         const dimensionLabel = L.marker(midPoint, { 
                             icon: L.divIcon({ 
                                 className: 'dimension-label-container', 
-                                html: `<div class="dimension-label" style="transform: rotate(${angle}deg);">${distance.toFixed(1)}m</div>` 
+                                html: `<div class="dimension-label" style="transform: rotate(${angle}deg);">${displayDistance}</div>` 
                             }) 
                         });
                         dimensionMarkers.addLayer(dimensionLabel);
