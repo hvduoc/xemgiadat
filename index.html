@@ -11,12 +11,20 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
     <link rel="stylesheet" href="https://unpkg.com/esri-leaflet-geocoder@3.1.4/dist/esri-leaflet-geocoder.css" crossorigin="">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
         
     <script src="https://cdn.tailwindcss.com"></script>
 
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="relative overflow-hidden">
+    <div id="custom-search-container" class="absolute top-4 left-1/2 -translate-x-1/2 z-[1001] w-11/12 max-w-md">
+        <div class="relative">
+            <input type="text" id="search-input" placeholder="Tìm địa chỉ, lô đất..." class="w-full px-4 py-3 text-lg rounded-full shadow-lg border-2 border-transparent focus:border-blue-500 focus:outline-none transition">
+            <i class="fa-solid fa-search absolute top-1/2 -translate-y-1/2 right-5 text-gray-400 text-xl"></i>
+        </div>
+        <div id="search-results" class="bg-white rounded-2xl shadow-lg mt-2 max-h-[60vh] overflow-y-auto hidden"></div>
+    </div>
 
     <div id="map"></div>
 
@@ -162,6 +170,8 @@
     <script src="https://www.gstatic.com/firebasejs/ui/4.8.1/firebase-ui-auth.js"></script>
     <script async defer crossorigin="anonymous" src="https://connect.facebook.net/vi_VN/sdk.js#xfbml=1&version=v19.0" nonce="fb-plugin"></script>
 
+   
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
