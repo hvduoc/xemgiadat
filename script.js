@@ -1,59 +1,59 @@
 // --- FIREBASE CONFIGURATION ---
 const firebaseConfig = {
-    [cite_start]apiKey: "AIzaSyDu9tYpJdMPT7Hvk2_Ug8XHwxRQXoakRfs", // [cite: 34]
-    [cite_start]authDomain: "xemgiadat-dfe15.firebaseapp.com", // [cite: 34]
-    [cite_start]projectId: "xemgiadat-dfe15", // [cite: 34]
-    [cite_start]storageBucket: "xemgiadat-dfe15.appspot.com", // [cite: 34]
-    [cite_start]messagingSenderId: "361952598367", // [cite: 34]
-    [cite_start]appId: "1:361952598367:web:c1e2e3b1a6d5d8c797beea", // [cite: 34]
-    [cite_start]measurementId: "G-XT932D9N1N" // [cite: 34]
+    apiKey: "AIzaSyDu9tYpJdMPT7Hvk2_Ug8XHwxRQXoakRfs",
+    authDomain: "xemgiadat-dfe15.firebaseapp.com",
+    projectId: "xemgiadat-dfe15",
+    storageBucket: "xemgiadat-dfe15.appspot.com",
+    messagingSenderId: "361952598367",
+    appId: "1:361952598367:web:c1e2e3b1a6d5d8c797beea",
+    measurementId: "G-XT932D9N1N"
 };
 
 // --- SERVICE INITIALIZATION ---
-firebase.initializeApp(firebaseConfig); [cite_start]// [cite: 35]
-const auth = firebase.auth(); [cite_start]// [cite: 35]
-const db = firebase.firestore(); [cite_start]// [cite: 35]
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
 
 // --- MAP AND LAYERS INITIALIZATION ---
-const map = L.map('map', { center: [16.054456, 108.202167], zoom: 13, zoomControl: false }); [cite_start]// [cite: 36]
-const myAttribution = '© XemGiaDat | Dữ liệu © Sở TNMT Đà Nẵng'; [cite_start]// [cite: 37]
+const map = L.map('map', { center: [16.054456, 108.202167], zoom: 13, zoomControl: false });
+const myAttribution = '© XemGiaDat | Dữ liệu © Sở TNMT Đà Nẵng';
 
-[cite_start]const googleStreets = L.tileLayer('http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',{ // [cite: 38]
-    [cite_start]maxZoom: 20, // [cite: 38]
-    [cite_start]subdomains:['mt0','mt1','mt2','mt3'], // [cite: 38]
-    attribution: myAttribution + ' | [cite_start]© Google Maps' // [cite: 38]
+const googleStreets = L.tileLayer('http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',{
+    maxZoom: 20,
+    subdomains:['mt0','mt1','mt2','mt3'],
+    attribution: myAttribution + ' | © Google Maps'
 });
-[cite_start]const googleSat = L.tileLayer('http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{ // [cite: 39]
-    [cite_start]maxZoom: 20, // [cite: 39]
-    [cite_start]subdomains:['mt0','mt1','mt2','mt3'], // [cite: 39]
-    attribution: myAttribution + ' | [cite_start]© Google Satellite' // [cite: 39]
+const googleSat = L.tileLayer('http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{
+    maxZoom: 20,
+    subdomains:['mt0','mt1','mt2','mt3'],
+    attribution: myAttribution + ' | © Google Satellite'
 });
-[cite_start]const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { // [cite: 40]
-    [cite_start]maxZoom: 19, // [cite: 40]
-    attribution: myAttribution + ' | [cite_start]© OpenStreetMap' // [cite: 40]
+const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: myAttribution + ' | © OpenStreetMap'
 });
-[cite_start]const parcelLayer = L.esri.dynamicMapLayer({ // [cite: 41]
-    [cite_start]url: 'https://gisportal.danang.gov.vn/server/rest/services/DiaChinh/DaNangLand_DiaChinh/MapServer', // [cite: 41]
-    [cite_start]opacity: 0.7, // [cite: 41]
-    [cite_start]useCors: false // [cite: 41]
+const parcelLayer = L.esri.dynamicMapLayer({
+    url: 'https://gisportal.danang.gov.vn/server/rest/services/DiaChinh/DaNangLand_DiaChinh/MapServer',
+    opacity: 0.7,
+    useCors: false
 });
 
-[cite_start]const baseMaps = { // [cite: 42]
-    [cite_start]"Ảnh vệ tinh": googleSat, // [cite: 42]
-    [cite_start]"Bản đồ đường": googleStreets, // [cite: 42]
-    [cite_start]"OpenStreetMap": osmLayer // [cite: 42]
+const baseMaps = {
+    "Ảnh vệ tinh": googleSat,
+    "Bản đồ đường": googleStreets,
+    "OpenStreetMap": osmLayer
 };
-[cite_start]const overlayMaps = { // [cite: 43]
-    [cite_start]"🗺️ Bản đồ phân lô": parcelLayer // [cite: 43]
+const overlayMaps = {
+    "🗺️ Bản đồ phân lô": parcelLayer
 };
 
-L.control.zoom({ position: 'topright' }).addTo(map); [cite_start]// [cite: 44]
-googleStreets.addTo(map); [cite_start]// [cite: 44]
-parcelLayer.addTo(map); [cite_start]// [cite: 45]
-L.control.layers(baseMaps, overlayMaps, { position: 'topright' }).addTo(map); [cite_start]// [cite: 45]
+L.control.zoom({ position: 'topright' }).addTo(map);
+googleStreets.addTo(map);
+parcelLayer.addTo(map);
+L.control.layers(baseMaps, overlayMaps, { position: 'topright' }).addTo(map);
 
 // --- WAIT FOR DOM TO LOAD ---
-[cite_start]document.addEventListener('DOMContentLoaded', () => { // [cite: 46]
+document.addEventListener('DOMContentLoaded', () => {
 
     // --- DOM ELEMENT SELECTION ---
     const mapContainer = document.getElementById('map');
@@ -67,89 +67,89 @@ L.control.layers(baseMaps, overlayMaps, { position: 'topright' }).addTo(map); [c
     const form = document.getElementById('location-form');
     const instructionBanner = document.getElementById('instruction-banner');
     const authContainer = document.getElementById('auth-container');
-    const loginBtn = document.getElementById('login-btn'); [cite_start]// [cite: 48]
+    const loginBtn = document.getElementById('login-btn');
     const logoutBtn = document.getElementById('logout-btn');
     const userProfileDiv = document.getElementById('user-profile');
     const firebaseuiContainer = document.getElementById('firebaseui-auth-container');
-    const ui = new firebaseui.auth.AuthUI(auth); [cite_start]// [cite: 49]
+    const ui = new firebaseui.auth.AuthUI(auth);
     const opacityControl = document.getElementById('opacity-control');
     const opacitySlider = document.getElementById('opacity-slider');
     const donateBtn = document.getElementById('donate-btn');
-    const donateModal = document.getElementById('donate-modal'); [cite_start]// [cite: 51]
+    const donateModal = document.getElementById('donate-modal');
     const closeDonateModalBtn = document.getElementById('close-donate-modal');
     const copyBtn = document.getElementById('copy-stk-btn');
     const accountNumber = document.getElementById('bank-account-number').textContent;
 
     // --- STATE & GLOBAL VARIABLES ---
-    let currentUser = null; [cite_start]// [cite: 57]
-    let tempMarker = null; [cite_start]// [cite: 58]
-    let selectedCoords = null; [cite_start]// [cite: 58]
-    let isAddMode = false; [cite_start]// [cite: 58]
-    let isQueryMode = false; [cite_start]// [cite: 58]
-    [cite_start]let priceMarkers = L.markerClusterGroup({ // [cite: 59]
+    let currentUser = null;
+    let tempMarker = null;
+    let selectedCoords = null;
+    let isAddMode = false;
+    let isQueryMode = false;
+    let priceMarkers = L.markerClusterGroup({
         iconCreateFunction: function (cluster) {
             const count = cluster.getChildCount();
             let size = ' marker-cluster-';
             if (count < 10) {
                 size += 'small';
             } else if (count < 100) {
-                size += 'medium'; [cite_start]// [cite: 60]
+                size += 'medium';
             } else {
-                size += 'large'; [cite_start]// [cite: 60]
+                size += 'large';
             }
             return new L.DivIcon({
-                [cite_start]html: '<div><span>' + count + '</span></div>', // [cite: 61]
-                [cite_start]className: 'marker-cluster marker-cluster-yellow' + size, // [cite: 61]
-                [cite_start]iconSize: new L.Point(40, 40) // [cite: 61]
+                html: '<div><span>' + count + '</span></div>',
+                className: 'marker-cluster marker-cluster-yellow' + size,
+                iconSize: new L.Point(40, 40)
             });
         }
     }).addTo(map);
 
     // --- INITIALIZE CONTROLS ---
-    L.esri.Geocoding.geosearch().addTo(map); [cite_start]// [cite: 47]
+    L.esri.Geocoding.geosearch().addTo(map);
 
     // --- EVENT LISTENERS ---
 
     // Opacity Slider Events
-    opacitySlider.addEventListener('input', (e) => parcelLayer.setOpacity(e.target.value)); [cite_start]// [cite: 62]
-    map.on('overlayadd', e => { if (e.layer === parcelLayer) opacityControl.classList.remove('hidden'); }); [cite_start]// [cite: 63]
-    map.on('overlayremove', e => { if (e.layer === parcelLayer) opacityControl.classList.add('hidden'); }); [cite_start]// [cite: 63]
-    if (map.hasLayer(parcelLayer)) opacityControl.classList.remove('hidden'); [cite_start]// [cite: 64]
+    opacitySlider.addEventListener('input', (e) => parcelLayer.setOpacity(e.target.value));
+    map.on('overlayadd', e => { if (e.layer === parcelLayer) opacityControl.classList.remove('hidden'); });
+    map.on('overlayremove', e => { if (e.layer === parcelLayer) opacityControl.classList.add('hidden'); });
+    if (map.hasLayer(parcelLayer)) opacityControl.classList.remove('hidden');
 
     // Modal and Button Events
-    donateBtn.addEventListener('click', () => donateModal.classList.remove('hidden')); [cite_start]// [cite: 52]
-    closeDonateModalBtn.addEventListener('click', () => donateModal.classList.add('hidden')); [cite_start]// [cite: 52]
-    [cite_start]donateModal.addEventListener('click', (e) => { // [cite: 53]
-        if (e.target === donateModal) donateModal.classList.add('hidden'); [cite_start]// [cite: 53]
+    donateBtn.addEventListener('click', () => donateModal.classList.remove('hidden'));
+    closeDonateModalBtn.addEventListener('click', () => donateModal.classList.add('hidden'));
+    donateModal.addEventListener('click', (e) => {
+        if (e.target === donateModal) donateModal.classList.add('hidden');
     });
-    [cite_start]copyBtn.addEventListener('click', () => { // [cite: 55]
-        [cite_start]navigator.clipboard.writeText(accountNumber).then(() => { // [cite: 55]
+    copyBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText(accountNumber).then(() => {
             const originalIcon = copyBtn.innerHTML;
             copyBtn.innerHTML = '<svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
-            setTimeout(() => { copyBtn.innerHTML = originalIcon; }, 1500); [cite_start]// [cite: 56]
-        }).catch(err => console.error('Không thể sao chép: ', err)); [cite_start]// [cite: 56]
+            setTimeout(() => { copyBtn.innerHTML = originalIcon; }, 1500);
+        }).catch(err => console.error('Không thể sao chép: ', err));
     });
-    [cite_start]addLocationBtn.addEventListener('click', () => { // [cite: 74]
+    addLocationBtn.addEventListener('click', () => {
         if (!currentUser) {
             instructionBanner.textContent = 'Vui lòng đăng nhập để thêm địa điểm!';
             instructionBanner.classList.remove('hidden');
             setTimeout(() => instructionBanner.classList.add('hidden'), 3000);
             return;
         }
-        isAddMode ? exitAllModes() : enterAddMode(); [cite_start]// [cite: 74]
+        isAddMode ? exitAllModes() : enterAddMode();
     });
-    [cite_start]queryBtn.addEventListener('click', () => { // [cite: 75]
+    queryBtn.addEventListener('click', () => {
         if (!currentUser) {
             instructionBanner.textContent = 'Vui lòng đăng nhập để tra cứu!';
             instructionBanner.classList.remove('hidden');
             setTimeout(() => instructionBanner.classList.add('hidden'), 3000);
             return;
         }
-        isQueryMode ? exitAllModes() : enterQueryMode(); [cite_start]// [cite: 75]
+        isQueryMode ? exitAllModes() : enterQueryMode();
     });
-    listBtn.addEventListener('click', () => listModal.classList.remove('hidden')); [cite_start]// [cite: 76]
-    closeListBtn.addEventListener('click', () => listModal.classList.add('hidden')); [cite_start]// [cite: 76]
-    [cite_start]closeModalBtn.addEventListener('click', () => { // [cite: 76]
+    listBtn.addEventListener('click', () => listModal.classList.remove('hidden'));
+    closeListBtn.addEventListener('click', () => listModal.classList.add('hidden'));
+    closeModalBtn.addEventListener('click', () => {
         modal.classList.add('hidden');
         exitAllModes();
     });
@@ -161,26 +161,26 @@ L.control.layers(baseMaps, overlayMaps, { position: 'topright' }).addTo(map); [c
             tempMarker = L.marker(selectedCoords).addTo(map);
             modal.classList.remove('hidden');
             
-            [cite_start]const geocodeService = L.esri.Geocoding.geocodeService(); // [cite: 78]
-            [cite_start]geocodeService.reverse().latlng(selectedCoords).run(function (error, result) { // [cite: 78]
+            const geocodeService = L.esri.Geocoding.geocodeService();
+            geocodeService.reverse().latlng(selectedCoords).run(function (error, result) {
                 if (error) {
                     console.error("Lỗi khi tìm địa chỉ:", error);
-                    document.getElementById('address-input').value = 'Không tìm thấy địa chỉ'; [cite_start]// [cite: 79]
+                    document.getElementById('address-input').value = 'Không tìm thấy địa chỉ';
                     return;
                 }
                 if (result && result.address) {
-                    document.getElementById('address-input').value = result.address.Match_addr; [cite_start]// [cite: 80]
+                    document.getElementById('address-input').value = result.address.Match_addr;
                 } else {
-                    document.getElementById('address-input').value = 'Không tìm thấy địa chỉ'; [cite_start]// [cite: 82]
+                    document.getElementById('address-input').value = 'Không tìm thấy địa chỉ';
                 }
             });
         } else if (isQueryMode) {
-            L.popup().setLatLng(e.latlng).setContent('<p>Đang tìm kiếm...</p>').openOn(map); [cite_start]// [cite: 84]
-            [cite_start]parcelLayer.identify().on(map).at(e.latlng).run((error, featureCollection) => { // [cite: 84]
+            L.popup().setLatLng(e.latlng).setContent('<p>Đang tìm kiếm...</p>').openOn(map);
+            parcelLayer.identify().on(map).at(e.latlng).run((error, featureCollection) => {
                 exitAllModes();
                 if (error) {
                     console.error(error);
-                    return L.popup().setLatLng(e.latlng).setContent('Có lỗi xảy ra khi tra cứu.').openOn(map); [cite_start]// [cite: 85]
+                    return L.popup().setLatLng(e.latlng).setContent('Có lỗi xảy ra khi tra cứu.').openOn(map);
                 }
                 if (featureCollection.features.length > 0) {
                     const props = featureCollection.features[0].properties;
@@ -204,9 +204,9 @@ L.control.layers(baseMaps, overlayMaps, { position: 'topright' }).addTo(map); [c
                             </div>
                         </div>
                     `;
-                    L.popup({ minWidth: 250 }).setLatLng(e.latlng).setContent(popupContent).openOn(map); [cite_start]// [cite: 94]
+                    L.popup({ minWidth: 250 }).setLatLng(e.latlng).setContent(popupContent).openOn(map);
                 } else {
-                    L.popup().setLatLng(e.latlng).setContent('Không tìm thấy thông tin tại vị trí này.').openOn(map); [cite_start]// [cite: 96]
+                    L.popup().setLatLng(e.latlng).setContent('Không tìm thấy thông tin tại vị trí này.').openOn(map);
                 }
             });
         }
@@ -221,7 +221,7 @@ L.control.layers(baseMaps, overlayMaps, { position: 'topright' }).addTo(map); [c
         const formData = new FormData(form);
         const data = Object.fromEntries(formData.entries());
         if (!selectedCoords || !data.name || !data.priceValue) {
-            [cite_start]return alert('Vui lòng điền các trường bắt buộc.'); // [cite: 121]
+            return alert('Vui lòng điền các trường bắt buộc.');
         }
 
         submitBtn.textContent = 'Đang gửi...';
@@ -229,35 +229,35 @@ L.control.layers(baseMaps, overlayMaps, { position: 'topright' }).addTo(map); [c
 
         try {
             const docData = {
-                [cite_start]userId: currentUser.uid, // [cite: 122]
-                [cite_start]userName: currentUser.displayName, // [cite: 122]
-                [cite_start]userAvatar: currentUser.photoURL, // [cite: 122]
-                [cite_start]lat: selectedCoords.lat, // [cite: 122]
-                [cite_start]lng: selectedCoords.lng, // [cite: 122]
-                [cite_start]priceValue: parseFloat(data.priceValue), // [cite: 122]
-                [cite_start]area: data.area ? parseFloat(data.area) : null, // [cite: 122]
-                [cite_start]status: 'pending', // [cite: 123]
-                [cite_start]createdAt: firebase.firestore.FieldValue.serverTimestamp(), // [cite: 123]
-                [cite_start]name: data.name, // [cite: 123]
-                [cite_start]priceUnit: data.priceUnit, // [cite: 123]
-                notes: data.notes || [cite_start]'', // [cite: 124]
-                contactName: data.contactName || [cite_start]'', // [cite: 125]
-                contactEmail: data.contactEmail || [cite_start]'', // [cite: 126]
-                contactPhone: data.contactPhone || [cite_start]'', // [cite: 127]
-                contactFacebook: data.contactFacebook || [cite_start]'' // [cite: 128]
+                userId: currentUser.uid,
+                userName: currentUser.displayName,
+                userAvatar: currentUser.photoURL,
+                lat: selectedCoords.lat,
+                lng: selectedCoords.lng,
+                priceValue: parseFloat(data.priceValue),
+                area: data.area ? parseFloat(data.area) : null,
+                status: 'pending',
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                name: data.name,
+                priceUnit: data.priceUnit,
+                notes: data.notes || '',
+                contactName: data.contactName || '',
+                contactEmail: data.contactEmail || '',
+                contactPhone: data.contactPhone || '',
+                contactFacebook: data.contactFacebook || ''
             };
             
-            await db.collection("listings").add(docData); [cite_start]// [cite: 129]
-            alert('Gửi dữ liệu thành công, cảm ơn bạn đã đóng góp!'); [cite_start]// [cite: 129]
+            await db.collection("listings").add(docData);
+            alert('Gửi dữ liệu thành công, cảm ơn bạn đã đóng góp!');
             modal.classList.add('hidden');
             form.reset();
-            exitAllModes(); [cite_start]// [cite: 130]
+            exitAllModes();
         } catch (error) {
-            console.error("Lỗi khi thêm dữ liệu: ", error); [cite_start]// [cite: 131]
-            alert("Đã xảy ra lỗi khi gửi dữ liệu."); [cite_start]// [cite: 131]
+            console.error("Lỗi khi thêm dữ liệu: ", error);
+            alert("Đã xảy ra lỗi khi gửi dữ liệu.");
         } finally {
-            submitBtn.textContent = 'Gửi Dữ Liệu'; [cite_start]// [cite: 132]
-            submitBtn.disabled = false; [cite_start]// [cite: 132]
+            submitBtn.textContent = 'Gửi Dữ Liệu';
+            submitBtn.disabled = false;
         }
     });
 
@@ -269,22 +269,22 @@ L.control.layers(baseMaps, overlayMaps, { position: 'topright' }).addTo(map); [c
             loginBtn.classList.add('hidden');
             userProfileDiv.classList.remove('hidden');
             userProfileDiv.classList.add('flex');
-            [cite_start]document.getElementById('user-name').textContent = user.displayName || 'Người dùng mới'; // [cite: 98]
-            document.getElementById('user-avatar').src = user.photoURL || 'https://placehold.co/32x32/e2e8f0/64748b?text=A'; [cite_start]// [cite: 98]
+            document.getElementById('user-name').textContent = user.displayName || 'Người dùng mới';
+            document.getElementById('user-avatar').src = user.photoURL || 'https://placehold.co/32x32/e2e8f0/64748b?text=A';
             [addLocationBtn, listBtn, queryBtn].forEach(btn => {
                 btn.disabled = false;
                 btn.classList.remove('opacity-50', 'cursor-not-allowed');
             });
         } else {
-            currentUser = null; [cite_start]// [cite: 99]
-            loginBtn.classList.remove('hidden'); [cite_start]// [cite: 99]
-            userProfileDiv.classList.add('hidden'); [cite_start]// [cite: 99]
-            userProfileDiv.classList.remove('flex'); [cite_start]// [cite: 99]
-            exitAllModes(); [cite_start]// [cite: 100]
+            currentUser = null;
+            loginBtn.classList.remove('hidden');
+            userProfileDiv.classList.add('hidden');
+            userProfileDiv.classList.remove('flex');
+            exitAllModes();
             [addLocationBtn, listBtn, queryBtn].forEach(btn => {
                 btn.disabled = true;
                 btn.classList.add('opacity-50', 'cursor-not-allowed');
-            }); [cite_start]// [cite: 100]
+            });
         }
     });
 
@@ -296,24 +296,24 @@ L.control.layers(baseMaps, overlayMaps, { position: 'topright' }).addTo(map); [c
             signInOptions: [
                 firebase.auth.GoogleAuthProvider.PROVIDER_ID,
                 firebase.auth.EmailAuthProvider.PROVIDER_ID,
-            [cite_start]], // [cite: 102]
+            ],
             callbacks: {
                 signInSuccessWithAuthResult: function(authResult, redirectUrl) {
                     firebaseuiContainer.classList.add('hidden');
                     return false;
                 }
-            [cite_start]} // [cite: 103]
+            }
         });
     });
-    logoutBtn.addEventListener('click', () => auth.signOut()); [cite_start]// [cite: 104]
-    [cite_start]firebaseuiContainer.addEventListener('click', (e) => { // [cite: 104]
+    logoutBtn.addEventListener('click', () => auth.signOut());
+    firebaseuiContainer.addEventListener('click', (e) => {
         if (e.target === firebaseuiContainer) firebaseuiContainer.classList.add('hidden');
     });
 
     // --- FIRESTORE DATA LOGIC ---
-    const listingsCol = db.collection("listings"); [cite_start]// [cite: 106]
-    const q = listingsCol.where("status", "==", "approved").orderBy("createdAt", "desc"); [cite_start]// [cite: 106]
-    [cite_start]q.onSnapshot((querySnapshot) => { // [cite: 107]
+    const listingsCol = db.collection("listings");
+    const q = listingsCol.where("status", "==", "approved").orderBy("createdAt", "desc");
+    q.onSnapshot((querySnapshot) => {
         priceMarkers.clearLayers();
         const priceList = document.getElementById('price-list');
         priceList.innerHTML = '';
@@ -322,7 +322,7 @@ L.control.layers(baseMaps, overlayMaps, { position: 'topright' }).addTo(map); [c
             return;
         }
         querySnapshot.forEach((doc) => {
-            [cite_start]const item = doc.data(); // [cite: 108]
+            const item = doc.data();
             if (!item.lat || !item.lng) return;
             const likeCount = localStorage.getItem(`like-${doc.id}`) || 0;
             const formattedPrice = `${item.priceValue} ${item.priceUnit}`;
@@ -344,14 +344,14 @@ L.control.layers(baseMaps, overlayMaps, { position: 'topright' }).addTo(map); [c
                         <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(location.href)}" target="_blank" title="Chia sẻ Facebook"><i class="fas fa-share text-gray-600 hover:text-blue-600"></i></a>
                     </div>
                 </div>`;
-            const marker = L.marker([item.lat, item.lng]).bindPopup(popupContent); [cite_start]// [cite: 118]
+            const marker = L.marker([item.lat, item.lng]).bindPopup(popupContent);
             priceMarkers.addLayer(marker);
             const listItem = document.createElement('div');
-            listItem.className = 'p-2 border-b cursor-pointer hover:bg-gray-100'; [cite_start]// [cite: 119]
-            listItem.innerHTML = `<p class="font-semibold">${item.name}</p><p class="text-sm text-red-600">${formattedPrice}</p>`; [cite_start]// [cite: 119]
+            listItem.className = 'p-2 border-b cursor-pointer hover:bg-gray-100';
+            listItem.innerHTML = `<p class="font-semibold">${item.name}</p><p class="text-sm text-red-600">${formattedPrice}</p>`;
             listItem.onclick = () => {
                 listModal.classList.add('hidden');
-                map.setView([item.lat, item.lng], 18); [cite_start]// [cite: 120]
+                map.setView([item.lat, item.lng], 18);
                 marker.openPopup();
             };
             priceList.appendChild(listItem);
@@ -364,32 +364,32 @@ L.control.layers(baseMaps, overlayMaps, { position: 'topright' }).addTo(map); [c
 // Map Mode Management
 function enterAddMode() {
     exitAllModes();
-    isAddMode = true; [cite_start]// [cite: 67]
-    document.getElementById('map').classList.add('map-add-mode'); [cite_start]// [cite: 68]
+    isAddMode = true;
+    document.getElementById('map').classList.add('map-add-mode');
     const addLocationBtn = document.getElementById('add-location-btn');
-    addLocationBtn.classList.add('bg-green-500'); [cite_start]// [cite: 68]
-    addLocationBtn.classList.remove('bg-blue-600'); [cite_start]// [cite: 68]
+    addLocationBtn.classList.add('bg-green-500');
+    addLocationBtn.classList.remove('bg-blue-600');
     const instructionBanner = document.getElementById('instruction-banner');
-    instructionBanner.textContent = 'Nhấp vào bản đồ để chọn vị trí cần thêm.'; [cite_start]// [cite: 68]
-    instructionBanner.classList.remove('hidden'); [cite_start]// [cite: 68]
+    instructionBanner.textContent = 'Nhấp vào bản đồ để chọn vị trí cần thêm.';
+    instructionBanner.classList.remove('hidden');
 }
 
 function enterQueryMode() {
     exitAllModes();
     isQueryMode = true;
-    document.getElementById('map').classList.add('map-query-mode'); [cite_start]// [cite: 69]
+    document.getElementById('map').classList.add('map-query-mode');
     const queryBtn = document.getElementById('query-btn');
-    queryBtn.classList.add('bg-green-500'); [cite_start]// [cite: 69]
-    queryBtn.classList.remove('bg-purple-600'); [cite_start]// [cite: 70]
+    queryBtn.classList.add('bg-green-500');
+    queryBtn.classList.remove('bg-purple-600');
     const instructionBanner = document.getElementById('instruction-banner');
-    instructionBanner.textContent = 'Nhấp vào vị trí trên bản đồ để tra cứu thông tin thửa đất.'; [cite_start]// [cite: 70]
-    instructionBanner.classList.remove('hidden'); [cite_start]// [cite: 70]
+    instructionBanner.textContent = 'Nhấp vào vị trí trên bản đồ để tra cứu thông tin thửa đất.';
+    instructionBanner.classList.remove('hidden');
 }
 
 function exitAllModes() {
-    isAddMode = false; [cite_start]// [cite: 72]
-    isQueryMode = false; [cite_start]// [cite: 72]
-    document.getElementById('map').classList.remove('map-add-mode', 'map-query-mode'); [cite_start]// [cite: 72]
+    isAddMode = false;
+    isQueryMode = false;
+    document.getElementById('map').classList.remove('map-add-mode', 'map-query-mode');
     document.getElementById('add-location-btn').classList.remove('bg-green-500');
     document.getElementById('add-location-btn').classList.add('bg-blue-600');
     document.getElementById('query-btn').classList.remove('bg-green-500');
@@ -397,45 +397,45 @@ function exitAllModes() {
     document.getElementById('instruction-banner').classList.add('hidden');
     if (tempMarker) {
         map.removeLayer(tempMarker);
-        tempMarker = null; [cite_start]// [cite: 73]
+        tempMarker = null;
     }
 }
 
 // Window-scoped functions for popups and inline HTML
 window.likePlace = function(id) {
     const el = document.getElementById(`like-${id}`);
-    let count = parseInt(localStorage.getItem(`like-${id}`) || 0, 10); [cite_start]// [cite: 65]
-    count++; [cite_start]// [cite: 65]
-    localStorage.setItem(`like-${id}`, count); [cite_start]// [cite: 65]
+    let count = parseInt(localStorage.getItem(`like-${id}`) || 0, 10);
+    count++;
+    localStorage.setItem(`like-${id}`, count);
     if (el) el.textContent = count;
 };
 
 function copyLink() {
-    [cite_start]navigator.clipboard.writeText(window.location.href).then(() => { // [cite: 135]
-      alert('Đã sao chép liên kết!'); [cite_start]// [cite: 135]
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      alert('Đã sao chép liên kết!');
     });
 }
 
 window.copyLocationLink = function(lat, lng) {
-    const url = `${window.location.origin}${window.location.pathname}?lat=${lat}&lng=${lng}`; [cite_start]// [cite: 137]
-    [cite_start]navigator.clipboard.writeText(url).then(() => { // [cite: 137]
+    const url = `${window.location.origin}${window.location.pathname}?lat=${lat}&lng=${lng}`;
+    navigator.clipboard.writeText(url).then(() => {
         alert('Đã sao chép liên kết vị trí!');
-    }).catch(err => console.error('Lỗi sao chép: ', err)); [cite_start]// [cite: 138]
+    }).catch(err => console.error('Lỗi sao chép: ', err));
 }
 
 window.shareOnFacebook = function(lat, lng) {
-    const url = `${window.location.origin}${window.location.pathname}?lat=${lat}&lng=${lng}`; [cite_start]// [cite: 139]
-    const fbShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`; [cite_start]// [cite: 139]
+    const url = `${window.location.origin}${window.location.pathname}?lat=${lat}&lng=${lng}`;
+    const fbShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
     window.open(fbShareUrl, '_blank');
 }
 
 window.toggleLike = function(button) {
     const icon = button.querySelector('i');
-    [cite_start]if (icon.classList.contains('far')) { // [cite: 140]
-        icon.classList.remove('far'); [cite_start]// [cite: 141]
-        icon.classList.add('fas', 'text-red-500'); [cite_start]// [cite: 141]
+    if (icon.classList.contains('far')) {
+        icon.classList.remove('far');
+        icon.classList.add('fas', 'text-red-500');
     } else {
-        icon.classList.remove('fas', 'text-red-500'); [cite_start]// [cite: 142]
-        icon.classList.add('far'); [cite_start]// [cite: 142]
+        icon.classList.remove('fas', 'text-red-500');
+        icon.classList.add('far');
     }
 }
