@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
         "🗺️ Bản đồ phân lô": parcelLayer
     };
     
-    L.control.zoom({ position: 'topright' }).addTo(map);
+    //L.control.zoom({ position: 'topright' }).addTo(map);
     googleStreets.addTo(map);
     parcelLayer.addTo(map);
     L.control.layers(baseMaps, overlayMaps, { position: 'topright' }).addTo(map);
