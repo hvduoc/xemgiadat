@@ -14,56 +14,50 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// --- MAP AND LAYERS INITIALIZATION ---
-const map = L.map('map', { center: [16.054456, 108.202167], zoom: 13, zoomControl: false });
-const myAttribution = '© XemGiaDat | Dữ liệu © Sở TNMT Đà Nẵng';
-
-const googleStreets = L.tileLayer('http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',{
-    maxZoom: 20,
-    subdomains:['mt0','mt1','mt2','mt3'],
-    attribution: myAttribution + ' | © Google Maps'
-});
-const googleSat = L.tileLayer('http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{
-    maxZoom: 20,
-    subdomains:['mt0','mt1','mt2','mt3'],
-    attribution: myAttribution + ' | © Google Satellite'
-});
-const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: myAttribution + ' | © OpenStreetMap'
-});
-const parcelLayer = L.esri.dynamicMapLayer({
-    url: 'https://gisportal.danang.gov.vn/server/rest/services/DiaChinh/DaNangLand_DiaChinh/MapServer',
-    opacity: 0.7,
-    useCors: false
-});
-
-const baseMaps = {
-    "Ảnh vệ tinh": googleSat,
-    "Bản đồ đường": googleStreets,
-    "OpenStreetMap": osmLayer
-};
-const overlayMaps = {
-    "🗺️ Bản đồ phân lô": parcelLayer
-};
-
-L.control.zoom({ position: 'topright' }).addTo(map);
-googleStreets.addTo(map);
-parcelLayer.addTo(map);
-L.control.layers(baseMaps, overlayMaps, { position: 'topright' }).addTo(map);
-
-// --- WAIT FOR DOM TO LOAD ---
+// --- APPLICATION LOGIC WRAPPER ---
 document.addEventListener('DOMContentLoaded', () => {
 
+    // --- MAP AND LAYERS INITIALIZATION ---
+    const map = L.map('map', { center: [16.054456, 108.202167], zoom: 13, zoomControl: false });
+    const myAttribution = '© XemGiaDat | Dữ liệu © Sở TNMT Đà Nẵng';
+    
+    const googleStreets = L.tileLayer('http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',{
+        maxZoom: 20,
+        subdomains:['mt0','mt1','mt2','mt3'],
+        attribution: myAttribution + ' | © Google Maps'
+    });
+    const googleSat = L.tileLayer('http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{
+        maxZoom: 20,
+        subdomains:['mt0','mt1','mt2','mt3'],
+        attribution: myAttribution + ' | © Google Satellite'
+    });
+    const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: myAttribution + ' | © OpenStreetMap'
+    });
+    const parcelLayer = L.esri.dynamicMapLayer({
+        url: 'https://gisportal.danang.gov.vn/server/rest/services/DiaChinh/DaNangLand_DiaChinh/MapServer',
+        opacity: 0.7,
+        useCors: false
+    });
+    
+    const baseMaps = {
+        "Ảnh vệ tinh": googleSat,
+        "Bản đồ đường": googleStreets,
+        "OpenStreetMap": osmLayer
+    };
+    const overlayMaps = {
+        "🗺️ Bản đồ phân lô": parcelLayer
+    };
+    
+    L.control.zoom({ position: 'topright' }).addTo(map);
+    googleStreets.addTo(map);
+    parcelLayer.addTo(map);
+    L.control.layers(baseMaps, overlayMaps, { position: 'topright' }).addTo(map);
+
     // --- DOM ELEMENT SELECTION ---
-    const mapContainer = document.getElementById('map');
     const modal = document.getElementById('form-modal');
     const listModal = document.getElementById('price-list-modal');
-    const addLocationBtn = document.getElementById('add-location-btn');
-    const listBtn = document.getElementById('list-btn');
-    const queryBtn = document.getElementById('query-btn');
-    const closeModalBtn = document.getElementById('close-modal-btn');
-    const closeListBtn = document.getElementById('close-list-btn');
     const form = document.getElementById('location-form');
     const instructionBanner = document.getElementById('instruction-banner');
     const authContainer = document.getElementById('auth-container');
@@ -79,15 +73,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeDonateModalBtn = document.getElementById('close-donate-modal');
     const copyBtn = document.getElementById('copy-stk-btn');
     const accountNumber = document.getElementById('bank-account-number').textContent;
-    // --- FAB (Floating Action Button) Logic ---
+    // FAB Buttons
     const fabMainBtn = document.getElementById('fab-main-btn');
     const fabActions = document.getElementById('fab-actions');
-
-    fabMainBtn.addEventListener('click', () => {
-        fabActions.classList.toggle('hidden');
-        fabMainBtn.querySelector('i').classList.toggle('fa-bars');
-        fabMainBtn.querySelector('i').classList.toggle('fa-xmark');
-    });
+    const addLocationBtn = document.getElementById('add-location-btn');
+    const listBtn = document.getElementById('list-btn');
+    const queryBtn = document.getElementById('query-btn');
 
     // --- STATE & GLOBAL VARIABLES ---
     let currentUser = null;
@@ -99,13 +90,9 @@ document.addEventListener('DOMContentLoaded', () => {
         iconCreateFunction: function (cluster) {
             const count = cluster.getChildCount();
             let size = ' marker-cluster-';
-            if (count < 10) {
-                size += 'small';
-            } else if (count < 100) {
-                size += 'medium';
-            } else {
-                size += 'large';
-            }
+            if (count < 10) size += 'small';
+            else if (count < 100) size += 'medium';
+            else size += 'large';
             return new L.DivIcon({
                 html: '<div><span>' + count + '</span></div>',
                 className: 'marker-cluster marker-cluster-yellow' + size,
@@ -114,10 +101,77 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }).addTo(map);
 
-    // --- INITIALIZE CONTROLS ---
-    L.esri.Geocoding.geosearch().addTo(map);
+    // --- HELPER FUNCTIONS ---
+    
+    function enterAddMode() {
+        exitAllModes();
+        isAddMode = true;
+        map.getContainer().classList.add('map-add-mode');
+        instructionBanner.textContent = 'Nhấp vào bản đồ để chọn vị trí cần thêm.';
+        instructionBanner.classList.remove('hidden');
+    }
+
+    function enterQueryMode() {
+        exitAllModes();
+        isQueryMode = true;
+        map.getContainer().classList.add('map-query-mode');
+        instructionBanner.textContent = 'Nhấp vào vị trí trên bản đồ để tra cứu thông tin thửa đất.';
+        instructionBanner.classList.remove('hidden');
+    }
+
+    function exitAllModes() {
+        isAddMode = false;
+        isQueryMode = false;
+        map.getContainer().classList.remove('map-add-mode', 'map-query-mode');
+        instructionBanner.classList.add('hidden');
+        if (tempMarker) {
+            map.removeLayer(tempMarker);
+            tempMarker = null;
+        }
+    }
+
+    window.likePlace = function(id) {
+        const el = document.getElementById(`like-${id}`);
+        let count = parseInt(localStorage.getItem(`like-${id}`) || 0, 10);
+        count++;
+        localStorage.setItem(`like-${id}`, count);
+        if (el) el.textContent = count;
+    };
+
+    window.copyLink = function() {
+        navigator.clipboard.writeText(window.location.href).then(() => {
+            alert('Đã sao chép liên kết!');
+        });
+    }
+
+    window.copyLocationLink = function(lat, lng) {
+        const url = `${window.location.origin}${window.location.pathname}?lat=${lat}&lng=${lng}`;
+        navigator.clipboard.writeText(url).then(() => {
+            alert('Đã sao chép liên kết vị trí!');
+        }).catch(err => console.error('Lỗi sao chép: ', err));
+    }
+
+    window.shareOnFacebook = function(lat, lng) {
+        const url = `${window.location.origin}${window.location.pathname}?lat=${lat}&lng=${lng}`;
+        const fbShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+        window.open(fbShareUrl, '_blank');
+    }
+
+    window.toggleLike = function(button) {
+        const icon = button.querySelector('i');
+        if (icon.classList.contains('far')) {
+            icon.classList.remove('far');
+            icon.classList.add('fas', 'text-red-500');
+        } else {
+            icon.classList.remove('fas', 'text-red-500');
+            icon.classList.add('far');
+        }
+    }
 
     // --- EVENT LISTENERS ---
+
+    // Search Control
+    L.esri.Geocoding.geosearch().addTo(map);
 
     // Opacity Slider Events
     opacitySlider.addEventListener('input', (e) => parcelLayer.setOpacity(e.target.value));
@@ -138,27 +192,25 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => { copyBtn.innerHTML = originalIcon; }, 1500);
         }).catch(err => console.error('Không thể sao chép: ', err));
     });
+    
+    fabMainBtn.addEventListener('click', () => {
+        fabActions.classList.toggle('hidden');
+        fabMainBtn.querySelector('i').classList.toggle('fa-bars');
+        fabMainBtn.querySelector('i').classList.toggle('fa-xmark');
+    });
+
     addLocationBtn.addEventListener('click', () => {
-        if (!currentUser) {
-            instructionBanner.textContent = 'Vui lòng đăng nhập để thêm địa điểm!';
-            instructionBanner.classList.remove('hidden');
-            setTimeout(() => instructionBanner.classList.add('hidden'), 3000);
-            return;
-        }
+        if (!currentUser) return;
         isAddMode ? exitAllModes() : enterAddMode();
     });
     queryBtn.addEventListener('click', () => {
-        if (!currentUser) {
-            instructionBanner.textContent = 'Vui lòng đăng nhập để tra cứu!';
-            instructionBanner.classList.remove('hidden');
-            setTimeout(() => instructionBanner.classList.add('hidden'), 3000);
-            return;
-        }
+        // This button is always enabled, but logic inside checks for login
         isQueryMode ? exitAllModes() : enterQueryMode();
     });
+
     listBtn.addEventListener('click', () => listModal.classList.remove('hidden'));
-    closeListBtn.addEventListener('click', () => listModal.classList.add('hidden'));
-    closeModalBtn.addEventListener('click', () => {
+    document.getElementById('close-list-btn').addEventListener('click', () => listModal.classList.add('hidden'));
+    document.getElementById('close-modal-btn').addEventListener('click', () => {
         modal.classList.add('hidden');
         exitAllModes();
     });
@@ -166,32 +218,35 @@ document.addEventListener('DOMContentLoaded', () => {
     // Main Map Click Logic
     map.on('click', function(e) {
         if (isAddMode) {
+            if (!currentUser) {
+                alert("Vui lòng đăng nhập để thêm địa điểm!");
+                exitAllModes();
+                return;
+            }
             selectedCoords = e.latlng;
             tempMarker = L.marker(selectedCoords).addTo(map);
             modal.classList.remove('hidden');
             
             const geocodeService = L.esri.Geocoding.geocodeService();
             geocodeService.reverse().latlng(selectedCoords).run(function (error, result) {
-                if (error) {
-                    console.error("Lỗi khi tìm địa chỉ:", error);
+                if (error || !result.address) {
                     document.getElementById('address-input').value = 'Không tìm thấy địa chỉ';
-                    return;
-                }
-                if (result && result.address) {
-                    document.getElementById('address-input').value = result.address.Match_addr;
                 } else {
-                    document.getElementById('address-input').value = 'Không tìm thấy địa chỉ';
+                    document.getElementById('address-input').value = result.address.Match_addr;
                 }
             });
         } else if (isQueryMode) {
+            if (!currentUser) {
+                alert("Vui lòng đăng nhập để tra cứu địa chính!");
+                exitAllModes();
+                return;
+            }
             L.popup().setLatLng(e.latlng).setContent('<p>Đang tìm kiếm...</p>').openOn(map);
             parcelLayer.identify().on(map).at(e.latlng).run((error, featureCollection) => {
                 exitAllModes();
-                if (error) {
-                    console.error(error);
-                    return L.popup().setLatLng(e.latlng).setContent('Có lỗi xảy ra khi tra cứu.').openOn(map);
-                }
-                if (featureCollection.features.length > 0) {
+                if (error || featureCollection.features.length === 0) {
+                    L.popup().setLatLng(e.latlng).setContent('Không tìm thấy thông tin tại vị trí này.').openOn(map);
+                } else {
                     const props = featureCollection.features[0].properties;
                     const lat = e.latlng.lat.toFixed(6);
                     const lng = e.latlng.lng.toFixed(6);
@@ -214,8 +269,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     `;
                     L.popup({ minWidth: 250 }).setLatLng(e.latlng).setContent(popupContent).openOn(map);
-                } else {
-                    L.popup().setLatLng(e.latlng).setContent('Không tìm thấy thông tin tại vị trí này.').openOn(map);
                 }
             });
         }
@@ -247,8 +300,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 area: data.area ? parseFloat(data.area) : null,
                 status: 'pending',
                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                name: data.name,
-                priceUnit: data.priceUnit,
+                name: data.name, priceUnit: data.priceUnit,
                 notes: data.notes || '',
                 contactName: data.contactName || '',
                 contactEmail: data.contactEmail || '',
@@ -278,21 +330,26 @@ document.addEventListener('DOMContentLoaded', () => {
             loginBtn.classList.add('hidden');
             userProfileDiv.classList.remove('hidden');
             userProfileDiv.classList.add('flex');
-            document.getElementById('user-name').textContent = user.displayName || 'Người dùng mới';
-            document.getElementById('user-avatar').src = user.photoURL || 'https://placehold.co/32x32/e2e8f0/64748b?text=A';
-            [addLocationBtn, listBtn, queryBtn].forEach(btn => {
+            
+            // Lỗi TypeError xảy ra ở đây, đã xóa vì không còn id 'user-name'
+            // document.getElementById('user-name').textContent = user.displayName || 'Người dùng mới'; 
+            
+            document.getElementById('user-avatar').src = user.photoURL || 'https://placehold.co/40x40/e2e8f0/64748b?text=A';
+            
+            // Kích hoạt các nút yêu cầu đăng nhập
+            [addLocationBtn, listBtn].forEach(btn => {
                 btn.disabled = false;
-                btn.classList.remove('opacity-50', 'cursor-not-allowed');
             });
         } else {
             currentUser = null;
             loginBtn.classList.remove('hidden');
             userProfileDiv.classList.add('hidden');
             userProfileDiv.classList.remove('flex');
-            exitAllModes();
-            [addLocationBtn, listBtn, queryBtn].forEach(btn => {
+            exitAllModes(); // Đảm bảo thoát các chế độ khi đăng xuất
+            
+            // Vô hiệu hóa các nút yêu cầu đăng nhập
+            [addLocationBtn, listBtn].forEach(btn => {
                 btn.disabled = true;
-                btn.classList.add('opacity-50', 'cursor-not-allowed');
             });
         }
     });
@@ -347,7 +404,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         ${item.contactEmail ? `<a href="mailto:${item.contactEmail}" title="Email"><i class="fas fa-envelope text-yellow-500 hover:scale-110"></i></a>` : ''}
                         ${item.contactFacebook ? `<a href="${item.contactFacebook}" title="Facebook" target="_blank"><i class="fab fa-facebook text-blue-700 hover:scale-110"></i></a>` : ''}
                     </div>
-                    ${item.lat && item.lng ? `<div><a href="https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${item.lat},${item.lng}" target="_blank" class="block mt-2 px-3 py-1 text-center text-sm font-semibold bg-green-100 text-green-800 rounded hover:bg-green-200">👁️ Xem Street View</a></div>` : ''}
+                    ${item.lat && item.lng ? `<div><a href="http://maps.google.com/maps?q=${item.lat},${item.lng}&ll=${item.lat},${item.lng}&z=17" target="_blank" class="block mt-2 px-3 py-1 text-center text-sm font-semibold bg-green-100 text-green-800 rounded hover:bg-green-200">👁️ Xem trên Google Maps</a></div>` : ''}
                     <div class="flex items-center justify-between pt-2">
                         <button onclick="likePlace('${doc.id}')" class="text-red-500 text-lg">❤️ <span id="like-${doc.id}">${likeCount}</span></button>
                         <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(location.href)}" target="_blank" title="Chia sẻ Facebook"><i class="fas fa-share text-gray-600 hover:text-blue-600"></i></a>
@@ -366,85 +423,5 @@ document.addEventListener('DOMContentLoaded', () => {
             priceList.appendChild(listItem);
         });
     });
-}); // End of DOMContentLoaded
 
-// --- GLOBAL HELPER FUNCTIONS ---
-
-// Map Mode Management
-function enterAddMode() {
-    exitAllModes();
-    isAddMode = true;
-    document.getElementById('map').classList.add('map-add-mode');
-    const addLocationBtn = document.getElementById('add-location-btn');
-    addLocationBtn.classList.add('bg-green-500');
-    addLocationBtn.classList.remove('bg-blue-600');
-    const instructionBanner = document.getElementById('instruction-banner');
-    instructionBanner.textContent = 'Nhấp vào bản đồ để chọn vị trí cần thêm.';
-    instructionBanner.classList.remove('hidden');
-}
-
-function enterQueryMode() {
-    exitAllModes();
-    isQueryMode = true;
-    document.getElementById('map').classList.add('map-query-mode');
-    const queryBtn = document.getElementById('query-btn');
-    queryBtn.classList.add('bg-green-500');
-    queryBtn.classList.remove('bg-purple-600');
-    const instructionBanner = document.getElementById('instruction-banner');
-    instructionBanner.textContent = 'Nhấp vào vị trí trên bản đồ để tra cứu thông tin thửa đất.';
-    instructionBanner.classList.remove('hidden');
-}
-
-function exitAllModes() {
-    isAddMode = false;
-    isQueryMode = false;
-    document.getElementById('map').classList.remove('map-add-mode', 'map-query-mode');
-    document.getElementById('add-location-btn').classList.remove('bg-green-500');
-    document.getElementById('add-location-btn').classList.add('bg-blue-600');
-    document.getElementById('query-btn').classList.remove('bg-green-500');
-    document.getElementById('query-btn').classList.add('bg-purple-600');
-    document.getElementById('instruction-banner').classList.add('hidden');
-    if (tempMarker) {
-        map.removeLayer(tempMarker);
-        tempMarker = null;
-    }
-}
-
-// Window-scoped functions for popups and inline HTML
-window.likePlace = function(id) {
-    const el = document.getElementById(`like-${id}`);
-    let count = parseInt(localStorage.getItem(`like-${id}`) || 0, 10);
-    count++;
-    localStorage.setItem(`like-${id}`, count);
-    if (el) el.textContent = count;
-};
-
-function copyLink() {
-    navigator.clipboard.writeText(window.location.href).then(() => {
-      alert('Đã sao chép liên kết!');
-    });
-}
-
-window.copyLocationLink = function(lat, lng) {
-    const url = `${window.location.origin}${window.location.pathname}?lat=${lat}&lng=${lng}`;
-    navigator.clipboard.writeText(url).then(() => {
-        alert('Đã sao chép liên kết vị trí!');
-    }).catch(err => console.error('Lỗi sao chép: ', err));
-}
-
-window.shareOnFacebook = function(lat, lng) {
-    const url = `${window.location.origin}${window.location.pathname}?lat=${lat}&lng=${lng}`;
-    const fbShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
-    window.open(fbShareUrl, '_blank');
-}
-
-window.toggleLike = function(button) {
-    const icon = button.querySelector('i');
-    if (icon.classList.contains('far')) {
-        icon.classList.remove('far');
-        icon.classList.add('fas', 'text-red-500');
-    } else {
-        icon.classList.remove('fas', 'text-red-500');
-        icon.classList.add('far');
-    }
-}
+}); // --- END OF DOMContentLoaded ---
