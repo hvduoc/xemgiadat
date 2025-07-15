@@ -213,11 +213,10 @@ input[type=range][orient=vertical] {
 /* Các dòng thông tin - Bố cục 1 hàng */
 #panel-content .info-row {
     display: flex;
-    justify-content: center; /* Căn giữa cho đẹp */
-    flex-wrap: wrap; /* Cho phép xuống dòng trên màn hình quá nhỏ */
-    padding: 4px 0;
-    text-align: center;
+    padding: 4px 0; /* Giảm khoảng cách dọc */
+    align-items: center;
     font-size: 14px;
+    flex-wrap: wrap;
 }
 #panel-content .info-group {
     flex-basis: 50%;
@@ -234,11 +233,12 @@ input[type=range][orient=vertical] {
 /* Các nút Action (Thích, Sao chép, Chia sẻ) */
 #panel-actions {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, 1fr); /* <-- Bố cục 3 cột cho 3 nút chính */
     gap: 12px;
     margin-top: 12px;
     padding-top: 12px;
     border-top: 1px solid #e5e7eb;
+    position: relative; /* Cần cho menu con */
 }
 #panel-actions button {
     display: flex;
@@ -262,11 +262,25 @@ input[type=range][orient=vertical] {
     font-size: 12px;
     font-weight: 500;
 }
+
+/* Menu con cho các nút chia sẻ */
+#share-submenu {
+    position: absolute;
+    bottom: 100%; /* Hiện ngay trên nút "Chia sẻ" */
+    right: 0;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    padding: 8px;
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+}
 /* --- CSS CHO THANH CÔNG CỤ MỚI --- */
 .toolbar-btn {
     display: flex;
     align-items: center;
-    padding: 8px 16px;
+    padding: 6px 14px;
     border-radius: 9999px; /* rounded-full */
     font-size: 14px;
     font-weight: 500;

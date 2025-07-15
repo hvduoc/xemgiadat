@@ -90,17 +90,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }).addTo(map);
 
     // --- HELPER FUNCTIONS ---
+    window.openStreetView = function(lat, lng) {
+        const url = `https://www.google.com/maps?q=&layer=c&cbll=${lat},${lng}`;
+        window.open(url, '_blank');
+    };
+    function toggleShareMenu() {
+        const submenu = document.getElementById('share-submenu');
+        if (submenu) {
+            submenu.classList.toggle('hidden');
+        }
+    }
     function showInfoPanel(title, props, lat, lng) {
         infoPanel.classList.remove('is-collapsed');
-        const icon = togglePanelBtn.querySelector('i');
-        icon.classList.remove('fa-chevron-up');
-        icon.classList.add('fa-chevron-down');
+        togglePanelBtn.querySelector('i').classList.replace('fa-chevron-up', 'fa-chevron-down');
+
         panelTitle.textContent = title;
         const soTo = props['Số hiệu tờ bản đồ'] ?? 'N/A';
         const soThua = props['Số thửa'] ?? 'N/A';
         const loaiDat = props['Ký hiệu mục đích sử dụng'] ?? 'N/A';
         const dienTich = props['Diện tích'] ? parseFloat(props['Diện tích']).toFixed(1) : 'N/A';
         const diaChi = (props['Địa chỉ'] && props['Địa chỉ'] !== 'Null') ? props['Địa chỉ'] : 'Chưa có';
+
         panelContent.innerHTML = `
             <div class="info-row">
                 <span class="info-label">Tờ:</span><strong class="info-value">${soTo}</strong>
@@ -113,13 +123,23 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="info-row">
                 <span class="info-label">Địa chỉ:</span><span class="info-value text-left flex-1">${diaChi}</span>
             </div>
+            
             <div id="panel-actions">
-                <button onclick="getDirections(${lat}, ${lng})"><i class="icon fas fa-directions text-green-600"></i><span class="text">Chỉ đường</span></button>
-                <button onclick="toggleLike(this)"><i class="icon far fa-heart text-red-500"></i><span class="text">Thích</span></button>
+                <button onclick="getDirections(${lat}, ${lng})"><i class="icon fas fa-directions text-blue-600"></i><span class="text">Chỉ đường</span></button>
+                <button onclick="openStreetView(${lat}, ${lng})"><i class="icon fas fa-street-view text-green-600"></i><span class="text">Street View</span></button>
                 <button onclick="copyLocationLink(${lat}, ${lng})"><i class="icon fas fa-link text-gray-500"></i><span class="text">Sao chép</span></button>
-                <button onclick="shareOnFacebook(${lat}, ${lng}, '${soTo}', '${soThua}')"><i class="icon fab fa-facebook-f text-blue-600"></i><span class="text">Chia sẻ</span></button>
+                
+                <div class="relative">
+                    <button onclick="toggleShareMenu()"><i class="icon fas fa-share-alt text-indigo-600"></i><span class="text">Chia sẻ</span></button>
+                    <div id="share-submenu" class="hidden">
+                        <button onclick="share('facebook', ${lat}, ${lng}, '${soTo}', '${soThua}')" title="Facebook"><i class="icon fab fa-facebook-f text-blue-700"></i></button>
+                        <button onclick="share('zalo', ${lat}, ${lng}, '${soTo}', '${soThua}')" title="Zalo"><img src="https://sv1.uphinh.org/images/2024/07/15/zalo-seeklogo.com.png" class="icon w-5 h-5"/></button>
+                        <button onclick="share('whatsapp', ${lat}, ${lng}, '${soTo}', '${soThua}')" title="WhatsApp"><i class="icon fab fa-whatsapp text-green-500"></i></button>
+                    </div>
+                </div>
             </div>
         `;
+
         infoPanel.classList.add('is-open');
         actionToolbar.classList.add('is-raised');
     }
