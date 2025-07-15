@@ -95,13 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const url = `https://www.google.com/maps?q=&layer=c&cbll=${lat},${lng}`;
         window.open(url, '_blank');
     };
-    function toggleShareMenu() {
-        const submenu = document.getElementById('share-submenu');
-        if (submenu) {
-            submenu.classList.toggle('is-visible');
-        }
-    }
-
+   
     function showInfoPanel(title, props, lat, lng) {
         infoPanel.classList.remove('is-collapsed');
         togglePanelBtn.querySelector('i').classList.replace('fa-chevron-up', 'fa-chevron-down');
@@ -114,34 +108,47 @@ document.addEventListener('DOMContentLoaded', () => {
         const diaChi = (props['Địa chỉ'] && props['Địa chỉ'] !== 'Null') ? props['Địa chỉ'] : 'Chưa có';
 
         panelContent.innerHTML = `
-            <div class="info-row">
-                <span class="info-label">Tờ:</span><strong class="info-value">${soTo}</strong>
-                <span class="info-label ml-4">Thửa:</span><strong class="info-value">${soThua}</strong>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Loại đất:</span><strong class="info-value">${loaiDat}</strong>
-                <span class="info-label ml-4">Diện tích:</span><strong class="info-value">${dienTich} m²</strong>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Địa chỉ:</span><span class="info-value text-left flex-1">${diaChi}</span>
-            </div>            
-            
-            <div id="panel-actions">
-                <button onclick="getDirections(${lat}, ${lng})"><i class="icon fas fa-directions text-blue-600"></i><span class="text">Chỉ đường</span></button>
-                <button onclick="openStreetView(${lat}, ${lng})"><i class="icon fas fa-street-view text-green-600"></i><span class="text">Street View</span></button>
-                <button onclick="copyLocationLink(${lat}, ${lng})"><i class="icon fas fa-link text-gray-500"></i><span class="text">Sao chép</span></button>
+        <div class="info-row">
+            <span class="info-label">Tờ:</span><strong class="info-value">${soTo}</strong>
+            <span class="info-label ml-4">Thửa:</span><strong class="info-value">${soThua}</strong>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Loại đất:</span><strong class="info-value">${loaiDat}</strong>
+            <span class="info-label ml-4">Diện tích:</span><strong class="info-value">${dienTich} m²</strong>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Địa chỉ:</span><span class="info-value text-left flex-1">${diaChi}</span>
+        </div>            
 
-                <div class="relative">
-                    <button onclick="toggleShareMenu()"><i class="icon fas fa-share-alt text-indigo-600"></i><span class="text">Chia sẻ</span></button>
+        <div id="panel-actions">
+            <button onclick="getDirections(${lat}, ${lng})">
+                <i class="icon fas fa-directions text-blue-600"></i>
+                <span class="text">Chỉ đường</span>
+            </button>
+            <button onclick="openStreetView(${lat}, ${lng})">
+                <i class="icon fas fa-street-view text-green-600"></i>
+                <span class="text">Street View</span>
+            </button>
+            <button onclick="copyLocationLink(${lat}, ${lng})">
+                <i class="icon fas fa-link text-gray-500"></i>
+                <span class="text">Sao chép</span>
+            </button>
+            <button onclick="toggleShareMenu()" id="share-btn">
+                <i class="icon fas fa-share-alt text-indigo-600"></i>
+                <span class="text">Chia sẻ</span>
+            </button>
 
-                    <div id="share-submenu" class="hidden">
-                        <button onclick="share('facebook', ${lat}, ${lng}, '${soTo}', '${soThua}')" title="Facebook"><i class="icon fab fa-facebook-f text-blue-700"></i></button>
-                        <button onclick="share('whatsapp', ${lat}, ${lng}, '${soTo}', '${soThua}')" title="WhatsApp"><i class="icon fab fa-whatsapp text-green-500"></i></button>
-                        <button onclick="share('zalo', ${lat}, ${lng}, '${soTo}', '${soThua}')" title="Zalo"><img src="https://cdn.jsdelivr.net/gh/duyetdev/zalo-share-icon@main/zalo-icon-blue-circle.png" class="icon w-5 h-5" /></button>
-                    </div>
-                </div>
+            <div id="share-submenu">
+            <button onclick="share('facebook', ${lat}, ${lng}, '${soTo}', '${soThua}')" title="Facebook">
+                <i class="icon fab fa-facebook-f text-blue-700"></i>
+            </button>
+            <button onclick="share('whatsapp', ${lat}, ${lng}, '${soTo}', '${soThua}')" title="WhatsApp">
+                <i class="icon fab fa-whatsapp text-green-500"></i>
+            </button>
             </div>
+        </div>
         `;
+
 
         infoPanel.classList.add('is-open');
         actionToolbar.classList.add('is-raised');
@@ -274,6 +281,13 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('Đã sao chép liên kết vị trí!');
         }).catch(err => console.error('Lỗi sao chép: ', err));
     }
+    window.toggleShareMenu = function() {
+        const submenu = document.getElementById('share-submenu');
+        if (submenu) {
+            submenu.classList.toggle('is-visible');
+        }
+    };
+
     // Xóa hàm shareOnFacebook cũ và thay bằng hàm này
     window.share = function(platform, lat, lng, soTo, soThua) {
         const url = `${window.location.origin}${window.location.pathname}?lat=${lat}&lng=${lng}`;
@@ -484,14 +498,18 @@ document.addEventListener('DOMContentLoaded', () => {
             userProfileDiv.classList.remove('hidden');
             userProfileDiv.classList.add('flex');
             document.getElementById('user-avatar').src = user.photoURL || 'https://placehold.co/40x40/e2e8f0/64748b?text=A';
-            [addLocationBtn, listBtn].forEach(btn => { btn.disabled = false; });
+            addLocationBtn.disabled = false;
+            // listBtn sẽ luôn luôn enabled — không chỉnh ở đây
+
         } else {
             currentUser = null;
             loginBtn.classList.remove('hidden');
             userProfileDiv.classList.add('hidden');
             userProfileDiv.classList.remove('flex');
             exitAllModes();
-            [addLocationBtn, listBtn].forEach(btn => { btn.disabled = true; });
+            addLocationBtn.disabled = true;
+            // KHÔNG disable listBtn
+
         }
     });
     loginBtn.addEventListener('click', () => { if (ui.isPendingRedirect()) return; firebaseuiContainer.classList.remove('hidden'); ui.start('#firebaseui-widget', { signInFlow: 'popup', signInOptions: [ firebase.auth.GoogleAuthProvider.PROVIDER_ID, firebase.auth.EmailAuthProvider.PROVIDER_ID, ], callbacks: { signInSuccessWithAuthResult: function(authResult, redirectUrl) { firebaseuiContainer.classList.add('hidden'); return false; } } }); });
@@ -524,6 +542,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
     
+    // Đóng submenu chia sẻ khi click ra ngoài
+    document.addEventListener('click', function(e) {
+        const submenu = document.getElementById('share-submenu');
+        const isShareBtn = e.target.closest('#panel-actions button');
+        if (submenu && submenu.classList.contains('is-visible') && !isShareBtn) {
+            submenu.classList.remove('is-visible');
+        }
+    });
+
     handleUrlParameters();
 
 }); // --- END OF DOMContentLoaded ---

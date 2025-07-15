@@ -266,17 +266,27 @@ input[type=range][orient=vertical] {
 
 /* Menu con cho các nút chia sẻ */
 #share-submenu {
+    display: none;
     position: absolute;
-    bottom: 100%; /* Hiện ngay trên nút "Chia sẻ" */
-    right: 0;
+    bottom: 120%;
+    right: 1%;
+    transform: translateX(-50%);
+    flex-direction: column;
     background-color: white;
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    padding: 8px;
-    display: flex;
-    gap: 8px;
-    margin-bottom: 8px;
+    padding: 6px;
+    gap: 6px;
+    border: 1px solid #e5e7eb;
+    z-index: 999;
 }
+
+
+
+#share-submenu.is-visible {
+    display: flex;
+}
+
 /* --- CSS CHO THANH CÔNG CỤ MỚI --- */
 .toolbar-btn {
     display: flex;
@@ -310,23 +320,10 @@ input[type=range][orient=vertical] {
 /* Đây là trạng thái "được nâng lên" của thanh công cụ */
 #action-toolbar.is-raised {
     /* Dịch chuyển lên trên 75px */
-    transform: translate(-50%, -240px);
+    transform: translate(-50%, -250px);
 }
 
 /* Lớp CSS cho nút đang được kích hoạt */
-/* --- CSS CHO MENU CHIA SẺ CON (ĐÃ SỬA LỖI) --- */
-#share-submenu {
-    position: absolute;
-    bottom: 110%; 
-    right: 0;
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    padding: 8px;
-    gap: 8px;
-    border: 1px solid #e5e7eb;
-    display: none; /* <-- Ẩn menu đi mặc định */
-}
 
 #share-submenu button {
     padding: 8px;
