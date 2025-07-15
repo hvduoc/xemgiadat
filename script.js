@@ -95,12 +95,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const url = `https://www.google.com/maps?q=&layer=c&cbll=${lat},${lng}`;
         window.open(url, '_blank');
     };
-   function toggleShareMenu() {
+    function toggleShareMenu() {
         const submenu = document.getElementById('share-submenu');
         if (submenu) {
             submenu.classList.toggle('is-visible');
         }
     }
+
     function showInfoPanel(title, props, lat, lng) {
         infoPanel.classList.remove('is-collapsed');
         togglePanelBtn.querySelector('i').classList.replace('fa-chevron-up', 'fa-chevron-down');
@@ -148,19 +149,12 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function hideInfoPanel() {
         infoPanel.classList.remove('is-open');
-        actionToolbar.classList.remove('is-raised');
+        actionToolbar.classList.remove('is-raised', 'is-partially-raised');
         if (highlightedParcel) map.removeLayer(highlightedParcel);
         dimensionMarkers.clearLayers();
         highlightedParcel = null;
     }
-    function toggleShareMenu() {
-        const submenu = document.getElementById('share-submenu');
-        if (submenu) {
-            // Thêm hoặc bớt class 'hidden' của Tailwind để ẩn/hiện
-            submenu.classList.toggle('hidden');
-        }
-    }
-    
+     
     async function performCadastralQuery(latlng) {
         hideInfoPanel();
         const loadingPopup = L.popup().setLatLng(latlng).setContent('<p>Đang tìm kiếm thông tin...</p>').openOn(map);
@@ -402,11 +396,21 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     closePanelBtn.addEventListener('click', hideInfoPanel);
     togglePanelBtn.addEventListener('click', () => {
-        infoPanel.classList.toggle('is-collapsed');
+        const isCollapsed = infoPanel.classList.toggle('is-collapsed');
         const icon = togglePanelBtn.querySelector('i');
         icon.classList.toggle('fa-chevron-down');
         icon.classList.toggle('fa-chevron-up');
+
+        if (isCollapsed) {
+            actionToolbar.classList.remove('is-raised');
+            actionToolbar.classList.add('is-partially-raised');
+        } else {
+            actionToolbar.classList.remove('is-partially-raised');
+            actionToolbar.classList.add('is-raised');
+        }
     });
+
+
     locateBtn.addEventListener('click', () => {
         if (!navigator.geolocation) { return alert('Trình duyệt của bạn không hỗ trợ định vị.'); }
         map.locate({ setView: true, maxZoom: 16 });

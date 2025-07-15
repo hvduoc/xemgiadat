@@ -213,11 +213,12 @@ input[type=range][orient=vertical] {
 /* Các dòng thông tin - Bố cục 1 hàng */
 #panel-content .info-row {
     display: flex;
-    padding: 4px 0; /* Giảm khoảng cách dọc */
+    padding: 2px 0;     /* Giảm từ 4px → 2px */
     align-items: center;
-    font-size: 14px;
-    flex-wrap: wrap;
+    font-size: 13px;     /* Giảm nhẹ font */
+    flex-wrap: nowrap;   /* Không xuống dòng */
 }
+
 #panel-content .info-group {
     flex-basis: 50%;
 }
@@ -235,8 +236,8 @@ input[type=range][orient=vertical] {
     display: grid;
     grid-template-columns: repeat(4, 1fr); /* <-- Bố cục 3 cột cho 3 nút chính */
     gap: 12px;
-    margin-top: 12px;
-    padding-top: 12px;
+    margin-top: 6px;
+    padding-top: 6px;
     border-top: 1px solid #e5e7eb;
     position: relative; /* Cần cho menu con */
 }
@@ -309,7 +310,7 @@ input[type=range][orient=vertical] {
 /* Đây là trạng thái "được nâng lên" của thanh công cụ */
 #action-toolbar.is-raised {
     /* Dịch chuyển lên trên 75px */
-    transform: translate(-50%, -75px);
+    transform: translate(-50%, -240px);
 }
 
 /* Lớp CSS cho nút đang được kích hoạt */
@@ -337,4 +338,13 @@ input[type=range][orient=vertical] {
 }
 #share-submenu .text {
     display: none;
+}
+#share-submenu.is-visible {
+    display: flex;
+}
+#info-panel {
+    padding: 10px 14px !important; /* từ mặc định lớn hơn */
+}
+#action-toolbar.is-partially-raised {
+    transform: translate(-50%, -50px); /* nổi lên khỏi panel thu gọn */
 }
