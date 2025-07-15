@@ -90,14 +90,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }).addTo(map);
 
     // --- HELPER FUNCTIONS ---
+    
     window.openStreetView = function(lat, lng) {
         const url = `https://www.google.com/maps?q=&layer=c&cbll=${lat},${lng}`;
         window.open(url, '_blank');
     };
-    function toggleShareMenu() {
+   function toggleShareMenu() {
         const submenu = document.getElementById('share-submenu');
         if (submenu) {
-            submenu.classList.toggle('hidden');
+            submenu.classList.toggle('is-visible');
         }
     }
     function showInfoPanel(title, props, lat, lng) {
@@ -122,19 +123,20 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             <div class="info-row">
                 <span class="info-label">Địa chỉ:</span><span class="info-value text-left flex-1">${diaChi}</span>
-            </div>
+            </div>            
             
             <div id="panel-actions">
                 <button onclick="getDirections(${lat}, ${lng})"><i class="icon fas fa-directions text-blue-600"></i><span class="text">Chỉ đường</span></button>
                 <button onclick="openStreetView(${lat}, ${lng})"><i class="icon fas fa-street-view text-green-600"></i><span class="text">Street View</span></button>
                 <button onclick="copyLocationLink(${lat}, ${lng})"><i class="icon fas fa-link text-gray-500"></i><span class="text">Sao chép</span></button>
-                
+
                 <div class="relative">
                     <button onclick="toggleShareMenu()"><i class="icon fas fa-share-alt text-indigo-600"></i><span class="text">Chia sẻ</span></button>
+
                     <div id="share-submenu" class="hidden">
                         <button onclick="share('facebook', ${lat}, ${lng}, '${soTo}', '${soThua}')" title="Facebook"><i class="icon fab fa-facebook-f text-blue-700"></i></button>
-                        <button onclick="share('zalo', ${lat}, ${lng}, '${soTo}', '${soThua}')" title="Zalo"><img src="https://sv1.uphinh.org/images/2024/07/15/zalo-seeklogo.com.png" class="icon w-5 h-5"/></button>
                         <button onclick="share('whatsapp', ${lat}, ${lng}, '${soTo}', '${soThua}')" title="WhatsApp"><i class="icon fab fa-whatsapp text-green-500"></i></button>
+                        <button onclick="share('zalo', ${lat}, ${lng}, '${soTo}', '${soThua}')" title="Zalo"><img src="https://sv1.uphinh.org/images/2024/07/15/zalo-seeklogo.com.png" class="icon w-5 h-5"/></button>
                     </div>
                 </div>
             </div>
@@ -150,6 +152,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (highlightedParcel) map.removeLayer(highlightedParcel);
         dimensionMarkers.clearLayers();
         highlightedParcel = null;
+    }
+    function toggleShareMenu() {
+        const submenu = document.getElementById('share-submenu');
+        if (submenu) {
+            // Thêm hoặc bớt class 'hidden' của Tailwind để ẩn/hiện
+            submenu.classList.toggle('hidden');
+        }
     }
     
     async function performCadastralQuery(latlng) {
@@ -271,11 +280,27 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('Đã sao chép liên kết vị trí!');
         }).catch(err => console.error('Lỗi sao chép: ', err));
     }
-    window.shareOnFacebook = function(lat, lng, soTo, soThua) {
+    // Xóa hàm shareOnFacebook cũ và thay bằng hàm này
+    window.share = function(platform, lat, lng, soTo, soThua) {
         const url = `${window.location.origin}${window.location.pathname}?lat=${lat}&lng=${lng}`;
-        const quoteText = `Khám phá thông tin một thửa đất thú vị tại Đà Nẵng! (Số tờ: ${soTo}, Số thửa: ${soThua}). Cùng xem trên Bản đồ Giá đất Cộng đồng!`;
-        const fbShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(quoteText)}`;
-        window.open(fbShareUrl, '_blank', 'width=600,height=400');
+        const text = `Khám phá thửa đất (Tờ: ${soTo}, Thửa: ${soThua}) tại Đà Nẵng trên Bản đồ Giá đất Cộng đồng!`;
+        let shareUrl = '';
+
+        if (platform === 'facebook') {
+            shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(text)}`;
+        } else if (platform === 'whatsapp') {
+            shareUrl = `https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`;
+        } else if (platform === 'zalo') {
+            alert("Để chia sẻ qua Zalo, vui lòng sao chép liên kết và dán vào Zalo.");
+            navigator.clipboard.writeText(url);
+            toggleShareMenu(); // Đóng menu sau khi thông báo
+            return; 
+        }
+
+        if (shareUrl) {
+            window.open(shareUrl, '_blank', 'width=600,height=400');
+        }
+        toggleShareMenu(); // Tự động đóng menu sau khi bấm
     };
     window.toggleLike = function(button) {
         const icon = button.querySelector('i');

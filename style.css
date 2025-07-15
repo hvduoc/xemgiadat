@@ -313,3 +313,28 @@ input[type=range][orient=vertical] {
 }
 
 /* Lớp CSS cho nút đang được kích hoạt */
+/* --- CSS CHO MENU CHIA SẺ CON (ĐÃ SỬA LỖI) --- */
+#share-submenu {
+    position: absolute;
+    bottom: 110%; 
+    right: 0;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    padding: 8px;
+    gap: 8px;
+    border: 1px solid #e5e7eb;
+    display: none; /* <-- Ẩn menu đi mặc định */
+}
+
+#share-submenu button {
+    padding: 8px;
+    width: 40px;
+    height: 40px;
+}
+#share-submenu .icon {
+    margin: 0;
+}
+#share-submenu .text {
+    display: none;
+}
