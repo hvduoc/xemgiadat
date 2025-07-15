@@ -165,31 +165,53 @@ document.addEventListener('DOMContentLoaded', () => {
     async function performCadastralQuery(latlng) {
         hideInfoPanel();
         const loadingPopup = L.popup().setLatLng(latlng).setContent('<p>Đang tìm kiếm thông tin...</p>').openOn(map);
+
         try {
             const parcelIdentify = parcelLayer.identify().on(map).at(latlng);
             const featureCollection = await new Promise((resolve, reject) => {
                 parcelIdentify.run((error, fc) => error ? reject(error) : resolve(fc));
             });
+
             if (!featureCollection || featureCollection.features.length === 0) {
                 loadingPopup.setContent('Không tìm thấy thông tin địa chính tại vị trí này.');
                 return;
             }
+
             map.closePopup(loadingPopup);
             const feature = featureCollection.features[0];
             const props = feature.properties;
-            const lat = latlng.lat.toFixed(6), lng = latlng.lng.toFixed(6);
-            const endpointUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxAccessToken}&language=vi&limit=1`;
+            
+            // --- NÂNG CẤP QUAN TRỌNG: TÌM ĐỊA CHỈ TỪ TÂM THỬA ĐẤT ---
+
+            // 1. Tạo một lớp GeoJSON tạm thời để lấy tâm (centroid)
+            const tempLayer = L.geoJSON(feature.geometry);
+            const parcelCenter = tempLayer.getBounds().getCenter();
+            
+            // 2. Dùng tọa độ của TÂM để hỏi Mapbox
+            const centerLat = parcelCenter.lat.toFixed(6);
+            const centerLng = parcelCenter.lng.toFixed(6);
+            
+            const endpointUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${centerLng},${centerLat}.json?access_token=${mapboxAccessToken}&language=vi&limit=1`;
             const mapboxResponse = await fetch(endpointUrl);
             const mapboxData = await mapboxResponse.json();
+            
+            // 3. Gán địa chỉ cuối cùng vào props để hiển thị
             if (mapboxData.features && mapboxData.features.length > 0) {
                 props['Địa chỉ'] = mapboxData.features[0].place_name;
             } else {
+                // Nếu không tìm được, dùng tạm địa chỉ gốc (nếu có)
                 props['Địa chỉ'] = (props['Địa chỉ'] && props['Địa chỉ'] !== 'Null') ? props['Địa chỉ'] : 'Chưa xác định';
             }
+            // --- KẾT THÚC NÂNG CẤP ---
+
             if (highlightedParcel) map.removeLayer(highlightedParcel);
             const outlineStyle = { color: '#4A5568', weight: 5, opacity: 0.7 };
             const fillStyle = { color: '#FFD700', weight: 3, opacity: 1 };
-            highlightedParcel = L.layerGroup([ L.geoJSON(feature.geometry, { style: outlineStyle }), L.geoJSON(feature.geometry, { style: fillStyle }) ]).addTo(map);
+            highlightedParcel = L.layerGroup([
+                L.geoJSON(feature.geometry, { style: outlineStyle }),
+                L.geoJSON(feature.geometry, { style: fillStyle })
+            ]).addTo(map);
+
             dimensionMarkers.clearLayers();
             const coords = feature.geometry.coordinates[0];
             if (coords.length > 2) {
@@ -205,10 +227,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 dimensionMarkers.addTo(map);
             }
-            showInfoPanel('Thông tin Thửa đất', props, lat, lng);
+
+            // Hiển thị panel với tọa độ của điểm click ban đầu
+            showInfoPanel('Thông tin Thửa đất', props, latlng.lat.toFixed(6), latlng.lng.toFixed(6));
+
         } catch (error) {
             console.error("Lỗi khi tra cứu địa chính:", error);
-            loadingPopup.setContent('Có lỗi xảy ra khi tra cứu.');
+            if(loadingPopup) map.closePopup(loadingPopup);
+            L.popup().setLatLng(latlng).setContent('Có lỗi xảy ra khi tra cứu.').openOn(map);
         }
     }
     
