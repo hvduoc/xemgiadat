@@ -40,6 +40,21 @@
     </div>
 
     <div id="map"></div>
+    <div id="action-toolbar" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-[1001] flex items-center space-x-2 bg-white/80 backdrop-blur-sm p-2 rounded-full shadow-lg">
+        <button id="list-btn" title="Danh sách" class="toolbar-btn disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+            <i class="fa-solid fa-list"></i>
+            <span>Danh sách</span>
+        </button>
+        <button id="add-location-btn" title="Thêm địa điểm" class="toolbar-btn disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+            <i class="fa-solid fa-plus"></i>
+            <span>Thêm</span>
+        </button>
+        <button id="query-btn" title="Tra cứu Địa chính" class="toolbar-btn">
+            <i class="fa-solid fa-magnifying-glass-location"></i>
+            <span>Tra cứu</span>
+        </button>
+    </div>
+
     <div id="info-panel" class="fixed bottom-0 left-0 right-0 bg-white shadow-2xl rounded-t-2xl z-[1002] p-4 transform translate-y-full transition-transform duration-300 ease-in-out" style="max-height: 60vh; overflow-y: auto;">
         <div class="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-3"></div>
         
@@ -58,31 +73,14 @@
         <div id="panel-content" class="space-y-3 text-gray-700">
             </div>
     </div>
-
-    <div id="fab-container" class="absolute top-2 left-2 z-[1001] flex flex-col items-center">
-        <button id="fab-main-btn" class="bg-white text-gray-900 w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-2xl mb-2">
-            <i class="fa-solid fa-bars"></i>
-        </button>
-        <div id="fab-actions" class="flex flex-col items-center space-y-2 hidden">
-            <button id="list-btn" title="Danh sách" class="bg-white text-gray-800 w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100 transition disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-                <i class="fa-solid fa-list"></i>
-            </button>
-            <button id="add-location-btn" title="Thêm địa điểm" class="bg-blue-600 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-                <i class="fa-solid fa-plus"></i>
-            </button>
-            <button id="query-btn" title="Tra cứu Địa chính" class="bg-purple-600 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-purple-700 transition">
-                <i class="fa-solid fa-magnifying-glass-location"></i>
-            </button>
-        </div>
-    </div>
-    
+      
     <div id="opacity-control" class="hidden bg-white p-2 rounded-lg shadow-lg">
         <input id="opacity-slider" type="range" min="0" max="1" step="0.1" value="0.7">
     </div>
 
     <div id="instruction-banner" class="hidden absolute top-4 left-1/2 -translate-x-1/2 z-[1000] bg-yellow-400 text-black font-semibold py-2 px-4 rounded-lg shadow-lg"></div>
 
-    <div class="absolute top-4 right-4 z-[1000] flex flex-col items-center space-y-2">
+   <div class="absolute top-4 right-4 z-[1000] flex flex-col items-center space-y-2">
         <div id="auth-container">
             <button id="login-btn" title="Đăng nhập" class="bg-green-500 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-green-600 transition">
                 <i class="fa-solid fa-user"></i>
@@ -96,6 +94,9 @@
         </div>
         <button id="donate-btn" title="Ủng hộ (Mời cafe)" class="bg-yellow-400 text-black w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-yellow-500 transition">
             <i class="fa-solid fa-mug-saucer"></i>
+        </button>
+        <button id="locate-btn" title="Tìm vị trí của tôi" class="bg-white text-gray-700 w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100 transition">
+            <i class="fa-solid fa-location-crosshairs text-xl"></i>
         </button>
     </div>
     

@@ -234,7 +234,7 @@ input[type=range][orient=vertical] {
 /* Các nút Action (Thích, Sao chép, Chia sẻ) */
 #panel-actions {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 12px;
     margin-top: 12px;
     padding-top: 12px;
@@ -262,3 +262,40 @@ input[type=range][orient=vertical] {
     font-size: 12px;
     font-weight: 500;
 }
+/* --- CSS CHO THANH CÔNG CỤ MỚI --- */
+.toolbar-btn {
+    display: flex;
+    align-items: center;
+    padding: 8px 16px;
+    border-radius: 9999px; /* rounded-full */
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151; /* text-gray-700 */
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.toolbar-btn i {
+    margin-right: 6px;
+    font-size: 16px;
+}
+
+.toolbar-btn:hover {
+    background-color: #f3f4f6; /* bg-gray-100 */
+}
+
+.toolbar-btn.active-tool {
+    background-color: #3b82f6; /* bg-blue-600 */
+    color: white;
+}
+/* Thêm vào để tạo hiệu ứng di chuyển mượt mà */
+#action-toolbar {
+    transition: transform 0.3s ease-in-out;
+}
+
+/* Đây là trạng thái "được nâng lên" của thanh công cụ */
+#action-toolbar.is-raised {
+    /* Dịch chuyển lên trên 75px */
+    transform: translate(-50%, -75px);
+}
+
+/* Lớp CSS cho nút đang được kích hoạt */
