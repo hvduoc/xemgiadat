@@ -311,8 +311,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchByParcelNumber = async (soTo, soThua) => {
         searchResultsContainer.innerHTML = '<div class="p-4 text-center text-gray-500">Đang tìm thửa đất...</div>';
         searchResultsContainer.classList.remove('hidden');
-        const query = L.esri.query({ url: 'https://gisportal.danang.gov.vn/server/rest/services/DiaChinh/DaNangLand_DiaChinh/MapServer/35' });
-        const whereClause = `[Số hiệu tờ bản đồ] = ${soTo} AND [Số thửa] = ${soThua}`;
+        const query = L.esri.query({
+            url: 'https://gisportal.danang.gov.vn/server/rest/services/DiaChinh/DaNangLand_DiaChinh/MapServer/0'
+        });
+        const whereClause = `"Số hiệu tờ bản đồ" = ${soTo} AND "Số thửa" = ${soThua}`;
+
         query.where(whereClause);
         let html = '';
         try {
@@ -390,6 +393,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const fillLayer = L.geoJSON(geometry, { style: fillStyle });
             highlightedParcel = L.layerGroup([outlineLayer, fillLayer]).addTo(map);
             map.fitBounds(L.geoJSON(geometry).getBounds());
+            // Gọi truy vấn thông tin địa chính (giống như click)
+            const bounds = L.geoJSON(geometry).getBounds();
+            const center = bounds.getCenter();
+            performCadastralQuery(center);
+
         }
         searchResultsContainer.classList.add('hidden');
         searchInput.value = '';
