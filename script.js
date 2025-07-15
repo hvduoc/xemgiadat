@@ -311,28 +311,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchByParcelNumber = async (soTo, soThua) => {
         searchResultsContainer.innerHTML = '<div class="p-4 text-center text-gray-500">Đang tìm thửa đất...</div>';
         searchResultsContainer.classList.remove('hidden');
-        const query = L.esri.query({
-            url: 'https://gisportal.danang.gov.vn/server/rest/services/DiaChinh/DaNangLand_DiaChinh/MapServer/0'
-        });
-        const whereClause = `"Số hiệu tờ bản đồ" = ${soTo} AND "Số thửa" = ${soThua}`;
 
-        query.where(whereClause);
         let html = '';
         try {
-            const response = await new Promise((resolve, reject) => {
-                query.run((error, featureCollection) => error ? reject(error) : resolve(featureCollection));
-            });
-            if (response.features.length > 0) {
+            const response = await fetch(`/.netlify/functions/getParcelInfo?soTo=${soTo}&soThua=${soThua}`);
+            const data = await response.json();
+
+            if (data.features && data.features.length > 0) {
                 html += `<div class="result-category">Kết quả cho Tờ: ${soTo} / Thửa: ${soThua}</div>`;
-                response.features.forEach(feature => {
+                data.features.forEach(feature => {
                     const diaChi = feature.properties.DiaChiThuaDat || `Thửa đất ${soThua}, tờ bản đồ ${soTo}`;
                     const geometry = JSON.stringify(feature.geometry);
                     html += `<div class="result-item" data-type="parcel" data-geometry='${geometry}'><i class="icon fa-solid fa-draw-polygon"></i><span>${diaChi}</span></div>`;
                 });
             }
-        } catch (error) { console.error("Lỗi truy vấn thửa đất:", error); }
+        } catch (error) {
+            console.error("Lỗi truy vấn thửa đất:", error);
+        }
+
         searchResultsContainer.innerHTML = html === '' ? '<div class="p-4 text-center text-gray-500">Không tìm thấy thửa đất với số tờ/số thửa này.</div>' : html;
     };
+
     const performSearch = async (query) => {
         const parcelRegex = /^\s*(\d+)\s*\/\s*(\d+)\s*$/;
         const match = query.match(parcelRegex);
