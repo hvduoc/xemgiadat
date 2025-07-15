@@ -137,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div id="share-submenu" class="hidden">
                         <button onclick="share('facebook', ${lat}, ${lng}, '${soTo}', '${soThua}')" title="Facebook"><i class="icon fab fa-facebook-f text-blue-700"></i></button>
                         <button onclick="share('whatsapp', ${lat}, ${lng}, '${soTo}', '${soThua}')" title="WhatsApp"><i class="icon fab fa-whatsapp text-green-500"></i></button>
-                        <button onclick="share('zalo', ${lat}, ${lng}, '${soTo}', '${soThua}')" title="Zalo"><img src="https://sv1.uphinh.org/images/2024/07/15/zalo-seeklogo.com.png" class="icon w-5 h-5"/></button>
+                        <button onclick="share('zalo', ${lat}, ${lng}, '${soTo}', '${soThua}')" title="Zalo"><img src="https://cdn.jsdelivr.net/gh/duyetdev/zalo-share-icon@main/zalo-icon-blue-circle.png" class="icon w-5 h-5" /></button>
                     </div>
                 </div>
             </div>
@@ -333,8 +333,9 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const performSearch = async (query) => {
-        const parcelRegex = /^\s*(\d+)\s*\/\s*(\d+)\s*$/;
-        const match = query.match(parcelRegex);
+        // Tạm thời bỏ tính năng tìm theo Tờ/Thửa vì server không hỗ trợ
+        // const parcelRegex = /^\s*(\d+)\s*\/\s*(\d+)\s*$/;
+        // const match = query.match(parcelRegex);
         if (match) {
             searchByParcelNumber(match[1], match[2]);
             return;
