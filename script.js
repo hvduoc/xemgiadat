@@ -108,11 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const diaChi = (props['Địa chỉ'] && props['Địa chỉ'] !== 'Null') ? props['Địa chỉ'] : 'Chưa có';
 
         panelContent.innerHTML = `
-        <div class="info-row">
-        <span class="info-label">Mã BĐS:</span>
-        <strong class="info-value">${item.propertyCode}</strong>
-        </div>
-
+        
         <div class="info-row">
             <span class="info-label">Tờ:</span><strong class="info-value">${soTo}</strong>
             <span class="info-label ml-4">Thửa:</span><strong class="info-value">${soThua}</strong>
