@@ -109,6 +109,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         panelContent.innerHTML = `
         <div class="info-row">
+        <span class="info-label">Mã BĐS:</span>
+        <strong class="info-value">${item.propertyCode}</strong>
+        </div>
+
+        <div class="info-row">
             <span class="info-label">Tờ:</span><strong class="info-value">${soTo}</strong>
             <span class="info-label ml-4">Thửa:</span><strong class="info-value">${soThua}</strong>
         </div>
@@ -510,6 +515,17 @@ document.addEventListener('DOMContentLoaded', () => {
         submitBtn.textContent = 'Đang gửi...'; submitBtn.disabled = true;
         try {
             const docData = { userId: currentUser.uid, userName: currentUser.displayName, userAvatar: currentUser.photoURL, lat: selectedCoords.lat, lng: selectedCoords.lng, priceValue: parseFloat(data.priceValue), area: data.area ? parseFloat(data.area) : null, status: 'pending', createdAt: firebase.firestore.FieldValue.serverTimestamp(), name: data.name, priceUnit: data.priceUnit, notes: data.notes || '', contactName: data.contactName || '', contactEmail: data.contactEmail || '', contactPhone: data.contactPhone || '', contactFacebook: data.contactFacebook || '' };
+            // Lấy tổng số tin đã đăng để sinh mã BĐS tự động
+            const snapshot = await db.collection("listings").get();
+            const listingCount = snapshot.size + 1;
+            const paddedNumber = String(listingCount).padStart(5, '0');
+            const propertyCode = `BDS-${paddedNumber}`;
+
+            // Gán vào docData
+            docData.propertyCode = propertyCode;
+            docData.status = 'available'; // mặc định còn bán
+            docData.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
+
             await db.collection("listings").add(docData);
             alert('Gửi dữ liệu thành công, cảm ơn bạn đã đóng góp!');
             modal.classList.add('hidden'); form.reset(); exitAllModes();
@@ -557,7 +573,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!item.lat || !item.lng) return;
             const likeCount = localStorage.getItem(`like-${doc.id}`) || 0;
             const formattedPrice = `${item.priceValue} ${item.priceUnit}`;
-            const popupContent = `<div class="p-2 text-sm leading-5 space-y-2 max-w-[260px]"><h3 class="font-bold text-base text-gray-800">${item.name}</h3><p><strong>Giá:</strong> <span class="font-semibold text-red-600">${formattedPrice}</span></p><p><strong>Diện tích:</strong> ${item.area ? item.area + ' m²' : 'N/A'}</p><p><strong>Ghi chú:</strong> ${item.notes || 'N/A'}</p><div class="flex space-x-3 text-xl justify-start pt-1 text-blue-600">${item.contactPhone ? `<a href="tel:${item.contactPhone}" title="Gọi"><i class="fas fa-phone text-red-500 hover:scale-110"></i></a>` : ''}${item.contactPhone ? `<a href="https://zalo.me/${item.contactPhone}" title="Zalo" target="_blank"><i class="fas fa-comment-dots text-blue-500 hover:scale-110"></i></a>` : ''}${item.contactEmail ? `<a href="mailto:${item.contactEmail}" title="Email"><i class="fas fa-envelope text-yellow-500 hover:scale-110"></i></a>` : ''}${item.contactFacebook ? `<a href="${item.contactFacebook}" title="Facebook" target="_blank"><i class="fab fa-facebook text-blue-700 hover:scale-110"></i></a>` : ''}</div><div class="grid grid-cols-2 gap-2 mt-2">${item.lat && item.lng ? `<div><a href="https://www.google.com/maps?q=&layer=c&cbll=${item.lat},${item.lng}" target="_blank" class="block px-3 py-1 text-center text-sm font-semibold bg-green-100 text-green-800 rounded hover:bg-green-200">Street View</a></div>` : ''}${item.lat && item.lng ? `<div><a href="javascript:void(0)" onclick="getDirections(${item.lat}, ${item.lng})" class="block px-3 py-1 text-center text-sm font-semibold bg-blue-100 text-blue-800 rounded hover:bg-blue-200">Chỉ đường</a></div>` : ''}</div><div class="flex items-center justify-between pt-2"><button onclick="likePlace('${doc.id}')" class="text-red-500 text-lg">❤️ <span id="like-${doc.id}">${likeCount}</span></button><a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(location.href)}" target="_blank" title="Chia sẻ Facebook"><i class="fas fa-share text-gray-600 hover:text-blue-600"></i></a></div></div>`;
+            const popupContent = `<div class="p-2 text-sm leading-5 space-y-2 max-w-[260px]"><h3 class="font-bold text-base text-gray-800">${item.name}</h3><p><strong>Giá:</strong> <span class="font-semibold text-red-600">${formattedPrice}</span></p><p><strong>Diện tích:</strong> ${item.area ? item.area + ' m²' : 'N/A'}</p><p><strong>Ghi chú:</strong> ${item.notes || 'N/A'}</p><div class="flex space-x-3 text-xl justify-start pt-1 text-blue-600">${item.contactPhone ? `<a href="tel:${item.contactPhone}" title="Gọi"><i class="fas fa-phone text-red-500 hover:scale-110"></i></a>` : ''}${item.contactPhone ? `<a href="https://zalo.me/${item.contactPhone}" title="Zalo" target="_blank"><i class="fas fa-comment-dots text-blue-500 hover:scale-110"></i></a>` : ''}${item.contactEmail ? `<a href="mailto:${item.contactEmail}" title="Email"><i class="fas fa-envelope text-yellow-500 hover:scale-110"></i></a>` : ''}${item.contactFacebook ? `<a href="${item.contactFacebook.startsWith('http') ? item.contactFacebook : 'https://facebook.com/' + item.contactFacebook}" title="Facebook" target="_blank"><i class="fab fa-facebook text-blue-700 hover:scale-110"></i></a>` : ''}
+            </div><div class="grid grid-cols-2 gap-2 mt-2">${item.lat && item.lng ? `<div><a href="https://www.google.com/maps?q=&layer=c&cbll=${item.lat},${item.lng}" target="_blank" class="block px-3 py-1 text-center text-sm font-semibold bg-green-100 text-green-800 rounded hover:bg-green-200">Street View</a></div>` : ''}${item.lat && item.lng ? `<div><a href="javascript:void(0)" onclick="getDirections(${item.lat}, ${item.lng})" class="block px-3 py-1 text-center text-sm font-semibold bg-blue-100 text-blue-800 rounded hover:bg-blue-200">Chỉ đường</a></div>` : ''}</div><div class="flex items-center justify-between pt-2"><button onclick="likePlace('${doc.id}')" class="text-red-500 text-lg">❤️ <span id="like-${doc.id}">${likeCount}</span></button><a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(location.href)}" target="_blank" title="Chia sẻ Facebook"><i class="fas fa-share text-gray-600 hover:text-blue-600"></i></a></div></div>`;
             const marker = L.marker([item.lat, item.lng]).bindPopup(popupContent);
             priceMarkers.addLayer(marker);
             const listItem = document.createElement('div');
