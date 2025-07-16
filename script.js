@@ -523,7 +523,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Gán vào docData
             docData.propertyCode = propertyCode;
-            docData.status = 'available'; // mặc định còn bán
+            docData.status = 'approved'; // mặc định còn bán
             docData.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
 
             await db.collection("listings").add(docData);
