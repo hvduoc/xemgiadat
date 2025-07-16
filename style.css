@@ -320,7 +320,7 @@ input[type=range][orient=vertical] {
 /* Đây là trạng thái "được nâng lên" của thanh công cụ */
 #action-toolbar.is-raised {
     /* Dịch chuyển lên trên 75px */
-    transform: translate(-50%, -250px);
+    transform: translate(-50%, -220px);
 }
 
 /* Lớp CSS cho nút đang được kích hoạt */
