@@ -45,6 +45,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginBtn = document.getElementById('login-btn');
     const logoutBtn = document.getElementById('logout-btn');
     const userProfileDiv = document.getElementById('user-profile');
+    userProfileDiv.addEventListener('click', () => {
+        if (!currentUser) return;
+        loadUserProfile(); // Nạp dữ liệu từ Firestore vào form
+        document.getElementById('profile-modal').classList.remove('hidden');
+    });
+
     const firebaseuiContainer = document.getElementById('firebaseui-auth-container');
     const ui = new firebaseui.auth.AuthUI(auth);
     const opacityControl = document.getElementById('opacity-control');
@@ -160,7 +166,23 @@ document.addEventListener('DOMContentLoaded', () => {
         dimensionMarkers.clearLayers();
         highlightedParcel = null;
     }
-     
+    
+    async function loadUserProfile() {
+        try {
+            const userDoc = await db.collection("users").doc(currentUser.uid).get();
+            if (userDoc.exists) {
+            const profile = userDoc.data();
+            document.getElementById('profile-name').value = profile.displayName || '';
+            document.getElementById('profile-email').value = profile.email || '';
+            document.getElementById('profile-phone').value = profile.phone || '';
+            document.getElementById('profile-facebook').value = profile.contactFacebook || '';
+            }
+        } catch (error) {
+            console.error("Lỗi tải hồ sơ:", error);
+        }
+    }
+
+    
     async function performCadastralQuery(latlng) {
         hideInfoPanel();
         const loadingPopup = L.popup().setLatLng(latlng).setContent('<p>Đang tìm kiếm thông tin...</p>').openOn(map);
@@ -638,5 +660,34 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     handleUrlParameters();
+
+    // 1. Xử lý lưu hồ sơ khi submit form
+    document.getElementById('profile-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!currentUser) return;
+
+    const updatedProfile = {
+        displayName: document.getElementById('profile-name').value.trim(),
+        email: document.getElementById('profile-email').value.trim(),
+        phone: document.getElementById('profile-phone').value.trim(),
+        contactFacebook: document.getElementById('profile-facebook').value.trim(),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    try {
+        await db.collection("users").doc(currentUser.uid).update(updatedProfile);
+        alert("✅ Hồ sơ đã được cập nhật.");
+        document.getElementById('profile-modal').classList.add('hidden');
+    } catch (error) {
+        console.error("❌ Lỗi khi cập nhật hồ sơ:", error);
+        alert("Có lỗi xảy ra khi cập nhật hồ sơ.");
+    }
+    });
+
+    // 2. Xử lý nút Hủy trong modal
+    document.getElementById('close-profile-btn').addEventListener('click', () => {
+    document.getElementById('profile-modal').classList.add('hidden');
+    });
+
 
 }); // --- END OF DOMContentLoaded ---
