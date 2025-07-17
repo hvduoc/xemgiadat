@@ -277,6 +277,23 @@ document.addEventListener('DOMContentLoaded', () => {
             tempMarker = null;
         }
     }
+    // Định nghĩa hàm prefillUserContact
+    async function prefillUserContact() {
+    if (!currentUser) return;
+
+    try {
+        const userDoc = await db.collection("users").doc(currentUser.uid).get();
+        if (userDoc.exists) {
+        const profile = userDoc.data();
+        document.getElementById('contact-name').value = profile.displayName || '';
+        document.getElementById('email').value = profile.email || '';
+        document.getElementById('phone').value = profile.phone || '';
+        document.getElementById('facebook').value = profile.contactFacebook || '';
+        }
+    } catch (error) {
+        console.error("Lỗi khi lấy hồ sơ người dùng:", error);
+    }
+    }
     
     window.getDirections = function(toLat, toLng) {
         if (!navigator.geolocation) { alert('Trình duyệt của bạn không hỗ trợ định vị.'); return; }
@@ -495,7 +512,19 @@ document.addEventListener('DOMContentLoaded', () => {
     donateModal.addEventListener('click', (e) => { if (e.target === donateModal) donateModal.classList.add('hidden'); });
     copyBtn.addEventListener('click', () => { navigator.clipboard.writeText(accountNumber).then(() => { const originalIcon = copyBtn.innerHTML; copyBtn.innerHTML = '<svg ...></svg>'; setTimeout(() => { copyBtn.innerHTML = originalIcon; }, 1500); }).catch(err => console.error('Lỗi sao chép: ', err)); });
     
-    addLocationBtn.addEventListener('click', () => { if (!currentUser) { alert("Vui lòng đăng nhập để thêm địa điểm!"); return; } isAddMode ? exitAllModes() : enterAddMode(); });
+    addLocationBtn.addEventListener('click', () => {
+    if (!currentUser) {
+        alert("Vui lòng đăng nhập để thêm địa điểm!");
+        return;
+    }
+
+    // Gọi hàm điền thông tin liên hệ từ hồ sơ
+    prefillUserContact();
+
+    // Bật chế độ thêm địa điểm
+    isAddMode ? exitAllModes() : enterAddMode();
+    });
+
     queryBtn.addEventListener('click', () => { isQueryMode ? exitAllModes() : enterQueryMode(); });
     listBtn.addEventListener('click', () => listModal.classList.remove('hidden'));
     document.getElementById('close-list-btn').addEventListener('click', () => listModal.classList.add('hidden'));
@@ -528,16 +557,34 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) { console.error("Lỗi khi thêm dữ liệu: ", error); alert("Đã xảy ra lỗi khi gửi dữ liệu."); } finally { submitBtn.textContent = 'Gửi Dữ Liệu'; submitBtn.disabled = false; }
     });
 
-    auth.onAuthStateChanged((user) => {
+    auth.onAuthStateChanged(async (user) => {
         if (user) {
             currentUser = user;
+
+            // 🔹 Tạo hồ sơ Firestore nếu chưa có
+            const userRef = db.collection("users").doc(user.uid);
+            const doc = await userRef.get();
+
+            if (!doc.exists) {
+                await userRef.set({
+                    displayName: user.displayName || "",
+                    email: user.email || "",
+                    phone: "",
+                    contactFacebook: "",
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                console.log("✅ Hồ sơ người dùng đã được tạo.");
+            } else {
+                console.log("📝 Hồ sơ đã có:", doc.data());
+            }
+
             firebaseuiContainer.classList.add('hidden');
             loginBtn.classList.add('hidden');
             userProfileDiv.classList.remove('hidden');
             userProfileDiv.classList.add('flex');
             document.getElementById('user-avatar').src = user.photoURL || 'https://placehold.co/40x40/e2e8f0/64748b?text=A';
             addLocationBtn.disabled = false;
-            // listBtn sẽ luôn luôn enabled — không chỉnh ở đây
 
         } else {
             currentUser = null;
@@ -546,10 +593,9 @@ document.addEventListener('DOMContentLoaded', () => {
             userProfileDiv.classList.remove('flex');
             exitAllModes();
             addLocationBtn.disabled = true;
-            // KHÔNG disable listBtn
-
         }
     });
+
     loginBtn.addEventListener('click', () => { if (ui.isPendingRedirect()) return; firebaseuiContainer.classList.remove('hidden'); ui.start('#firebaseui-widget', { signInFlow: 'popup', signInOptions: [ firebase.auth.GoogleAuthProvider.PROVIDER_ID, firebase.auth.EmailAuthProvider.PROVIDER_ID, ], callbacks: { signInSuccessWithAuthResult: function(authResult, redirectUrl) { firebaseuiContainer.classList.add('hidden'); return false; } } }); });
     logoutBtn.addEventListener('click', () => auth.signOut());
     firebaseuiContainer.addEventListener('click', (e) => { if (e.target === firebaseuiContainer) firebaseuiContainer.classList.add('hidden'); });
