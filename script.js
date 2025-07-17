@@ -169,7 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     async function loadUserProfile() {
         try {
-            const userDoc = await db.collection("users").doc(currentUser.uid).get();
+            const userDoc = await db.collection("users").doc(currentUser.uid).set(updatedProfile, { merge: true });
             if (userDoc.exists) {
             const profile = userDoc.data();
             document.getElementById('profile-name').value = profile.displayName || '';
