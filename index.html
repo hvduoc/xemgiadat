@@ -81,15 +81,18 @@
     <div id="instruction-banner" class="hidden absolute top-4 left-1/2 -translate-x-1/2 z-[1000] bg-yellow-400 text-black font-semibold py-2 px-4 rounded-lg shadow-lg"></div>
 
    <div class="absolute top-4 right-4 z-[1000] flex flex-col items-center space-y-2">
-        <div id="auth-container">
+        <div id="auth-container" class="relative">
             <button id="login-btn" title="Đăng nhập" class="bg-green-500 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-green-600 transition">
                 <i class="fa-solid fa-user"></i>
             </button>
-            <div id="user-profile" class="hidden items-center justify-center bg-white w-12 h-12 rounded-full shadow-lg cursor-pointer relative group">
+            
+            <div id="user-profile" class="hidden items-center justify-center bg-white w-12 h-12 rounded-full shadow-lg cursor-pointer">
                 <img id="user-avatar" class="w-10 h-10 rounded-full">
-                <button id="logout-btn" class="absolute inset-0 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-90 transition-opacity text-xs">
-                    Thoát
-                </button>
+            </div>
+
+            <div id="profile-menu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-[1002] py-1 border">
+                <a href="#" id="update-profile-btn" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Cập nhật hồ sơ</a>
+                <a href="#" id="logout-btn-menu" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Thoát</a>
             </div>
         </div>
         <button id="donate-btn" title="Ủng hộ (Mời cafe)" class="bg-yellow-400 text-black w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-yellow-500 transition">

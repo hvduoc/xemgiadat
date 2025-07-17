@@ -36,21 +36,17 @@ document.addEventListener('DOMContentLoaded', () => {
     parcelLayer.addTo(map);
     L.control.layers(baseMaps, overlayMaps, { position: 'bottomright' }).addTo(map);
 
-    // --- DOM ELEMENT SELECTION ---
+        // --- DOM ELEMENT SELECTION (ĐÃ SỬA) ---
     const modal = document.getElementById('form-modal');
     const listModal = document.getElementById('price-list-modal');
     const form = document.getElementById('location-form');
     const instructionBanner = document.getElementById('instruction-banner');
     const authContainer = document.getElementById('auth-container');
     const loginBtn = document.getElementById('login-btn');
-    const logoutBtn = document.getElementById('logout-btn');
     const userProfileDiv = document.getElementById('user-profile');
-    userProfileDiv.addEventListener('click', () => {
-        if (!currentUser) return;
-        loadUserProfile(); // Nạp dữ liệu từ Firestore vào form
-        document.getElementById('profile-modal').classList.remove('hidden');
-    });
-
+    const profileMenu = document.getElementById('profile-menu');
+    const updateProfileBtn = document.getElementById('update-profile-btn');
+    const logoutBtnMenu = document.getElementById('logout-btn-menu');
     const firebaseuiContainer = document.getElementById('firebaseui-auth-container');
     const ui = new firebaseui.auth.AuthUI(auth);
     const opacityControl = document.getElementById('opacity-control');
@@ -450,7 +446,39 @@ document.addEventListener('DOMContentLoaded', () => {
         searchResultsContainer.innerHTML = html === '' ? '<div class="p-4 text-center text-gray-500">Không tìm thấy kết quả.</div>' : html;
     };
 
-    // --- EVENT LISTENERS ---
+    // --- EVENT LISTENERS (ĐÃ SỬA) ---
+
+    // 1. Sự kiện khi click vào avatar -> Hiện/ẩn menu
+    userProfileDiv.addEventListener('click', (event) => {
+        event.stopPropagation(); // Ngăn sự kiện click lan ra ngoài
+        profileMenu.classList.toggle('hidden');
+    });
+
+    // 2. Sự kiện khi click vào nút "Cập nhật hồ sơ" trong menu
+    updateProfileBtn.addEventListener('click', (e) => {
+        e.preventDefault(); // Ngăn thẻ <a> tải lại trang
+        if (!currentUser) return;
+        loadUserProfile();
+        document.getElementById('profile-modal').classList.remove('hidden');
+        profileMenu.classList.add('hidden'); // Ẩn menu đi sau khi chọn
+    });
+
+    // 3. Sự kiện khi click vào nút "Thoát" trong menu
+    logoutBtnMenu.addEventListener('click', (e) => {
+        e.preventDefault(); // Ngăn thẻ <a> tải lại trang
+        auth.signOut();
+        profileMenu.classList.add('hidden'); // Ẩn menu đi
+    });
+
+    // 4. Tự động đóng menu khi người dùng click ra ngoài
+    document.addEventListener('click', (event) => {
+        // Nếu menu đang không ẩn VÀ vị trí click không nằm trong khu vực avatar
+        if (!profileMenu.classList.contains('hidden') && !userProfileDiv.contains(event.target) && !profileMenu.contains(event.target)) {
+            profileMenu.classList.add('hidden');
+        }
+    });   
+    
+    // logoutBtn.addEventListener('click', () => auth.signOut()); // <--- XÓA DÒNG NÀY
     searchInput.addEventListener('input', (e) => { clearTimeout(debounceTimer); debounceTimer = setTimeout(() => { performSearch(e.target.value.trim()); }, 300); });
     searchResultsContainer.addEventListener('click', (e) => {
         const item = e.target.closest('.result-item');
