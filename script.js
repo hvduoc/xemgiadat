@@ -679,7 +679,11 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   try {
+    // THÊM DÒNG NÀY ĐỂ KIỂM TRA
+    console.log("BẮT ĐẦU CẬP NHẬT DỮ LIỆU:", updatedProfile);
     await db.collection("users").doc(currentUser.uid).update(updatedProfile);
+      // THÊM DÒNG NÀY ĐỂ XÁC NHẬN
+    console.log("✅✅✅ CẬP NHẬT HỒ SƠ THÀNH CÔNG TRÊN FIRESTORE!");
     alert("✅ Hồ sơ đã được cập nhật.");
     document.getElementById('profile-modal').classList.add('hidden');
   } catch (error) {
