@@ -90,7 +90,7 @@ input[type=range][orient=vertical] {
 #opacity-control {
     /* Thuộc tính vị trí mới */
     position: absolute;
-    bottom: 80px;     /* Khoảng cách từ cạnh dưới */
+    bottom: 120px;     /* Khoảng cách từ cạnh dưới */
     right: 18px;    /* Khoảng cách từ cạnh phải (tương đương right-4 của Tailwind) */
     z-index: 1000;
     width: 15px;      /* Giảm chiều rộng khung */
@@ -344,4 +344,10 @@ input[type=range][orient=vertical] {
 }
 #action-toolbar.is-partially-raised {
     transform: translate(-50%, -50px); /* nổi lên khỏi panel thu gọn */
+}
+
+/* Tùy chỉnh vị trí cho bảng chọn lớp bản đồ */
+.leaflet-bottom.leaflet-right {
+    /* Di chuyển toàn bộ các control ở góc dưới-phải lên trên 40px */
+    margin-bottom: 40px !important;
 }
