@@ -666,10 +666,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 1. Xử lý lưu hồ sơ khi submit form
     document.getElementById('profile-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    if (!currentUser) return;
+  e.preventDefault();
+  if (!currentUser) return;
 
-    const updatedProfile = {
+  const updatedProfile = {
     displayName: document.getElementById('profile-name').value.trim(),
     email: document.getElementById('profile-email').value.trim(),
     phone: document.getElementById('profile-phone').value.trim(),
@@ -677,20 +677,17 @@ document.addEventListener('DOMContentLoaded', () => {
     whatsapp: document.getElementById('profile-whatsapp').value.trim(),
     contactFacebook: document.getElementById('profile-facebook').value.trim(),
     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-    };
+  };
 
+  try {
     await db.collection("users").doc(currentUser.uid).set(updatedProfile, { merge: true });
-
-
-    try {
-        await db.collection("users").doc(currentUser.uid).update(updatedProfile);
-        alert("✅ Hồ sơ đã được cập nhật.");
-        document.getElementById('profile-modal').classList.add('hidden');
-    } catch (error) {
-        console.error("❌ Lỗi khi cập nhật hồ sơ:", error);
-        alert("Có lỗi xảy ra khi cập nhật hồ sơ.");
-    }
-    });
+    alert("✅ Hồ sơ đã được cập nhật.");
+    document.getElementById('profile-modal').classList.add('hidden');
+  } catch (error) {
+    console.error("❌ Lỗi khi cập nhật hồ sơ:", error);
+    alert("Có lỗi xảy ra khi cập nhật hồ sơ.");
+  }
+});
 
     // 2. Xử lý nút Hủy trong modal
     document.getElementById('close-profile-btn').addEventListener('click', () => {
