@@ -12,12 +12,10 @@ const firebaseConfig = {
 // --- MAPBOX ACCESS TOKEN ---
 const mapboxAccessToken = "pk.eyJ1IjoiaHZkdW9jIiwiYSI6ImNtZDFwcjVxYTAzOGUybHEzc3ZrNTJmcnIifQ.D5VlPC8c_n1i3kezgqtzwg";
 
-
 // --- SERVICE INITIALIZATION ---
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-
 
 // --- APPLICATION LOGIC WRAPPER ---
 document.addEventListener('DOMContentLoaded', () => {
