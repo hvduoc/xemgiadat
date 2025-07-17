@@ -539,7 +539,10 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const docData = { userId: currentUser.uid, userName: currentUser.displayName, userAvatar: currentUser.photoURL, lat: selectedCoords.lat, lng: selectedCoords.lng, priceValue: parseFloat(data.priceValue), area: data.area ? parseFloat(data.area) : null, status: 'pending', createdAt: firebase.firestore.FieldValue.serverTimestamp(), name: data.name, priceUnit: data.priceUnit, notes: data.notes || '', contactName: data.contactName || '', contactEmail: data.contactEmail || '', contactPhone: data.contactPhone || '', contactFacebook: data.contactFacebook || '' };
             // Lấy tổng số tin đã đăng để sinh mã BĐS tự động
-            const snapshot = await db.collection("listings").get();
+            const snapshot = await db.collection("listings")
+                         .where("status", "==", "approved")
+                         .get();
+
             const listingCount = snapshot.size + 1;
             const paddedNumber = String(listingCount).padStart(5, '0');
             const propertyCode = `BDS-${paddedNumber}`;
