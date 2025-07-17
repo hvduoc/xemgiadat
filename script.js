@@ -409,8 +409,32 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (error) {
         console.error("Lỗi khi lấy hồ sơ người dùng:", error);
     }
-    }
+    }   
     
+    // Dán đoạn mã đã sửa này vào file script.js của bạn
+
+    window.deleteListing = async function(listingId) {
+        if (!listingId) {
+            alert('Không tìm thấy ID của tin đăng.');
+            return;
+        }
+        
+        // Hỏi lại để chắc chắn trước khi xóa
+        const confirmation = confirm('Bạn có chắc chắn muốn xóa vĩnh viễn tin đăng này không?');
+        
+        if (confirmation) {
+            try {
+                await db.collection('listings').doc(listingId).delete();
+                alert('Đã xóa tin đăng thành công!');
+                hideInfoPanel(); // Đóng panel thông tin lại
+                location.reload(); // Tải lại trang để cập nhật bản đồ
+            } catch (error) {
+                console.error("Lỗi khi xóa tin đăng: ", error);
+                alert('Có lỗi xảy ra khi xóa tin đăng.');
+            }
+        }
+    }
+
     window.getDirections = function(toLat, toLng) {
         if (!navigator.geolocation) { alert('Trình duyệt của bạn không hỗ trợ định vị.'); return; }
         alert('Đang lấy vị trí của bạn để chỉ đường...');
@@ -834,28 +858,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('close-profile-btn').addEventListener('click', () => {
     document.getElementById('profile-modal').classList.add('hidden');
     });
-// Dán đoạn mã này vào file script.js của bạn
 
-async function deleteListing(listingId) {
-    if (!listingId) {
-        alert('Không tìm thấy ID của tin đăng.');
-        return;
-    }
-    
-    // Hỏi lại để chắc chắn trước khi xóa
-    const confirmation = confirm('Bạn có chắc chắn muốn xóa vĩnh viễn tin đăng này không?');
-    
-    if (confirmation) {
-        try {
-            await db.collection('listings').doc(listingId).delete();
-            alert('Đã xóa tin đăng thành công!');
-            hideInfoPanel(); // Đóng panel thông tin lại
-            location.reload(); // Tải lại trang để cập nhật bản đồ
-        } catch (error) {
-            console.error("Lỗi khi xóa tin đăng: ", error);
-            alert('Có lỗi xảy ra khi xóa tin đăng.');
-        }
-    }
-}
 
 }); // --- END OF DOMContentLoaded ---
