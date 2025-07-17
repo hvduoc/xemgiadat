@@ -153,8 +153,92 @@ document.addEventListener('DOMContentLoaded', () => {
 
         infoPanel.classList.add('is-open');
         actionToolbar.classList.add('is-raised');
+    }                
+
+    // THAY THẾ TOÀN BỘ HÀM CŨ BẰNG PHIÊN BẢN NÀY
+
+    async function showListingInfoPanel(item) {
+        // 1. Lấy DOM Elements và hồ sơ người đăng
+        const infoPanel = document.getElementById('info-panel');
+        const panelTitle = document.getElementById('panel-title');
+        const panelContent = document.getElementById('panel-content');
+        const actionToolbar = document.getElementById('action-toolbar');
+
+        let userProfile = {
+            name: item.userName || 'Người dùng ẩn danh',
+            avatar: item.userAvatar || 'https://placehold.co/60x60/e2e8f0/64748b?text=A',
+        };
+        
+        // 2. Lấy địa chỉ
+        let fetchedAddress = 'Đang tải địa chỉ...';
+        try {
+            const endpointUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${item.lng},${item.lat}.json?access_token=${mapboxAccessToken}&language=vi&limit=1`;
+            const response = await fetch(endpointUrl);
+            const data = await response.json();
+            fetchedAddress = data.features && data.features.length > 0 ? data.features[0].place_name : 'Không thể xác định địa chỉ.';
+        } catch (error) { fetchedAddress = 'Lỗi khi tải địa chỉ.'; }
+
+        // 3. Chuẩn bị dữ liệu
+        const price = `${item.priceValue} ${item.priceUnit}`;
+        const area = item.area ? `${item.area} m²` : 'N/A';
+        const notes = item.notes || 'Không có';
+        const lat = item.lat.toFixed(6);
+        const lng = item.lng.toFixed(6);
+
+        // 4. TẠO HTML CHO CÁC NÚT LIÊN HỆ (đây là phần mã quan trọng)
+        let contactIconsHtml = '';
+        // Các nút này chỉ hiện khi 'item' có các trường contactPhone, contactEmail...
+        if (item.contactPhone) {
+            contactIconsHtml += `<a href="tel:${item.contactPhone}" class="contact-button" title="Gọi điện"><i class="fas fa-phone-alt"></i></a>`;
+            contactIconsHtml += `<a href="https://wa.me/${item.contactPhone.replace(/[^0-9]/g, '')}" target="_blank" class="contact-button" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>`;
+            contactIconsHtml += `<a href="https://zalo.me/${item.contactPhone.replace(/[^0-9]/g, '')}" target="_blank" class="contact-button" title="Zalo"><i class="fas fa-comment-dots"></i></a>`;
+        }
+        if (item.contactEmail) { 
+            contactIconsHtml += `<a href="mailto:${item.contactEmail}" class="contact-button" title="Email"><i class="fas fa-envelope"></i></a>`; 
+        }
+        if (item.contactFacebook) {
+            const fbLink = item.contactFacebook.startsWith('http') ? item.contactFacebook : `https://facebook.com/${item.contactFacebook}`;
+            contactIconsHtml += `<a href="${fbLink}" target="_blank" class="contact-button" title="Facebook"><i class="fab fa-facebook"></i></a>`;
+        }
+
+        // 5. Cập nhật cấu trúc HTML
+        panelTitle.textContent = item.name;
+        panelContent.innerHTML = `
+            <div class="price-highlight">${price}</div>
+            <div class="info-pills">
+                <span class="pill-item"><i class="fas fa-ruler-combined"></i> ${area}</span>
+                <span class="pill-item"><i class="fas fa-pen"></i> ${notes}</span>
+            </div>
+            <div class="address-actions-group">
+                <div class="address-text"><i class="fas fa-map-marker-alt"></i> ${fetchedAddress}</div>
+                <div class="action-buttons-group">
+                    <a class="action-button" onclick="getDirections(${lat}, ${lng})">
+                        <i class="fas fa-directions"></i>
+                        <span>Chỉ đường</span>
+                    </a>
+                    <a class="action-button" onclick="openStreetView(${lat}, ${lng})">
+                        <i class="fas fa-street-view"></i>
+                        <span>Street View</span>
+                    </a>
+                    <a class="action-button" onclick="copyLocationLink(${lat}, ${lng})">
+                        <i class="fas fa-link"></i>
+                        <span>Sao chép</span>
+                    </a>
+                </div>
+            </div>
+            <div class="poster-card">
+                <img src="${userProfile.avatar}" alt="Avatar" class="poster-avatar-small">
+                <div class="poster-name">${userProfile.name}</div>
+                <div class="poster-contact-buttons">${contactIconsHtml}</div>
+            </div>
+        `;
+
+        // 6. Hiển thị panel
+        infoPanel.classList.remove('is-collapsed');
+        infoPanel.classList.add('is-open');
+        actionToolbar.style.display = 'none';
     }
-    
+
     function hideInfoPanel() {
         infoPanel.classList.remove('is-open');
         actionToolbar.classList.remove('is-raised', 'is-partially-raised');
@@ -660,21 +744,34 @@ document.addEventListener('DOMContentLoaded', () => {
         const priceList = document.getElementById('price-list');
         priceList.innerHTML = '';
         if (querySnapshot.empty) { priceList.innerHTML = '<p class="text-center text-gray-500 py-4">📭 Không có dữ liệu.</p>'; return; }
+        // ĐOẠN MÃ MỚI
         querySnapshot.forEach((doc) => {
             const item = doc.data();
             item.id = doc.id;
             localListings.push(item);
             if (!item.lat || !item.lng) return;
-            const likeCount = localStorage.getItem(`like-${doc.id}`) || 0;
-            const formattedPrice = `${item.priceValue} ${item.priceUnit}`;
-            const popupContent = `<div class="p-2 text-sm leading-5 space-y-2 max-w-[260px]"><h3 class="font-bold text-base text-gray-800">${item.name}</h3><p><strong>Giá:</strong> <span class="font-semibold text-red-600">${formattedPrice}</span></p><p><strong>Diện tích:</strong> ${item.area ? item.area + ' m²' : 'N/A'}</p><p><strong>Ghi chú:</strong> ${item.notes || 'N/A'}</p><div class="flex space-x-3 text-xl justify-start pt-1 text-blue-600">${item.contactPhone ? `<a href="tel:${item.contactPhone}" title="Gọi"><i class="fas fa-phone text-red-500 hover:scale-110"></i></a>` : ''}${item.contactPhone ? `<a href="https://zalo.me/${item.contactPhone}" title="Zalo" target="_blank"><i class="fas fa-comment-dots text-blue-500 hover:scale-110"></i></a>` : ''}${item.contactEmail ? `<a href="mailto:${item.contactEmail}" title="Email"><i class="fas fa-envelope text-yellow-500 hover:scale-110"></i></a>` : ''}${item.contactFacebook ? `<a href="${item.contactFacebook.startsWith('http') ? item.contactFacebook : 'https://facebook.com/' + item.contactFacebook}" title="Facebook" target="_blank"><i class="fab fa-facebook text-blue-700 hover:scale-110"></i></a>` : ''}
-            </div><div class="grid grid-cols-2 gap-2 mt-2">${item.lat && item.lng ? `<div><a href="https://www.google.com/maps?q=&layer=c&cbll=${item.lat},${item.lng}" target="_blank" class="block px-3 py-1 text-center text-sm font-semibold bg-green-100 text-green-800 rounded hover:bg-green-200">Street View</a></div>` : ''}${item.lat && item.lng ? `<div><a href="javascript:void(0)" onclick="getDirections(${item.lat}, ${item.lng})" class="block px-3 py-1 text-center text-sm font-semibold bg-blue-100 text-blue-800 rounded hover:bg-blue-200">Chỉ đường</a></div>` : ''}</div><div class="flex items-center justify-between pt-2"><button onclick="likePlace('${doc.id}')" class="text-red-500 text-lg">❤️ <span id="like-${doc.id}">${likeCount}</span></button><a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(location.href)}" target="_blank" title="Chia sẻ Facebook"><i class="fas fa-share text-gray-600 hover:text-blue-600"></i></a></div></div>`;
-            const marker = L.marker([item.lat, item.lng]).bindPopup(popupContent);
+
+            // Tạo marker nhưng KHÔNG bindPopup
+            const marker = L.marker([item.lat, item.lng]);
+
+            // Bắt sự kiện click trên marker để gọi hàm mới
+            marker.on('click', () => {
+                showListingInfoPanel(item);
+            });
+
             priceMarkers.addLayer(marker);
+
+            // Phần code tạo danh sách bên dưới không thay đổi
             const listItem = document.createElement('div');
             listItem.className = 'p-2 border-b cursor-pointer hover:bg-gray-100';
+            const formattedPrice = `${item.priceValue} ${item.priceUnit}`;
             listItem.innerHTML = `<p class="font-semibold">${item.name}</p><p class="text-sm text-red-600">${formattedPrice}</p>`;
-            listItem.onclick = () => { listModal.classList.add('hidden'); map.setView([item.lat, item.lng], 18); marker.openPopup(); };
+            listItem.onclick = () => {
+                listModal.classList.add('hidden');
+                map.setView([item.lat, item.lng], 18);
+                // Khi click từ danh sách, cũng gọi hàm hiển thị panel
+                showListingInfoPanel(item);
+            };
             priceList.appendChild(listItem);
         });
     });
