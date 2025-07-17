@@ -478,3 +478,13 @@ input[type=range][orient=vertical] {
 .contact-button .fa-comment-dots { color: #0068FF; } /* Official Zalo */
 .contact-button .fa-envelope   { color: #ea4335; } /* Google Red */
 .contact-button .fa-facebook   { color: #1877F2; } /* Official Facebook */
+/* Thêm vào cuối file style.css */
+.admin-delete-button {
+    background-color: #fee2e2 !important; /* bg-red-50 */
+    color: #b91c1c !important; /* text-red-800 */
+    border-color: #fecaca !important; /* border-red-200 */
+}
+.admin-delete-button:hover {
+    background-color: #b91c1c !important; /* bg-red-800 */
+    color: white !important;
+}

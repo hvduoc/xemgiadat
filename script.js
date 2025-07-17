@@ -154,22 +154,28 @@ document.addEventListener('DOMContentLoaded', () => {
         infoPanel.classList.add('is-open');
         actionToolbar.classList.add('is-raised');
     }                
+  
 
-    // THAY THẾ TOÀN BỘ HÀM CŨ BẰNG PHIÊN BẢN NÀY
+    // THAY THẾ TOÀN BỘ HÀM CŨ BẰNG PHIÊN BẢN ĐÚNG NÀY
 
     async function showListingInfoPanel(item) {
-        // 1. Lấy DOM Elements và hồ sơ người đăng
+        // 1. CHUẨN BỊ TẤT CẢ DỮ LIỆU CẦN THIẾT
+        
+        // a. Lấy thông tin quản trị viên và các phần tử DOM
+        const ADMIN_UID = "FEpPWWT1EaTWQ9FOqBxWN5FeEJk1"; 
+        const currentUser = firebase.auth().currentUser;
+        const isAdmin = currentUser && currentUser.uid === ADMIN_UID;
         const infoPanel = document.getElementById('info-panel');
         const panelTitle = document.getElementById('panel-title');
         const panelContent = document.getElementById('panel-content');
-        const actionToolbar = document.getElementById('action-toolbar');
-
+        
+        // b. Lấy thông tin hồ sơ người đăng
         let userProfile = {
             name: item.userName || 'Người dùng ẩn danh',
             avatar: item.userAvatar || 'https://placehold.co/60x60/e2e8f0/64748b?text=A',
         };
         
-        // 2. Lấy địa chỉ
+        // c. Lấy địa chỉ theo thời gian thực
         let fetchedAddress = 'Đang tải địa chỉ...';
         try {
             const endpointUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${item.lng},${item.lat}.json?access_token=${mapboxAccessToken}&language=vi&limit=1`;
@@ -178,16 +184,24 @@ document.addEventListener('DOMContentLoaded', () => {
             fetchedAddress = data.features && data.features.length > 0 ? data.features[0].place_name : 'Không thể xác định địa chỉ.';
         } catch (error) { fetchedAddress = 'Lỗi khi tải địa chỉ.'; }
 
-        // 3. Chuẩn bị dữ liệu
+        // d. Chuẩn bị các dữ liệu tin đăng khác
         const price = `${item.priceValue} ${item.priceUnit}`;
         const area = item.area ? `${item.area} m²` : 'N/A';
         const notes = item.notes || 'Không có';
         const lat = item.lat.toFixed(6);
         const lng = item.lng.toFixed(6);
 
-        // 4. TẠO HTML CHO CÁC NÚT LIÊN HỆ (đây là phần mã quan trọng)
+        // e. Tạo HTML cho nút Xóa (chỉ khi là admin)
+        let adminDeleteButtonHtml = '';
+        if (isAdmin) {
+            adminDeleteButtonHtml = `<a class="action-button admin-delete-button" onclick="deleteListing('${item.id}')">
+                <i class="fas fa-trash-alt"></i>
+                <span>Xóa tin</span>
+            </a>`;
+        }
+
+        // f. Tạo HTML cho các nút liên hệ (chỉ khi có dữ liệu)
         let contactIconsHtml = '';
-        // Các nút này chỉ hiện khi 'item' có các trường contactPhone, contactEmail...
         if (item.contactPhone) {
             contactIconsHtml += `<a href="tel:${item.contactPhone}" class="contact-button" title="Gọi điện"><i class="fas fa-phone-alt"></i></a>`;
             contactIconsHtml += `<a href="https://wa.me/${item.contactPhone.replace(/[^0-9]/g, '')}" target="_blank" class="contact-button" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>`;
@@ -198,10 +212,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (item.contactFacebook) {
             const fbLink = item.contactFacebook.startsWith('http') ? item.contactFacebook : `https://facebook.com/${item.contactFacebook}`;
-            contactIconsHtml += `<a href="${fbLink}" target="_blank" class="contact-button" title="Facebook"><i class="fab fa-facebook"></i></a>`;
+            contactIconsHtml += `<a href="${fbLink}" target="_blank" class="contact-button" title="Xem trang Facebook của người đăng"><i class="fab fa-facebook"></i></a>`;
         }
 
-        // 5. Cập nhật cấu trúc HTML
+        // 2. TẠO GIAO DIỆN HTML (MỘT LẦN DUY NHẤT)
         panelTitle.textContent = item.name;
         panelContent.innerHTML = `
             <div class="price-highlight">${price}</div>
@@ -224,6 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <i class="fas fa-link"></i>
                         <span>Sao chép</span>
                     </a>
+                    ${adminDeleteButtonHtml}
                 </div>
             </div>
             <div class="poster-card">
@@ -233,10 +248,9 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
 
-        // 6. Hiển thị panel
+        // 3. HIỂN THỊ PANEL
         infoPanel.classList.remove('is-collapsed');
         infoPanel.classList.add('is-open');
-        
     }
 
     function hideInfoPanel() {
