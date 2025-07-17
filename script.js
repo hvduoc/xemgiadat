@@ -183,6 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error("Lỗi tải hồ sơ:", error);
     }
     }
+
     
     async function performCadastralQuery(latlng) {
         hideInfoPanel();
@@ -308,9 +309,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const profile = userDoc.data();
         document.getElementById('contact-name').value = profile.displayName || '';
         document.getElementById('email').value = profile.email || '';
-        document.getElementById('phone').value = profile.phone || '';   
-        document.getElementById('zalo').value = profile.zalo || '';
-        document.getElementById('whatsapp').value = profile.whatsapp || '';                 
+        document.getElementById('phone').value = profile.phone || '';                           
         document.getElementById('facebook').value = profile.contactFacebook || '';
         }
     } catch (error) {
@@ -680,7 +679,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   try {
-    await db.collection("users").doc(currentUser.uid).set(updatedProfile, { merge: true });
+    await db.collection("users").doc(currentUser.uid).update(updatedProfile);
     alert("✅ Hồ sơ đã được cập nhật.");
     document.getElementById('profile-modal').classList.add('hidden');
   } catch (error) {
