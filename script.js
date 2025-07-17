@@ -168,22 +168,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     async function loadUserProfile() {
-        try {
-            const userDoc = await db.collection("users").doc(currentUser.uid).set(updatedProfile, { merge: true });
-            if (userDoc.exists) {
-            const profile = userDoc.data();
-            document.getElementById('profile-name').value = profile.displayName || '';
-            document.getElementById('profile-email').value = profile.email || '';
-            document.getElementById('profile-phone').value = profile.phone || '';
-            document.getElementById('profile-zalo').value = profile.zalo || '';
-            document.getElementById('profile-whatsapp').value = profile.whatsapp || '';
-            document.getElementById('profile-facebook').value = profile.contactFacebook || '';
-            }
-        } catch (error) {
-            console.error("Lỗi tải hồ sơ:", error);
+    try {
+        const userDoc = await db.collection("users").doc(currentUser.uid).get();
+        if (userDoc.exists) {
+        const profile = userDoc.data();
+        document.getElementById('profile-name').value = profile.displayName || '';
+        document.getElementById('profile-email').value = profile.email || '';
+        document.getElementById('profile-phone').value = profile.phone || '';
+        document.getElementById('profile-zalo').value = profile.zalo || '';
+        document.getElementById('profile-whatsapp').value = profile.whatsapp || '';
+        document.getElementById('profile-facebook').value = profile.contactFacebook || '';
         }
+    } catch (error) {
+        console.error("Lỗi tải hồ sơ:", error);
     }
-
+    }
     
     async function performCadastralQuery(latlng) {
         hideInfoPanel();
@@ -671,14 +670,17 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!currentUser) return;
 
     const updatedProfile = {
-        displayName: document.getElementById('profile-name').value.trim(),
-        email: document.getElementById('profile-email').value.trim(),
-        phone: document.getElementById('profile-phone').value.trim(),
-        zalo: document.getElementById('profile-zalo').value.trim(),
-        whatsapp: document.getElementById('profile-whatsapp').value.trim(),
-        contactFacebook: document.getElementById('profile-facebook').value.trim(),
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    displayName: document.getElementById('profile-name').value.trim(),
+    email: document.getElementById('profile-email').value.trim(),
+    phone: document.getElementById('profile-phone').value.trim(),
+    zalo: document.getElementById('profile-zalo').value.trim(),
+    whatsapp: document.getElementById('profile-whatsapp').value.trim(),
+    contactFacebook: document.getElementById('profile-facebook').value.trim(),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     };
+
+    await db.collection("users").doc(currentUser.uid).set(updatedProfile, { merge: true });
+
 
     try {
         await db.collection("users").doc(currentUser.uid).update(updatedProfile);
