@@ -650,7 +650,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     loginBtn.addEventListener('click', () => { if (ui.isPendingRedirect()) return; firebaseuiContainer.classList.remove('hidden'); ui.start('#firebaseui-widget', { signInFlow: 'popup', signInOptions: [ firebase.auth.GoogleAuthProvider.PROVIDER_ID, firebase.auth.EmailAuthProvider.PROVIDER_ID, ], callbacks: { signInSuccessWithAuthResult: function(authResult, redirectUrl) { firebaseuiContainer.classList.add('hidden'); return false; } } }); });
-    logoutBtn.addEventListener('click', () => auth.signOut());
     firebaseuiContainer.addEventListener('click', (e) => { if (e.target === firebaseuiContainer) firebaseuiContainer.classList.add('hidden'); });
 
     const listingsCol = db.collection("listings");
