@@ -236,7 +236,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // 6. Hiển thị panel
         infoPanel.classList.remove('is-collapsed');
         infoPanel.classList.add('is-open');
-        actionToolbar.style.display = 'none';
+        
     }
 
     function hideInfoPanel() {
