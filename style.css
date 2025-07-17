@@ -488,3 +488,36 @@ input[type=range][orient=vertical] {
     background-color: #b91c1c !important; /* bg-red-800 */
     color: white !important;
 }
+/* Thêm vào cuối file style.css */
+
+.contact-link-official {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    background-color: #f9fafb; /* bg-gray-50 */
+    border-radius: 10px;
+    text-decoration: none;
+    color: #374151; /* text-gray-700 */
+    font-weight: 500;
+    transition: background-color 0.2s, transform 0.2s;
+    border: 1px solid #e5e7eb; /* border-gray-200 */
+}
+
+.contact-link-official:hover {
+    background-color: #f3f4f6; /* bg-gray-100 */
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.contact-link-official i {
+    font-size: 24px;
+    margin-right: 16px;
+    width: 28px; /* Căn chỉnh các icon cho thẳng hàng */
+    text-align: center;
+}
+
+/* Thêm màu sắc cho các kênh */
+.icon-email { color: #ea4335; }
+.icon-facebook { color: #1877F2; }
+.icon-youtube { color: #FF0000; }
+.icon-tiktok { color: #000000; }

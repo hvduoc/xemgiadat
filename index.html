@@ -7,9 +7,7 @@
     <meta property="og:title" content="Xem Giá Đất - Bản đồ giá đất cộng đồng Đà Nẵng" />
     <meta property="og:description" content="Tra cứu thông tin giá đất, vị trí thửa đất, và đóng góp dữ liệu cho cộng đồng một cách trực quan trên bản đồ Đà Nẵng." />
     <meta property="og:type" content="website" />
-
     <meta property="og:url" content="https://xemgiadat.com/" /> 
-
     <meta property="og:image" content="https://xemgiadat.com/images/thumbnail.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
@@ -17,20 +15,19 @@
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <link rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/4.8.1/firebase-ui-auth.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" xintegrity="sha512-Avb2QiuDEEvB4bZJYdft2mNjVShBftLdPG8FJ0V7irTLQ8UoGIt0thomMV7/V44kILU6YvrJgzrmGWvVchzGQD" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
     <link rel="stylesheet" href="https://unpkg.com/esri-leaflet-geocoder@3.1.4/dist/esri-leaflet-geocoder.css" crossorigin="">
     <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
         
     <script src="https://cdn.tailwindcss.com"></script>
-
     <link rel="stylesheet" href="style.css">
     
     <meta property="fb:app_id" content="754800037069626" />
-
 </head>
 <body class="relative overflow-hidden">
+    
     <div id="custom-search-container" class="absolute top-2 left-1/2 -translate-x-1/2 z-[1001] w-8/12 max-w-sm">
         <div class="relative">
             <input type="text" id="search-input" placeholder="Tìm kiếm..." class="w-full px-2 py-2 text-lg rounded-full shadow-lg border-2 border-transparent focus:border-blue-500 focus:outline-none transition">
@@ -55,11 +52,11 @@
         </button>
     </div>
 
-    <div id="info-panel" class="fixed bottom-0 left-0 right-0 bg-white shadow-2xl rounded-t-2xl z-[1002] p-4 transform translate-y-full transition-transform duration-300 ease-in-out" style="max-height: 35vh; overflow-y: auto;">
+    <div id="info-panel" class="fixed bottom-0 left-0 right-0 bg-white shadow-2xl rounded-t-2xl z-[1002] p-4 transform translate-y-full transition-transform duration-300 ease-in-out" style="max-height: 45vh; overflow-y: auto;">
         <div class="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-3"></div>
         
         <div class="flex justify-between items-center mb-3">
-            <h3 id="panel-title" class="text-base font-bold text-gray-800">Thông tin Thửa đất</h3>
+            <h3 id="panel-title" class="text-base font-bold text-gray-800">Thông tin</h3>
             <div class="flex items-center">
                 <button id="toggle-panel-btn" class="panel-header-btn" title="Thu gọn/Mở rộng">
                     <i class="fas fa-chevron-down text-lg"></i>
@@ -71,7 +68,7 @@
         </div>
         
         <div id="panel-content" class="space-y-3 text-gray-700">
-            </div>
+        </div>
     </div>
       
     <div id="opacity-control" class="hidden bg-white p-2 rounded-lg shadow-lg">
@@ -85,16 +82,17 @@
             <button id="login-btn" title="Đăng nhập" class="bg-green-500 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-green-600 transition">
                 <i class="fa-solid fa-user"></i>
             </button>
-            
             <div id="user-profile" class="hidden items-center justify-center bg-white w-12 h-12 rounded-full shadow-lg cursor-pointer">
                 <img id="user-avatar" class="w-10 h-10 rounded-full">
             </div>
-
             <div id="profile-menu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-[1002] py-1 border">
                 <a href="#" id="update-profile-btn" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Cập nhật hồ sơ</a>
                 <a href="#" id="logout-btn-menu" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Thoát</a>
             </div>
         </div>
+        <button id="contact-info-btn" title="Thông tin liên hệ" class="bg-white text-gray-700 w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100 transition">
+            <i class="fa-solid fa-info-circle text-xl"></i>
+        </button>
         <button id="donate-btn" title="Ủng hộ (Mời cafe)" class="bg-yellow-400 text-black w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-yellow-500 transition">
             <i class="fa-solid fa-mug-saucer"></i>
         </button>
@@ -126,7 +124,6 @@
                         <input id="email" type="email" name="contactEmail" placeholder="Email" class="mb-2 px-3 py-2 w-full border rounded bg-white text-gray-700" />
                         <input id="phone" type="tel" name="contactPhone" placeholder="Số điện thoại" class="mb-2 px-3 py-2 w-full border rounded bg-white text-gray-700" />
                         <input id="facebook" type="text" name="contactFacebook" placeholder="Tên người dùng hoặc link Facebook" class="mb-2 px-3 py-2 w-full border rounded bg-white text-gray-700" />
-
                     </div>
                     <div class="pt-3 space-y-2">
                         <button id="submit-form-btn" type="submit" class="w-full px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-medium rounded shadow-sm">Gửi Dữ Liệu</button>
@@ -137,23 +134,23 @@
         </div>
     </div>
     <div id="profile-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 z-[1001]">
-    <div class="relative top-10 mx-auto p-4 w-full max-w-sm shadow-lg rounded-md bg-white">
-        <div class="text-center">
-        <h3 class="text-base font-semibold text-gray-900 mb-3">👤 Cập nhật hồ sơ</h3>
-        <form id="profile-form" class="space-y-3 text-left text-sm">
-            <input type="text" id="profile-name" placeholder="Tên hiển thị" class="w-full px-3 py-2 border rounded" />
-            <input type="email" id="profile-email" placeholder="Email" class="w-full px-3 py-2 border rounded" />
-            <input type="tel" id="profile-phone" placeholder="Số điện thoại" class="w-full px-3 py-2 border rounded" />
-            <input type="tel" id="profile-zalo" placeholder="Số Zalo (tùy chọn)" class="w-full px-3 py-2 border rounded" />
-            <input type="tel" id="profile-whatsapp" placeholder="Số WhatsApp (tùy chọn)" class="w-full px-3 py-2 border rounded" />
-            <input type="text" id="profile-facebook" placeholder="Facebook (link hoặc username)" class="w-full px-3 py-2 border rounded" />
-            <div class="pt-3 space-y-2">
-            <button type="submit" class="w-full px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Lưu thay đổi</button>
-            <button id="close-profile-btn" type="button" class="w-full px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded shadow-sm">Hủy</button>
+        <div class="relative top-10 mx-auto p-4 w-full max-w-sm shadow-lg rounded-md bg-white">
+            <div class="text-center">
+            <h3 class="text-base font-semibold text-gray-900 mb-3">👤 Cập nhật hồ sơ</h3>
+            <form id="profile-form" class="space-y-3 text-left text-sm">
+                <input type="text" id="profile-name" placeholder="Tên hiển thị" class="w-full px-3 py-2 border rounded" />
+                <input type="email" id="profile-email" placeholder="Email" class="w-full px-3 py-2 border rounded" />
+                <input type="tel" id="profile-phone" placeholder="Số điện thoại" class="w-full px-3 py-2 border rounded" />
+                <input type="tel" id="profile-zalo" placeholder="Số Zalo (tùy chọn)" class="w-full px-3 py-2 border rounded" />
+                <input type="tel" id="profile-whatsapp" placeholder="Số WhatsApp (tùy chọn)" class="w-full px-3 py-2 border rounded" />
+                <input type="text" id="profile-facebook" placeholder="Facebook (link hoặc username)" class="w-full px-3 py-2 border rounded" />
+                <div class="pt-3 space-y-2">
+                <button type="submit" class="w-full px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Lưu thay đổi</button>
+                <button id="close-profile-btn" type="button" class="w-full px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded shadow-sm">Hủy</button>
+                </div>
+            </form>
             </div>
-        </form>
         </div>
-    </div>
     </div>  
     
     <div id="price-list-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-[1001]">
@@ -195,6 +192,36 @@
             <div class="text-sm">
                 <span class="text-gray-500">Người dùng quốc tế?</span>
                 <a href="https://paypal.me/huynhvanduoc?country.x=VN&locale.x=vi_VN" target="_blank" class="font-semibold text-blue-600 hover:underline">Dùng PayPal</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="contact-info-modal" class="hidden fixed inset-0 bg-gray-800 bg-opacity-75 z-[2000] flex items-center justify-center p-4">
+        <div class="relative bg-white p-8 rounded-2xl shadow-xl max-w-sm w-full text-center space-y-6">
+            <button id="close-contact-modal" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <div>
+                <h3 class="text-xl font-bold text-gray-800">Thông Tin & Cộng Đồng</h3>
+                <p class="text-gray-500 mt-1 text-sm">Kết nối với chúng tôi qua các kênh chính thức.</p>
+            </div>
+            <div class="space-y-4 text-left">
+                <a href="mailto:hotro.xemgiadat@gmail.com" target="_blank" class="contact-link-official">
+                    <i class="fas fa-envelope icon-email"></i>
+                    <span>Email Hỗ Trợ</span>
+                </a>
+                <a href="https://www.facebook.com/xemgiadatcom" target="_blank" class="contact-link-official">
+                    <i class="fab fa-facebook-square icon-facebook"></i>
+                    <span>Fanpage Chính Thức</span>
+                </a>
+                <a href="https://www.youtube.com/@xemgiadatcom" target="_blank" class="contact-link-official">
+                    <i class="fab fa-youtube icon-youtube"></i>
+                    <span>Kênh Youtube</span>
+                </a>
+                <a href="https://www.tiktok.com/@yourtiktok" target="_blank" class="contact-link-official">
+                    <i class="fab fa-tiktok icon-tiktok"></i>
+                    <span>Kênh TikTok</span>
+                </a>
             </div>
         </div>
     </div>

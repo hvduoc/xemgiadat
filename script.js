@@ -68,6 +68,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const togglePanelBtn = document.getElementById('toggle-panel-btn');
     const locateBtn = document.getElementById('locate-btn');
     const actionToolbar = document.getElementById('action-toolbar');
+    // THÊM CÁC BIẾN MỚI CHO MODAL LIÊN HỆ
+    const contactInfoBtn = document.getElementById('contact-info-btn');
+    const contactInfoModal = document.getElementById('contact-info-modal');
+    const closeContactModalBtn = document.getElementById('close-contact-modal');
 
     // --- STATE & GLOBAL VARIABLES ---
     let currentUser = null;
@@ -599,6 +603,21 @@ document.addEventListener('DOMContentLoaded', () => {
             profileMenu.classList.add('hidden');
         }
     });   
+     // THÊM EVENT LISTENER MỚI CHO MODAL LIÊN HỆ
+    contactInfoBtn.addEventListener('click', () => {
+        contactInfoModal.classList.remove('hidden');
+    });
+
+    closeContactModalBtn.addEventListener('click', () => {
+        contactInfoModal.classList.add('hidden');
+    });
+
+    contactInfoModal.addEventListener('click', (e) => {
+        // Nếu click vào vùng nền mờ bên ngoài thì đóng modal
+        if (e.target === contactInfoModal) {
+            contactInfoModal.classList.add('hidden');
+        }
+    });
     
     // logoutBtn.addEventListener('click', () => auth.signOut()); // <--- XÓA DÒNG NÀY
     searchInput.addEventListener('input', (e) => { clearTimeout(debounceTimer); debounceTimer = setTimeout(() => { performSearch(e.target.value.trim()); }, 300); });
