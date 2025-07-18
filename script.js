@@ -49,10 +49,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const parcelLayer = L.esri.dynamicMapLayer({
     url: '/.netlify/functions/proxy/server/rest/services/DiaChinh/DaNangLand_DiaChinh/MapServer',
     opacity: 0.7
-    });
-    console.log("Proxy request to:", targetUrl);
-
-    
+    });    
+   
     const baseMaps = { "Ảnh vệ tinh": googleSat, "Bản đồ đường": googleStreets, "OpenStreetMap": osmLayer };
     const overlayMaps = { "🗺️ Bản đồ phân lô": parcelLayer };
     
