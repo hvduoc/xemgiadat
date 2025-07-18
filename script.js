@@ -50,6 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
     url: '/.netlify/functions/proxy/server/rest/services/DiaChinh/DaNangLand_DiaChinh/MapServer',
     opacity: 0.7
     });
+    console.log("Proxy request to:", targetUrl);
 
     
     const baseMaps = { "Ảnh vệ tinh": googleSat, "Bản đồ đường": googleStreets, "OpenStreetMap": osmLayer };
