@@ -17,6 +17,25 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
+async function getCachedAddress(lat, lng) {
+  const key = `addr:${lat.toFixed(5)},${lng.toFixed(5)}`;
+  const cached = localStorage.getItem(key);
+  if (cached) return cached;
+
+  try {
+    const endpointUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxAccessToken}&language=vi&limit=1`;
+    const response = await fetch(endpointUrl);
+    const data = await response.json();
+    const result = data.features?.[0]?.place_name || 'Không xác định';
+    localStorage.setItem(key, result);
+    return result;
+  } catch (err) {
+    console.error('Lỗi khi lấy địa chỉ:', err);
+    return 'Không xác định';
+  }
+}
+
+
 // --- APPLICATION LOGIC WRAPPER ---
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -27,7 +46,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const googleStreets = L.tileLayer('http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',{ maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'], attribution: myAttribution + ' | © Google Maps' });
     const googleSat = L.tileLayer('http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{ maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'], attribution: myAttribution + ' | © Google Satellite' });
     const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: myAttribution + ' | © OpenStreetMap' });
-    const parcelLayer = L.esri.dynamicMapLayer({ url: 'https://gisportal.danang.gov.vn/server/rest/services/DiaChinh/DaNangLand_DiaChinh/MapServer', opacity: 0.7, useCors: false });
+    const parcelLayer = L.esri.dynamicMapLayer({
+    url: '/.netlify/functions/proxy/server/rest/services/DiaChinh/DaNangLand_DiaChinh/MapServer',
+    opacity: 0.7
+    });
+
     
     const baseMaps = { "Ảnh vệ tinh": googleSat, "Bản đồ đường": googleStreets, "OpenStreetMap": osmLayer };
     const overlayMaps = { "🗺️ Bản đồ phân lô": parcelLayer };
@@ -182,10 +205,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // c. Lấy địa chỉ theo thời gian thực
         let fetchedAddress = 'Đang tải địa chỉ...';
         try {
-            const endpointUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${item.lng},${item.lat}.json?access_token=${mapboxAccessToken}&language=vi&limit=1`;
-            const response = await fetch(endpointUrl);
-            const data = await response.json();
-            fetchedAddress = data.features && data.features.length > 0 ? data.features[0].place_name : 'Không thể xác định địa chỉ.';
+            fetchedAddress = await getCachedAddress(item.lat, item.lng);
+
         } catch (error) { fetchedAddress = 'Lỗi khi tải địa chỉ.'; }
 
         // d. Chuẩn bị các dữ liệu tin đăng khác
