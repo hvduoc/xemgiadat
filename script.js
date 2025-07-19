@@ -1033,5 +1033,5 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('profile-modal').classList.add('hidden');
     });        
 let parcelLayer = null;
-
+    });
 });  // <-- Dòng mới phải thêm vào để đóng DOMContentLoaded
