@@ -74,44 +74,60 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 5. Tạo lớp bản đồ phân lô MỘT LẦN DUY NHẤT
     parcelLayer = L.vectorGrid.protobuf(tileUrl, vectorTileOptions);
+        
+    // Thay thế toàn bộ hàm parcelLayer.on('click', ...) cũ bằng phiên bản hoàn chỉnh này
+    parcelLayer.on('click', async function(e) { // Chuyển hàm thành async
+        L.DomEvent.stop(e); 
 
-    // 6. Gán sự kiện click VÀO LỚP BẢN ĐỒ PHÂN LÔ (đây là cách tra cứu mới)
-    // THAY THẾ TOÀN BỘ HÀM CŨ BẰNG HÀM NÀY
-    parcelLayer.on('click', function(e) {
-        // Dòng L.DomEvent.stop(e); đã được xóa để sửa lỗi TypeError
+        console.log("Bắt đầu truy vấn dữ liệu chi tiết từ server Mapbox...");
 
-        const props = e.layer.properties;
+        const lat = e.latlng.lat;
+        const lng = e.latlng.lng;
+        
+        // --- SỬA LỖI: Cập nhật URL để sử dụng API v5 Tilequery mới nhất ---
+        const queryUrl = `https://api.mapbox.com/v5/${tilesetId}/tilequery/${lng},${lat}.json?limit=5&access_token=${mapboxAccessToken}`;
 
-        if (!props || !props.OBJECTID) {
-            console.error('LỖI: Không tìm thấy dữ liệu thuộc tính trên thửa đất này.');
-            return; // Dừng lại nếu không có dữ liệu
+        try {
+            const response = await fetch(queryUrl);
+            // Kiểm tra nếu response không thành công (vd: 404, 500)
+            if (!response.ok) {
+                throw new Error(`Server Mapbox phản hồi lỗi: ${response.status}`);
+            }
+            const data = await response.json();
+
+            if (!data || !data.features || data.features.length === 0) {
+                console.error("Mapbox API không trả về feature nào tại vị trí này.");
+                return;
+            }
+
+            const feature = data.features[0]; 
+            const props = feature.properties;
+
+            hideInfoPanel();
+
+            highlightedFeature = props.OBJECTID; 
+            parcelLayer.setFeatureStyle(highlightedFeature, {
+                color: '#EF4444',
+                weight: 3,
+                fillColor: '#EF4444',
+                fill: true,
+                fillOpacity: 0.3
+            });
+
+            drawDimensions(feature); 
+
+            const formattedProps = {
+                'Số thửa': props.SoThuTuThua,
+                'Số hiệu tờ bản đồ': props.SoHieuToBanDo,
+                'Diện tích': props.DienTich,
+                'Ký hiệu mục đích sử dụng': props.KyHieuMucDichSuDung,
+            };
+            showInfoPanel('Thông tin Thửa đất', formattedProps, lat, lng);
+
+        } catch (error) {
+            console.error("Lỗi khi truy vấn API của Mapbox:", error);
+            alert("Đã xảy ra lỗi khi lấy thông tin chi tiết của thửa đất. Vui lòng thử lại.");
         }
-
-        // Xóa highlight cũ
-        if (highlightedFeature) {
-            parcelLayer.resetFeatureStyle(highlightedFeature);
-        }
-
-        // Highlight thửa đất mới được chọn
-        highlightedFeature = props.OBJECTID;
-        parcelLayer.setFeatureStyle(highlightedFeature, {
-            color: '#EF4444', // Màu đỏ
-            weight: 3,
-            fillColor: '#EF4444',
-            fill: true,
-            fillOpacity: 0.3
-        });
-
-        // Chuẩn hóa tên thuộc tính để hiển thị
-        const formattedProps = {
-            'Số thửa': props.SoThuTuThua,
-            'Số hiệu tờ bản đồ': props.SoHieuToBanDo,
-            'Diện tích': props.DienTich,
-            'Ký hiệu mục đích sử dụng': props.KyHieuMucDichSuDung,
-        };
-
-        // Hiển thị bảng thông tin
-        showInfoPanel('Thông tin Thửa đất', formattedProps, e.latlng.lat, e.latlng.lng);
     });
 
     // --- KẾT THÚC KHẮC PHỤC ---
@@ -182,11 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.openStreetView = (lat, lng) => window.open(`http://maps.google.com/?q=&layer=c&cbll=${lat},${lng}`, '_blank');
 
     function showInfoPanel(title, props, lat, lng) {
-        if (highlightedFeature) {
-            parcelLayer.resetFeatureStyle(highlightedFeature);
-            highlightedFeature = null;
-        }
-
+        
         infoPanel.classList.remove('is-collapsed');
         togglePanelBtn.querySelector('i').classList.replace('fa-chevron-up', 'fa-chevron-down');
 
@@ -317,6 +329,63 @@ document.addEventListener('DOMContentLoaded', () => {
             highlightedFeature = null;
         }
         dimensionMarkers.clearLayers();
+    }
+
+    // Thay thế hàm drawDimensions cũ bằng phiên bản mới này
+    function drawDimensions(feature) {
+        dimensionMarkers.clearLayers();
+
+        // --- BẮT ĐẦU PHẦN SỬA LỖI ---
+
+        // 1. Kiểm tra kỹ lưỡng xem feature và geometry có tồn tại và hợp lệ không
+        if (!feature || !feature.geometry || !feature.geometry.coordinates || feature.geometry.coordinates.length === 0) {
+            console.error("Đối tượng feature không hợp lệ hoặc không có tọa độ để vẽ.");
+            return; // Dừng hàm nếu dữ liệu không an toàn
+        }
+
+        // 2. Lấy mảng tọa độ một cách an toàn, xử lý cả 2 trường hợp 'Polygon' và 'MultiPolygon'
+        let coords;
+        const geomType = feature.geometry.type;
+        
+        if (geomType === 'Polygon') {
+            // Nếu là Polygon, lấy vòng tọa độ đầu tiên
+            coords = feature.geometry.coordinates[0];
+        } else if (geomType === 'MultiPolygon') {
+            // Nếu là MultiPolygon, lấy vòng tọa độ đầu tiên của đa giác đầu tiên
+            coords = feature.geometry.coordinates[0][0];
+        }
+
+        // 3. Kiểm tra lại lần cuối xem mảng coords có thực sự hợp lệ để vẽ không
+        if (!coords || coords.length < 3) {
+            console.error("Không đủ tọa độ trong mảng coords để vẽ kích thước.");
+            return;
+        }
+        // --- KẾT THÚC PHẦN SỬA LỖI ---
+
+
+        // Logic vẽ kích thước bên dưới không thay đổi
+        for (let i = 0; i < coords.length - 1; i++) {
+            const p1 = coords[i];
+            const p2 = coords[i + 1];
+
+            const point1 = L.latLng(p1[1], p1[0]);
+            const point2 = L.latLng(p2[1], p2[0]);
+            
+            const distance = point1.distanceTo(point2);
+            if (distance < 1) continue; // Bỏ qua các cạnh quá nhỏ
+
+            const midPoint = L.latLng((point1.lat + point2.lat) / 2, (point1.lng + point2.lng) / 2);
+            const angle = Math.atan2(p2[1] - p1[1], p2[0] - p1[0]) * 180 / Math.PI;
+            const displayDistance = distance.toFixed(1) + 'm';
+
+            const dimensionLabel = L.marker(midPoint, {
+                icon: L.divIcon({
+                    className: 'dimension-label-container',
+                    html: `<div class="dimension-label" style="transform: rotate(${angle}deg);">${displayDistance}</div>`
+                })
+            });
+            dimensionMarkers.addLayer(dimensionLabel);
+        }
     }
 
     async function loadUserProfile() {
