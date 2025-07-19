@@ -67,13 +67,12 @@ document.addEventListener('DOMContentLoaded', () => {
         getFeatureId: feature => feature.properties.OBJECTID,
         vectorTileLayerStyles: {
         danang_full: {
-            color: '#3B82F6',
-            weight: 1,
-            fill: true,
-            fillColor: '#93C5FD',
-            fillOpacity: opacity
+            color: '#9CA3AF', // viền xám nhạt, Tailwind gray-400
+            weight: 0.5,       // nét mảnh
+            fill: false        // KHÔNG đổ màu nền
         }
         }
+
     });
 
     // Gắn lại sự kiện click cho layer mới
