@@ -76,41 +76,41 @@ document.addEventListener('DOMContentLoaded', () => {
             return feature.properties.OBJECTID; // Dùng OBJECTID làm mã định danh duy nhất
         }
     };
+   
+    // 4. Tạo lớp bản đồ phân lô và thêm vào bản đồ
+    const parcelLayer = L.vectorGrid.protobuf(tileUrl, vectorTileOptions).addTo(map);
 
-    // 4. Tạo lớp bản đồ phân lô và xử lý sự kiện click
-    const parcelLayer = L.vectorGrid.protobuf(tileUrl, vectorTileOptions)
-        .on('click', function(e) {
-            const props = e.layer.properties;
-            const latLng = e.latlng;
+    // 5. Gán sự kiện click SAU KHI layer đã được tạo
+    parcelLayer.on('click', function(e) {
+        // L.DomEvent.stop(e); // Ngăn sự kiện click lan xuống bản đồ
+        const props = e.layer.properties;
+        const latLng = e.latlng;
 
-            // Xóa highlight cũ (nếu có)
-            if (highlightedFeature) {
-                parcelLayer.resetFeatureStyle(highlightedFeature);
-            }
+        // Xóa highlight cũ (nếu có)
+        if (highlightedFeature) {
+            parcelLayer.resetFeatureStyle(highlightedFeature);
+        }
 
-            // Highlight thửa đất mới được chọn
-            highlightedFeature = props.OBJECTID;
-            parcelLayer.setFeatureStyle(highlightedFeature, {
-                color: '#EF4444', // Màu đỏ
-                weight: 3,
-                fillColor: '#EF4444',
-                fillOpacity: 0.3
-            });
+        // Highlight thửa đất mới được chọn
+        highlightedFeature = props.OBJECTID;
+        parcelLayer.setFeatureStyle(highlightedFeature, {
+            color: '#EF4444', // Màu đỏ
+            weight: 3,
+            fillColor: '#EF4444',
+            fillOpacity: 0.3
+        });
 
-            // Chuẩn hóa tên thuộc tính để hàm showInfoPanel có thể đọc được
-            const formattedProps = {
-                'Số thửa': props.SoThuaTuThua,
-                'Số hiệu tờ bản đồ': props.SoHieuToBanDo,
-                'Diện tích': props.DienTich,
-                'Ký hiệu mục đích sử dụng': props.KyHieuMucDichSuDung,
-                'MaXa': props.MaXa,
-                'OBJECTID': props.OBJECTID
-            };
-
-            // Hiển thị thông tin
-            showInfoPanel('Thông tin Thửa đất', formattedProps, latLng.lat, latLng.lng);
-        })
-        .addTo(map);
+        // Chuẩn hóa tên thuộc tính để hàm showInfoPanel có thể đọc được
+        const formattedProps = {
+            'Số thửa': props.SoThuaTuThua,
+            'Số hiệu tờ bản đồ': props.SoHieuToBanDo,
+            'Diện tích': props.DienTich,
+            'Ký hiệu mục đích sử dụng': props.KyHieuMucDichSuDung,
+        };
+        
+        // Hiển thị thông tin
+        showInfoPanel('Thông tin Thửa đất', formattedProps, latLng.lat, latLng.lng);
+    });
 
     // --- KẾT THÚC ĐOẠN CODE TÍCH HỢP ---
     //const parcelLayer = L.esri.dynamicMapLayer({    url: '/.netlify/functions/proxy/server/rest/services/DiaChinh/DaNangLand_DiaChinh/MapServer', opacity: 0.7});    
