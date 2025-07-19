@@ -41,21 +41,84 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- MAP AND LAYERS INITIALIZATION ---
     const map = L.map('map', { center: [16.054456, 108.202167], zoom: 13, zoomControl: false });
-    const myAttribution = '© XemGiaDat | Dữ liệu © Sở TNMT Đà Nẵng';
-    
+    const myAttribution = '© XemGiaDat | Dữ liệu © Sở TNMT Đà Nẵng';        
     const googleStreets = L.tileLayer('http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',{ maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'], attribution: myAttribution + ' | © Google Maps' });
     const googleSat = L.tileLayer('http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{ maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'], attribution: myAttribution + ' | © Google Satellite' });
     const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: myAttribution + ' | © OpenStreetMap' });
-    const parcelLayer = L.esri.dynamicMapLayer({
-    url: '/.netlify/functions/proxy/server/rest/services/DiaChinh/DaNangLand_DiaChinh/MapServer',
-    opacity: 0.7
-    });    
+    
+    // --- ĐOẠN CODE TÍCH HỢP BẢN ĐỒ PHÂN LÔ TỪ MAPBOX ---
+
+    // 1. Thông tin từ tài khoản Mapbox của bạn
+    const mapboxAccessToken = 'pk.eyJ1IjoiaHZkdW9jIiwiYSI6ImNtZDFwcjVxYTAzOGUybHEzc3ZrNTJmcnIifQ.D5VlPC8c_n1i3kezgqtzwg'; // Token bạn đã cung cấp
+    const tilesetId = 'hvduoc.danang_parcels_final'; // ID của tileset đã upload thành công
+
+    // Biến để lưu lớp highlight
+    let highlightedFeature = null;
+
+    // 2. URL để tải vector tiles
+    const tileUrl = `https://api.mapbox.com/v4/${tilesetId}/{z}/{x}/{y}.mvt?access_token=${mapboxAccessToken}`;
+
+    // 3. Tùy chọn cho lớp vector tiles
+    const vectorTileOptions = {
+        rendererFactory: L.canvas.tile,
+        vectorTileLayerStyles: {
+            // Tên layer bên trong file mbtiles, đã xác nhận là 'danang_full'
+            'danang_full': {
+                color: "#FBBF24", // Màu vàng-cam cho nổi bật
+                weight: 1,
+                fillOpacity: 0.1,
+                fillColor: "#FBBF24",
+                fill: true
+            }
+        },
+        interactive: true, // Cho phép tương tác (click)
+        getFeatureId: function(feature) {
+            return feature.properties.OBJECTID; // Dùng OBJECTID làm mã định danh duy nhất
+        }
+    };
+
+    // 4. Tạo lớp bản đồ phân lô và xử lý sự kiện click
+    const parcelLayer = L.vectorGrid.protobuf(tileUrl, vectorTileOptions)
+        .on('click', function(e) {
+            const props = e.layer.properties;
+            const latLng = e.latlng;
+
+            // Xóa highlight cũ (nếu có)
+            if (highlightedFeature) {
+                parcelLayer.resetFeatureStyle(highlightedFeature);
+            }
+
+            // Highlight thửa đất mới được chọn
+            highlightedFeature = props.OBJECTID;
+            parcelLayer.setFeatureStyle(highlightedFeature, {
+                color: '#EF4444', // Màu đỏ
+                weight: 3,
+                fillColor: '#EF4444',
+                fillOpacity: 0.3
+            });
+
+            // Chuẩn hóa tên thuộc tính để hàm showInfoPanel có thể đọc được
+            const formattedProps = {
+                'Số thửa': props.SoThuaTuThua,
+                'Số hiệu tờ bản đồ': props.SoHieuToBanDo,
+                'Diện tích': props.DienTich,
+                'Ký hiệu mục đích sử dụng': props.KyHieuMucDichSuDung,
+                'MaXa': props.MaXa,
+                'OBJECTID': props.OBJECTID
+            };
+
+            // Hiển thị thông tin
+            showInfoPanel('Thông tin Thửa đất', formattedProps, latLng.lat, latLng.lng);
+        })
+        .addTo(map);
+
+    // --- KẾT THÚC ĐOẠN CODE TÍCH HỢP ---
+    //const parcelLayer = L.esri.dynamicMapLayer({    url: '/.netlify/functions/proxy/server/rest/services/DiaChinh/DaNangLand_DiaChinh/MapServer', opacity: 0.7});    
    
     const baseMaps = { "Ảnh vệ tinh": googleSat, "Bản đồ đường": googleStreets, "OpenStreetMap": osmLayer };
-    const overlayMaps = { "🗺️ Bản đồ phân lô": parcelLayer };
-    
-    googleStreets.addTo(map);
-    parcelLayer.addTo(map);
+    const overlayMaps = { "🗺️ Bản đồ phân lô": parcelLayer };   
+    googleStreets.addTo(map);    
+    //parcelLayer.addTo(map);
     L.control.layers(baseMaps, overlayMaps, { position: 'bottomright' }).addTo(map);
 
         // --- DOM ELEMENT SELECTION (ĐÃ SỬA) ---
@@ -714,10 +777,33 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    opacitySlider.addEventListener('input', (e) => parcelLayer.setOpacity(e.target.value));
-    map.on('overlayadd', e => { if (e.layer === parcelLayer) opacityControl.classList.remove('hidden'); });
-    map.on('overlayremove', e => { if (e.layer === parcelLayer) opacityControl.classList.add('hidden'); });
-    if (map.hasLayer(parcelLayer)) { opacityControl.classList.remove('hidden'); } else { opacityControl.classList.add('hidden'); }
+    // Thay đổi cách đặt độ trong suốt để áp dụng cho cả nhóm layer
+    opacitySlider.addEventListener('input', (e) => {
+        parcelLayersGroup.setStyle({ 
+            opacity: e.target.value, 
+            fillOpacity: e.target.value * 0.1 // Giữ cho vùng tô bên trong mờ hơn
+        });
+    });
+
+    // Thay đổi cách kiểm tra khi bật/tắt lớp bản đồ
+    map.on('overlayadd', e => {
+        if (e.name === '🗺️ Bản đồ phân lô') { // Kiểm tra bằng tên layer
+            opacityControl.classList.remove('hidden');
+        }
+    });
+
+    map.on('overlayremove', e => {
+        if (e.name === '🗺️ Bản đồ phân lô') { // Kiểm tra bằng tên layer
+            opacityControl.classList.add('hidden');
+        }
+    });
+
+    // Kiểm tra lúc tải trang
+    if (map.hasLayer(parcelLayersGroup)) {
+        opacityControl.classList.remove('hidden');
+    } else {
+        opacityControl.classList.add('hidden');
+    }
     donateBtn.addEventListener('click', () => donateModal.classList.remove('hidden'));
     closeDonateModalBtn.addEventListener('click', () => donateModal.classList.add('hidden'));
     donateModal.addEventListener('click', (e) => { if (e.target === donateModal) donateModal.classList.add('hidden'); });
@@ -897,6 +983,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('close-profile-btn').addEventListener('click', () => {
     document.getElementById('profile-modal').classList.add('hidden');
     });
-
+    
+    });
 
 }); // --- END OF DOMContentLoaded ---
