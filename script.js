@@ -776,34 +776,35 @@ document.addEventListener('DOMContentLoaded', () => {
             performCadastralQuery(e.latlng);
         }
     });
-
-    // Thay đổi cách đặt độ trong suốt để áp dụng cho cả nhóm layer
+    
+    // Xử lý sự kiện cho thanh trượt độ trong suốt với lớp Mapbox mới
     opacitySlider.addEventListener('input', (e) => {
-        parcelLayersGroup.setStyle({ 
-            opacity: e.target.value, 
-            fillOpacity: e.target.value * 0.1 // Giữ cho vùng tô bên trong mờ hơn
+        parcelLayer.setStyle({
+            opacity: e.target.value,
+            fillOpacity: e.target.value * 0.15 // Giữ tỉ lệ với fillOpacity ban đầu
         });
     });
 
-    // Thay đổi cách kiểm tra khi bật/tắt lớp bản đồ
+    // Xử lý ẩn/hiện thanh trượt khi bật/tắt lớp bản đồ
     map.on('overlayadd', e => {
-        if (e.name === '🗺️ Bản đồ phân lô') { // Kiểm tra bằng tên layer
+        if (e.name === '🗺️ Bản đồ phân lô') {
             opacityControl.classList.remove('hidden');
         }
     });
 
     map.on('overlayremove', e => {
-        if (e.name === '🗺️ Bản đồ phân lô') { // Kiểm tra bằng tên layer
+        if (e.name === '🗺️ Bản đồ phân lô') {
             opacityControl.classList.add('hidden');
         }
     });
 
     // Kiểm tra lúc tải trang
-    if (map.hasLayer(parcelLayersGroup)) {
+    if (map.hasLayer(parcelLayer)) {
         opacityControl.classList.remove('hidden');
     } else {
         opacityControl.classList.add('hidden');
     }
+
     donateBtn.addEventListener('click', () => donateModal.classList.remove('hidden'));
     closeDonateModalBtn.addEventListener('click', () => donateModal.classList.add('hidden'));
     donateModal.addEventListener('click', (e) => { if (e.target === donateModal) donateModal.classList.add('hidden'); });
