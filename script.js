@@ -1034,4 +1034,4 @@ document.addEventListener('DOMContentLoaded', () => {
     });        
 let parcelLayer = null;
 
-}); // --- END OF DOMContentLoaded ---
+});  // <-- Dòng mới phải thêm vào để đóng DOMContentLoaded
