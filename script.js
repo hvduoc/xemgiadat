@@ -59,6 +59,53 @@ document.addEventListener('DOMContentLoaded', () => {
     const tileUrl = `https://api.mapbox.com/v4/${tilesetId}/{z}/{x}/{y}.mvt?access_token=${mapboxAccessToken}`;
 
     // 3. Tùy chọn cho lớp vector tiles
+
+    function createParcelLayer(opacity) {
+    const layer = L.vectorGrid.protobuf(tileUrl, {
+        rendererFactory: L.canvas.tile,
+        interactive: true,
+        getFeatureId: feature => feature.properties.OBJECTID,
+        vectorTileLayerStyles: {
+        danang_full: {
+            color: '#3B82F6',
+            weight: 1,
+            fill: true,
+            fillColor: '#93C5FD',
+            fillOpacity: opacity
+        }
+        }
+    });
+
+    // Gắn lại sự kiện click cho layer mới
+    layer.on('click', function(e) {
+        const props = e.layer.properties;
+        const latLng = e.latlng;
+
+        if (highlightedFeature) {
+        parcelLayer.resetFeatureStyle(highlightedFeature);
+        }
+
+        highlightedFeature = props.OBJECTID;
+        layer.setFeatureStyle(highlightedFeature, {
+        color: '#EF4444',
+        weight: 3,
+        fillColor: '#EF4444',
+        fillOpacity: 0.3
+        });
+
+        const formattedProps = {
+        'Số thửa': props.SoThuaTuThua,
+        'Số hiệu tờ bản đồ': props.SoHieuToBanDo,
+        'Diện tích': props.DienTich,
+        'Ký hiệu mục đích sử dụng': props.KyHieuMucDichSuDung
+        };
+
+        showInfoPanel('Thông tin Thửa đất', formattedProps, latLng.lat, latLng.lng);
+    });
+
+    return layer;
+    }
+
     const vectorTileOptions = {
         rendererFactory: L.canvas.tile,
         vectorTileLayerStyles: {
@@ -78,7 +125,10 @@ document.addEventListener('DOMContentLoaded', () => {
     };
    
     // 4. Tạo lớp bản đồ phân lô và thêm vào bản đồ
-    const parcelLayer = L.vectorGrid.protobuf(tileUrl, vectorTileOptions).addTo(map);
+    parcelLayer = createParcelLayer(0.04); // opacity mặc định
+    parcelLayer.addTo(map);
+
+
 
     // 5. Gán sự kiện click SAU KHI layer đã được tạo
     parcelLayer.on('click', function(e) {
@@ -779,11 +829,10 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Xử lý sự kiện cho thanh trượt độ trong suốt với lớp Mapbox mới
     opacitySlider.addEventListener('input', (e) => {
-        parcelLayer.setStyle({
-            opacity: e.target.value,
-            fillOpacity: e.target.value * 0.15 // Giữ tỉ lệ với fillOpacity ban đầu
-        });
-    });
+    const value = parseFloat(e.target.value);
+    map.removeLayer(parcelLayer); // Xóa layer cũ
+    parcelLayer = createParcelLayer(value * 0.15);
+    parcelLayer.addTo(map);
 
     // Xử lý ẩn/hiện thanh trượt khi bật/tắt lớp bản đồ
     map.on('overlayadd', e => {
@@ -983,5 +1032,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('close-profile-btn').addEventListener('click', () => {
     document.getElementById('profile-modal').classList.add('hidden');
     });        
+let parcelLayer = null;
 
 }); // --- END OF DOMContentLoaded ---
