@@ -978,11 +978,9 @@ document.addEventListener('DOMContentLoaded', () => {
     alert("Có lỗi xảy ra khi cập nhật hồ sơ.");
   }
 });
-
     // 2. Xử lý nút Hủy trong modal
     document.getElementById('close-profile-btn').addEventListener('click', () => {
     document.getElementById('profile-modal').classList.add('hidden');
-    });
-        
+    });        
 
 }); // --- END OF DOMContentLoaded ---
