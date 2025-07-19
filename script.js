@@ -983,7 +983,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('close-profile-btn').addEventListener('click', () => {
     document.getElementById('profile-modal').classList.add('hidden');
     });
-    
-    });
+        
 
 }); // --- END OF DOMContentLoaded ---
