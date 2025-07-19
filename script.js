@@ -76,12 +76,18 @@ document.addEventListener('DOMContentLoaded', () => {
     parcelLayer = L.vectorGrid.protobuf(tileUrl, vectorTileOptions);
 
     // 6. Gán sự kiện click VÀO LỚP BẢN ĐỒ PHÂN LÔ (đây là cách tra cứu mới)
+    // THAY THẾ TOÀN BỘ HÀM CŨ BẰNG HÀM NÀY
     parcelLayer.on('click', function(e) {
-       
-        const props = e.layer.properties;
-        const latLng = e.latlng;
+        // Dòng L.DomEvent.stop(e); đã được xóa để sửa lỗi TypeError
 
-        // Xóa highlight cũ (nếu có)
+        const props = e.layer.properties;
+
+        if (!props || !props.OBJECTID) {
+            console.error('LỖI: Không tìm thấy dữ liệu thuộc tính trên thửa đất này.');
+            return; // Dừng lại nếu không có dữ liệu
+        }
+
+        // Xóa highlight cũ
         if (highlightedFeature) {
             parcelLayer.resetFeatureStyle(highlightedFeature);
         }
@@ -92,6 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
             color: '#EF4444', // Màu đỏ
             weight: 3,
             fillColor: '#EF4444',
+            fill: true,
             fillOpacity: 0.3
         });
 
@@ -103,8 +110,8 @@ document.addEventListener('DOMContentLoaded', () => {
             'Ký hiệu mục đích sử dụng': props.KyHieuMucDichSuDung,
         };
 
-        // Hiển thị thông tin
-        showInfoPanel('Thông tin Thửa đất', formattedProps, latLng.lat, latLng.lng);
+        // Hiển thị bảng thông tin
+        showInfoPanel('Thông tin Thửa đất', formattedProps, e.latlng.lat, e.latlng.lng);
     });
 
     // --- KẾT THÚC KHẮC PHỤC ---
