@@ -577,3 +577,9 @@ input[type=range][orient=vertical] {
 .disclaimer-text strong {
     color: #4b5563; /* text-gray-600 */
 }
+
+html, body, #map {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
