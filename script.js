@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const layersControl = L.control.layers(baseMaps, initialOverlayMaps, { position: 'bottomright' }).addTo(map);
 
        // --- KIẾN TRÚC LAYER MỚI (PRIMARY + FAILOVER) ---
-    const esriServerUrl = 'https://gisportal.danang.gov.vn/server/rest/services/DiaChinh/DaNangLand_DiaChinh/MapServer';
+    const esriServerUrl = '/proxy';
     
     // **SỬA LỖI: Yêu cầu hiển thị cả lớp Thửa đất (0) và Nhãn thửa (1)**
     esriParcelLayer = L.esri.dynamicMapLayer({ url: esriServerUrl, layers: [0, 1], useCors: true });

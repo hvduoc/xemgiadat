@@ -1,41 +1,45 @@
-// netlify/functions/proxy.js
+// Đường dẫn file: netlify/functions/proxy.js
+
+// Dùng node-fetch để gọi API từ server
 const fetch = require('node-fetch');
 
-exports.handler = async function(event) {
-  try {
-    // Lấy phần URL sau "/proxy" để nối vào domain gốc    
-    const path = event.path.replace("/.netlify/functions/proxy", "");
-    const targetUrl = `https://gisportal.danang.gov.vn${path}${event.rawQuery ? `?${event.rawQuery}` : ''}`;
+exports.handler = async function(event, context) {
+    // URL gốc của máy chủ Sở TNMT
+    const GIS_URL = "https://gisportal.danang.gov.vn/server/rest/services/DiaChinh/DaNangLand_DiaChinh/MapServer";
 
+    // Lấy phần đuôi của URL mà client yêu cầu
+    // Dựa trên rule của bạn, chúng ta sẽ thay thế '/proxy/'
+    // Ví dụ: nếu client gọi '/proxy/export?bbox=...' thì `path` sẽ là 'export?bbox=...'
+    const path = event.path.replace('/proxy/', '');
+    
+    // Ghép lại để có URL đầy đủ tới máy chủ GIS
+    const fullUrl = `${GIS_URL}/${path}`;
 
-    // Gửi yêu cầu đến máy chủ gốc
-    const response = await fetch(targetUrl);
-    if (!response.ok) {
-    const errorText = await response.text();
-    console.error("❌ Response error from target server:", errorText);
-    return {
-        statusCode: response.status,
-        body: JSON.stringify({ message: "Upstream error", error: errorText })
-    };
+    try {
+        const response = await fetch(fullUrl, {
+            headers: {
+                "Accept": "application/json",
+                "User-Agent": "Mozilla/5.0"
+            }
+        });
+
+        // Lấy dữ liệu dưới dạng text để đảm bảo không làm thay đổi định dạng gốc (JSON hoặc image)
+        const data = await response.text(); 
+
+        return {
+            statusCode: 200,
+            headers: {
+                // Quan trọng: Cho phép mọi tên miền truy cập vào proxy của BẠN
+                "Access-Control-Allow-Origin": "*",
+                "Content-Type": response.headers.get('content-type') || 'application/json',
+            },
+            body: data,
+        };
+    } catch (error) {
+        console.error("Proxy Error:", error);
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ error: 'Failed to fetch GIS data via proxy' }),
+        };
     }
-
-    const contentType = response.headers.get("content-type") || "application/octet-stream";
-    const arrayBuffer = await response.arrayBuffer();
-
-    return {
-      statusCode: response.status,
-      headers: {
-        "Content-Type": contentType,
-        "Access-Control-Allow-Origin": "*"
-      },
-      body: Buffer.from(arrayBuffer).toString("base64"),
-      isBase64Encoded: true
-    };
-  } catch (err) {
-    console.error("Proxy error:", err);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ message: "Proxy failed", error: err.message })
-    };
-  }
 };
