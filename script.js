@@ -17,6 +17,9 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
+// ✅ BƯỚC 1: KHAI BÁO BIẾN CACHE Ở ĐÂY
+let wardDataCache = {}; // Object để lưu dữ liệu các xã đã tải
+
 async function getCachedAddress(lat, lng) {
   const key = `addr:${lat.toFixed(5)},${lng.toFixed(5)}`;
   const cached = localStorage.getItem(key);
@@ -78,28 +81,34 @@ document.addEventListener('DOMContentLoaded', () => {
     let parcelLayer = null;
     let highlightedFeature = null;
 
-    // 2. URL để tải vector tiles
+    // ✅ BƯỚC 2: SỬA LẠI ĐÚNG TÊN TILESET ID
     const tilesetId = 'hvduoc.danang_parcels_final';
     const tileUrl = `https://api.mapbox.com/v4/${tilesetId}/{z}/{x}/{y}.vector.pbf?access_token=${mapboxAccessToken}`;
 
-    // 3. Style mặc định cho các thửa đất
-   // 3. Style mặc định cho các thửa đất
-    const parcelStyle = {
-        color: '#6B7280', // Viền màu xám đậm hơn (Tailwind gray-500) cho dễ thấy
-        weight: 1,       // Nét viền dày hơn một chút
-        fill: false      // TẮT đổ màu nền, chỉ giữ lại viền
-    };
-
-    // 4. Tùy chọn cho lớp vector tiles
+   
+    // Thay thế toàn bộ biến vectorTileOptions cũ bằng phiên bản này
     const vectorTileOptions = {
         rendererFactory: L.canvas.tile,
         interactive: true,
         getFeatureId: feature => feature.properties.OBJECTID,
         vectorTileLayerStyles: {
-            'danang_full': parcelStyle
+            'danang_full': function(properties, zoom) {
+                // Tùy chỉnh style dựa vào mức zoom
+                if (zoom <= 14) {
+                    // Zoom xa: nét siêu mảnh, màu nhạt, độ mờ cao
+                    return { weight: 0.1, color: '#9CA3AF', opacity: 0.5, fill: false };
+                }
+                if (zoom > 14 && zoom <= 16) {
+                    // Zoom trung bình: nét vừa, màu xám
+                    return { weight: 0.2, color: '#6B7280', opacity: 0.8, fill: false };
+                }
+                // Zoom gần: nét đậm hơn, màu rõ nét
+                return { weight: 0.5, color: '#4B5563', opacity: 1, fill: false };
+            }
         }
     };
 
+    
     // 5. Tạo lớp bản đồ phân lô MỘT LẦN DUY NHẤT
     parcelLayer = L.vectorGrid.protobuf(tileUrl, vectorTileOptions);        
            
@@ -118,8 +127,8 @@ document.addEventListener('DOMContentLoaded', () => {
         hideInfoPanel();
         highlightedFeature = clickedFeatureId;
         parcelLayer.setFeatureStyle(highlightedFeature, {
-            color: '#EF4444', weight: 3, fillColor: '#EF4444', fill: true, fillOpacity: 0.3
-        });
+            color: '#F59E0B', weight: 3, fillColor: '#F59E0B', fill: true, fillOpacity: 0.4
+        }); 
         const formattedProps = {
             'Số thửa': props.SoThuTuThua, 'Số hiệu tờ bản đồ': props.SoHieuToBanDo,
             'Diện tích': props.DienTich, 'Ký hiệu mục đích sử dụng': props.KyHieuMucDichSuDung,
@@ -383,22 +392,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
       
     // PHIÊN BẢN GỠ LỖI CỦA HÀM drawDimensions
+    // Thay thế toàn bộ hàm drawDimensions cũ bằng phiên bản hoàn chỉnh này
+    // Thay thế toàn bộ hàm drawDimensions cũ bằng phiên bản cuối cùng này
     function drawDimensions(feature) {
-        console.log("--- BẮT ĐẦU GỠ LỖI DRAW DIMENSIONS ---");
         dimensionMarkers.clearLayers();
-
         if (!feature || !feature.geometry || !feature.geometry.coordinates) {
-            console.warn("Dừng lại: Feature không có geometry hợp lệ.");
             return;
         }
-
         const coords = feature.geometry.coordinates[0];
         if (!Array.isArray(coords) || coords.length < 2) {
-            console.warn("Dừng lại: Mảng tọa độ không hợp lệ.");
             return;
         }
-
-        console.log(`Tìm thấy ${coords.length - 1} cạnh để vẽ.`);
 
         for (let i = 0; i < coords.length - 1; i++) {
             const p1 = coords[i];
@@ -406,32 +410,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const point1 = L.latLng(p1[1], p1[0]);
             const point2 = L.latLng(p2[1], p2[0]);
+
             const distance = point1.distanceTo(point2);
+            if (distance < 0.5) continue;
 
-            if (distance < 0.5) {
-                console.log(`Bỏ qua cạnh ${i} vì quá ngắn: ${distance.toFixed(2)}m`);
-                continue;
-            }
+            // Vị trí vẫn là trung điểm chính xác của cạnh
+            const labelPosition = L.latLng(
+                (point1.lat + point2.lat) / 2,
+                (point1.lng + point2.lng) / 2
+            );
 
-            const midPoint = L.latLng((point1.lat + point2.lat) / 2, (point1.lng + point2.lng) / 2);
-            const displayDistance = distance.toFixed(1) + 'm';
+            const displayDistance = Math.round(distance);
             
-            console.log(`✅ Chuẩn bị tạo nhãn cho cạnh ${i}: "${displayDistance}"`);
+            // ✅ THAY ĐỔI QUAN TRỌNG: Xóa hoàn toàn style xoay góc và dịch chuyển
+            const labelHtml = `<div class="dimension-label">${displayDistance}</div>`;
 
-            const dimensionLabel = L.marker(midPoint, {
+            const dimensionLabel = L.marker(labelPosition, {
                 icon: L.divIcon({
-                    // Dùng class mới để gỡ lỗi
-                    className: 'dimension-label-debug-container', 
-                    html: `<div class="dimension-label-debug">${displayDistance}</div>`,
-                    // Thêm kích thước và điểm neo rõ ràng
-                    iconSize: [60, 20],
-                    iconAnchor: [30, 10]
+                    className: 'dimension-label-container',
+                    html: labelHtml
                 })
             });
-
             dimensionMarkers.addLayer(dimensionLabel);
         }
-        console.log("--- KẾT THÚC GỠ LỖI ---");
     }
 
     async function loadUserProfile() {
