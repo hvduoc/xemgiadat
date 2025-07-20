@@ -113,11 +113,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const tileUrl = `https://api.mapbox.com/v4/${tilesetId}/{z}/{x}/{y}.mvt?access_token=${mapboxAccessToken}`;
         const parcelStyle = { color: '#6B7280', weight: 1, fill: false };
         const vectorTileOptions = {
-            rendererFactory: L.canvas.tile,
-            interactive: true,
-            getFeatureId: feature => feature.properties.OBJECTID,
-            vectorTileLayerStyles: { 'danang_full': parcelStyle }
+        rendererFactory: L.svg.tile,
+        interactive: true,
+        getFeatureId: f => f.properties.OBJECTID,
+        vectorTileLayerStyles: {
+            danang_full: { color: '#6B7280', weight: 1, fill: false }
+        }
         };
+
         parcelLayer = L.vectorGrid.protobuf(tileUrl, vectorTileOptions).addTo(map);
         
         layersControl.addOverlay(parcelLayer, "🗺️ Bản đồ địa chính (Dự phòng)");
