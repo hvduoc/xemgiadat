@@ -102,65 +102,61 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 5. Tạo lớp bản đồ phân lô MỘT LẦN DUY NHẤT
     parcelLayer = L.vectorGrid.protobuf(tileUrl, vectorTileOptions);        
-   
-    
+           
     // Thay thế toàn bộ hàm parcelLayer.on('click', ...) bằng phiên bản cuối cùng này
-    parcelLayer.on('click', function(e) {
+    parcelLayer.on('click', async function(e) { // Thêm async ở đây
         L.DomEvent.stop(e);
+        const props = e.layer.properties;
 
-        try {
-            const props = e.layer.properties;
-            if (!props || !props.OBJECTID) return;
+        // Lấy ID thửa đất và MÃ XÃ/PHƯỜNG từ Mapbox
+        const clickedFeatureId = props.OBJECTID;
+        const wardId = props.MaXa; 
 
-            // BƯỚC 1: Luôn xử lý các thành phần giao diện trước
-            hideInfoPanel();
-            highlightedFeature = props.OBJECTID;
-            parcelLayer.setFeatureStyle(highlightedFeature, {
-                color: '#EF4444', weight: 3, fillColor: '#EF4444', fill: true, fillOpacity: 0.3
-            });
+        if (!clickedFeatureId || !wardId) return;
 
-            // BƯỚC 2: Luôn hiển thị thông tin thửa đất ngay lập tức
-            const formattedProps = {
-                'Số thửa': props.SoThuTuThua,
-                'Số hiệu tờ bản đồ': props.SoHieuToBanDo,
-                'Diện tích': props.DienTich,
-                'Ký hiệu mục đích sử dụng': props.KyHieuMucDichSuDung,
-            };
-            showInfoPanel('Thông tin Thửa đất', formattedProps, e.latlng.lat, e.latlng.lng);
+        // BƯỚC 1: Xử lý giao diện (highlight và hiển thị info panel)
+        hideInfoPanel();
+        highlightedFeature = clickedFeatureId;
+        parcelLayer.setFeatureStyle(highlightedFeature, {
+            color: '#EF4444', weight: 3, fillColor: '#EF4444', fill: true, fillOpacity: 0.3
+        });
+        const formattedProps = {
+            'Số thửa': props.SoThuTuThua, 'Số hiệu tờ bản đồ': props.SoHieuToBanDo,
+            'Diện tích': props.DienTich, 'Ký hiệu mục đích sử dụng': props.KyHieuMucDichSuDung,
+        };
+        showInfoPanel('Thông tin Thửa đất', formattedProps, e.latlng.lat, e.latlng.lng);
 
-            // BƯỚC 3: CỐ GẮNG VẼ KÍCH THƯỚC (phần này có thể thất bại mà không ảnh hưởng đến phần còn lại)
-            let feature;
-            // Kiểm tra thuộc tính _rings (dùng cho canvas renderer)
-            if (e.layer._rings && e.layer._rings.length > 0) {
+        // BƯỚC 2: Tải và tra cứu dữ liệu hình học chi tiết
+        let fullFeature;
+        // Kiểm tra cache trước khi tải
+        if (wardDataCache[wardId]) {
+            console.log(`Dữ liệu xã ${wardId} đã có trong cache.`);
+            fullFeature = wardDataCache[wardId].features.find(f => f.properties.OBJECTID === clickedFeatureId);
+        } else {
+            // Nếu chưa có, tiến hành tải theo yêu cầu
+            console.log(`Chưa có dữ liệu xã ${wardId}. Bắt đầu tải...`);
+            try {
+                const response = await fetch(`./data/parcels_${wardId}.geojson`); // Sửa lại tên file nếu cần
+                if (!response.ok) throw new Error(`Không tìm thấy file cho xã: parcels_${wardId}.geojson`);
                 
-                // Chuyển đổi từ tọa độ điểm của layer (layerPoint) sang tọa độ địa lý (LatLng)
-                const coords = e.layer._rings[0].map(p => {
-                    const latlng = map.layerPointToLatLng(p);
-                    return [latlng.lng, latlng.lat];
-                });
-                
-                // Đảm bảo polygon được khép kín
-                if (coords.length > 0 && (coords[0][0] !== coords[coords.length - 1][0] || coords[0][1] !== coords[coords.length - 1][1])) {
-                    coords.push(coords[0]);
-                }
+                const wardGeojsonData = await response.json();
+                wardDataCache[wardId] = wardGeojsonData; // Lưu vào cache cho lần sau
+                console.log(`✅ Tải và lưu cache thành công cho xã ${wardId}.`);
 
-                // Tự tạo đối tượng GeoJSON
-                feature = {
-                    type: 'Feature',
-                    properties: props,
-                    geometry: { type: 'Polygon', coordinates: [coords] }
-                };
-            }
-            
-            // Kiểm tra và vẽ
-            if (feature && feature.geometry) {
-                drawDimensions(feature);
-            } else {
-                console.warn("Không thể lấy geometry để vẽ kích thước cho thửa đất này.");
-            }
+                fullFeature = wardGeojsonData.features.find(f => f.properties.OBJECTID === clickedFeatureId);
 
-        } catch (error) {
-            console.error("Lỗi cuối cùng khi xử lý click:", error);
+            } catch (error) {
+                console.error("Lỗi khi tải dữ liệu xã/phường:", error);
+                // Có thể thêm một thông báo nhỏ cho người dùng ở đây nếu muốn
+                return;
+            }
+        }
+
+        // BƯỚC 3: Vẽ kích thước nếu tìm thấy dữ liệu
+        if (fullFeature) {
+            drawDimensions(fullFeature);
+        } else {
+            console.warn(`Không tìm thấy thửa đất với OBJECTID ${clickedFeatureId} trong file tra cứu của xã ${wardId}.`);
         }
     });
 
@@ -385,19 +381,24 @@ document.addEventListener('DOMContentLoaded', () => {
             return null;
         }
     }
-    
-    // Thay thế hàm drawDimensions cũ bằng phiên bản hoàn chỉnh này
+      
+    // PHIÊN BẢN GỠ LỖI CỦA HÀM drawDimensions
     function drawDimensions(feature) {
+        console.log("--- BẮT ĐẦU GỠ LỖI DRAW DIMENSIONS ---");
         dimensionMarkers.clearLayers();
 
         if (!feature || !feature.geometry || !feature.geometry.coordinates) {
+            console.warn("Dừng lại: Feature không có geometry hợp lệ.");
             return;
         }
 
         const coords = feature.geometry.coordinates[0];
         if (!Array.isArray(coords) || coords.length < 2) {
+            console.warn("Dừng lại: Mảng tọa độ không hợp lệ.");
             return;
         }
+
+        console.log(`Tìm thấy ${coords.length - 1} cạnh để vẽ.`);
 
         for (let i = 0; i < coords.length - 1; i++) {
             const p1 = coords[i];
@@ -405,34 +406,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const point1 = L.latLng(p1[1], p1[0]);
             const point2 = L.latLng(p2[1], p2[0]);
-
             const distance = point1.distanceTo(point2);
-            // Chỉ hiển thị kích thước cho các cạnh thực tế (dài hơn 0.5m)
-            if (distance < 0.5) continue;
 
-            const midPoint = L.latLng(
-                (point1.lat + point2.lat) / 2,
-                (point1.lng + point2.lng) / 2
-            );
+            if (distance < 0.5) {
+                console.log(`Bỏ qua cạnh ${i} vì quá ngắn: ${distance.toFixed(2)}m`);
+                continue;
+            }
 
-            // ✅ TÍNH TOÁN GÓC XOAY
-            // Tính góc của đoạn thẳng so với trục ngang
-            const angle = Math.atan2(p2[1] - p1[1], p2[0] - p1[0]) * 180 / Math.PI;
-            
+            const midPoint = L.latLng((point1.lat + point2.lat) / 2, (point1.lng + point2.lng) / 2);
             const displayDistance = distance.toFixed(1) + 'm';
-
-            // ✅ TẠO HTML VỚI STYLE XOAY
-            const labelHtml = `<div class="dimension-label" style="transform: rotate(${angle}deg);">${displayDistance}</div>`;
+            
+            console.log(`✅ Chuẩn bị tạo nhãn cho cạnh ${i}: "${displayDistance}"`);
 
             const dimensionLabel = L.marker(midPoint, {
                 icon: L.divIcon({
-                    className: 'dimension-label-container', // Container trong suốt
-                    html: labelHtml
+                    // Dùng class mới để gỡ lỗi
+                    className: 'dimension-label-debug-container', 
+                    html: `<div class="dimension-label-debug">${displayDistance}</div>`,
+                    // Thêm kích thước và điểm neo rõ ràng
+                    iconSize: [60, 20],
+                    iconAnchor: [30, 10]
                 })
             });
 
             dimensionMarkers.addLayer(dimensionLabel);
         }
+        console.log("--- KẾT THÚC GỠ LỖI ---");
     }
 
     async function loadUserProfile() {
