@@ -583,22 +583,26 @@ html, body, #map {
     margin: 0;
     padding: 0;
 }
+/* Container cho nhãn, cần trong suốt và không bắt sự kiện chuột */
 .dimension-label-container {
-    pointer-events: none;
-    z-index: 1000;
+    background-color: transparent;
+    border: none;
+    pointer-events: none; /* Rất quan trọng để có thể click xuyên qua nhãn */
 }
 
+/* CSS cho chính cái nhãn hiển thị kích thước */
 .dimension-label {
-    position: relative;
     background: rgba(255, 255, 255, 0.85);
-    color: #111827;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: bold;
     border: 1px solid #9ca3af;
+    border-radius: 4px;
+    color: #1f2937;
+    font-size: 13px; /* Tăng kích thước chữ cho dễ đọc */
+    font-weight: bold;
+    padding: 2px 6px;
     white-space: nowrap;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    
+    /* Đảm bảo nó xoay quanh tâm */
     transform-origin: center center;
-    box-shadow: 0 0 3px rgba(0,0,0,0.2);
 }
 
