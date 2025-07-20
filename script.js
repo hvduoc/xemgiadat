@@ -93,17 +93,19 @@ document.addEventListener('DOMContentLoaded', () => {
         getFeatureId: feature => feature.properties.OBJECTID,
         vectorTileLayerStyles: {
             'danang_full': function(properties, zoom) {
-                // Tùy chỉnh style dựa vào mức zoom
+                
+                // --- TÔNG MÀU XANH DƯƠNG - XÁM MỚI ---
+
                 if (zoom <= 14) {
-                    // Zoom xa: nét siêu mảnh, màu nhạt, độ mờ cao
-                    return { weight: 0.1, color: '#9CA3AF', opacity: 0.5, fill: false };
+                    // Zoom xa: Xanh xám rất nhạt, siêu mảnh, gần như trong suốt
+                    return { weight: 0.1, color: '#94A3B8', opacity: 0.4, fill: false };
                 }
                 if (zoom > 14 && zoom <= 16) {
-                    // Zoom trung bình: nét vừa, màu xám
-                    return { weight: 0.2, color: '#6B7280', opacity: 0.8, fill: false };
+                    // Zoom trung bình: Xanh dương chuyên nghiệp, rõ ràng
+                    return { weight: 0.1, color: '#2563EB', opacity: 0.7, fill: false };
                 }
-                // Zoom gần: nét đậm hơn, màu rõ nét
-                return { weight: 0.5, color: '#4B5563', opacity: 1, fill: false };
+                // Zoom gần: Xám đen/xanh navy rất đậm, sắc nét
+                return { weight: 0.5, color: '#1E293B', opacity: 1, fill: false };
             }
         }
     };
@@ -113,60 +115,68 @@ document.addEventListener('DOMContentLoaded', () => {
     parcelLayer = L.vectorGrid.protobuf(tileUrl, vectorTileOptions);        
            
     // Thay thế toàn bộ hàm parcelLayer.on('click', ...) bằng phiên bản cuối cùng này
-    parcelLayer.on('click', async function(e) { // Thêm async ở đây
+    // Thay thế toàn bộ hàm parcelLayer.on('click', ...) bằng phiên bản cuối cùng này
+    parcelLayer.on('click', async function(e) {
         L.DomEvent.stop(e);
         const props = e.layer.properties;
 
-        // Lấy ID thửa đất và MÃ XÃ/PHƯỜNG từ Mapbox
         const clickedFeatureId = props.OBJECTID;
         const wardId = props.MaXa; 
 
         if (!clickedFeatureId || !wardId) return;
 
-        // BƯỚC 1: Xử lý giao diện (highlight và hiển thị info panel)
+        // Xử lý giao diện...
         hideInfoPanel();
         highlightedFeature = clickedFeatureId;
         parcelLayer.setFeatureStyle(highlightedFeature, {
             color: '#F59E0B', weight: 3, fillColor: '#F59E0B', fill: true, fillOpacity: 0.4
-        }); 
-        const formattedProps = {
-            'Số thửa': props.SoThuTuThua, 'Số hiệu tờ bản đồ': props.SoHieuToBanDo,
-            'Diện tích': props.DienTich, 'Ký hiệu mục đích sử dụng': props.KyHieuMucDichSuDung,
-        };
-        showInfoPanel('Thông tin Thửa đất', formattedProps, e.latlng.lat, e.latlng.lng);
+        });
 
-        // BƯỚC 2: Tải và tra cứu dữ liệu hình học chi tiết
         let fullFeature;
-        // Kiểm tra cache trước khi tải
+
         if (wardDataCache[wardId]) {
-            console.log(`Dữ liệu xã ${wardId} đã có trong cache.`);
             fullFeature = wardDataCache[wardId].features.find(f => f.properties.OBJECTID === clickedFeatureId);
         } else {
-            // Nếu chưa có, tiến hành tải theo yêu cầu
-            console.log(`Chưa có dữ liệu xã ${wardId}. Bắt đầu tải...`);
             try {
-                const response = await fetch(`./data/parcels_${wardId}.geojson`); // Sửa lại tên file nếu cần
+                const response = await fetch(`./data/parcels_${wardId}.geojson`);
                 if (!response.ok) throw new Error(`Không tìm thấy file cho xã: parcels_${wardId}.geojson`);
-                
                 const wardGeojsonData = await response.json();
-                wardDataCache[wardId] = wardGeojsonData; // Lưu vào cache cho lần sau
-                console.log(`✅ Tải và lưu cache thành công cho xã ${wardId}.`);
-
+                wardDataCache[wardId] = wardGeojsonData;
                 fullFeature = wardGeojsonData.features.find(f => f.properties.OBJECTID === clickedFeatureId);
-
             } catch (error) {
                 console.error("Lỗi khi tải dữ liệu xã/phường:", error);
-                // Có thể thêm một thông báo nhỏ cho người dùng ở đây nếu muốn
                 return;
             }
         }
 
-        // BƯỚC 3: Vẽ kích thước nếu tìm thấy dữ liệu
-        if (fullFeature) {
+        // ✅ BƯỚC MỚI: TÍNH TÂM VÀ LẤY ĐỊA CHỈ
+        let foundAddress = 'Chưa có'; // Giá trị mặc định
+        if (fullFeature && fullFeature.geometry) {
+            // Chuyển đổi tọa độ GeoJSON [lng, lat] thành mảng LatLng của Leaflet
+            const latlngs = fullFeature.geometry.coordinates[0].map(p => [p[1], p[0]]);
+            
+            // Tạo một polygon ảo để tính toán tâm
+            const polygon = L.polygon(latlngs);
+            const center = polygon.getBounds().getCenter();
+            
+            // Gọi hàm getCachedAddress đã có sẵn để lấy địa chỉ
+            foundAddress = await getCachedAddress(center.lat, center.lng);
+            
+            // Vẽ kích thước
             drawDimensions(fullFeature);
         } else {
-            console.warn(`Không tìm thấy thửa đất với OBJECTID ${clickedFeatureId} trong file tra cứu của xã ${wardId}.`);
+            console.warn(`Không tìm thấy thửa đất với OBJECTID ${clickedFeatureId} trong file tra cứu.`);
         }
+
+        // Cập nhật lại formattedProps để chứa địa chỉ mới
+        const formattedProps = {
+            'Số thửa': props.SoThuTuThua,
+            'Số hiệu tờ bản đồ': props.SoHieuToBanDo,
+            'Diện tích': props.DienTich,
+            'Ký hiệu mục đích sử dụng': props.KyHieuMucDichSuDung,
+            'Địa chỉ': foundAddress // <-- Sử dụng địa chỉ vừa tìm được
+        };
+        showInfoPanel('Thông tin Thửa đất', formattedProps, e.latlng.lat, e.latlng.lng);
     });
 
     // --- KẾT THÚC KHẮC PHỤC ---
