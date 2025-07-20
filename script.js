@@ -35,6 +35,34 @@ async function getCachedAddress(lat, lng) {
   }
 }
 
+    function extractLatLngsFromVectorLayer(layer, map) {
+        try {
+            const rings = layer._rings?.[0];
+            if (!Array.isArray(rings)) return null;
+
+            const coords = rings.map(pt => {
+                const latlng = map.layerPointToLatLng(pt);
+                return [latlng.lng, latlng.lat];
+            });
+
+            // Đảm bảo polygon đóng kín
+            if (coords.length > 0 && (coords[0][0] !== coords[coords.length - 1][0] || coords[0][1] !== coords[coords.length - 1][1])) {
+                coords.push(coords[0]);
+            }
+
+            return {
+                type: 'Feature',
+                geometry: {
+                    type: 'Polygon',
+                    coordinates: [coords]
+                }
+            };
+        } catch (err) {
+            console.warn("❌ Không thể dựng GeoJSON từ layer:", err);
+            return null;
+        }
+    }
+
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- MAP AND LAYERS INITIALIZATION ---
@@ -76,58 +104,47 @@ document.addEventListener('DOMContentLoaded', () => {
     parcelLayer = L.vectorGrid.protobuf(tileUrl, vectorTileOptions);
         
     // Thay thế toàn bộ hàm parcelLayer.on('click', ...) cũ bằng phiên bản hoàn chỉnh này
-    parcelLayer.on('click', async function(e) { // Chuyển hàm thành async
-        L.DomEvent.stop(e); 
+    parcelLayer.on('click', function(e) {
+    L.DomEvent.stop(e);
 
-        console.log("Bắt đầu truy vấn dữ liệu chi tiết từ server Mapbox...");
+    const props = e.layer.properties;
+    if (!props || !props.OBJECTID) return;
 
-        const lat = e.latlng.lat;
-        const lng = e.latlng.lng;
-        
-        // --- SỬA LỖI: Cập nhật URL để sử dụng API v5 Tilequery mới nhất ---
-        const queryUrl = `https://api.mapbox.com/v5/${tilesetId}/tilequery/${lng},${lat}.json?limit=5&access_token=${mapboxAccessToken}`;
+    hideInfoPanel();
+    highlightedFeature = props.OBJECTID;
 
-        try {
-            const response = await fetch(queryUrl);
-            // Kiểm tra nếu response không thành công (vd: 404, 500)
-            if (!response.ok) {
-                throw new Error(`Server Mapbox phản hồi lỗi: ${response.status}`);
-            }
-            const data = await response.json();
+    parcelLayer.setFeatureStyle(highlightedFeature, {
+        color: '#EF4444',
+        weight: 3,
+        fillColor: '#EF4444',
+        fill: true,
+        fillOpacity: 0.3
+    });
 
-            if (!data || !data.features || data.features.length === 0) {
-                console.error("Mapbox API không trả về feature nào tại vị trí này.");
+    // ✅ Truy vấn lại geometry chuẩn từ MapServer để vẽ cạnh
+    const queryLatLng = e.latlng;
+        L.esri.query({
+            url: "https://gis.danang.gov.vn/arcgis/rest/services/BaseMap/MapServer/0"
+        })
+        .nearby(queryLatLng, 5) // 5 meters tolerance
+        .run((error, featureCollection) => {
+            if (error || !featureCollection.features.length) {
+                console.warn("❌ Không truy vấn được thửa đất:", error);
                 return;
             }
 
-            const feature = data.features[0]; 
-            const props = feature.properties;
+            const geojson = featureCollection.features[0]; // Lấy thửa đầu tiên
+            drawDimensions(geojson); // Vẽ số đo cạnh
+        });
 
-            hideInfoPanel();
-
-            highlightedFeature = props.OBJECTID; 
-            parcelLayer.setFeatureStyle(highlightedFeature, {
-                color: '#EF4444',
-                weight: 3,
-                fillColor: '#EF4444',
-                fill: true,
-                fillOpacity: 0.3
-            });
-
-            drawDimensions(feature); 
-
-            const formattedProps = {
-                'Số thửa': props.SoThuTuThua,
-                'Số hiệu tờ bản đồ': props.SoHieuToBanDo,
-                'Diện tích': props.DienTich,
-                'Ký hiệu mục đích sử dụng': props.KyHieuMucDichSuDung,
-            };
-            showInfoPanel('Thông tin Thửa đất', formattedProps, lat, lng);
-
-        } catch (error) {
-            console.error("Lỗi khi truy vấn API của Mapbox:", error);
-            alert("Đã xảy ra lỗi khi lấy thông tin chi tiết của thửa đất. Vui lòng thử lại.");
-        }
+        // ✅ Hiển thị thông tin thửa đất
+        const formattedProps = {
+            'Số thửa': props.SoThuTuThua,
+            'Số hiệu tờ bản đồ': props.SoHieuToBanDo,
+            'Diện tích': props.DienTich,
+            'Ký hiệu mục đích sử dụng': props.KyHieuMucDichSuDung,
+        };
+        showInfoPanel('Thông tin Thửa đất', formattedProps, e.latlng.lat, e.latlng.lng);
     });
 
     // --- KẾT THÚC KHẮC PHỤC ---
@@ -211,8 +228,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         panelContent.innerHTML = `
         <div class="info-row">
-            <span class="info-label">Tờ:</span><strong class="info-value">${soTo}</strong>
-            <span class="info-label ml-4">Thửa:</span><strong class="info-value">${soThua}</strong>
+            <span class="info-label">Thửa số:</span><strong class="info-value">${soThua}</strong>
+            <span class="info-label ml-4">Tờ bản đồ:</span><strong class="info-value">${soTo}</strong>
         </div>
         <div class="info-row">
             <span class="info-label">Loại đất:</span><strong class="info-value">${loaiDat}</strong>
@@ -251,7 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
         infoPanel.classList.add('is-open');
         actionToolbar.classList.add('is-raised');
     }
-
+  
     async function showListingInfoPanel(item) {
         const ADMIN_UID = "FEpPWWT1EaTWQ9FOqBxWN5FeEJk1";
         const currentUser = firebase.auth().currentUser;
@@ -331,62 +348,89 @@ document.addEventListener('DOMContentLoaded', () => {
         dimensionMarkers.clearLayers();
     }
 
-    // Thay thế hàm drawDimensions cũ bằng phiên bản mới này
-    function drawDimensions(feature) {
-        dimensionMarkers.clearLayers();
+    function vectorTileFeatureToGeoJSON(layer) {
+        try {
+            const latlngs = layer.getLatLngs?.();
+            if (!latlngs || latlngs.length === 0) return null;
 
-        // --- BẮT ĐẦU PHẦN SỬA LỖI ---
+            const coords = latlngs[0].map(p => [p.lng, p.lat]);
+            coords.push(coords[0]); // Đảm bảo khép kín vòng
 
-        // 1. Kiểm tra kỹ lưỡng xem feature và geometry có tồn tại và hợp lệ không
-        if (!feature || !feature.geometry || !feature.geometry.coordinates || feature.geometry.coordinates.length === 0) {
-            console.error("Đối tượng feature không hợp lệ hoặc không có tọa độ để vẽ.");
-            return; // Dừng hàm nếu dữ liệu không an toàn
-        }
-
-        // 2. Lấy mảng tọa độ một cách an toàn, xử lý cả 2 trường hợp 'Polygon' và 'MultiPolygon'
-        let coords;
-        const geomType = feature.geometry.type;
-        
-        if (geomType === 'Polygon') {
-            // Nếu là Polygon, lấy vòng tọa độ đầu tiên
-            coords = feature.geometry.coordinates[0];
-        } else if (geomType === 'MultiPolygon') {
-            // Nếu là MultiPolygon, lấy vòng tọa độ đầu tiên của đa giác đầu tiên
-            coords = feature.geometry.coordinates[0][0];
-        }
-
-        // 3. Kiểm tra lại lần cuối xem mảng coords có thực sự hợp lệ để vẽ không
-        if (!coords || coords.length < 3) {
-            console.error("Không đủ tọa độ trong mảng coords để vẽ kích thước.");
-            return;
-        }
-        // --- KẾT THÚC PHẦN SỬA LỖI ---
-
-
-        // Logic vẽ kích thước bên dưới không thay đổi
-        for (let i = 0; i < coords.length - 1; i++) {
-            const p1 = coords[i];
-            const p2 = coords[i + 1];
-
-            const point1 = L.latLng(p1[1], p1[0]);
-            const point2 = L.latLng(p2[1], p2[0]);
-            
-            const distance = point1.distanceTo(point2);
-            if (distance < 1) continue; // Bỏ qua các cạnh quá nhỏ
-
-            const midPoint = L.latLng((point1.lat + point2.lat) / 2, (point1.lng + point2.lng) / 2);
-            const angle = Math.atan2(p2[1] - p1[1], p2[0] - p1[0]) * 180 / Math.PI;
-            const displayDistance = distance.toFixed(1) + 'm';
-
-            const dimensionLabel = L.marker(midPoint, {
-                icon: L.divIcon({
-                    className: 'dimension-label-container',
-                    html: `<div class="dimension-label" style="transform: rotate(${angle}deg);">${displayDistance}</div>`
-                })
-            });
-            dimensionMarkers.addLayer(dimensionLabel);
+            return {
+                type: 'Feature',
+                geometry: {
+                    type: 'Polygon',
+                    coordinates: [coords]
+                }
+            };
+        } catch (err) {
+            console.warn("⚠ Không thể tạo GeoJSON từ layer:", err);
+            return null;
         }
     }
+
+    // Thay thế hàm drawDimensions cũ bằng phiên bản mới này
+    function drawDimensions(feature) {
+    dimensionMarkers.clearLayers();
+
+    if (!feature || !feature.geometry || !feature.geometry.coordinates) {
+        console.warn("❌ Không có geometry hợp lệ để vẽ.");
+        return;
+    }
+
+    let coords;
+    const geomType = feature.geometry.type;
+
+    // An toàn tuyệt đối khi truy cập
+    if (geomType === 'Polygon') {
+        const ring = feature.geometry.coordinates?.[0];
+        if (Array.isArray(ring) && ring.length >= 2) {
+            coords = ring;
+        }
+    } else if (geomType === 'MultiPolygon') {
+        const ring = feature.geometry.coordinates?.[0]?.[0];
+        if (Array.isArray(ring) && ring.length >= 2) {
+            coords = ring;
+        }
+    }
+
+
+    if (!Array.isArray(coords) || coords.length < 2) {
+        console.warn("❌ Không đủ tọa độ để vẽ kích thước.", coords);
+        return;
+    }
+
+    for (let i = 0; i < coords.length - 1; i++) {
+        const p1 = coords[i];
+        const p2 = coords[i + 1];
+
+        if (!p1 || !p2 || p1.length < 2 || p2.length < 2) continue;
+
+        const point1 = L.latLng(p1[1], p1[0]);
+        const point2 = L.latLng(p2[1], p2[0]);
+
+        const distance = point1.distanceTo(point2);
+        if (distance < 1) continue;
+
+        const midPoint = L.latLng(
+            (point1.lat + point2.lat) / 2,
+            (point1.lng + point2.lng) / 2
+        );
+        const angle = Math.atan2(p2[1] - p1[1], p2[0] - p1[0]) * 180 / Math.PI;
+        const displayDistance = distance.toFixed(1) + 'm';
+
+        console.log("✅ Vẽ số đo:", displayDistance, "tại", midPoint); // để kiểm tra
+
+        const dimensionLabel = L.marker(midPoint, {
+            icon: L.divIcon({
+                className: 'dimension-label-container',
+                html: `<div class="dimension-label">${displayDistance}</div>`
+            })
+        });
+
+        dimensionMarkers.addLayer(dimensionLabel);
+    }
+}
 
     async function loadUserProfile() {
         try {
@@ -509,7 +553,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.share = function(platform, lat, lng, soTo, soThua) {
         const url = `${window.location.origin}${window.location.pathname}?lat=${lat}&lng=${lng}`;
-        const text = `Khám phá thửa đất (Tờ: ${soTo}, Thửa: ${soThua}) tại Đà Nẵng trên Bản đồ Giá đất Cộng đồng!`;
+        const text = `Khám phá thửa đất (Thửa: ${soThua}, Tờ: ${soTo}) tại Đà Nẵng trên Bản đồ Giá đất Cộng đồng!`;
         let shareUrl = '';
 
         if (platform === 'facebook') {
