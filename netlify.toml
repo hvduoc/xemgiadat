@@ -11,3 +11,4 @@ functions = "netlify/functions"
   from = "/proxy/*"
   to = "/.netlify/functions/proxy/:splat"
   status = 200
+
