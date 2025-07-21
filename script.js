@@ -86,7 +86,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // --- MAP AND LAYERS INITIALIZATION ---
     const map = L.map('map', { center: [16.054456, 108.202167], zoom: 13, zoomControl: false });
-    const parcelBaseLayer = L.vectorGrid.protobuf('tiles/{z}/{x}/{y}.pbf', {
+    const parcelBaseLayer = L.vectorGrid.protobuf('/tiles/{z}/{x}/{y}.pbf', {
     vectorTileLayerStyles: {
         parcels: {
         color: "#9CA3AF",
