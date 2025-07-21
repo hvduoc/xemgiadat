@@ -71,8 +71,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Tải file ranh giới các xã khi ứng dụng bắt đầu
     try {
         const response = await fetch('./data/ranhgioi.geojson');
-        wardsGeojsonData = await response.json();
+        wardsGeojsonData = await response.json();        
         console.log("✅ Tải thành công file ranh giới các xã.");
+        handleUrlParameters();
+        await preloadNearbyWardData(map.getCenter());
+
     } catch (err) {
         console.error("Lỗi khi tải file ranh giới xã.", err);
     }
@@ -222,11 +225,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             wardParcels = wardDataCache[wardId];
         } else {
             try {
+                instructionBanner.textContent = '⏳ Đang tải dữ liệu thửa đất, vui lòng chờ...';
+                instructionBanner.classList.remove('hidden');
+
                 const response = await fetch(`./data/parcels_${wardId}.geojson`);
                 if (!response.ok) throw new Error(`File not found for ward: ${wardId}`);
                 wardParcels = await response.json();
                 wardDataCache[wardId] = wardParcels;
+
+                instructionBanner.classList.add('hidden');
             } catch (error) {
+                instructionBanner.classList.add('hidden');
                 console.error("Lỗi khi tải dữ liệu thửa đất:", error);
                 return;
             }
@@ -412,50 +421,78 @@ document.addEventListener('DOMContentLoaded', async () => {
             return null;
         }
     }
-      
-    // PHIÊN BẢN GỠ LỖI CỦA HÀM drawDimensions
-    // Thay thế toàn bộ hàm drawDimensions cũ bằng phiên bản hoàn chỉnh này
+          
     // Thay thế toàn bộ hàm drawDimensions cũ bằng phiên bản cuối cùng này
     function drawDimensions(feature) {
         dimensionMarkers.clearLayers();
-        if (!feature || !feature.geometry || !feature.geometry.coordinates) {
-            return;
-        }
+        if (!feature || !feature.geometry || !feature.geometry.coordinates) return;
+
         const coords = feature.geometry.coordinates[0];
-        if (!Array.isArray(coords) || coords.length < 2) {
-            return;
-        }
+        if (!Array.isArray(coords) || coords.length < 2) return;
+
+        const groupedSegments = [];
+        let currentGroup = null;
+
+        const getBearing = (p1, p2) => turf.bearing([p1.lng, p1.lat], [p2.lng, p2.lat]);
 
         for (let i = 0; i < coords.length - 1; i++) {
-            const p1 = coords[i];
-            const p2 = coords[i + 1];
+            const [lng1, lat1] = coords[i];
+            const [lng2, lat2] = coords[i + 1];
+            const p1 = L.latLng(lat1, lng1);
+            const p2 = L.latLng(lat2, lng2);
 
-            const point1 = L.latLng(p1[1], p1[0]);
-            const point2 = L.latLng(p2[1], p2[0]);
-
-            const distance = point1.distanceTo(point2);
+            const bearing = getBearing(p1, p2);
+            const distance = p1.distanceTo(p2);
             if (distance < 0.5) continue;
 
-            // Vị trí vẫn là trung điểm chính xác của cạnh
-            const labelPosition = L.latLng(
-                (point1.lat + point2.lat) / 2,
-                (point1.lng + point2.lng) / 2
-            );
+            if (!currentGroup) {
+                currentGroup = {
+                    points: [p1, p2],
+                    totalDistance: distance,
+                    bearing: bearing
+                };
+            } else {
+                const angleDiff = Math.abs(currentGroup.bearing - bearing);
+                const angleGap = Math.min(angleDiff, 360 - angleDiff); // để xử lý vòng tròn
 
-            const displayDistance = Math.round(distance);
-            
-            // ✅ THAY ĐỔI QUAN TRỌNG: Xóa hoàn toàn style xoay góc và dịch chuyển
+                if (angleGap <= 10) {
+                    currentGroup.points.push(p2);
+                    currentGroup.totalDistance += distance;
+                    currentGroup.bearing = (currentGroup.bearing + bearing) / 2;
+                } else {
+                    groupedSegments.push(currentGroup);
+                    currentGroup = {
+                        points: [p1, p2],
+                        totalDistance: distance,
+                        bearing: bearing
+                    };
+                }
+            }
+        }
+        if (currentGroup) groupedSegments.push(currentGroup);
+
+        for (const seg of groupedSegments) {
+            const midIndex = Math.floor(seg.points.length / 2);
+            const pStart = seg.points[0];
+            const pEnd = seg.points[seg.points.length - 1];
+
+            const labelLat = (pStart.lat + pEnd.lat) / 2;
+            const labelLng = (pStart.lng + pEnd.lng) / 2;
+
+            const displayDistance = Math.round(seg.totalDistance);
             const labelHtml = `<div class="dimension-label">${displayDistance}</div>`;
 
-            const dimensionLabel = L.marker(labelPosition, {
+            const marker = L.marker([labelLat, labelLng], {
                 icon: L.divIcon({
                     className: 'dimension-label-container',
                     html: labelHtml
                 })
             });
-            dimensionMarkers.addLayer(dimensionLabel);
+
+            dimensionMarkers.addLayer(marker);
         }
     }
+
 
     async function loadUserProfile() {
         try {
@@ -482,12 +519,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         const lng = urlParams.get('lng');
         if (lat && lng) {
             const targetLatLng = L.latLng(parseFloat(lat), parseFloat(lng));
-            map.setView(targetLatLng, 19);
-            
-            // Đợi bản đồ di chuyển và zoom xong rồi mới tìm và hiển thị
-            map.once('zoomend', function() {
-                findAndDisplayParcel(targetLatLng);
-            });
+            map.setView(targetLatLng, 19); // Zoom mặc định
+            findAndDisplayParcel(targetLatLng); // Gọi NGAY lập tức
         }
     }
 
@@ -568,8 +601,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     };
 
-    window.copyLocationLink = function(lat, lng) {
-        const url = `${window.location.origin}${window.location.pathname}?lat=${lat}&lng=${lng}`;
+    window.copyLocationLink = function(lat, lng, soTo = '', soThua = '') {
+    const url = `${window.location.origin}/og.html?lat=${lat}&lng=${lng}&soTo=${soTo}&soThua=${soThua}`;
         navigator.clipboard.writeText(url).then(() => {
             alert('Đã sao chép liên kết vị trí!');
         }).catch(err => console.error('Lỗi sao chép: ', err));
@@ -863,5 +896,36 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     handleUrlParameters();
+
+    async function preloadNearbyWardData(centerLatLng) {
+    if (!wardsGeojsonData) return;
+
+    const centerPoint = turf.point([centerLatLng.lng, centerLatLng.lat]);
+    const nearbyWards = wardsGeojsonData.features
+        .map(ward => ({
+            feature: ward,
+            distance: turf.distance(centerPoint, turf.center(ward))
+        }))
+        .sort((a, b) => a.distance - b.distance)
+        .slice(0, 4); // preload 4 xã gần nhất
+
+    for (const ward of nearbyWards) {
+        const wardId = ward.feature.properties.MaXa;
+        if (!wardDataCache[wardId]) {
+            try {
+                const response = await fetch(`./data/parcels_${wardId}.geojson`);
+                if (response.ok) {
+                    const json = await response.json();
+                    wardDataCache[wardId] = json;
+                    console.log(`✅ Preloaded xã ${wardId}`);
+                }
+            } catch (err) {
+                console.warn(`❌ Lỗi preload xã ${wardId}:`, err);
+            }
+        }
+    }
+}
+
+
 });
 // KHẮC PHỤC: Đã xóa dòng }); thừa ở đây

@@ -6,9 +6,20 @@ functions = "netlify/functions"
   from = "/api/*"
   to = "/.netlify/functions/:splat"
   status = 200
-  
+
 [[redirects]]
   from = "/proxy/*"
   to = "/.netlify/functions/proxy/:splat"
   status = 200
 
+# ✅ GIỮ NGUYÊN FILE og.html (rất quan trọng cho Open Graph!)
+[[redirects]]
+  from = "/og.html"
+  to = "/og.html"
+  status = 200
+
+# ✅ Mọi route SPA khác quay về index.html
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

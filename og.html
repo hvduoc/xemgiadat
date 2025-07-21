@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>Đang tải thông tin thửa đất...</title>
+
+  <!-- Open Graph mặc định -->
+  <meta property="og:title" content="Đang tải thông tin thửa đất..." />
+  <meta property="og:description" content="Vui lòng chờ, đang truy xuất bản đồ..." />
+  <meta property="og:image" content="https://xemgiadat.com/placeholder.png" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="" />
+
+  <!-- Tự động chuyển về index.html -->
+  <meta http-equiv="refresh" content="2;url=index.html" />
+  <style>body { font-family: sans-serif; padding: 2rem; }</style>
+</head>
+<body>
+  <h2>📍 Đang tải thông tin thửa đất...</h2>
+  <p>Bạn sẽ được chuyển tới bản đồ trong giây lát.</p>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const lat = parseFloat(params.get("lat"));
+    const lng = parseFloat(params.get("lng"));
+    const soTo = params.get("soTo") || "chưa rõ";
+    const soThua = params.get("soThua") || "chưa rõ";
+
+    const redirectUrl = `index.html?lat=${lat}&lng=${lng}`;
+    document.querySelector('meta[http-equiv="refresh"]').setAttribute("content", `2;url=${redirectUrl}`);
+    document.querySelector('meta[property="og:url"]').setAttribute("content", window.location.href);
+
+    const mapboxAccessToken = "pk.eyJ1IjoiaHZkdW9jIiwiYSI6ImNtZDFwcjVxYTAzOGUybHEzc3ZrNTJmcnIifQ.D5VlPC8c_n1i3kezgqtzwg";
+
+    // Gọi API Mapbox để lấy địa chỉ
+    fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxAccessToken}&language=vi`)
+      .then(res => res.json())
+      .then(data => {
+        const address = data.features?.[0]?.place_name || "Đà Nẵng";
+        const shortAddress = address.split(',')[1]?.trim() || "Đà Nẵng";
+
+        const title = `Thửa đất ${soThua}, tờ ${soTo} – ${shortAddress}`;
+        const description = `Xem thông tin chi tiết thửa đất tại ${shortAddress} trên bản đồ cộng đồng.`;
+
+        const ogImage = `https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/pin-s+ff0000(${lng},${lat})/${lng},${lat},18/800x600?access_token=${mapboxAccessToken}`;
+
+        document.querySelector('meta[property="og:title"]').setAttribute("content", title);
+        document.querySelector('meta[property="og:description"]').setAttribute("content", description);
+        document.querySelector('meta[property="og:image"]').setAttribute("content", ogImage);
+      });
+  </script>
+</body>
+</html>
