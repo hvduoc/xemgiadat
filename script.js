@@ -10,7 +10,7 @@ const firebaseConfig = {
 };
 
 // --- MAPBOX ACCESS TOKEN ---
-const mapboxAccessToken = "pk.eyJ1IjoiaHZkdW9jIiwiYSI6ImNtZDFwcjVxYTAzOGUybHEzc3ZrNTJmcnIifQ.D5VlPC8c_n1i3kezgqtzwg";
+const mapboxAccessToken = "pk.eyJ1IjoiaHZkdW9jIiwiYSI6ImNtZGNsbTZ4YzE2Y2Eya3F6NHJkMGk5NzgifQ.kg3cR-59WQV-28lXiu1o7A";
 
 // --- SERVICE INITIALIZATION ---
 firebase.initializeApp(firebaseConfig);
