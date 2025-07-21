@@ -129,9 +129,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Thay thế toàn bộ hàm parcelLayer.on('click', ...) bằng phiên bản cuối cùng này
     // Thay thế toàn bộ hàm parcelLayer.on('click', ...) bằng phiên bản cuối cùng này
     parcelLayer.on('click', function(e) {
+        if (!isQueryMode) return; // ✅ chỉ xử lý khi đang tra cứu
         L.DomEvent.stop(e);
         findAndDisplayParcel(e.latlng);
     });
+
 
     // --- KẾT THÚC KHẮC PHỤC ---
 
