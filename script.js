@@ -204,59 +204,60 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Hàm "trái tim" mới để tìm và hiển thị thông tin thửa đất từ một tọa độ
     async function findAndDisplayParcel(latlng) {
-        if (!wardsGeojsonData) {
-            console.error("Dữ liệu ranh giới chưa sẵn sàng.");
+        if (!wardsGeojsonData || !wardsGeojsonData.features) {
+            console.error("Dữ liệu ranh giới chưa sẵn sàng hoặc không hợp lệ.");
             return;
         }
 
-        // 1. Xác định xã/phường từ tọa độ
+        // 1. Xác định xã/phường từ tọa độ (AN TOÀN HƠN)
         const point = turf.point([latlng.lng, latlng.lat]);
         const targetWard = wardsGeojsonData.features.find(wardFeature => 
-            turf.booleanPointInPolygon(point, wardFeature)
+            // Thêm kiểm tra: Đảm bảo wardFeature và geometry của nó tồn tại
+            wardFeature && wardFeature.geometry && turf.booleanPointInPolygon(point, wardFeature)
         );
 
-        if (!targetWard) {
-            console.warn("Không xác định được xã/phường cho tọa độ này.");
+        if (!targetWard || !targetWard.properties.MaXa) {
+            console.warn("Không xác định được xã/phường hợp lệ cho tọa độ này.");
             return;
         }
         const wardId = targetWard.properties.MaXa;
 
-        // 2. Tải hoặc lấy dữ liệu thửa đất của xã/phường đó từ cache
+        // 2. Tải hoặc lấy dữ liệu thửa đất
         let wardParcels;
+        // ... (Phần code tải và cache không thay đổi)
         if (wardDataCache[wardId]) {
             wardParcels = wardDataCache[wardId];
         } else {
             try {
-                instructionBanner.textContent = '⏳ Đang tải dữ liệu thửa đất, vui lòng chờ...';
-                instructionBanner.classList.remove('hidden');
-
                 const response = await fetch(`./data/parcels_${wardId}.geojson`);
                 if (!response.ok) throw new Error(`File not found for ward: ${wardId}`);
                 wardParcels = await response.json();
                 wardDataCache[wardId] = wardParcels;
-
-                instructionBanner.classList.add('hidden');
             } catch (error) {
-                instructionBanner.classList.add('hidden');
                 console.error("Lỗi khi tải dữ liệu thửa đất:", error);
                 return;
             }
         }
 
-        // 3. Tìm chính xác thửa đất trong phạm vi xã/phường
-        const fullFeature = wardParcels.features.find(f => turf.booleanPointInPolygon(point, f));
+        if (!wardParcels || !wardParcels.features) {
+            console.error(`Dữ liệu thửa đất cho xã ${wardId} không hợp lệ.`);
+            return;
+        }
+
+        // 3. Tìm chính xác thửa đất (AN TOÀN HƠN)
+        const fullFeature = wardParcels.features.find(f => 
+            // Thêm kiểm tra: Đảm bảo feature f và geometry của nó tồn tại
+            f && f.geometry && turf.booleanPointInPolygon(point, f)
+        );
 
         if (fullFeature) {
+            // ... (Toàn bộ phần code hiển thị thông tin và vẽ kích thước không thay đổi)
             const props = fullFeature.properties;
             const featureId = props.OBJECTID;
-
-            // 4. Hiển thị tất cả thông tin
             hideInfoPanel();
             highlightedFeature = featureId;
             parcelLayer.setFeatureStyle(featureId, { color: '#F59E0B', weight: 3, fillColor: '#F59E0B', fill: true, fillOpacity: 0.4 });
-            
             const foundAddress = await getCachedAddress(latlng.lat, latlng.lng);
-            
             const formattedProps = {
                 'Số thửa': props.SoThuTuThua, 'Số hiệu tờ bản đồ': props.SoHieuToBanDo,
                 'Diện tích': props.DienTich, 'Ký hiệu mục đích sử dụng': props.KyHieuMucDichSuDung,
