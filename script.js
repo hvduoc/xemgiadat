@@ -129,8 +129,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- KHẮC PHỤC & TỐI ƯU: TÍCH HỢP BẢN ĐỒ PHÂN LÔ TỪ MAPBOX ---
 
-    // 1. Biến toàn cục cho lớp bản đồ và thửa đất được highlight
-    let parcelLayer = null;
+    // 1. Biến toàn cục cho lớp bản đồ và thửa đất được highlight   
     let highlightedFeature = null;
 
     // ✅ BƯỚC 2: SỬA LẠI ĐÚNG TÊN TILESET ID
