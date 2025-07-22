@@ -219,6 +219,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Hàm "trái tim" mới để tìm và hiển thị thông tin thửa đất từ một tọa độ
     async function findAndDisplayParcel(latlng) {
+        highlightLayer.clearLayers();
+        dimensionMarkers.clearLayers();
+
         if (!wardsGeojsonData || !wardsGeojsonData.features) {
             console.error("Dữ liệu ranh giới chưa sẵn sàng hoặc không hợp lệ.");
             return;
@@ -259,14 +262,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.error(`Dữ liệu thửa đất cho xã ${wardId} không hợp lệ.`);
             return;
         }
-         if (!wardLayersCache[wardId]) {
-            // Nếu chưa hiển thị xã này → tạo lớp GeoJSON và add lên bản đồ
-            const wardLayer = L.geoJSON(wardParcels, {
-                style: { color: "#CBD5E1", weight: 0.5, fill: false }
-            });
-            wardLayer.addTo(map);
-            wardLayersCache[wardId] = wardLayer; // lưu lại để không tạo lại lần sau
-        }
+         
 
         // 3. Tìm chính xác thửa đất (AN TOÀN HƠN)
         const fullFeature = wardParcels.features.find(f => 
@@ -792,7 +788,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
         if (isQueryMode) {
-            findAndDisplayParcel(e.latlng); // ✅ tra cứu thửa đất tại vị trí click
+            findAndDisplayParcel(e.latlng);// ✅ tra cứu thửa đất tại vị trí click
+           
         }
     });
 
