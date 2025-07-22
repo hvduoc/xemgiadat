@@ -90,18 +90,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     const map = L.map('map', { center: [16.054456, 108.202167], zoom: 13, zoomControl: false });
 
     const parcelLayer = L.vectorGrid.protobuf('/tiles/{z}/{x}/{y}.pbf', {
+    rendererFactory: L.canvas.tile,
+    interactive: false,
     vectorTileLayerStyles: {
         parcels: {
-        color: "#1E293B",
         weight: 0.4,
+        color: '#1E293B',
         fill: false,
         opacity: 0.6
         }
     },
-    attribution: '© Dữ liệu Sở TNMT Đà Nẵng',
-    maxNativeZoom: 14
+    maxNativeZoom: 14,
+    attribution: myAttribution + ' | © Dữ liệu Sở TNMT'
     }).addTo(map);
-
 
 
     const parcelBaseLayer = L.vectorGrid.protobuf('/tiles/{z}/{x}/{y}.pbf', {
