@@ -83,12 +83,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (err) {
         console.error("Lỗi khi tải file ranh giới xã.", err);
     }
-    
-    // --- MAP AND LAYERS INITIALIZATION ---
+        
+    // ✅ Đặt gần các dòng tạo bản đồ map
+    const myAttribution = '© XemGiaDat | Dữ liệu gốc © Sở TNMT Đà Nẵng (tổng hợp & tái biên tập)';
+
     const map = L.map('map', { center: [16.054456, 108.202167], zoom: 13, zoomControl: false });
-    const myAttribution = '© XemGiaDat | Dữ liệu © Sở TNMT Đà Nẵng';
-    // ⚠️ Khởi tạo parcelLayer từ thư mục tiles nội bộ
-    parcelLayer = L.vectorGrid.protobuf('/tiles/{z}/{x}/{y}.pbf', {
+
+    const parcelLayer = L.vectorGrid.protobuf('/tiles/{z}/{x}/{y}.pbf', {
         rendererFactory: L.canvas.tile,
         interactive: false,
         vectorTileLayerStyles: {
@@ -101,7 +102,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         },
         maxNativeZoom: 14,
         attribution: myAttribution + ' | © Dữ liệu Sở TNMT'
-    }).addTo(map);
+    });
+
 
     const parcelBaseLayer = L.vectorGrid.protobuf('/tiles/{z}/{x}/{y}.pbf', {
     vectorTileLayerStyles: {
@@ -164,15 +166,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- KẾT THÚC KHẮC PHỤC ---
 
     const baseMaps = { "Ảnh vệ tinh": googleSat, "Bản đồ đường": googleStreets, "OpenStreetMap": osmLayer };
+       
+    googleStreets.addTo(map);
+    parcelLayer.addTo(map);
     const overlayMaps = {
         "🗺️ Bản đồ phân lô": parcelLayer
     };
     L.control.layers(baseMaps, overlayMaps, { position: 'bottomright' }).addTo(map);
-
-    L.control.layers(baseMaps, overlayMaps, { position: 'bottomright' }).addTo(map);
-    
-    googleStreets.addTo(map);
-
     
 
     // --- DOM ELEMENT SELECTION ---
