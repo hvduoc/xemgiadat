@@ -1,4 +1,0 @@
-/tiles/*
-  Access-Control-Allow-Origin: *
-  Content-Type: application/x-protobuf
-  Content-Encoding: gzip
