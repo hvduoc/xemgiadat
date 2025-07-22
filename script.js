@@ -86,6 +86,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // --- MAP AND LAYERS INITIALIZATION ---
     const map = L.map('map', { center: [16.054456, 108.202167], zoom: 13, zoomControl: false });
+    const myAttribution = '© XemGiaDat | Dữ liệu © Sở TNMT Đà Nẵng';
     // ⚠️ Khởi tạo parcelLayer từ thư mục tiles nội bộ
     parcelLayer = L.vectorGrid.protobuf('/tiles/{z}/{x}/{y}.pbf', {
         rendererFactory: L.canvas.tile,
@@ -119,7 +120,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Định nghĩa style màu vàng ở đây
         style: { color: '#F59E0B', weight: 3, fillColor: '#F59E0B', fill: true, fillOpacity: 0.4 }
     }).addTo(map);
-    const myAttribution = '© XemGiaDat | Dữ liệu © Sở TNMT Đà Nẵng';
+    
     const googleStreets = L.tileLayer('http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',{ maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'], attribution: myAttribution + ' | © Google Maps' });
     const googleSat = L.tileLayer('http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{ maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'], attribution: myAttribution + ' | © Google Satellite' });
     const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: myAttribution + ' | © OpenStreetMap' });
