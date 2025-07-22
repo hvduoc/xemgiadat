@@ -86,6 +86,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // --- MAP AND LAYERS INITIALIZATION ---
     const map = L.map('map', { center: [16.054456, 108.202167], zoom: 13, zoomControl: false });
+    // ⚠️ Khởi tạo parcelLayer từ thư mục tiles nội bộ
+    parcelLayer = L.vectorGrid.protobuf('/tiles/{z}/{x}/{y}.pbf', {
+        rendererFactory: L.canvas.tile,
+        interactive: false,
+        vectorTileLayerStyles: {
+            parcels: {
+                weight: 0.4,
+                color: '#1E293B',
+                fill: false,
+                opacity: 0.6
+            }
+        },
+        maxNativeZoom: 14,
+        attribution: myAttribution + ' | © Dữ liệu Sở TNMT'
+    }).addTo(map);
+
     const parcelBaseLayer = L.vectorGrid.protobuf('/tiles/{z}/{x}/{y}.pbf', {
     vectorTileLayerStyles: {
         parcels: {
@@ -116,8 +132,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // ✅ BƯỚC 2: SỬA LẠI ĐÚNG TÊN TILESET ID
     const tilesetId = 'hvduoc.danang_parcels_final';
-    // const tileUrl = `https://api.mapbox.com/v4/${tilesetId}/{z}/{x}/{y}.vector.pbf?access_token=${mapboxAccessToken}`;
-
+    // ⚠️ Khởi tạo parcelLayer từ thư mục tiles nội bộ    
    
     // Thay thế toàn bộ biến vectorTileOptions cũ bằng phiên bản này
     const vectorTileOptions = {
@@ -142,20 +157,22 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }
     };
-
-    
-    // 5. Tạo lớp bản đồ phân lô MỘT LẦN DUY NHẤT
-    // parcelLayer = L.vectorGrid.protobuf(tileUrl, vectorTileOptions);        
+             
              
 
     // --- KẾT THÚC KHẮC PHỤC ---
 
     const baseMaps = { "Ảnh vệ tinh": googleSat, "Bản đồ đường": googleStreets, "OpenStreetMap": osmLayer };
-    // const overlayMaps = { "🗺️ Bản đồ phân lô": parcelLayer };
-    googleStreets.addTo(map);
-    // parcelLayer.addTo(map); // Thêm lớp phân lô vào bản đồ
-    // L.control.layers(baseMaps, overlayMaps, { position: 'bottomright' }).addTo(map);
+    const overlayMaps = {
+        "🗺️ Bản đồ phân lô": parcelLayer
+    };
+    L.control.layers(baseMaps, overlayMaps, { position: 'bottomright' }).addTo(map);
 
+    L.control.layers(baseMaps, overlayMaps, { position: 'bottomright' }).addTo(map);
+    
+    googleStreets.addTo(map);
+
+    
 
     // --- DOM ELEMENT SELECTION ---
     const modal = document.getElementById('form-modal');
@@ -799,7 +816,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Tạo một style mới chỉ với thuộc tính fillOpacity
         const newStyle = { fillOpacity: newOpacity };
         // Áp dụng style mới cho lớp bản đồ phân lô
-        parcelLayer.setStyle(newStyle);
+        if (parcelLayer) parcelLayer.setStyle({ fillOpacity: newOpacity });
+
     });
 
     map.on('overlayadd', e => {
