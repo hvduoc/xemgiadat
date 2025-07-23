@@ -89,33 +89,27 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const map = L.map('map', { center: [16.054456, 108.202167], zoom: 13, zoomControl: false });
 
+    // --- SỬA LẠI ĐOẠN NÀY ---
     const parcelLayer = L.vectorGrid.protobuf('/tiles/{z}/{x}/{y}.pbf', {
-    rendererFactory: L.canvas.tile,
-    interactive: false,
-    vectorTileLayerStyles: {
-        parcels: {
-        weight: 0.4,
-        color: '#1E293B',
-        fill: false,
-        opacity: 0.6
+        maxNativeZoom: 14, // Giữ nguyên max zoom nếu bạn muốn
+        attribution: myAttribution + ' | © Dữ liệu Sở TNMT',
+        
+        // Quan trọng: Phần style phải được định nghĩa ở đây
+        vectorTileLayerStyles: {
+            // Tên "parcels" phải khớp với tên layer chúng ta đã tạo
+            parcels: function(properties, zoom) {
+                return {
+                    fillColor: 'cyan',    // Màu nền của thửa đất
+                    fillOpacity: 0.2,     // Độ trong suốt của màu nền
+                    color: '#0078FF',     // Màu của đường viền
+                    weight: 1,            // Độ dày của đường viền
+                    fill: true            // Cho phép tô màu nền
+                };
+            }
         }
-    },
-    maxNativeZoom: 14,
-    attribution: myAttribution + ' | © Dữ liệu Sở TNMT'
-    }).addTo(map);
-
-
-    const parcelBaseLayer = L.vectorGrid.protobuf('/tiles/{z}/{x}/{y}.pbf', {
-    vectorTileLayerStyles: {
-        parcels: {
-        color: "#9CA3AF",
-        weight: 0.4,
-        fill: false
-        }
-    },
-    interactive: false,
-    maxNativeZoom: 14
-    }).addTo(map);
+    });
+    // LƯU Ý: Không có .addTo(map) ở cuối dòng này nữa
+    
 
     // ✅ KHỞI TẠO LỚP TÔ MÀU
     highlightLayer = L.geoJSON(null, {
@@ -127,43 +121,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const googleSat = L.tileLayer('http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{ maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'], attribution: myAttribution + ' | © Google Satellite' });
     const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: myAttribution + ' | © OpenStreetMap' });
 
-    // --- KHẮC PHỤC & TỐI ƯU: TÍCH HỢP BẢN ĐỒ PHÂN LÔ TỪ MAPBOX ---
-
-    // 1. Biến toàn cục cho lớp bản đồ và thửa đất được highlight   
-    let highlightedFeature = null;
-
-    // ✅ BƯỚC 2: SỬA LẠI ĐÚNG TÊN TILESET ID
-    const tilesetId = 'hvduoc.danang_parcels_final';
-    // ⚠️ Khởi tạo parcelLayer từ thư mục tiles nội bộ    
-   
-    // Thay thế toàn bộ biến vectorTileOptions cũ bằng phiên bản này
-    const vectorTileOptions = {
-        rendererFactory: L.canvas.tile,
-        interactive: true,
-        getFeatureId: feature => feature.properties.OBJECTID,
-        vectorTileLayerStyles: {
-            'danang_full': function(properties, zoom) {
-                
-                // --- TÔNG MÀU XANH DƯƠNG - XÁM MỚI ---
-
-                if (zoom <= 14) {
-                    // Zoom xa: Xanh xám rất nhạt, siêu mảnh, gần như trong suốt
-                    return { weight: 0.1, color: '#94A3B8', opacity: 0.4, fill: false };
-                }
-                if (zoom > 14 && zoom <= 16) {
-                    // Zoom trung bình: Xanh dương chuyên nghiệp, rõ ràng
-                    return { weight: 0.1, color: '#2563EB', opacity: 0.7, fill: false };
-                }
-                // Zoom gần: Xám đen/xanh navy rất đậm, sắc nét
-                return { weight: 0.5, color: '#1E293B', opacity: 1, fill: false };
-            }
-        }
-    };
-             
-             
-
-    // --- KẾT THÚC KHẮC PHỤC ---
-
+    
     const baseMaps = { "Ảnh vệ tinh": googleSat, "Bản đồ đường": googleStreets, "OpenStreetMap": osmLayer };
        
     googleStreets.addTo(map);
