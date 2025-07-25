@@ -27,13 +27,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     const map = L.map('map', { center: [16.054456, 108.202167], zoom: 13, zoomControl: false });
 
     // 2. THÊM CÁC LỚP BẢN ĐỒ NỀN
-    const googleStreets = L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',{ maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'], attribution: myAttribution + ' | © Google Maps' });
-    const googleSat = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{ maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'], attribution: myAttribution + ' | © Google Satellite' });
+    const googleStreets = L.tileLayer('http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',{ maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'], attribution: myAttribution + ' | © Google Maps' });
+    const googleSat = L.tileLayer('http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{ maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'], attribution: myAttribution + ' | © Google Satellite' });
     googleStreets.addTo(map);
 
     // 3. TẠO VÀ THÊM LỚP BẢN ĐỒ PHÂN LÔ (PARCEL LAYER)
    
-    const parcelLayer = L.vectorGrid.protobuf('/tiles/{z}/{x}/{y}.pbf', {
+    const parcelLayer = typeof L.vectorGrid?.protobuf === 'function' && L.vectorGrid.protobuf('/tiles/{z}/{x}/{y}.pbf', {
         rendererFactory: L.canvas.tile,
         maxNativeZoom: 14,
         attribution: myAttribution,
