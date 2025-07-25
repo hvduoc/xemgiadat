@@ -6,7 +6,6 @@ const firebaseConfig = {
     storageBucket: "xemgiadat-dfe15.appspot.com",
     messagingSenderId: "361952598367",
     appId: "1:361952598367:web:c1e2e3b1a6d5d8c797beea",
-    measurementId: "G-XT932D9N1N"
 };
 const mapboxAccessToken = "pk.eyJ1IjoiaHZkdW9jIiwiYSI6ImNtZGNsbTZ4YzE2Y2Eya3F6NHJkMGk5NzgifQ.kg3cR-59WQV-28lXiu1o7A";
 
@@ -18,49 +17,50 @@ const db = firebase.firestore();
 let wardDataCache = {};
 let wardsGeojsonData = null;
 let highlightLayer = null;
-const myAttribution = '© XemGiaDat | Dữ liệu gốc © Sở TNMT Đà Nẵng (tổng hợp & tái biên tập)';
+const myAttribution = '© XemGiaDat | Dữ liệu gốc © Sở TNMT Đà Nẵng';
 
-// --- HÀM KHỞI ĐỘNG KHI TÀI LIỆU SẴN SÀNG ---
+// --- HÀM KHỞI ĐỘNG CHÍNH ---
 document.addEventListener('DOMContentLoaded', async () => {
 
-    // 1. KHỞI TẠO BẢN ĐỒ
     const map = L.map('map', { center: [16.054456, 108.202167], zoom: 13, zoomControl: false });
 
-    // 2. THÊM CÁC LỚP BẢN ĐỒ NỀN
-    const googleStreets = L.tileLayer('http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',{ maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'], attribution: myAttribution + ' | © Google Maps' });
-    const googleSat = L.tileLayer('http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{ maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'], attribution: myAttribution + ' | © Google Satellite' });
+    const googleStreets = L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',{ maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'], attribution: myAttribution + ' | © Google Maps' });
+    const googleSat = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{ maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'], attribution: myAttribution + ' | © Google Satellite' });
     googleStreets.addTo(map);
 
-    // 3. TẠO VÀ THÊM LỚP BẢN ĐỒ PHÂN LÔ (PARCEL LAYER)
-   
-    const parcelLayer = typeof L.vectorGrid?.protobuf === 'function' && L.vectorGrid.protobuf('/tiles/{z}/{x}/{y}.pbf', {
-        rendererFactory: L.canvas.tile,
-        maxNativeZoom: 14,
-        attribution: myAttribution,
-        vectorTileLayerStyles: {
-            parcels: function(properties, zoom) {
-                return {
-                    fillColor: 'cyan',
-                    fillOpacity: 0.2,
-                    color: '#0078FF',
-                    weight: 1,
-                    fill: true
-                };
+   // --- SỬ DỤNG LẠI MAPBOX VECTOR TILES ---
+    const parcelLayer = L.vectorGrid.mapbox(
+        'hvduoc.danang_parcels_final', // ✅ Tên Tileset ID của bạn trên Mapbox
+        {
+            accessToken: mapboxAccessToken, // Biến này bạn đã có
+            vectorTileLayerStyles: {
+                // Tên layer bên trong tileset (bạn cần kiểm tra lại trên Mapbox)
+                'danang_full': function(properties, zoom) {
+                    return {
+                        fillColor: 'cyan',
+                        fillOpacity: 0.2,
+                        color: '#0078FF',
+                        weight: 1,
+                        fill: true
+                    };
+                }
             }
         }
+    ).addTo(map);
+
+    highlightLayer = L.geoJSON(null, {
+        style: { color: '#F59E0B', weight: 3, fillColor: '#F59E0B', fill: true, fillOpacity: 0.4 }
     }).addTo(map);
-
-
-    // 5. THÊM BỘ ĐIỀU KHIỂN LỚP
+    
     const baseMaps = { "Ảnh vệ tinh": googleSat, "Bản đồ đường": googleStreets };
     const overlayMaps = { "🗺️ Bản đồ phân lô": parcelLayer };
     L.control.layers(baseMaps, overlayMaps, { position: 'bottomright' }).addTo(map);
 
-    // --- TẢI DỮ LIỆU RANH GIỚI HÀNH CHÍNH ---
     try {
         const response = await fetch('./data/ranhgioi.geojson');
         wardsGeojsonData = await response.json();
         console.log("✅ Tải thành công file ranh giới các xã.");
+        handleUrlParameters(); 
     } catch (err) {
         console.error("Lỗi khi tải file ranh giới xã.", err);
     }
