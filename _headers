@@ -1,3 +1,0 @@
-# Headers for vector tiles to enable long-term caching
-/tiles/*
-  Cache-Control: public, max-age=604800, immutable

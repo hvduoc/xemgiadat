@@ -1,0 +1,3 @@
+/tiles/*
+  Content-Type: application/x-protobuf
+  Access-Control-Allow-Origin: *
