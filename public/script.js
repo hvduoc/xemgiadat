@@ -1,4 +1,4 @@
-// --- FIREBASE CONFIGURATION ---
+// --- CẤU HÌNH VÀ KHỞI TẠO ---
 const firebaseConfig = {
     apiKey: "AIzaSyDu9tYpJdMPT7Hvk2_Ug8XHwxRQXoakRfs",
     authDomain: "xemgiadat-dfe15.firebaseapp.com",
@@ -8,108 +8,64 @@ const firebaseConfig = {
     appId: "1:361952598367:web:c1e2e3b1a6d5d8c797beea",
     measurementId: "G-XT932D9N1N"
 };
-
-// --- MAPBOX ACCESS TOKEN ---
 const mapboxAccessToken = "pk.eyJ1IjoiaHZkdW9jIiwiYSI6ImNtZGNsbTZ4YzE2Y2Eya3F6NHJkMGk5NzgifQ.kg3cR-59WQV-28lXiu1o7A";
 
-// --- SERVICE INITIALIZATION ---
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// ✅ BƯỚC 1: KHAI BÁO BIẾN CACHE Ở ĐÂY
-let wardDataCache = {}; // Object để lưu dữ liệu các xã đã tải
-let wardsGeojsonData = null; // Biến mới để lưu ranh giới các xã
-let highlightLayer = null; // ✅ THÊM BIẾN MỚI
-let wardLayersCache = {}; // ✅ Biến lưu cache các lớp xã đã được add lên map
+// --- BIẾN TOÀN CỤC ---
+let wardDataCache = {};
+let wardsGeojsonData = null;
+let highlightLayer = null;
+const myAttribution = '© XemGiaDat | Dữ liệu gốc © Sở TNMT Đà Nẵng (tổng hợp & tái biên tập)';
 
-
-async function getCachedAddress(lat, lng) {
-  const key = `addr:${lat.toFixed(5)},${lng.toFixed(5)}`;
-  const cached = localStorage.getItem(key);
-  if (cached) return cached;
-
-  try {
-    const endpointUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxAccessToken}&language=vi&limit=1`;
-    const response = await fetch(endpointUrl);
-    const data = await response.json();
-    const result = data.features?.[0]?.place_name || 'Không xác định';
-    localStorage.setItem(key, result);
-    return result;
-  } catch (err) {
-    console.error('Lỗi khi lấy địa chỉ:', err);
-    return 'Không xác định';
-  }
-}
-
-    function extractLatLngsFromVectorLayer(layer, map) {
-        try {
-            const rings = layer._rings?.[0];
-            if (!Array.isArray(rings)) return null;
-
-            const coords = rings.map(pt => {
-                const latlng = map.layerPointToLatLng(pt);
-                return [latlng.lng, latlng.lat];
-            });
-
-            // Đảm bảo polygon đóng kín
-            if (coords.length > 0 && (coords[0][0] !== coords[coords.length - 1][0] || coords[0][1] !== coords[coords.length - 1][1])) {
-                coords.push(coords[0]);
-            }
-
-            return {
-                type: 'Feature',
-                geometry: {
-                    type: 'Polygon',
-                    coordinates: [coords]
-                }
-            };
-        } catch (err) {
-            console.warn("❌ Không thể dựng GeoJSON từ layer:", err);
-            return null;
-        }
-    }
-
+// --- HÀM KHỞI ĐỘNG KHI TÀI LIỆU SẴN SÀNG ---
 document.addEventListener('DOMContentLoaded', async () => {
-    // Khối try...catch ở cuối DOMContentLoaded
+
+    // 1. KHỞI TẠO BẢN ĐỒ
+    const map = L.map('map', { center: [16.054456, 108.202167], zoom: 13, zoomControl: false });
+
+    // 2. THÊM CÁC LỚP BẢN ĐỒ NỀN
+    const googleStreets = L.tileLayer('http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',{ maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'], attribution: myAttribution + ' | © Google Maps' });
+    const googleSat = L.tileLayer('http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{ maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'], attribution: myAttribution + ' | © Google Satellite' });
+    googleStreets.addTo(map);
+
+    // 3. TẠO VÀ THÊM LỚP BẢN ĐỒ PHÂN LÔ (PARCEL LAYER)
+   
+    const parcelLayer = L.vectorGrid.protobuf('/tiles/{z}/{x}/{y}.pbf', {
+        rendererFactory: L.canvas.tile,
+        maxNativeZoom: 14,
+        attribution: myAttribution,
+        vectorTileLayerStyles: {
+            parcels: function(properties, zoom) {
+                return {
+                    fillColor: 'cyan',
+                    fillOpacity: 0.2,
+                    color: '#0078FF',
+                    weight: 1,
+                    fill: true
+                };
+            }
+        }
+    }).addTo(map);
+
+
+    // 5. THÊM BỘ ĐIỀU KHIỂN LỚP
+    const baseMaps = { "Ảnh vệ tinh": googleSat, "Bản đồ đường": googleStreets };
+    const overlayMaps = { "🗺️ Bản đồ phân lô": parcelLayer };
+    L.control.layers(baseMaps, overlayMaps, { position: 'bottomright' }).addTo(map);
+
+    // --- TẢI DỮ LIỆU RANH GIỚI HÀNH CHÍNH ---
     try {
         const response = await fetch('./data/ranhgioi.geojson');
         wardsGeojsonData = await response.json();
         console.log("✅ Tải thành công file ranh giới các xã.");
-        
-        // Bây giờ mới gọi handleUrlParameters
-        handleUrlParameters(); 
-        
     } catch (err) {
         console.error("Lỗi khi tải file ranh giới xã.", err);
     }
-        
-    // ✅ Đặt gần các dòng tạo bản đồ map
-    const myAttribution = '© XemGiaDat | Dữ liệu gốc © Sở TNMT Đà Nẵng (tổng hợp & tái biên tập)';
-
-    const map = L.map('map', { center: [16.054456, 108.202167], zoom: 13, zoomControl: false });
-
-    // --- SỬA LẠI ĐOẠN NÀY ---
-    const parcelLayer = L.vectorGrid.protobuf('/tiles/{z}/{x}/{y}.pbf', {
-        maxNativeZoom: 14, // Giữ nguyên max zoom nếu bạn muốn
-        attribution: myAttribution + ' | © Dữ liệu Sở TNMT',
-        
-        // Quan trọng: Phần style phải được định nghĩa ở đây
-        vectorTileLayerStyles: {
-            // Tên "parcels" phải khớp với tên layer chúng ta đã tạo
-            parcels: function(properties, zoom) {
-                return {
-                    fillColor: 'cyan',    // Màu nền của thửa đất
-                    fillOpacity: 0.2,     // Độ trong suốt của màu nền
-                    color: '#0078FF',     // Màu của đường viền
-                    weight: 1,            // Độ dày của đường viền
-                    fill: true            // Cho phép tô màu nền
-                };
-            }
-        }
-    });
-    // LƯU Ý: Không có .addTo(map) ở cuối dòng này nữa
-    
+            
+  
 
     // ✅ KHỞI TẠO LỚP TÔ MÀU
     highlightLayer = L.geoJSON(null, {
@@ -117,22 +73,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         style: { color: '#F59E0B', weight: 3, fillColor: '#F59E0B', fill: true, fillOpacity: 0.4 }
     }).addTo(map);
     
-    const googleStreets = L.tileLayer('http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',{ maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'], attribution: myAttribution + ' | © Google Maps' });
-    const googleSat = L.tileLayer('http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{ maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'], attribution: myAttribution + ' | © Google Satellite' });
-    const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: myAttribution + ' | © OpenStreetMap' });
-
-    
-    const baseMaps = { "Ảnh vệ tinh": googleSat, "Bản đồ đường": googleStreets, "OpenStreetMap": osmLayer };
-       
-    googleStreets.addTo(map);
-    parcelLayer.addTo(map);
-    const overlayMaps = {
-        "🗺️ Bản đồ phân lô": parcelLayer
-    };
-    L.control.layers(baseMaps, overlayMaps, { position: 'bottomright' }).addTo(map);
-    
-
-    // --- DOM ELEMENT SELECTION ---
+        // --- DOM ELEMENT SELECTION ---
     const modal = document.getElementById('form-modal');
     const listModal = document.getElementById('price-list-modal');
     const form = document.getElementById('location-form');
