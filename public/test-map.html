@@ -25,24 +25,23 @@
     console.log("typeof L.vectorGrid:", typeof L.vectorGrid);
     console.log("typeof L.vectorGrid.protobuf:", typeof L.vectorGrid?.protobuf);
 
-    if (typeof L.vectorGrid === "object" && typeof L.vectorGrid.protobuf === "function") {
-      console.log("✅ vectorGrid.protobuf sẵn sàng");
-      L.vectorGrid.protobuf('/tiles/{z}/{x}/{y}.pbf', {
-        maxNativeZoom: 14,
-        rendererFactory: L.canvas.tile,
+    if (typeof L.vectorGrid?.protobuf === "function") {
+    const parcelLayer = L.vectorGrid.protobuf('/tiles/{z}/{x}/{y}.pbf', {
         vectorTileLayerStyles: {
-          parcels: {
+        parcels: {
             fill: true,
-            fillColor: 'red',
-            fillOpacity: 0.3,
-            color: 'black',
-            weight: 0.5
-          }
-        }
-      }).addTo(map);
+            fillColor: '#FF0000',
+            fillOpacity: 0.1,
+            color: '#000',
+            weight: 1,
+        },
+        },
+        interactive: true
+    }).addTo(map);
     } else {
-      console.error("❌ vectorGrid.protobuf chưa sẵn sàng hoặc L.vectorGrid không tồn tại");
+    console.error("❌ vectorGrid.protobuf chưa sẵn sàng hoặc L.vectorGrid không tồn tại");
     }
+
   </script>
 </body>
 </html>
