@@ -1,0 +1,604 @@
+/* General Layout */
+#map { 
+    height: 100vh;
+    width: 100vw; [cite_start]/* [cite: 3] */
+}
+
+/* Leaflet Customizations */
+.leaflet-popup-content-wrapper { 
+    border-radius: 8px; [cite_start]/* [cite: 4] */
+}
+.leaflet-control-layers-toggle {
+    background-image: none !important; /* Xóa icon mặc định */
+    width: 36px !important;
+    height: 36px !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px !important;
+}
+
+/* Thêm icon mới bằng SVG */
+.leaflet-control-layers-toggle::after {
+    content: '';
+    display: block;
+    width: 20px;
+    height: 20px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23333'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93s3.05-7.44 7-7.93v15.86zm2-15.86c1.03.13 2 .45 2.87.93L15.87 5c-1.03-.49-2.2-.76-3.47-.93v2.02zm0 4.04v3.94l3.54 3.54c.46-.77.82-1.62.9-2.54h-4.44zm0 5.96v2.02c1.27-.17 2.44-.44 3.47-.93l-1.47-1.47c-.87.48-1.84.8-2 .98z'/%3E%3C/svg%3E");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+/* Map Interaction Modes */
+.map-add-mode { 
+    cursor: crosshair !important; [cite_start]/* [cite: 6] */
+}
+.map-query-mode { 
+    cursor: help !important; [cite_start]/* [cite: 7] */
+}
+
+/* Vertical Slider Styles */
+input[type=range][orient=vertical] {
+    writing-mode: bt-lr; [cite_start]/* [cite: 8] */
+    -webkit-appearance: slider-vertical; [cite_start]/* [cite: 9] */
+    width: 8px;
+    height: 100px;
+    padding: 0 5px; [cite_start]/* [cite: 10] */
+}
+
+/* Custom Marker Cluster Styles */
+.marker-cluster-yellow {
+    background-color: rgba(241, 211, 87, 0.6) !important; [cite_start]/* [cite: 11] */
+}
+.marker-cluster-yellow div {
+    background-color: rgba(240, 194, 12, 0.6) !important; [cite_start]/* [cite: 12] */
+}
+
+/* Cadastral Info Popup Styles */
+.thong-tin-dia-chinh table {
+    width: 100%; [cite_start]/* [cite: 13] */
+    border-collapse: collapse; [cite_start]/* [cite: 13] */
+}
+.thong-tin-dia-chinh td {
+    padding: 4px 0; [cite_start]/* [cite: 14] */
+}
+.thong-tin-dia-chinh td:first-child {
+    padding-right: 10px; [cite_start]/* [cite: 15] */
+    white-space: nowrap; [cite_start]/* [cite: 16] */
+}
+.thong-tin-dia-chinh .actions {
+    display: flex; [cite_start]/* [cite: 17] */
+    justify-content: space-around; [cite_start]/* [cite: 17] */
+    align-items: center;
+    padding-top: 5px;
+}
+.thong-tin-dia-chinh .actions button {
+    background: none; [cite_start]/* [cite: 18] */
+    border: none; [cite_start]/* [cite: 18] */
+    cursor: pointer;
+    font-size: 18px;
+    color: #555;
+    transition: color 0.2s; [cite_start]/* [cite: 19] */
+}
+.thong-tin-dia-chinh .actions button:hover {
+    color: #000; [cite_start]/* [cite: 20] */
+}
+/* --- CSS TỐI ƯU CHO THANH TRƯỢT DỌC --- */
+
+/* 1. Khung trắng chứa thanh trượt */
+#opacity-control {
+    /* Thuộc tính vị trí mới */
+    position: absolute;
+    bottom: 120px;     /* Khoảng cách từ cạnh dưới */
+    right: 18px;    /* Khoảng cách từ cạnh phải (tương đương right-4 của Tailwind) */
+    z-index: 1000;
+    width: 15px;      /* Giảm chiều rộng khung */
+    height: 100px;    /* Giảm chiều cao khung */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* 2. Chính thanh trượt */
+#opacity-slider {
+    -webkit-appearance: slider-vertical;
+    writing-mode: bt-lr;
+    width: 8px;       /* Giữ nguyên độ dày */
+    height: 90px;    /* Giảm chiều dài thanh trượt */
+    background: #e2e8f0;
+    border-radius: 2px;
+    outline: none;
+}
+
+/* 3. Nút kéo (thumb) trên Chrome, Safari, Edge */
+#opacity-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;      /* Giảm kích thước nút kéo */
+  height: 20px;     /* Giảm kích thước nút kéo */
+  background: #3b82f6;
+  cursor: pointer;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 0 2px rgba(0,0,0,0.5); /* Thêm đổ bóng nhẹ cho nổi bật */
+}
+
+/* 4. Nút kéo (thumb) trên Firefox */
+#opacity-slider::-moz-range-thumb {
+  width: 20px;      /* Giảm kích thước nút kéo */
+  height: 20px;     /* Giảm kích thước nút kéo */
+  background: #3b82f6;
+  cursor: pointer;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 0 2px rgba(0,0,0,0.5);
+}
+
+/* --- CSS CHO KHUNG KẾT QUẢ TÌM KIẾM --- */
+#search-results .result-category {
+    padding: 10px 15px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: #6b7280; /* text-gray-500 */
+    background-color: #f9fafb; /* bg-gray-50 */
+    border-bottom: 1px solid #e5e7eb; /* border-gray-200 */
+}
+
+#search-results .result-item {
+    padding: 12px 15px;
+    cursor: pointer;
+    border-bottom: 1px solid #f3f4f6; /* border-gray-100 */
+    display: flex;
+    align-items: center;
+}
+
+#search-results .result-item:hover {
+    background-color: #eff6ff; /* bg-blue-50 */
+}
+
+#search-results .result-item .icon {
+    margin-right: 12px;
+    color: #9ca3af; /* text-gray-400 */
+}
+
+#search-results .result-item .price {
+    font-weight: 600;
+    color: #dc2626; /* text-red-600 */
+    font-size: 0.9rem;
+    margin-left: 8px;
+}
+/* --- CSS CHO NHÃN KÍCH THƯỚC TRÊN BẢN ĐỒ --- */
+.dimension-label {
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 4px;
+    padding: 2px 5px;
+    font-size: 12px;
+    font-weight: bold;
+    color: #333;
+    white-space: nowrap;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    border: 1px solid rgba(0,0,0,0.2);
+}
+/* --- CSS CHO BOTTOM SHEET PANEL --- */
+/* --- CSS CHO BOTTOM SHEET PANEL (ĐÃ TỐI ƯU) --- */
+
+#info-panel {
+    transition: transform 0.3s ease-in-out, height 0.3s ease-in-out;
+}
+
+#info-panel.is-open {
+    transform: translateY(0);
+}
+
+/* Trạng thái thu gọn */
+#info-panel.is-collapsed {
+    height: 65px !important; 
+    overflow-y: hidden;
+}
+#info-panel.is-collapsed #panel-content {
+    display: none;
+}
+
+/* Các nút điều khiển trên Header */
+.panel-header-btn {
+    padding: 0.25rem 0.5rem;
+    color: #6b7280;
+    transition: color 0.2s;
+}
+.panel-header-btn:hover {
+    color: #111827;
+}
+
+/* Các dòng thông tin - Bố cục 1 hàng */
+#panel-content .info-row {
+    display: flex;
+    padding: 2px 0;     /* Giảm từ 4px → 2px */
+    align-items: center;
+    font-size: 13px;     /* Giảm nhẹ font */
+    flex-wrap: nowrap;   /* Không xuống dòng */
+}
+
+#panel-content .info-group {
+    flex-basis: 50%;
+}
+#panel-content .info-label {
+    color: #6b7280;
+    margin-right: 8px;
+}
+#panel-content .info-value {
+    font-weight: 600;
+    color: #1f2937;
+}
+
+/* Các nút Action (Thích, Sao chép, Chia sẻ) */
+#panel-actions {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* <-- Bố cục 3 cột cho 3 nút chính */
+    gap: 12px;
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid #e5e7eb;
+    position: relative; /* Cần cho menu con */
+}
+#panel-actions button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    border-radius: 8px;
+    transition: background-color 0.2s;
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+}
+#panel-actions button:hover {
+    background-color: #f3f4f6;
+}
+#panel-actions .icon {
+    font-size: 20px;
+    margin-bottom: 4px;
+}
+#panel-actions .text {
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* Menu con cho các nút chia sẻ */
+#share-submenu {
+    display: none;
+    position: absolute;
+    bottom: 120%;
+    right: 1%;
+    transform: translateX(-50%);
+    flex-direction: column;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    padding: 6px;
+    gap: 6px;
+    border: 1px solid #e5e7eb;
+    z-index: 999;
+}
+
+
+
+#share-submenu.is-visible {
+    display: flex;
+}
+
+/* --- CSS CHO THANH CÔNG CỤ MỚI --- */
+.toolbar-btn {
+    display: flex;
+    align-items: center;
+    padding: 6px 14px;
+    border-radius: 9999px; /* rounded-full */
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151; /* text-gray-700 */
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.toolbar-btn i {
+    margin-right: 6px;
+    font-size: 16px;
+}
+
+.toolbar-btn:hover {
+    background-color: #f3f4f6; /* bg-gray-100 */
+}
+
+.toolbar-btn.active-tool {
+    background-color: #3b82f6; /* bg-blue-600 */
+    color: white;
+}
+/* Thêm vào để tạo hiệu ứng di chuyển mượt mà */
+#action-toolbar {
+    transition: transform 0.3s ease-in-out;
+}
+
+/* Đây là trạng thái "được nâng lên" của thanh công cụ */
+#action-toolbar.is-raised {
+    /* Dịch chuyển lên trên 75px */
+    transform: translate(-50%, -200px);
+}
+
+/* Lớp CSS cho nút đang được kích hoạt */
+
+#share-submenu button {
+    padding: 8px;
+    width: 40px;
+    height: 40px;
+}
+#share-submenu .icon {
+    margin: 0;
+}
+#share-submenu .text {
+    display: none;
+}
+#share-submenu.is-visible {
+    display: flex;
+}
+#info-panel {
+    padding: 10px 14px !important; /* từ mặc định lớn hơn */
+}
+#action-toolbar.is-partially-raised {
+    transform: translate(-50%, -50px); /* nổi lên khỏi panel thu gọn */
+}
+
+/* Tùy chỉnh vị trí cho bảng chọn lớp bản đồ */
+.leaflet-bottom.leaflet-right {
+    /* Di chuyển toàn bộ các control ở góc dưới-phải lên trên 40px */
+    margin-bottom: 40px !important;
+}
+/* Thêm vào cuối file style.css */
+.contact-icon-btn {
+    transition: transform 0.2s ease;
+}
+.contact-icon-btn:hover {
+    transform: scale(1.2);
+}
+/* Thêm vào cuối file style.css */
+
+/* XÓA CSS CŨ CHO PANEL VÀ THAY BẰNG ĐOẠN NÀY */
+.price-highlight {
+    font-size: 1.5rem; /* text-2xl */
+    font-weight: 700;
+    color: #ef4444; /* text-red-500 */
+    margin-bottom: 8px;
+}
+.info-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+.pill-item {
+    background-color: #f3f4f6; /* bg-gray-100 */
+    padding: 4px 10px;
+    border-radius: 9999px;
+    font-size: 13px;
+    color: #374151; /* text-gray-700 */
+}
+.pill-item i {
+    margin-right: 5px;
+    color: #6b7280;
+}
+.address-actions-group {
+    margin-bottom: 16px;
+}
+.address-text {
+    font-size: 14px;
+    color: #4b5563; /* text-gray-600 */
+    margin-bottom: 8px;
+    line-height: 1.5;
+}
+.address-text i {
+    margin-right: 6px;
+    color: #ef4444;
+}
+
+.poster-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background-color: #f9fafb; /* bg-gray-50 */
+    padding: 12px;
+    border-radius: 12px;
+    border-top: 1px solid #e5e7eb;
+}
+.poster-avatar-small {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+.poster-name {
+    flex-grow: 1;
+    font-weight: 600;
+    color: #1f2937;
+}
+.poster-contact-buttons {
+    display: flex;
+    gap: 12px;
+}
+
+/* Ẩn thanh action toolbar khi panel mở */
+#info-panel.is-open + #action-toolbar {
+    display: none;
+}
+/* ---- CSS MỚI CHO CÁC NÚT HÀNH ĐỘNG ---- */
+.action-buttons-group {
+    display: flex;
+    gap: 10px; /* Khoảng cách giữa các nút */
+    margin-top: 8px;
+}
+.action-button {
+    flex: 1; /* Để các nút có chiều rộng bằng nhau */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background-color: #eef2ff; /* bg-indigo-50 */
+    color: #4338ca; /* text-indigo-700 */
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+    border: 1px solid #c7d2fe; /* border-indigo-200 */
+}
+.action-button:hover {
+    background-color: #4338ca; /* bg-indigo-700 */
+    color: white;
+}
+.action-button i {
+    font-size: 14px;
+}
+
+/* ---- CSS MỚI CHO CÁC ICON LIÊN HỆ (CÓ MÀU) ---- */
+.poster-contact-buttons {
+    display: flex;
+    gap: 16px; /* Tăng khoảng cách cho đẹp hơn */
+}
+.contact-button {
+    font-size: 24px;
+    transition: transform 0.2s, opacity 0.2s;
+}
+.contact-button:hover {
+    transform: scale(1.15);
+    opacity: 0.8;
+}
+
+/* Thêm màu sắc riêng cho từng icon */
+.contact-button .fa-phone-alt  { color: #16a34a; } /* green-600 */
+.contact-button .fa-whatsapp   { color: #25D366; } /* Official WhatsApp */
+.contact-button .fa-comment-dots { color: #0068FF; } /* Official Zalo */
+.contact-button .fa-envelope   { color: #ea4335; } /* Google Red */
+.contact-button .fa-facebook   { color: #1877F2; } /* Official Facebook */
+/* Thêm vào cuối file style.css */
+.admin-delete-button {
+    background-color: #fee2e2 !important; /* bg-red-50 */
+    color: #b91c1c !important; /* text-red-800 */
+    border-color: #fecaca !important; /* border-red-200 */
+}
+.admin-delete-button:hover {
+    background-color: #b91c1c !important; /* bg-red-800 */
+    color: white !important;
+}
+/* Thêm vào cuối file style.css */
+
+.contact-link-official {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    background-color: #f9fafb; /* bg-gray-50 */
+    border-radius: 10px;
+    text-decoration: none;
+    color: #374151; /* text-gray-700 */
+    font-weight: 500;
+    transition: background-color 0.2s, transform 0.2s;
+    border: 1px solid #e5e7eb; /* border-gray-200 */
+}
+
+.contact-link-official:hover {
+    background-color: #f3f4f6; /* bg-gray-100 */
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.contact-link-official i {
+    font-size: 24px;
+    margin-right: 16px;
+    width: 28px; /* Căn chỉnh các icon cho thẳng hàng */
+    text-align: center;
+}
+
+/* Thêm màu sắc cho các kênh */
+.icon-email { color: #ea4335; }
+.icon-facebook { color: #1877F2; }
+.icon-youtube { color: #FF0000; }
+.icon-tiktok { color: #000000; }
+/* Thêm vào cuối file style.css */
+
+.contact-link-official {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    background-color: #f9fafb; /* bg-gray-50 */
+    border-radius: 10px;
+    text-decoration: none;
+    color: #374151; /* text-gray-700 */
+    font-weight: 500;
+    transition: background-color 0.2s, transform 0.2s;
+    border: 1px solid #e5e7eb; /* border-gray-200 */
+}
+
+.contact-link-official:hover {
+    background-color: #f3f4f6; /* bg-gray-100 */
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.contact-link-official i {
+    font-size: 24px;
+    margin-right: 16px;
+    width: 28px; /* Căn chỉnh các icon cho thẳng hàng */
+    text-align: center;
+}
+
+/* Thêm màu sắc cho các kênh */
+.icon-email { color: #ea4335; }
+.icon-facebook { color: #1877F2; }
+.icon-youtube { color: #FF0000; }
+.icon-tiktok { color: #000000; }
+
+/* ---- CSS MỚI CHO PHẦN MIỄN TRỪ TRÁCH NHIỆM ---- */
+.disclaimer-section {
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid #e5e7eb; /* border-gray-200 */
+}
+
+.disclaimer-text {
+    font-size: 12px;
+    color: #6b7280; /* text-gray-500 */
+    line-height: 1.6;
+    text-align: justify;
+}
+
+.disclaimer-text i {
+    color: #f59e0b; /* amber-500 */
+    margin-right: 6px;
+}
+
+.disclaimer-text strong {
+    color: #4b5563; /* text-gray-600 */
+}
+
+html, body, #map {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+.dimension-label-container {
+    pointer-events: none;
+    z-index: 1000;
+}
+
+.dimension-label {
+    position: relative;
+    background: rgba(255, 255, 255, 0.85);
+    color: #111827;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    border: 1px solid #9ca3af;
+    white-space: nowrap;
+    transform-origin: center center;
+    box-shadow: 0 0 3px rgba(0,0,0,0.2);
+}
+

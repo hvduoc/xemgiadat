@@ -1,4 +1,4 @@
-// --- CẤU HÌNH VÀ KHỞI TẠO ---
+// --- FIREBASE CONFIGURATION ---
 const firebaseConfig = {
     apiKey: "AIzaSyDu9tYpJdMPT7Hvk2_Ug8XHwxRQXoakRfs",
     authDomain: "xemgiadat-dfe15.firebaseapp.com",
@@ -6,75 +6,157 @@ const firebaseConfig = {
     storageBucket: "xemgiadat-dfe15.appspot.com",
     messagingSenderId: "361952598367",
     appId: "1:361952598367:web:c1e2e3b1a6d5d8c797beea",
+    measurementId: "G-XT932D9N1N"
 };
-const mapboxAccessToken = "pk.eyJ1IjoiaHZkdW9jIiwiYSI6ImNtZGNsbTZ4YzE2Y2Eya3F6NHJkMGk5NzgifQ.kg3cR-59WQV-28lXiu1o7A";
 
+// --- MAPBOX ACCESS TOKEN ---
+const mapboxAccessToken = "pk.eyJ1IjoiaHZkdW9jIiwiYSI6ImNtZDFwcjVxYTAzOGUybHEzc3ZrNTJmcnIifQ.D5VlPC8c_n1i3kezgqtzwg";
+
+// --- SERVICE INITIALIZATION ---
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// --- BIẾN TOÀN CỤC ---
-let wardDataCache = {};
-let wardsGeojsonData = null;
-let highlightLayer = null;
-const myAttribution = '© XemGiaDat | Dữ liệu gốc © Sở TNMT Đà Nẵng';
+async function getCachedAddress(lat, lng) {
+  const key = `addr:${lat.toFixed(5)},${lng.toFixed(5)}`;
+  const cached = localStorage.getItem(key);
+  if (cached) return cached;
 
-// --- HÀM KHỞI ĐỘNG CHÍNH ---
-document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    const endpointUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxAccessToken}&language=vi&limit=1`;
+    const response = await fetch(endpointUrl);
+    const data = await response.json();
+    const result = data.features?.[0]?.place_name || 'Không xác định';
+    localStorage.setItem(key, result);
+    return result;
+  } catch (err) {
+    console.error('Lỗi khi lấy địa chỉ:', err);
+    return 'Không xác định';
+  }
+}
 
-    const map = L.map('map', { center: [16.054456, 108.202167], zoom: 13, zoomControl: false });
+    function extractLatLngsFromVectorLayer(layer, map) {
+        try {
+            const rings = layer._rings?.[0];
+            if (!Array.isArray(rings)) return null;
 
-    const googleStreets = L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',{ maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'], attribution: myAttribution + ' | © Google Maps' });
-    const googleSat = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{ maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'], attribution: myAttribution + ' | © Google Satellite' });
-    googleStreets.addTo(map);
+            const coords = rings.map(pt => {
+                const latlng = map.layerPointToLatLng(pt);
+                return [latlng.lng, latlng.lat];
+            });
 
-   // --- SỬ DỤNG LẠI MAPBOX VECTOR TILES ---
-    const parcelLayer = L.vectorGrid.mapbox(
-        'hvduoc.danang_parcels_final', // Tileset ID của bạn trên Mapbox
-        {
-            accessToken: mapboxAccessToken, // Biến accessToken của bạn
-            maxNativeZoom: 14,
-            vectorTileLayerStyles: {
-                // Tên layer bên trong tileset của bạn
-                'parcels': function(properties, zoom) { 
-                    return {
-                        fillColor: 'cyan',
-                        fillOpacity: 0.2,
-                        color: '#0078FF',
-                        weight: 1,
-                        fill: true
-                    };
-                }
+            // Đảm bảo polygon đóng kín
+            if (coords.length > 0 && (coords[0][0] !== coords[coords.length - 1][0] || coords[0][1] !== coords[coords.length - 1][1])) {
+                coords.push(coords[0]);
             }
-        }
-    ).addTo(map);
 
-    highlightLayer = L.geoJSON(null, {
-        style: { color: '#F59E0B', weight: 3, fillColor: '#F59E0B', fill: true, fillOpacity: 0.4 }
-    }).addTo(map);
-    
-    const baseMaps = { "Ảnh vệ tinh": googleSat, "Bản đồ đường": googleStreets };
+            return {
+                type: 'Feature',
+                geometry: {
+                    type: 'Polygon',
+                    coordinates: [coords]
+                }
+            };
+        } catch (err) {
+            console.warn("❌ Không thể dựng GeoJSON từ layer:", err);
+            return null;
+        }
+    }
+
+document.addEventListener('DOMContentLoaded', () => {
+
+    // --- MAP AND LAYERS INITIALIZATION ---
+    const map = L.map('map', { center: [16.054456, 108.202167], zoom: 13, zoomControl: false });
+    const myAttribution = '© XemGiaDat | Dữ liệu © Sở TNMT Đà Nẵng';
+    const googleStreets = L.tileLayer('http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',{ maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'], attribution: myAttribution + ' | © Google Maps' });
+    const googleSat = L.tileLayer('http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{ maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'], attribution: myAttribution + ' | © Google Satellite' });
+    const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: myAttribution + ' | © OpenStreetMap' });
+
+    // --- KHẮC PHỤC & TỐI ƯU: TÍCH HỢP BẢN ĐỒ PHÂN LÔ TỪ MAPBOX ---
+
+    // 1. Biến toàn cục cho lớp bản đồ và thửa đất được highlight
+    let parcelLayer = null;
+    let highlightedFeature = null;
+
+    // 2. URL để tải vector tiles
+    const tilesetId = 'hvduoc.danang_parcels_final';
+    const tileUrl = `https://api.mapbox.com/v4/${tilesetId}/{z}/{x}/{y}.mvt?access_token=${mapboxAccessToken}`;
+
+    // 3. Style mặc định cho các thửa đất
+   // 3. Style mặc định cho các thửa đất
+    const parcelStyle = {
+        color: '#6B7280', // Viền màu xám đậm hơn (Tailwind gray-500) cho dễ thấy
+        weight: 1,       // Nét viền dày hơn một chút
+        fill: false      // TẮT đổ màu nền, chỉ giữ lại viền
+    };
+
+    // 4. Tùy chọn cho lớp vector tiles
+    const vectorTileOptions = {
+        rendererFactory: L.canvas.tile,
+        interactive: true,
+        getFeatureId: feature => feature.properties.OBJECTID,
+        vectorTileLayerStyles: {
+            'danang_full': parcelStyle
+        }
+    };
+
+    // 5. Tạo lớp bản đồ phân lô MỘT LẦN DUY NHẤT
+    parcelLayer = L.vectorGrid.protobuf(tileUrl, vectorTileOptions);
+        
+    // Thay thế toàn bộ hàm parcelLayer.on('click', ...) cũ bằng phiên bản hoàn chỉnh này
+    parcelLayer.on('click', function(e) {
+    L.DomEvent.stop(e);
+
+    const props = e.layer.properties;
+    if (!props || !props.OBJECTID) return;
+
+    hideInfoPanel();
+    highlightedFeature = props.OBJECTID;
+
+    parcelLayer.setFeatureStyle(highlightedFeature, {
+        color: '#EF4444',
+        weight: 3,
+        fillColor: '#EF4444',
+        fill: true,
+        fillOpacity: 0.3
+    });
+
+    // ✅ Truy vấn lại geometry chuẩn từ MapServer để vẽ cạnh
+    const queryLatLng = e.latlng;
+        L.esri.query({
+            url: "https://gis.danang.gov.vn/arcgis/rest/services/BaseMap/MapServer/0"
+        })
+        .nearby(queryLatLng, 5) // 5 meters tolerance
+        .run((error, featureCollection) => {
+            if (error || !featureCollection.features.length) {
+                console.warn("❌ Không truy vấn được thửa đất:", error);
+                return;
+            }
+
+            const geojson = featureCollection.features[0]; // Lấy thửa đầu tiên
+            drawDimensions(geojson); // Vẽ số đo cạnh
+        });
+
+        // ✅ Hiển thị thông tin thửa đất
+        const formattedProps = {
+            'Số thửa': props.SoThuTuThua,
+            'Số hiệu tờ bản đồ': props.SoHieuToBanDo,
+            'Diện tích': props.DienTich,
+            'Ký hiệu mục đích sử dụng': props.KyHieuMucDichSuDung,
+        };
+        showInfoPanel('Thông tin Thửa đất', formattedProps, e.latlng.lat, e.latlng.lng);
+    });
+
+    // --- KẾT THÚC KHẮC PHỤC ---
+
+    const baseMaps = { "Ảnh vệ tinh": googleSat, "Bản đồ đường": googleStreets, "OpenStreetMap": osmLayer };
     const overlayMaps = { "🗺️ Bản đồ phân lô": parcelLayer };
+    googleStreets.addTo(map);
+    parcelLayer.addTo(map); // Thêm lớp phân lô vào bản đồ
     L.control.layers(baseMaps, overlayMaps, { position: 'bottomright' }).addTo(map);
 
-    try {
-        const response = await fetch('./data/ranhgioi.geojson');
-        wardsGeojsonData = await response.json();
-        console.log("✅ Tải thành công file ranh giới các xã.");
-        handleUrlParameters(); 
-    } catch (err) {
-        console.error("Lỗi khi tải file ranh giới xã.", err);
-    }
-            
-  
 
-    // ✅ KHỞI TẠO LỚP TÔ MÀU
-    highlightLayer = L.geoJSON(null, {
-        // Định nghĩa style màu vàng ở đây
-        style: { color: '#F59E0B', weight: 3, fillColor: '#F59E0B', fill: true, fillOpacity: 0.4 }
-    }).addTo(map);
-    
-        // --- DOM ELEMENT SELECTION ---
+    // --- DOM ELEMENT SELECTION ---
     const modal = document.getElementById('form-modal');
     const listModal = document.getElementById('price-list-modal');
     const form = document.getElementById('location-form');
@@ -128,89 +210,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             return new L.DivIcon({ html: `<div><span>${count}</span></div>`, className: `marker-cluster marker-cluster-yellow${size}`, iconSize: new L.Point(40, 40) });
         }
     }).addTo(map);
-    let currentWardLayer = null; // ✅ Thêm dòng này vào để xử lý lớp phân lô từng xã
-
 
     // --- HELPER FUNCTIONS ---
     window.openStreetView = (lat, lng) => window.open(`http://maps.google.com/?q=&layer=c&cbll=${lat},${lng}`, '_blank');
-
-    // Hàm "trái tim" mới để tìm và hiển thị thông tin thửa đất từ một tọa độ
-    async function findAndDisplayParcel(latlng) {
-        highlightLayer.clearLayers();
-        dimensionMarkers.clearLayers();
-
-        if (!wardsGeojsonData || !wardsGeojsonData.features) {
-            console.error("Dữ liệu ranh giới chưa sẵn sàng hoặc không hợp lệ.");
-            return;
-        }
-
-        // 1. Xác định xã/phường từ tọa độ (AN TOÀN HƠN)
-        const point = turf.point([latlng.lng, latlng.lat]);
-        const targetWard = wardsGeojsonData.features.find(wardFeature => 
-            // Thêm kiểm tra: Đảm bảo wardFeature và geometry của nó tồn tại
-            wardFeature && wardFeature.geometry && turf.booleanPointInPolygon(point, wardFeature)
-        );
-
-        if (!targetWard || !targetWard.properties.MaXa) {
-            console.warn("Không xác định được xã/phường hợp lệ cho tọa độ này.");
-            return;
-        }
-
-        const wardId = targetWard.properties.MaXa;
-
-        // 2. Tải hoặc lấy dữ liệu thửa đất
-        let wardParcels;
-        // ... (Phần code tải và cache không thay đổi)
-        if (wardDataCache[wardId]) {
-            wardParcels = wardDataCache[wardId];
-        } else {
-            try {
-                const response = await fetch(`./data/parcels_${wardId}.geojson`);
-                if (!response.ok) throw new Error(`File not found for ward: ${wardId}`);
-                wardParcels = await response.json();
-                wardDataCache[wardId] = wardParcels;
-            } catch (error) {
-                console.error("Lỗi khi tải dữ liệu thửa đất:", error);
-                return;
-            }
-        }
-
-        if (!wardParcels || !wardParcels.features) {
-            console.error(`Dữ liệu thửa đất cho xã ${wardId} không hợp lệ.`);
-            return;
-        }
-         
-
-        // 3. Tìm chính xác thửa đất (AN TOÀN HƠN)
-        const fullFeature = wardParcels.features.find(f => 
-            // Thêm kiểm tra: Đảm bảo feature f và geometry của nó tồn tại
-            f && f.geometry && turf.booleanPointInPolygon(point, f)
-        );
-
-        if (fullFeature) {
-            const props = fullFeature.properties;
-            
-            // Bỏ tô màu trên lớp parcelLayer
-            // highlightedFeature = props.OBJECTID;
-            // parcelLayer.setFeatureStyle(props.OBJECTID, ...);
-
-            // ✅ THAY BẰNG LỆNH THÊM DỮ LIỆU VÀO LỚP TÔ MÀU
-            highlightLayer.addData(fullFeature);
-            
-            // Phần code còn lại không thay đổi
-            const foundAddress = await getCachedAddress(latlng.lat, latlng.lng);
-            const formattedProps = {
-                'Số thửa': props.SoThuTuThua, 'Số hiệu tờ bản đồ': props.SoHieuToBanDo,
-                'Diện tích': props.DienTich, 'Ký hiệu mục đích sử dụng': props.KyHieuMucDichSuDung,
-                'Địa chỉ': foundAddress
-            };
-            showInfoPanel('Thông tin Thửa đất', formattedProps, latlng.lat, latlng.lng);
-            drawDimensions(fullFeature);
-
-        } else {
-            console.warn("Không tìm thấy thửa đất nào tại tọa độ này.");
-        }
-    }
 
     function showInfoPanel(title, props, lat, lng) {
         
@@ -339,16 +341,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     function hideInfoPanel() {
         infoPanel.classList.remove('is-open');
         actionToolbar.classList.remove('is-raised', 'is-partially-raised');
-
-        // BỎ logic reset style cũ
-        // if (highlightedFeature) {
-        //     parcelLayer.resetFeatureStyle(highlightedFeature);
-        //     highlightedFeature = null;
-        // }
-
-        // ✅ THAY BẰNG LỆNH XÓA SẠCH LỚP TÔ MÀU
-        highlightLayer.clearLayers();
-
+        if (highlightedFeature) {
+            parcelLayer.resetFeatureStyle(highlightedFeature);
+            highlightedFeature = null;
+        }
         dimensionMarkers.clearLayers();
     }
 
@@ -372,81 +368,69 @@ document.addEventListener('DOMContentLoaded', async () => {
             return null;
         }
     }
-                 
-    // Dán và thay thế toàn bộ hàm drawDimensions cũ bằng phiên bản này
+
+    // Thay thế hàm drawDimensions cũ bằng phiên bản mới này
     function drawDimensions(feature) {
-        dimensionMarkers.clearLayers();
-        if (!feature || !feature.geometry || !feature.geometry.coordinates) {
-            return;
+    dimensionMarkers.clearLayers();
+
+    if (!feature || !feature.geometry || !feature.geometry.coordinates) {
+        console.warn("❌ Không có geometry hợp lệ để vẽ.");
+        return;
+    }
+
+    let coords;
+    const geomType = feature.geometry.type;
+
+    // An toàn tuyệt đối khi truy cập
+    if (geomType === 'Polygon') {
+        const ring = feature.geometry.coordinates?.[0];
+        if (Array.isArray(ring) && ring.length >= 2) {
+            coords = ring;
         }
-
-        const coords = feature.geometry.coordinates[0];
-        if (!Array.isArray(coords) || coords.length < 2) {
-            return;
-        }
-
-        const groupedSegments = [];
-        let currentGroup = null;
-        const getBearing = (p1, p2) => turf.bearing([p1.lng, p1.lat], [p2.lng, p2.lat]);
-
-        // BƯỚC 1: Duyệt và gộp các đoạn thẳng gần như thẳng hàng
-        for (let i = 0; i < coords.length - 1; i++) {
-            const p1 = L.latLng(coords[i][1], coords[i][0]);
-            const p2 = L.latLng(coords[i + 1][1], coords[i + 1][0]);
-            
-            const bearing = getBearing(p1, p2);
-            const distance = p1.distanceTo(p2);
-            if (distance < 0.5) continue;
-
-            if (!currentGroup) {
-                // Bắt đầu một nhóm mới
-                currentGroup = { points: [p1, p2], totalDistance: distance, bearing: bearing };
-            } else {
-                // So sánh hướng của đoạn hiện tại với hướng của nhóm
-                const angleDiff = Math.abs(currentGroup.bearing - bearing);
-                const angleGap = Math.min(angleDiff, 360 - angleDiff);
-
-                if (angleGap <= 10) { // Cho phép sai số 10 độ
-                    // Nếu cùng hướng, thêm vào nhóm hiện tại
-                    currentGroup.points.push(p2);
-                    currentGroup.totalDistance += distance;
-                    // Cập nhật lại hướng trung bình của cả cạnh lớn
-                    currentGroup.bearing = getBearing(currentGroup.points[0], p2);
-                } else {
-                    // Nếu khác hướng, kết thúc nhóm cũ và bắt đầu nhóm mới
-                    groupedSegments.push(currentGroup);
-                    currentGroup = { points: [p1, p2], totalDistance: distance, bearing: bearing };
-                }
-            }
-        }
-        if (currentGroup) {
-            groupedSegments.push(currentGroup);
-        }
-
-        // BƯỚC 2: Hiển thị MỘT kích thước cho MỖI nhóm đã gộp
-        for (const seg of groupedSegments) {
-            const pStart = seg.points[0];
-            const pEnd = seg.points[seg.points.length - 1];
-
-            // Vị trí là TRUNG ĐIỂM của CẢ CẠNH LỚN
-            const labelPosition = L.latLng((pStart.lat + pEnd.lat) / 2, (pStart.lng + pEnd.lng) / 2);
-            
-            // Kích thước là TỔNG CHIỀU DÀI của các đoạn nhỏ
-            const displayDistance = Math.round(seg.totalDistance);
-
-            // Hiển thị là SỐ NẰM NGANG, KHÔNG XOAY
-            const labelHtml = `<div class="dimension-label">${displayDistance}</div>`;
-
-            const dimensionLabel = L.marker(labelPosition, {
-                icon: L.divIcon({
-                    className: 'dimension-label-container',
-                    html: labelHtml
-                })
-            });
-            dimensionMarkers.addLayer(dimensionLabel);
+    } else if (geomType === 'MultiPolygon') {
+        const ring = feature.geometry.coordinates?.[0]?.[0];
+        if (Array.isArray(ring) && ring.length >= 2) {
+            coords = ring;
         }
     }
 
+
+    if (!Array.isArray(coords) || coords.length < 2) {
+        console.warn("❌ Không đủ tọa độ để vẽ kích thước.", coords);
+        return;
+    }
+
+    for (let i = 0; i < coords.length - 1; i++) {
+        const p1 = coords[i];
+        const p2 = coords[i + 1];
+
+        if (!p1 || !p2 || p1.length < 2 || p2.length < 2) continue;
+
+        const point1 = L.latLng(p1[1], p1[0]);
+        const point2 = L.latLng(p2[1], p2[0]);
+
+        const distance = point1.distanceTo(point2);
+        if (distance < 1) continue;
+
+        const midPoint = L.latLng(
+            (point1.lat + point2.lat) / 2,
+            (point1.lng + point2.lng) / 2
+        );
+        const angle = Math.atan2(p2[1] - p1[1], p2[0] - p1[0]) * 180 / Math.PI;
+        const displayDistance = distance.toFixed(1) + 'm';
+
+        console.log("✅ Vẽ số đo:", displayDistance, "tại", midPoint); // để kiểm tra
+
+        const dimensionLabel = L.marker(midPoint, {
+            icon: L.divIcon({
+                className: 'dimension-label-container',
+                html: `<div class="dimension-label">${displayDistance}</div>`
+            })
+        });
+
+        dimensionMarkers.addLayer(dimensionLabel);
+    }
+}
 
     async function loadUserProfile() {
         try {
@@ -467,14 +451,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // KHẮC PHỤC: Xóa hàm performCadastralQuery vì không còn cần thiết.
 
-   function handleUrlParameters() {
+    function handleUrlParameters() {
         const urlParams = new URLSearchParams(window.location.search);
         const lat = urlParams.get('lat');
         const lng = urlParams.get('lng');
         if (lat && lng) {
             const targetLatLng = L.latLng(parseFloat(lat), parseFloat(lng));
-            map.setView(targetLatLng, 19); // Zoom mặc định
-            findAndDisplayParcel(targetLatLng); // Gọi NGAY lập tức
+            map.setView(targetLatLng, 19);
+            // Thay vì gọi query, chúng ta có thể giả lập một sự kiện click
+            // Tuy nhiên, cách đơn giản là chỉ zoom tới vị trí.
         }
     }
 
@@ -555,8 +540,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     };
 
-    window.copyLocationLink = function(lat, lng, soTo = '', soThua = '') {
-    const url = `${window.location.origin}/og.html?lat=${lat}&lng=${lng}&soTo=${soTo}&soThua=${soThua}`;
+    window.copyLocationLink = function(lat, lng) {
+        const url = `${window.location.origin}${window.location.pathname}?lat=${lat}&lng=${lng}`;
         navigator.clipboard.writeText(url).then(() => {
             alert('Đã sao chép liên kết vị trí!');
         }).catch(err => console.error('Lỗi sao chép: ', err));
@@ -704,10 +689,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 document.getElementById('address-input').value = (error || !result.address) ? 'Không tìm thấy địa chỉ' : result.address.Match_addr;
             });
         }
-        if (isQueryMode) {
-            findAndDisplayParcel(e.latlng);// ✅ tra cứu thửa đất tại vị trí click
-           
-        }
     });
 
     // KHẮC PHỤC: Logic thanh trượt độ trong suốt
@@ -716,8 +697,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Tạo một style mới chỉ với thuộc tính fillOpacity
         const newStyle = { fillOpacity: newOpacity };
         // Áp dụng style mới cho lớp bản đồ phân lô
-        if (parcelLayer) parcelLayer.setStyle({ fillOpacity: newOpacity });
-
+        parcelLayer.setStyle(newStyle);
     });
 
     map.on('overlayadd', e => {
@@ -855,44 +835,5 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     handleUrlParameters();
-
-    async function preloadNearbyWardData(centerLatLng) {
-    if (!wardsGeojsonData) return;
-
-    const centerPoint = turf.point([centerLatLng.lng, centerLatLng.lat]);
-    const nearbyWards = wardsGeojsonData.features
-        .map(ward => ({
-            feature: ward,
-            distance: turf.distance(centerPoint, turf.center(ward))
-        }))
-        .sort((a, b) => a.distance - b.distance)
-        .slice(0, 4); // preload 4 xã gần nhất
-
-    for (const ward of nearbyWards) {
-        const wardId = ward.feature.properties.MaXa;
-        if (!wardDataCache[wardId]) {
-            try {
-                const response = await fetch(`./data/parcels_${wardId}.geojson`);
-                if (response.ok) {
-                    const json = await response.json();
-                    wardDataCache[wardId] = json;
-                    console.log(`✅ Preloaded xã ${wardId}`);
-                }
-            } catch (err) {
-                console.warn(`❌ Lỗi preload xã ${wardId}:`, err);
-            }
-        }
-    }
-    const clearWardsBtn = document.getElementById('clear-wards-btn');
-    clearWardsBtn.addEventListener('click', () => {
-        Object.values(wardLayersCache).forEach(layer => map.removeLayer(layer));
-        wardLayersCache = {};
-        highlightLayer.clearLayers();
-        dimensionMarkers.clearLayers();
-    });
-
-}
-
-
 });
 // KHẮC PHỤC: Đã xóa dòng }); thừa ở đây
