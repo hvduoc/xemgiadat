@@ -55,6 +55,35 @@ input[type=range][orient=vertical] {
     background-color: rgba(240, 194, 12, 0.6) !important; [cite_start]/* [cite: 12] */
 }
 
+/* Cadastral Info Popup Styles */
+.thong-tin-dia-chinh table {
+    width: 100%; [cite_start]/* [cite: 13] */
+    border-collapse: collapse; [cite_start]/* [cite: 13] */
+}
+.thong-tin-dia-chinh td {
+    padding: 4px 0; [cite_start]/* [cite: 14] */
+}
+.thong-tin-dia-chinh td:first-child {
+    padding-right: 10px; [cite_start]/* [cite: 15] */
+    white-space: nowrap; [cite_start]/* [cite: 16] */
+}
+.thong-tin-dia-chinh .actions {
+    display: flex; [cite_start]/* [cite: 17] */
+    justify-content: space-around; [cite_start]/* [cite: 17] */
+    align-items: center;
+    padding-top: 5px;
+}
+.thong-tin-dia-chinh .actions button {
+    background: none; [cite_start]/* [cite: 18] */
+    border: none; [cite_start]/* [cite: 18] */
+    cursor: pointer;
+    font-size: 18px;
+    color: #555;
+    transition: color 0.2s; [cite_start]/* [cite: 19] */
+}
+.thong-tin-dia-chinh .actions button:hover {
+    color: #000; [cite_start]/* [cite: 20] */
+}
 /* --- CSS TỐI ƯU CHO THANH TRƯỢT DỌC --- */
 
 /* 1. Khung trắng chứa thanh trượt */
@@ -139,7 +168,18 @@ input[type=range][orient=vertical] {
     font-size: 0.9rem;
     margin-left: 8px;
 }
-
+/* --- CSS CHO NHÃN KÍCH THƯỚC TRÊN BẢN ĐỒ --- */
+.dimension-label {
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 4px;
+    padding: 2px 5px;
+    font-size: 12px;
+    font-weight: bold;
+    color: #333;
+    white-space: nowrap;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    border: 1px solid rgba(0,0,0,0.2);
+}
 /* --- CSS CHO BOTTOM SHEET PANEL --- */
 /* --- CSS CHO BOTTOM SHEET PANEL (ĐÃ TỐI ƯU) --- */
 
@@ -483,6 +523,32 @@ input[type=range][orient=vertical] {
 .icon-tiktok { color: #000000; }
 /* Thêm vào cuối file style.css */
 
+.contact-link-official {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    background-color: #f9fafb; /* bg-gray-50 */
+    border-radius: 10px;
+    text-decoration: none;
+    color: #374151; /* text-gray-700 */
+    font-weight: 500;
+    transition: background-color 0.2s, transform 0.2s;
+    border: 1px solid #e5e7eb; /* border-gray-200 */
+}
+
+.contact-link-official:hover {
+    background-color: #f3f4f6; /* bg-gray-100 */
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.contact-link-official i {
+    font-size: 24px;
+    margin-right: 16px;
+    width: 28px; /* Căn chỉnh các icon cho thẳng hàng */
+    text-align: center;
+}
+
 /* Thêm màu sắc cho các kênh */
 .icon-email { color: #ea4335; }
 .icon-facebook { color: #1877F2; }
@@ -517,18 +583,22 @@ html, body, #map {
     margin: 0;
     padding: 0;
 }
-/* Container cho nhãn, cần trong suốt và không bắt sự kiện chuột */
 .dimension-label-container {
-    background-color: transparent;
-    border: none;
-    pointer-events: none; /* Rất quan trọng để có thể click xuyên qua nhãn */
+    pointer-events: none;
+    z-index: 1000;
 }
 
-/* CSS cho chính con số kích thước */
 .dimension-label {
-    color: #FFFFFF; /* Màu chữ trắng */
-    font-size: 14px;
-    font-weight: bold;
-    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
-    transform-origin: center center;
+    position: relative;
+    background: rgba(255, 255, 255, 0.85);
+    color: #111827;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    border: 1px solid #9ca3af;
+    white-space: nowrap;
+    transform-origin: center center;
+    box-shadow: 0 0 3px rgba(0,0,0,0.2);
 }
+
