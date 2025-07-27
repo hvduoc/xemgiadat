@@ -170,16 +170,14 @@ input[type=range][orient=vertical] {
 }
 /* --- CSS CHO NHÃN KÍCH THƯỚC TRÊN BẢN ĐỒ --- */
 .dimension-label {
-    background: rgba(255, 255, 255, 0.8);
-    border-radius: 4px;
-    padding: 2px 5px;
-    font-size: 12px;
-    font-weight: bold;
-    color: #333;
-    white-space: nowrap;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-    border: 1px solid rgba(0,0,0,0.2);
+  background: none !important;
+  padding: 0;
+  font-size: 12px;
+  font-weight: bold;
+  color: #111;
+  text-shadow: 1px 1px 2px white;
 }
+
 /* --- CSS CHO BOTTOM SHEET PANEL --- */
 /* --- CSS CHO BOTTOM SHEET PANEL (ĐÃ TỐI ƯU) --- */
 
@@ -588,17 +586,4 @@ html, body, #map {
     z-index: 1000;
 }
 
-.dimension-label {
-    position: relative;
-    background: rgba(255, 255, 255, 0.85);
-    color: #111827;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: bold;
-    border: 1px solid #9ca3af;
-    white-space: nowrap;
-    transform-origin: center center;
-    box-shadow: 0 0 3px rgba(0,0,0,0.2);
-}
 
