@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- MAP AND LAYERS INITIALIZATION ---
     const map = L.map('map', { center: [16.054456, 108.202167], zoom: 13, zoomControl: false });
-    const myAttribution = '© XemGiaDat | Dữ liệu © Sở TNMT Đà Nẵng';
+    const myAttribution = '© XemGiaDat | 📌 Dữ liệu tham khảo từ Sở TNMT Đà Nẵng. Không có giá trị pháp lý.';
     const googleStreets = L.tileLayer('http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',{ maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'], attribution: myAttribution + ' | © Google Maps' });
     const googleSat = L.tileLayer('http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{ maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'], attribution: myAttribution + ' | © Google Satellite' });
     const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: myAttribution + ' | © OpenStreetMap' });
@@ -417,98 +417,74 @@ document.addEventListener('DOMContentLoaded', () => {
     function drawDimensions(feature) {
         dimensionMarkers.clearLayers();
 
-        if (!feature || !feature.geometry || !feature.geometry.coordinates) {
+        if (!feature?.geometry?.coordinates) {
             console.warn("❌ Không có geometry hợp lệ để vẽ.");
             return;
         }
 
-        let coords;
-        const geomType = feature.geometry.type;
-
-        if (geomType === 'Polygon') {
-            const ring = feature.geometry.coordinates?.[0];
-            if (Array.isArray(ring) && ring.length >= 2) {
-                coords = ring;
-            }
-        } else if (geomType === 'MultiPolygon') {
-            const ring = feature.geometry.coordinates?.[0]?.[0];
-            if (Array.isArray(ring) && ring.length >= 2) {
-                coords = ring;
-            }
-        }
+        let coords = feature.geometry.type === 'Polygon'
+            ? feature.geometry.coordinates?.[0]
+            : feature.geometry.coordinates?.[0]?.[0];
 
         if (!Array.isArray(coords) || coords.length < 2) {
-            console.warn("❌ Không đủ tọa độ để vẽ kích thước.", coords);
+            console.warn("❌ Không đủ tọa độ để vẽ kích thước.");
             return;
         }
 
-        // Gom các đoạn gần thẳng lại
-        let currentGroup = [];
-        let totalDistance = 0;
+        const MIN_DISPLAY_DIST = 2; // m
 
-        function flushGroup() {
-            if (currentGroup.length < 2) return;
+        let shortGroup = [];
+        let totalShortDist = 0;
 
-            const first = currentGroup[0];
-            const last = currentGroup[currentGroup.length - 1];
+        function drawLabel(points, dist) {
+            const flat = points.flat();
+            const midIdx = Math.floor(flat.length / 2);
+            const mid = flat.length % 2 === 0
+                ? [
+                    (flat[midIdx - 1][0] + flat[midIdx][0]) / 2,
+                    (flat[midIdx - 1][1] + flat[midIdx][1]) / 2
+                ]
+                : flat[midIdx];
+            const latlng = L.latLng(mid[1], mid[0]);
 
-            const midPoint = L.latLng(
-                (first.lat + last.lat) / 2,
-                (first.lng + last.lng) / 2
-            );
-
-            const displayDistance = totalDistance.toFixed(1).replace(/\.0$/, '');
-
-            const dimensionLabel = L.marker(midPoint, {
+            const marker = L.marker(latlng, {
                 icon: L.divIcon({
                     className: 'dimension-label-container',
-                    html: `<div class="dimension-label">${displayDistance}</div>`
+                    html: `<div class="dimension-label">${Math.round(dist)}</div>`
                 })
             });
-
-            dimensionMarkers.addLayer(dimensionLabel);
-            currentGroup = [];
-            totalDistance = 0;
+            dimensionMarkers.addLayer(marker);
         }
 
         for (let i = 0; i < coords.length - 1; i++) {
             const p1 = coords[i];
             const p2 = coords[i + 1];
+            const pt1 = L.latLng(p1[1], p1[0]);
+            const pt2 = L.latLng(p2[1], p2[0]);
+            const dist = pt1.distanceTo(pt2);
 
-            if (!p1 || !p2 || p1.length < 2 || p2.length < 2) continue;
-
-            const point1 = L.latLng(p1[1], p1[0]);
-            const point2 = L.latLng(p2[1], p2[0]);
-            const distance = point1.distanceTo(point2);
-
-            if (distance < 1) continue;
-
-            const angle = Math.atan2(p2[1] - p1[1], p2[0] - p1[0]) * 180 / Math.PI;
-
-            if (currentGroup.length < 1) {
-                currentGroup.push(point1, point2);
-                totalDistance += distance;
+            if (dist < MIN_DISPLAY_DIST) {
+                // Gom nhóm các cạnh nhỏ liên tiếp
+                shortGroup.push([p1, p2]);
+                totalShortDist += dist;
             } else {
-                const prev = currentGroup[currentGroup.length - 2];
-                const prevAngle = Math.atan2(currentGroup[currentGroup.length - 1].lat - prev.lat, currentGroup[currentGroup.length - 1].lng - prev.lng) * 180 / Math.PI;
-
-                const angleDiff = Math.abs(angle - prevAngle);
-                if (angleDiff < 10 || angleDiff > 350) {
-                    // gần thẳng
-                    currentGroup.push(point2);
-                    totalDistance += distance;
-                } else {
-                    // không thẳng nữa, flush nhóm
-                    flushGroup();
-                    currentGroup.push(point1, point2);
-                    totalDistance = distance;
+                // Trước khi xử lý cạnh dài, vẽ nhóm ngắn nếu có
+                if (shortGroup.length > 0 && totalShortDist >= MIN_DISPLAY_DIST) {
+                    drawLabel(shortGroup, totalShortDist);
                 }
+                shortGroup = [];
+                totalShortDist = 0;
+
+                // Vẽ cạnh dài
+                drawLabel([[p1, p2]], dist);
             }
         }
 
-        flushGroup();
+        // Vẽ nhóm ngắn cuối nếu còn
+        if (shortGroup.length > 0 && totalShortDist >= MIN_DISPLAY_DIST) {
+            drawLabel(shortGroup, totalShortDist);
+        }
     }
-
 
     async function loadUserProfile() {
         try {
