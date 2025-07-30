@@ -148,15 +148,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    // --- BẠN HÃY THAY THẾ TOÀN BỘ KHỐI parcelLayer.on('click',...) CŨ BẰNG KHỐI NÀY ---
+    // --- BẠN HÃY THAY THẾ TOÀN BỘ KHỐI parcelLayer.on('click',...) BẰNG PHIÊN BẢN ĐÃ SỬA LỖI NÀY ---
 
-    parcelLayer.on('click', async function(e) { // Thêm "async" ở đây
+    parcelLayer.on('click', async function(e) { // Giữ nguyên "async"
         if (!isQueryMode) return; 
 
         const props = e.layer.properties;
         if (!props || !props.OBJECTID) return;
 
-        // --- Các logic cũ của bạn để highlight và lấy thông tin thửa đất ---
+        // --- Logic cũ của bạn để highlight và lấy thông tin thửa đất ---
         L.DomEvent.stop(e);
         hideInfoPanel();
         highlightedFeature = props.OBJECTID;
@@ -169,7 +169,18 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         // --- Kết thúc logic cũ ---
 
+        // ⭐️⭐️⭐️ BƯỚC SỬA LỖI: GỌI LẠI HÀM VẼ KÍCH THƯỚC ⭐️⭐️⭐️
+        const maXa = props.MaXa;
+        const soTo = props.SoHieuToBanDo;
+        const soThua = props.SoThuTuThua;
+        if (maXa && soTo && soThua) {
+            fetchAndDrawDimensions(maXa, soTo, soThua);
+        }
+        // ⭐️⭐️⭐️ KẾT THÚC SỬA LỖI ⭐️⭐️⭐️
 
+
+        // --- Các bước lấy địa chỉ và hiển thị thông tin vẫn giữ nguyên như cũ ---
+        
         // 1. Chuẩn bị các thông tin có sẵn
         const formattedProps = {
             'Số thửa': props.SoThuTuThua,
