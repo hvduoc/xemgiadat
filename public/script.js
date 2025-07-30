@@ -148,29 +148,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    
-    // Thay thế toàn bộ hàm parcelLayer.on('click', ...) cũ bằng phiên bản hoàn chỉnh này
-    parcelLayer.on('click', function(e) {
-        if (!isQueryMode) return; // ❗ Chỉ xử lý khi đang bật chế độ Tra cứu
+    // --- BẠN HÃY THAY THẾ TOÀN BỘ KHỐI parcelLayer.on('click',...) CŨ BẰNG KHỐI NÀY ---
+
+    parcelLayer.on('click', async function(e) { // Thêm "async" ở đây
+        if (!isQueryMode) return; 
 
         const props = e.layer.properties;
         if (!props || !props.OBJECTID) return;
 
-        const maXa = props.MaXa;
-        const soTo = props.SoHieuToBanDo;
-        const soThua = props.SoThuTuThua;
-
-        if (maXa && soTo && soThua) {
-            fetchAndDrawDimensions(maXa, soTo, soThua);
-        } else {
-            console.warn("❌ Không đủ thông tin để truy xuất GeoJSON:", { maXa, soTo, soThua });
-        }
-
+        // --- Các logic cũ của bạn để highlight và lấy thông tin thửa đất ---
         L.DomEvent.stop(e);
-
         hideInfoPanel();
         highlightedFeature = props.OBJECTID;
-
         parcelLayer.setFeatureStyle(highlightedFeature, {
             color: '#EF4444',
             weight: 3,
@@ -178,16 +167,42 @@ document.addEventListener('DOMContentLoaded', () => {
             fill: true,
             fillOpacity: 0.3
         });
+        // --- Kết thúc logic cũ ---
 
+
+        // 1. Chuẩn bị các thông tin có sẵn
         const formattedProps = {
             'Số thửa': props.SoThuTuThua,
             'Số hiệu tờ bản đồ': props.SoHieuToBanDo,
             'Diện tích': props.DienTich,
             'Ký hiệu mục đích sử dụng': props.KyHieuMucDichSuDung,
+            'Địa chỉ': '<i class="text-gray-400">Đang tìm địa chỉ...</i>' // Thêm địa chỉ với trạng thái chờ
         };
-        showInfoPanel('Thông tin Thửa đất', formattedProps, e.latlng.lat, e.latlng.lng);
-    });
 
+        // 2. Gọi hàm hiển thị ngay lập tức với trạng thái chờ
+        showInfoPanel('Thông tin Thửa đất', formattedProps, e.latlng.lat, e.latlng.lng);
+
+        // 3. Lấy địa chỉ từ Mapbox một cách bất đồng bộ
+        try {
+            const geocodingUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${e.latlng.lng},${e.latlng.lat}.json?access_token=${mapboxAccessToken}&language=vi&types=address,poi,locality,place`;
+            const response = await fetch(geocodingUrl);
+            const data = await response.json();
+
+            let finalAddress = "Không xác định";
+            if (data.features && data.features.length > 0) {
+                finalAddress = data.features[0].place_name_vi || data.features[0].place_name;
+            }
+
+            // 4. Cập nhật lại thông tin địa chỉ và gọi lại hàm hiển thị
+            formattedProps['Địa chỉ'] = finalAddress;
+            showInfoPanel('Thông tin Thửa đất', formattedProps, e.latlng.lat, e.latlng.lng);
+
+        } catch (error) {
+            console.error("Lỗi khi lấy địa chỉ từ Mapbox:", error);
+            formattedProps['Địa chỉ'] = "Lỗi khi tìm địa chỉ";
+            showInfoPanel('Thông tin Thửa đất', formattedProps, e.latlng.lat, e.latlng.lng);
+        }
+    });
 
 
     // --- KẾT THÚC KHẮC PHỤC ---
