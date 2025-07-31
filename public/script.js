@@ -337,6 +337,68 @@ document.addEventListener('DOMContentLoaded', () => {
         infoPanel.classList.add('is-open');
         actionToolbar.classList.add('is-raised');
     }
+
+    // --- BẮT ĐẦU CODE MỚI: Thêm hàm này vào file script.js ---
+
+    async function queryAndDisplayParcelByLatLng(lat, lng) {
+        // Hiển thị một thông báo cho người dùng biết hệ thống đang xử lý
+        const loadingPopup = L.popup()
+            .setLatLng([lat, lng])
+            .setContent('Đang tìm thông tin thửa đất tại đây...')
+            .openOn(map);
+
+        const tilesetId = 'hvduoc.danang_parcels_final'; // Lấy từ code của bạn
+        const queryUrl = `https://api.mapbox.com/v4/${tilesetId}/tilequery/${lng},${lat}.json?limit=1&access_token=${mapboxAccessToken}`;
+
+        try {
+            const response = await fetch(queryUrl);
+            const data = await response.json();
+
+            if (!data.features || data.features.length === 0) {
+                loadingPopup.setContent('Không tìm thấy thửa đất nào tại vị trí này.');
+                setTimeout(() => map.closePopup(loadingPopup), 3000); // Tự đóng sau 3s
+                return;
+            }
+
+            // Đã tìm thấy thửa đất!
+            map.closePopup(loadingPopup); // Đóng thông báo loading
+            const feature = data.features[0];
+            const props = feature.properties;
+
+            // 1. Xóa các thông tin cũ và highlight thửa đất mới
+            hideInfoPanel();
+            highlightedFeature = props.OBJECTID;
+            parcelLayer.setFeatureStyle(highlightedFeature, {
+                color: '#EF4444', weight: 3, fillColor: '#EF4444', fill: true, fillOpacity: 0.3
+            });
+
+            // 2. Vẽ kích thước thửa đất
+            if (props.MaXa && props.SoHieuToBanDo && props.SoThuTuThua) {
+                fetchAndDrawDimensions(props.MaXa, props.SoHieuToBanDo, props.SoThuTuThua);
+            }
+
+            // 3. Hiển thị bảng thông tin (sao chép logic từ hàm on.click)
+            const formattedProps = {
+                'Số thửa': props.SoThuTuThua,
+                'Số hiệu tờ bản đồ': props.SoHieuToBanDo,
+                'Diện tích': props.DienTich,
+                'Ký hiệu mục đích sử dụng': props.KyHieuMucDichSuDung,
+                'Địa chỉ': '<i class="text-gray-400">Đang tìm địa chỉ...</i>'
+            };
+            showInfoPanel('Thông tin Thửa đất', formattedProps, lat, lng);
+
+            // 4. Lấy địa chỉ và cập nhật lại bảng thông tin
+            const finalAddress = await getCachedAddress(lat, lng); // Dùng lại hàm getCachedAddress bạn đã có
+            formattedProps['Địa chỉ'] = finalAddress;
+            showInfoPanel('Thông tin Thửa đất', formattedProps, lat, lng);
+
+        } catch (error) {
+            console.error("Lỗi khi truy vấn thửa đất từ tọa độ:", error);
+            loadingPopup.setContent('Đã xảy ra lỗi. Vui lòng thử lại.');
+            setTimeout(() => map.closePopup(loadingPopup), 3000);
+        }
+    }
+    // --- KẾT THÚC CODE MỚI ---
   
     async function showListingInfoPanel(item) {
         const ADMIN_UID = "FEpPWWT1EaTWQ9FOqBxWN5FeEJk1";
@@ -531,17 +593,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // KHẮC PHỤC: Xóa hàm performCadastralQuery vì không còn cần thiết.
 
+    // --- BẮT ĐẦU THAY ĐỔI: Thay thế toàn bộ hàm handleUrlParameters ---
     function handleUrlParameters() {
         const urlParams = new URLSearchParams(window.location.search);
         const lat = urlParams.get('lat');
         const lng = urlParams.get('lng');
+        
         if (lat && lng) {
             const targetLatLng = L.latLng(parseFloat(lat), parseFloat(lng));
+            
+            // Phóng to bản đồ tới vị trí
             map.setView(targetLatLng, 19);
-            // Thay vì gọi query, chúng ta có thể giả lập một sự kiện click
-            // Tuy nhiên, cách đơn giản là chỉ zoom tới vị trí.
+
+            // Gọi hàm mới để tìm và hiển thị thông tin thửa đất
+            queryAndDisplayParcelByLatLng(parseFloat(lat), parseFloat(lng));
         }
     }
+    // --- KẾT THÚC THAY ĐỔI ---
 
     function enterAddMode() {
         exitAllModes();
