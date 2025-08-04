@@ -29,12 +29,15 @@
 </head>
 <body class="relative overflow-hidden">
     
-    <div id="custom-search-container" class="absolute top-2 left-1/2 -translate-x-1/2 z-[1001] w-8/12 max-w-sm">
-        <div class="relative">
-            <input type="text" id="search-input" placeholder="Tìm kiếm..." class="w-full px-2 py-2 text-lg rounded-full shadow-lg border-2 border-transparent focus:border-blue-500 focus:outline-none transition">
-            <i class="fa-solid fa-search absolute top-1/2 -translate-y-1/2 right-5 text-gray-400 text-xl"></i>
+    <!-- Bọc ô tìm kiếm và kết quả trong một container chính -->
+    <div id="search-widget-container">
+        <!-- Đây là thanh tìm kiếm sẽ thu gọn/mở rộng -->
+        <div id="search-bar-container">
+            <i class="fas fa-search search-icon"></i>
+            <input type="search" id="search-input" placeholder="Tìm đường, địa điểm...">
         </div>
-        <div id="search-results" class="bg-white rounded-2xl shadow-lg mt-2 max-h-[60vh] overflow-y-auto hidden"></div>
+        <!-- Khung kết quả giữ nguyên -->
+        <div id="search-results" class="hidden"></div>
     </div>
 
     <div id="map"></div>

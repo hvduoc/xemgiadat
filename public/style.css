@@ -311,7 +311,27 @@ input[type=range][orient=vertical] {
     color: white;
 }
 /* Thêm vào để tạo hiệu ứng di chuyển mượt mà */
+/* == THAY THẾ CSS CŨ BẰNG ĐOẠN NÀY == */
+
 #action-toolbar {
+    /* --- Định vị mới --- */
+    position: absolute;
+    bottom: 10px;                 /* Nâng lên khỏi cạnh dưới 10px */
+    left: 50%;                    /* Đặt ở giữa theo chiều ngang */
+    transform: translateX(-50%);  /* Căn chỉnh chính xác vào giữa */
+    width: calc(100% - 20px);     /* Chiều rộng co giãn, cách mỗi bên 10px */
+    max-width: 450px;             /* Giới hạn chiều rộng trên màn hình lớn */
+    z-index: 1000;
+
+    /* --- Các thuộc tính cũ và hiệu ứng --- */
+    display: flex;
+    justify-content: space-between; /* Căn đều các nút bên trong */
+    align-items: center;
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(5px);   /* Hiệu ứng nền mờ (tùy chọn) */
+    border-radius: 999px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     transition: transform 0.3s ease-in-out;
 }
 
@@ -347,7 +367,7 @@ input[type=range][orient=vertical] {
 /* Tùy chỉnh vị trí cho bảng chọn lớp bản đồ */
 .leaflet-bottom.leaflet-right {
     /* Di chuyển toàn bộ các control ở góc dưới-phải lên trên 40px */
-    margin-bottom: 40px !important;
+    margin-bottom: 45px !important;
 }
 /* Thêm vào cuối file style.css */
 .contact-icon-btn {
@@ -586,4 +606,65 @@ html, body, #map {
     z-index: 1000;
 }
 
+/* == THÊM CSS MỚI NÀY VÀO CUỐI FILE STYLE.CSS == */
 
+/* Container chính cho cả widget tìm kiếm */
+#search-widget-container {
+    position: absolute;
+    top: 15px;
+    left: 15px; /* Chuyển sang trái để không bị che bởi các nút khác */
+    right: 15px;
+    z-index: 1001;
+    max-width: 400px; /* Giới hạn chiều rộng */
+}
+
+/* Thanh tìm kiếm (có thể thu gọn) */
+#search-bar-container {
+    display: flex;
+    align-items: center;
+    background-color: white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1); /* Hiệu ứng mượt mà */
+    overflow: hidden;
+    
+    /* Trạng thái thu gọn (mặc định) */
+    width: 48px;
+    height: 48px;
+    border-radius: 50%; /* Hình tròn */
+    cursor: pointer;
+    justify-content: center;
+}
+
+#search-bar-container .search-icon {
+    font-size: 18px;
+    color: #333;
+    flex-shrink: 0; /* Không bị co lại */
+    margin: 0 15px; /* Căn lề cho icon */
+}
+
+#search-bar-container #search-input {
+    width: 100%;
+    height: 100%;
+    border: none;
+    outline: none;
+    padding: 0;
+    background-color: transparent;
+    font-size: 16px;
+    opacity: 0; /* Ẩn đi lúc đầu */
+}
+
+/* Trạng thái MỞ RỘNG */
+#search-bar-container.is-expanded {
+    width: 100%;
+    border-radius: 24px; /* Hình viên thuốc */
+    cursor: default;
+    justify-content: flex-start;
+}
+
+#search-bar-container.is-expanded #search-input {
+    opacity: 1; /* Hiện ra */
+}
+
+#search-bar-container.is-expanded .search-icon {
+    margin: 0 0 0 15px; /* Chỉ giữ lề trái khi mở rộng */
+}

@@ -955,6 +955,31 @@ document.addEventListener('DOMContentLoaded', () => {
             priceList.appendChild(listItem);
         });
     });
+    
+    // Đặt đoạn code này bên trong sự kiện 'DOMContentLoaded'
+
+    const searchBarContainer = document.getElementById('search-bar-container');        
+
+    if (searchBarContainer) {
+        // Mở rộng khi nhấp vào
+        searchBarContainer.addEventListener('click', (event) => {
+            if (!searchBarContainer.classList.contains('is-expanded')) {
+                event.stopPropagation(); // Ngăn sự kiện click lan ra ngoài
+                searchBarContainer.classList.add('is-expanded');
+                searchInput.focus(); // Tự động trỏ vào ô input
+            }
+        });
+
+        // Thu gọn khi nhấp ra ngoài
+        document.addEventListener('click', (event) => {
+            // Nếu click không nằm trong widget tìm kiếm VÀ ô tìm kiếm đang mở
+            if (!event.target.closest('#search-widget-container') && searchBarContainer.classList.contains('is-expanded')) {
+                searchInput.value = ''; // Xóa nội dung tìm kiếm
+                searchResultsContainer.classList.add('hidden'); // Ẩn kết quả
+                searchBarContainer.classList.remove('is-expanded');
+            }
+        });
+    }
 
     document.getElementById('profile-form').addEventListener('submit', async (e) => {
         e.preventDefault();
