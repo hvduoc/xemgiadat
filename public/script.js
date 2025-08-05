@@ -1007,6 +1007,50 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('profile-modal').classList.add('hidden');
     });
   
+    // === BẮT ĐẦU: LOGIC ĐIỀU KHIỂN AKKORDEON ===
+
+    function setupInfoAccordion() {
+        const accordionHeaders = document.querySelectorAll('#info-accordion .accordion-header');
+
+        accordionHeaders.forEach(header => {
+            header.addEventListener('click', () => {
+                const content = header.nextElementSibling;
+                const currentlyActive = document.querySelector('#info-accordion .accordion-header.active');
+
+                // Đóng mục đang mở nếu nó không phải là mục vừa được click
+                if (currentlyActive && currentlyActive !== header) {
+                    currentlyActive.classList.remove('active');
+                    currentlyActive.nextElementSibling.style.maxHeight = null;
+                }
+                
+                // Mở hoặc đóng mục vừa click
+                header.classList.toggle('active');
+                
+                if (header.classList.contains('active')) {
+                    // Đặt max-height bằng chiều cao thực của nội dung để CSS transition hoạt động
+                    content.style.maxHeight = content.scrollHeight + "px";
+                } else {
+                    content.style.maxHeight = null;
+                }
+            });
+        });
+    }
+
+    // Gọi hàm này khi modal được mở ra, ví dụ:
+    // trong sự kiện click của nút #contact-info-btn
+    document.getElementById('contact-info-btn').addEventListener('click', () => {
+        document.getElementById('contact-info-modal').classList.remove('hidden');
+        // Khởi tạo accordion mỗi khi modal được mở
+        setupInfoAccordion();
+    });
+
+    // Bạn cũng cần đảm bảo nút đóng hoạt động
+    document.getElementById('close-contact-modal').addEventListener('click', () => {
+        document.getElementById('contact-info-modal').classList.add('hidden');
+    });
+
+
+    // === KẾT THÚC: LOGIC ĐIỀU KHIỂN AKKORDEON ===
 
     handleUrlParameters();
 });

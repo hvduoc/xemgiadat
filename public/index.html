@@ -201,49 +201,66 @@
     </div>
 
     <div id="contact-info-modal" class="hidden fixed inset-0 bg-gray-800 bg-opacity-75 z-[2000] flex items-center justify-center p-4">
-        <div class="relative bg-white p-8 rounded-2xl shadow-xl max-w-sm w-full text-center space-y-6">
-            <button id="close-contact-modal" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-            </button>
-            <div>
-                <h3 class="text-xl font-bold text-gray-800">Thông Tin & Cộng Đồng</h3>
-                <p class="text-gray-500 mt-1 text-sm">Kết nối với chúng tôi qua các kênh chính thức.</p>
+        <div class="relative bg-white p-6 rounded-2xl shadow-xl max-w-md w-full text-center">
+        <button id="close-contact-modal" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+        <h3 class="text-xl font-bold text-gray-800 mb-4">Thông Tin & Cộng Đồng</h3>
+
+        <div id="info-accordion" class="space-y-2 text-left">
+
+            <div class="accordion-item border rounded-lg overflow-hidden">
+                <button class="accordion-header">
+                    <span><i class="fas fa-share-alt mr-2"></i> Kênh Thông Tin & Mạng Xã Hội</span>
+                    <i class="fas fa-chevron-down transition-transform duration-300"></i>
+                </button>
+                <div class="accordion-content">
+                    <div class="space-y-3 p-4">
+                        <a href="mailto:hotro.xemgiadat@gmail.com" target="_blank" class="contact-link-official"><i class="fas fa-envelope icon-email"></i><span>Email Hỗ Trợ</span></a>
+                        <a href="https://www.facebook.com/xemgiadatcom" target="_blank" class="contact-link-official"><i class="fab fa-facebook-square icon-facebook"></i><span>Fanpage Chính Thức</span></a>
+                        <a href="https://www.youtube.com/@xemgiadatcom" target="_blank" class="contact-link-official"><i class="fab fa-youtube icon-youtube"></i><span>Kênh Youtube</span></a>
+                        <a href="https://www.tiktok.com/@yourtiktok" target="_blank" class="contact-link-official"><i class="fab fa-tiktok icon-tiktok"></i><span>Kênh TikTok</span></a>
+                    </div>
+                </div>
             </div>
-            <div class="space-y-4 text-left">
-                <a href="mailto:hotro.xemgiadat@gmail.com" target="_blank" class="contact-link-official">
-                    <i class="fas fa-envelope icon-email"></i>
-                    <span>Email Hỗ Trợ</span>
-                </a>
-                <a href="https://www.facebook.com/xemgiadatcom" target="_blank" class="contact-link-official">
-                    <i class="fab fa-facebook-square icon-facebook"></i>
-                    <span>Fanpage Chính Thức</span>
-                </a>
-                <a href="https://www.youtube.com/@xemgiadatcom" target="_blank" class="contact-link-official">
-                    <i class="fab fa-youtube icon-youtube"></i>
-                    <span>Kênh Youtube</span>
-                </a>
-                <a href="https://www.tiktok.com/@yourtiktok" target="_blank" class="contact-link-official">
-                    <i class="fab fa-tiktok icon-tiktok"></i>
-                    <span>Kênh TikTok</span>
-                </a>
+
+            <div class="accordion-item border rounded-lg overflow-hidden">
+                <button class="accordion-header">
+                    <span><i class="fas fa-user-edit mr-2"></i> Về Tác giả</span>
+                    <i class="fas fa-chevron-down transition-transform duration-300"></i>
+                </button>
+                <div class="accordion-content">
+                    <div class="p-4 text-center">
+                        <img src="images/your-avatar.png" alt="Ảnh tác giả" class="w-20 h-20 rounded-full mx-auto mb-3 shadow-md border-2 border-white">
+                        <h4 class="font-bold text-gray-800">Huỳnh Văn Được</h4>
+                        <p class="text-xs text-gray-500 mb-2">Người sáng lập dự án</p>
+                        <p class="text-gray-700 text-sm leading-relaxed px-2">
+                            Xin chào, tôi là Huỳnh Văn Được. Tuy tốt nghiệp chuyên ngành Kỹ thuật Điện, tôi lại có niềm đam mê lớn với việc ứng dụng công nghệ để giải quyết các bài toán thực tế và tối ưu hóa hiệu suất công việc.
+                            <br><br>
+                            Dự án **XemGiaDat.com** chính là sản phẩm của niềm đam mê đó. Nó ra đời từ chính những trải nghiệm của tôi khi nhận thấy sự thiếu hụt một công cụ tra cứu thông tin đất đai miễn phí, trực quan và dễ tiếp cận cho tất cả mọi người.
+                            <br><br>
+                            Hy vọng rằng công cụ này sẽ mang lại giá trị hữu ích cho bạn. Mọi ý kiến đóng góp luôn là nguồn động lực to lớn để tôi tiếp tục học hỏi và phát triển dự án.
+                        </p>
+                    </div>
+                </div>
             </div>
-            <!-- PHẦN THÔNG BÁO MỚI -->
-            <div class="disclaimer-section">
-                <hr class="disclaimer-divider">
-                <p class="disclaimer-text">
-                <i class="fas fa-exclamation-triangle"></i>
-                <strong>Miễn trừ trách nhiệm:</strong> Dữ liệu bản đồ phân lô và thông tin thửa đất được thu thập từ nguồn công khai của Sở Tài Nguyên và Môi Trường Đà Nẵng. Website chỉ cung cấp thông tin mang tính chất tham khảo, phi thương mại. Mọi dữ liệu có thể thay đổi và không có giá trị pháp lý. Người dùng nên kiểm chứng tại cơ quan nhà nước có thẩm quyền để đảm bảo độ chính xác.
-                <a href="/chinh-sach.html" style="color: #2563eb;">Xem thêm</a>
-                </p>
+
+            <div class="accordion-item border rounded-lg overflow-hidden">
+                <button class="accordion-header">
+                    <span><i class="fas fa-shield-alt mr-2"></i> Chính sách & Miễn trừ trách nhiệm</span>
+                    <i class="fas fa-chevron-down transition-transform duration-300"></i>
+                </button>
+                <div class="accordion-content">
+                    <div class="p-4 text-sm text-gray-600 space-y-2">
+                        <p><strong>Nguồn dữ liệu:</strong> Thu thập từ nguồn công khai của Sở TNMT Đà Nẵng.</p>
+                        <p><strong>Mục đích:</strong> Chỉ mang tính chất tham khảo, hỗ trợ cộng đồng, phi thương mại.</p>
+                        <p><strong>Miễn trừ trách nhiệm:</strong> Mọi dữ liệu không có giá trị pháp lý. Vui lòng kiểm chứng tại cơ quan nhà nước có thẩm quyền trước khi ra quyết định.</p>
+                        <p class="text-center mt-2"><a href="/chinh-sach.html" class="text-blue-600 font-semibold hover:underline">Đọc toàn bộ chính sách</a></p>
+                    </div>
+                </div>
             </div>
+
         </div>
-    </div>    
-    
-    <div id="fb-root"></div>
-    <div id="fb-comment-fixed" class="hidden fixed bottom-0 left-0 w-full bg-white shadow-lg border-t z-[9998]">
-      <div class="max-w-2xl mx-auto px-4 py-2 overflow-y-auto max-h-60 sm:max-h-72">
-        <div class="fb-comments" data-href="https://xemgiadat.netlify.app" data-width="100%" data-numposts="5" data-order-by="reverse_time"></div>
-      </div>
     </div>
 
     <div id="share-bar" class="hidden fixed bottom-20 right-4 z-[9998] flex space-x-2 bg-white shadow-md p-2 rounded-lg">

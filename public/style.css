@@ -86,54 +86,7 @@ input[type=range][orient=vertical] {
 }
 /* --- CSS TỐI ƯU CHO THANH TRƯỢT DỌC --- */
 
-/* 1. Khung trắng chứa thanh trượt */
-#opacity-control {
-    /* Thuộc tính vị trí mới */
-    position: absolute;
-    bottom: 120px;     /* Khoảng cách từ cạnh dưới */
-    right: 18px;    /* Khoảng cách từ cạnh phải (tương đương right-4 của Tailwind) */
-    z-index: 1000;
-    width: 15px;      /* Giảm chiều rộng khung */
-    height: 100px;    /* Giảm chiều cao khung */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
 
-/* 2. Chính thanh trượt */
-#opacity-slider {
-    -webkit-appearance: slider-vertical;
-    writing-mode: bt-lr;
-    width: 8px;       /* Giữ nguyên độ dày */
-    height: 90px;    /* Giảm chiều dài thanh trượt */
-    background: #e2e8f0;
-    border-radius: 2px;
-    outline: none;
-}
-
-/* 3. Nút kéo (thumb) trên Chrome, Safari, Edge */
-#opacity-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 20px;      /* Giảm kích thước nút kéo */
-  height: 20px;     /* Giảm kích thước nút kéo */
-  background: #3b82f6;
-  cursor: pointer;
-  border-radius: 50%;
-  border: 2px solid white;
-  box-shadow: 0 0 2px rgba(0,0,0,0.5); /* Thêm đổ bóng nhẹ cho nổi bật */
-}
-
-/* 4. Nút kéo (thumb) trên Firefox */
-#opacity-slider::-moz-range-thumb {
-  width: 20px;      /* Giảm kích thước nút kéo */
-  height: 20px;     /* Giảm kích thước nút kéo */
-  background: #3b82f6;
-  cursor: pointer;
-  border-radius: 50%;
-  border: 2px solid white;
-  box-shadow: 0 0 2px rgba(0,0,0,0.5);
-}
 
 /* --- CSS CHO KHUNG KẾT QUẢ TÌM KIẾM --- */
 #search-results .result-category {
@@ -367,7 +320,7 @@ input[type=range][orient=vertical] {
 /* Tùy chỉnh vị trí cho bảng chọn lớp bản đồ */
 .leaflet-bottom.leaflet-right {
     /* Di chuyển toàn bộ các control ở góc dưới-phải lên trên 40px */
-    margin-bottom: 45px !important;
+    margin-bottom: 60px !important;
 }
 /* Thêm vào cuối file style.css */
 .contact-icon-btn {
@@ -668,3 +621,44 @@ html, body, #map {
 #search-bar-container.is-expanded .search-icon {
     margin: 0 0 0 15px; /* Chỉ giữ lề trái khi mở rộng */
 }
+
+/* === BẮT ĐẦU: CSS CHO GIAO DIỆN AKKORDEON === */
+
+.accordion-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #374151; /* text-gray-700 */
+    background-color: #f9fafb; /* bg-gray-50 */
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    transition: background-color 0.2s;
+}
+
+.accordion-header:hover {
+    background-color: #f3f4f6; /* bg-gray-100 */
+}
+
+/* Định dạng khi một mục được mở */
+.accordion-header.active {
+    background-color: #eef2ff; /* bg-indigo-50 */
+    color: #4338ca; /* text-indigo-700 */
+}
+
+.accordion-header.active i.fa-chevron-down {
+    transform: rotate(180deg);
+}
+
+/* Nội dung bên trong (mặc định ẩn) */
+.accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+    background-color: white;
+}
+/* === KẾT THÚC: CSS CHO GIAO DIỆN AKKORDEON === */
