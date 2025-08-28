@@ -72,23 +72,72 @@ async function getCachedAddress(lat, lng) {
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- MAP AND LAYERS INITIALIZATION ---
-    const map = L.map('map', { center: [16.054456, 108.202167], zoom: 13, zoomControl: false });
+    const map = L.map('map', {
+    center: [16.054456, 108.202167],
+    zoom: 15,              // zoom sát hơn
+    minZoom: 13,
+    maxZoom: 20,
+    preferCanvas: true,    // vẽ Canvas cho hiệu năng
+    zoomAnimation: false,  // tắt animation để đỡ giật trên máy yếu
+    fadeAnimation: false,
+    markerZoomAnimation: false,
+    wheelDebounceTime: 50, // chống “quay chuột” quá nhạy
+    updateWhenIdle: true,  // chỉ cập nhật khi dừng kéo
+    updateWhenZooming: false
+    });
+
     const myAttribution = '© XemGiaDat | 📌 Dữ liệu tham khảo từ Sở TNMT Đà Nẵng. Không có giá trị pháp lý.';
     const googleStreets = L.tileLayer('http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',{ maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'], attribution: myAttribution + ' | © Google Maps' });
     const googleSat = L.tileLayer('http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{ maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'], attribution: myAttribution + ' | © Google Satellite' });
-    const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: myAttribution + ' | © OpenStreetMap' });
+    const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: myAttribution + ' | © OpenStreetMap',
+    updateWhenIdle: true,
+    keepBuffer: 1,
+    reuseTiles: true
+    });
+    
 
     // --- KHẮC PHỤC & TỐI ƯU: TÍCH HỢP BẢN ĐỒ PHÂN LÔ TỪ MAPBOX ---
 
     // 1. Biến toàn cục cho lớp bản đồ và thửa đất được highlight
     let parcelLayer = null;
     let highlightedFeature = null;
+    let currentParcelOpacity = 0.05;
 
     // 2. URL để tải vector tiles
     const tilesetId = 'hvduoc.danang_parcels_final';
     const tileUrl = `https://api.mapbox.com/v4/${tilesetId}/{z}/{x}/{y}.mvt?access_token=${mapboxAccessToken}`;
 
-    
+    function makeVectorTileOptions(opacity = 0.15) {
+    return {
+        rendererFactory: L.canvas.tile,
+        interactive: false, // luôn tắt event trên layer để nhẹ
+        tolerance: 5,
+        buffer: 256,
+        getFeatureId: f => f.properties.OBJECTID,
+        vectorTileLayerStyles: {
+        danang_full: (p, z) => ({
+            color: z >= 17 ? '#6B7280' : '#9CA3AF',
+            opacity: 1,
+            weight: z >= 18 ? 0.8 : z >= 16 ? 0.4 : 0.2,
+            fill: z >= 17,                 // chỉ fill khi zoom đủ gần
+            fillColor: '#6B7280',
+            fillOpacity: z >= 17 ? opacity : 0
+        })
+        }
+    };
+    }
+
+    function buildParcelLayer() {
+    if (parcelLayer) {
+        map.removeLayer(parcelLayer);
+    }
+    parcelLayer = L.vectorGrid.protobuf(tileUrl, makeVectorTileOptions(currentParcelOpacity));
+    parcelLayer.addTo(map);
+    }
+
+    buildParcelLayer();
    // 3. Style mặc định cho các thửa đất
     const parcelStyle = {
         color: '#6B7280', // Viền màu xám đậm hơn (Tailwind gray-500) cho dễ thấy
@@ -98,55 +147,74 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 4. Tùy chọn cho lớp vector tiles
     const vectorTileOptions = {
-        rendererFactory: L.canvas.tile,
-        interactive: true,
-        getFeatureId: feature => feature.properties.OBJECTID,
-        vectorTileLayerStyles: {
-            'danang_full': function(properties, zoom) {
-                return {
-                    color: '#6B7280', // Hoặc thay đổi màu theo zoom nếu cần
-                    weight: zoom >= 18 ? 0.5 : zoom >= 16 ? 0.1 : 0.05,
-                    fill: false
-                };
-            }
-        }
-
+    rendererFactory: L.canvas.tile,
+    interactive: false, // mặc định tắt
+    tolerance: 5,       // đơn giản hóa đường ở zoom thấp
+    buffer: 256,
+    getFeatureId: f => f.properties.OBJECTID,
+    vectorTileLayerStyles: {
+        danang_full: (p, z) => ({
+        color: z >= 17 ? '#6B7280' : '#9CA3AF',
+        weight: z >= 18 ? 0.8 : z >= 16 ? 0.4 : 0.2,
+        fill: false
+        })
+    }
     };
+    parcelLayer = L.vectorGrid.protobuf(tileUrl, vectorTileOptions).addTo(map);
+
+    // Bật tương tác khi zoom cao
+    function applyParcelInteractivity() {
+    const enable = map.getZoom() >= 16;
+    // Bảo vệ click handler:
+    parcelLayer.off('click');
+    if (enable) {
+        parcelLayer.on('click', onParcelClick);
+    }
+    }
+    map.on('zoomend', applyParcelInteractivity);
+    applyParcelInteractivity(); // gọi lần đầu
+
 
     // 5. Tạo lớp bản đồ phân lô MỘT LẦN DUY NHẤT
-    parcelLayer = L.vectorGrid.protobuf(tileUrl, vectorTileOptions);
-        async function fetchAndDrawDimensions(maXa, soTo, soThua) {
-        dimensionMarkers.clearLayers(); // Xóa nhãn cũ nếu có
+    let dimFetchController = null;
 
-        const geojsonUrl = `data/parcels/${maXa}.geojson`;
+    async function fetchAndDrawDimensions(maXa, soTo, soThua) {
+    if (dimFetchController) dimFetchController.abort();
+    dimFetchController = new AbortController();
+    const { signal } = dimFetchController;
 
-        try {
-            const response = await fetch(geojsonUrl);
-            if (!response.ok) {
-                console.warn("❌ Không thể tải file GeoJSON:", geojsonUrl);
-                return;
-            }
+    dimensionMarkers.clearLayers();
+    const url = `data/parcels/${maXa}.geojson`;
 
-            const geojson = await response.json();
-
-            const feature = geojson.features.find(f => {
-                const props = f.properties || {};
-                return (
-                    props.SoHieuToBanDo == soTo &&
-                    props.SoThuTuThua == soThua
-                );
-            });
-
-            if (!feature) {
-                console.warn(`❌ Không tìm thấy thửa ${soTo}/${soThua} trong xã ${maXa}`);
-                return;
-            }
-
-            drawDimensions(feature);
-        } catch (err) {
-            console.error("❌ Lỗi khi truy cập GeoJSON:", err);
+    try {
+        let geojson = cachedGeojsonByMaXa[maXa];
+        if (!geojson) {
+        const resp = await fetch(url, { signal });
+        if (!resp.ok) {
+            console.warn("❌ Không thể tải GeoJSON:", url);
+            return;
         }
+        geojson = await resp.json();
+        cachedGeojsonByMaXa[maXa] = geojson; // cache lại
+        }
+
+        const feature = geojson.features.find(f => {
+        const p = f.properties || {};
+        return String(p.SoHieuToBanDo) === String(soTo) &&
+                String(p.SoThuTuThua)  === String(soThua);
+        });
+
+        if (!feature) {
+        console.warn(`❌ Không tìm thấy thửa ${soTo}/${soThua} trong xã ${maXa}`);
+        return;
+        }
+
+        drawDimensions(feature);
+    } catch (err) {
+        if (err.name !== 'AbortError') console.error("❌ GeoJSON error:", err);
     }
+    }
+
     
     // --- BẠN HÃY THAY THẾ TOÀN BỘ KHỐI parcelLayer.on('click',...) BẰNG PHIÊN BẢN ĐÃ SỬA LỖI NÀY ---
 
@@ -272,13 +340,28 @@ document.addEventListener('DOMContentLoaded', () => {
     let dimensionMarkers = L.layerGroup().addTo(map); // Thêm vào map để dễ quản lý
     let userLocationMarker = null;
     let priceMarkers = L.markerClusterGroup({
+        chunkedLoading: true,              // nạp marker theo lô, tránh đơ trình duyệt
+        chunkDelay: 30,                    // delay giữa các batch (ms), mặc định 50
+        chunkInterval: 200,                // tổng thời gian xử lý tối đa cho mỗi frame
+        removeOutsideVisibleBounds: true,  // tự loại marker ngoài màn hình
+        disableClusteringAtZoom: 18,       // zoom cao sẽ bung hết marker
+        spiderfyOnMaxZoom: true,
+        showCoverageOnHover: false,
         iconCreateFunction: function (cluster) {
             const count = cluster.getChildCount();
             let size = ' marker-cluster-';
-            if (count < 10) size += 'small'; else if (count < 100) size += 'medium'; else size += 'large';
-            return new L.DivIcon({ html: `<div><span>${count}</span></div>`, className: `marker-cluster marker-cluster-yellow${size}`, iconSize: new L.Point(40, 40) });
+            if (count < 10) size += 'small';
+            else if (count < 100) size += 'medium';
+            else size += 'large';
+
+            return new L.DivIcon({
+                html: `<div><span>${count}</span></div>`,
+                className: `marker-cluster marker-cluster-yellow${size}`,
+                iconSize: new L.Point(40, 40)
+            });
         }
     }).addTo(map);
+
 
     // --- HELPER FUNCTIONS ---
     window.openStreetView = (lat, lng) => window.open(`http://maps.google.com/?q=&layer=c&cbll=${lat},${lng}`, '_blank');
@@ -821,32 +904,43 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     map.on('locationerror', (e) => alert("Không thể lấy vị trí của bạn: " + e.message));
 
-    map.on('click', function(e) {
-        searchResultsContainer.classList.add('hidden');
-        hideInfoPanel();
-        if (isAddMode) {
-            if (!currentUser) {
-                alert("Vui lòng đăng nhập để thêm địa điểm!");
-                exitAllModes();
-                return;
-            }
-            selectedCoords = e.latlng;
-            tempMarker = L.marker(selectedCoords).addTo(map);
-            modal.classList.remove('hidden');
-            L.esri.Geocoding.geocodeService().reverse().latlng(selectedCoords).run((error, result) => {
-                document.getElementById('address-input').value = (error || !result.address) ? 'Không tìm thấy địa chỉ' : result.address.Match_addr;
-            });
+    map.on('click', async function(e) {
+    searchResultsContainer.classList.add('hidden');
+    hideInfoPanel();
+
+    // Ưu tiên thêm địa điểm nếu đang ở Add Mode
+    if (isAddMode) {
+        if (!currentUser) {
+        alert("Vui lòng đăng nhập để thêm địa điểm!");
+        exitAllModes();
+        return;
         }
+        selectedCoords = e.latlng;
+        tempMarker = L.marker(selectedCoords).addTo(map);
+        modal.classList.remove('hidden');
+        L.esri.Geocoding.geocodeService().reverse().latlng(selectedCoords).run((error, result) => {
+        document.getElementById('address-input').value = (error || !result.address) ? 'Không tìm thấy địa chỉ' : result.address.Match_addr;
+        });
+        return;
+    }
+
+    // Nếu đang ở Query Mode → gọi TileQuery
+    if (isQueryMode) {
+        queryAndDisplayParcelByLatLng(e.latlng.lat, e.latlng.lng);
+    }
     });
 
+
     // KHẮC PHỤC: Logic thanh trượt độ trong suốt
+    let rebuildTimer = null;
     opacitySlider.addEventListener('input', (e) => {
-        const newOpacity = parseFloat(e.target.value);
-        // Tạo một style mới chỉ với thuộc tính fillOpacity
-        const newStyle = { fillOpacity: newOpacity };
-        // Áp dụng style mới cho lớp bản đồ phân lô
-        parcelLayer.setStyle(newStyle);
+    currentParcelOpacity = Math.max(0, Math.min(1, parseFloat(e.target.value)));
+    if (rebuildTimer) cancelAnimationFrame(rebuildTimer);
+    rebuildTimer = requestAnimationFrame(() => {
+        buildParcelLayer(); // rebuild nhanh, Canvas tile rất nhẹ
     });
+    });
+
 
     map.on('overlayadd', e => {
         if (e.name === '🗺️ Bản đồ phân lô') opacityControl.classList.remove('hidden');
