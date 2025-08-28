@@ -215,6 +215,139 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     }
 
+    // ====== SMART CADASTRAL SEARCH ======
+    const xaNameToCode = {
+    // Bổ sung thêm dần theo nhu cầu
+    "hoa xuan": "20540",
+    "son tra": "20491",
+    "ngu hanh son": "20472",
+    // ví dụ thêm:
+    // "hoa thuan tay": "20377",
+    // "an hai bac": "20475",
+    };
+
+    function stripVN(s) {
+    return s
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/đ/g, 'd').replace(/Đ/g, 'D');
+    }
+
+    // Trả về { soTo, soThua, maXa, candidates: [maXa...] }
+    function parseCadastralQuery(raw) {
+    if (!raw) return null;
+    const stripVN = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d').replace(/Đ/g,'D');
+    const text = stripVN(raw).toLowerCase().replace(/\s+/g, ' ').trim();
+    if (!text) return null;
+
+    let soTo = null, soThua = null, maXa = null;
+    const candidates = [];
+
+    // Mã xã (5 chữ số, ví dụ 20540)
+    const mAx = text.match(/\b(20\d{3})\b/);
+    if (mAx) maXa = mAx[1];
+
+    // Tên xã (không dấu) -> code (tùy anh điền)
+    const xaNameToCode = {
+        "hoa xuan": "20540",
+        "son tra": "20491",
+        "ngu hanh son": "20472",
+    };
+    for (const [name, code] of Object.entries(xaNameToCode)) {
+        if (text.includes(name)) {
+        maXa = maXa || code;
+        if (!candidates.includes(code)) candidates.push(code);
+        }
+    }
+
+    // ---- QUAN TRỌNG: GHÉP "THỬA / TỜ" ----
+    // Dạng "54/239" hoặc "54-239" => thửa = 54, tờ = 239
+    const mPair = text.match(/\b(\d+)\s*[\/\-]\s*(\d+)\b/);
+    if (mPair) { soThua = mPair[1]; soTo = mPair[2]; }
+
+    // Gợi ý viết tắt: TH/THUA trước, TO/TỜ sau
+    const mThua = text.match(/\b(?:thua|th|so thua|soth|stt)\s*[:\-]?\s*(\d+)\b/);
+    if (mThua) soThua = soThua || mThua[1];
+
+    const mTo = text.match(/\b(?:to|t|so to|sot|shtbd)\s*[:\-]?\s*(\d+)\b/);
+    if (mTo) soTo = soTo || mTo[1];
+
+    // Dạng 2 số cách nhau khoảng trắng → mặc định thửa trước, tờ sau
+    if (!soThua || !soTo) {
+        const nums = text.match(/\b\d+\b/g) || [];
+        if (nums.length === 2 && !mTo && !mThua && !mPair) {
+        soThua = nums[0]; soTo = nums[1];
+        }
+    }
+
+    // Gợi ý xã nếu chưa có
+    if (!maXa && candidates.length === 0) {
+        const frequentlyUsedXa = ["20540","20491","20472"];
+        candidates.push(...frequentlyUsedXa);
+    } else if (maXa && !candidates.includes(maXa)) {
+        candidates.unshift(maXa);
+    }
+
+    return (soThua && soTo) ? { soThua: String(soThua), soTo: String(soTo), maXa: maXa || null, candidates } : null;
+    }
+
+
+    function polygonBoundsFromFeature(feature) {
+    try {
+        let coords = feature.geometry.type === 'Polygon'
+        ? feature.geometry.coordinates?.[0]
+        : feature.geometry.coordinates?.[0]?.[0];
+
+        const latlngs = coords.map(([lng, lat]) => L.latLng(lat, lng));
+        return L.latLngBounds(latlngs);
+    } catch { return null; }
+    }
+
+    // Tìm trong GeoJSON theo (maXa, soTo, soThua) → fitBounds → dùng TileQuery highlight + show panel
+    async function focusParcelByToThua({ maXa, soTo, soThua }) {
+    const url = `data/parcels/${maXa}.geojson`;
+    try {
+        let geojson = cachedGeojsonByMaXa[maXa];
+        if (!geojson) {
+        const resp = await fetch(url);
+        if (!resp.ok) return false;
+        geojson = await resp.json();
+        cachedGeojsonByMaXa[maXa] = geojson;
+        }
+        let feature = geojson.features.find(f => {
+        const p = f.properties || {};
+        return String(p.SoHieuToBanDo) === String(soTo) &&
+                String(p.SoThuTuThua)  === String(soThua);
+        });
+
+        // Nếu không thấy → thử hoán đổi (nhiều người hay gõ nhầm thứ tự)
+        if (!feature) {
+        feature = geojson.features.find(f => {
+            const p = f.properties || {};
+            return String(p.SoHieuToBanDo) === String(soThua) &&
+                String(p.SoThuTuThua)  === String(soTo);
+        });
+        if (feature) {
+            // hoán đổi lại cho đúng
+            const tmp = soTo; soTo = soThua; soThua = tmp;
+        }
+        }
+
+        if (!feature) return false;
+
+        const b = polygonBoundsFromFeature(feature);
+        if (b) map.fitBounds(b.pad(0.25), { maxZoom: 19 });
+
+        const center = b ? b.getCenter() : map.getCenter();
+        // Dùng tilequery có sẵn để highlight + show panel + vẽ kích thước
+        await queryAndDisplayParcelByLatLng(center.lat, center.lng);
+        return true;
+    } catch (e) {
+        console.error('focusParcelByToThua error', e);
+        return false;
+    }
+    }
+
     
     // --- BẠN HÃY THAY THẾ TOÀN BỘ KHỐI parcelLayer.on('click',...) BẰNG PHIÊN BẢN ĐÃ SỬA LỖI NÀY ---
 
@@ -796,36 +929,97 @@ document.addEventListener('DOMContentLoaded', () => {
         toggleShareMenu();
     };
 
-    const performSearch = async (query) => {
+    const performSearch = (() => {
+    let geocodeController = null;
+
+    return async (query) => {
+        const container = searchResultsContainer;
         if (!query) {
-            searchResultsContainer.innerHTML = '';
-            searchResultsContainer.classList.add('hidden');
-            return;
+        container.innerHTML = '';
+        container.classList.add('hidden');
+        return;
         }
-        searchResultsContainer.innerHTML = '<div class="p-4 text-center text-gray-500">Đang tìm...</div>';
-        searchResultsContainer.classList.remove('hidden');
-        const listingResults = localListings.filter(item => item.name.toLowerCase().includes(query.toLowerCase()));
-        let html = '';
-        if (listingResults.length > 0) {
-            html += '<div class="result-category">Tin đăng nổi bật</div>';
-            listingResults.slice(0, 5).forEach(item => {
-                html += `<div class="result-item" data-type="listing" data-id="${item.id}"><i class="icon fa-solid fa-tag"></i><div><strong>${item.name}</strong><span class="price">${item.priceValue} ${item.priceUnit}</span></div></div>`;
+
+        container.classList.remove('hidden');
+        container.innerHTML = '<div class="p-4 text-center text-gray-500">Đang tìm...</div>';
+
+        const parts = [];
+        const qParsed = parseCadastralQuery(query);
+
+        // 1) Nếu nhận diện được tờ/thửa → đưa “Thửa đất” lên đầu
+        if (qParsed) {
+        const { soTo, soThua, maXa, candidates } = qParsed;
+        parts.push('<div class="result-category">Thửa đất</div>');
+
+        // Nếu đã rõ maXa → 1 kết quả; nếu chưa rõ → gợi ý theo candidates
+        if (maXa) {
+            parts.push(`
+            <div class="result-item" data-type="parcel"
+                data-maxa="${maXa}" data-soto="${soTo}" data-sothua="${soThua}">
+                <i class="icon fa-solid fa-layer-group"></i>
+                <div><strong>Tờ ${soTo} / Thửa ${soThua}</strong>
+                <span class="hint ml-2">Mã xã: ${maXa}</span></div>
+            </div>`);
+        } else {
+            candidates.forEach(code => {
+            parts.push(`
+                <div class="result-item" data-type="parcel"
+                    data-maxa="${code}" data-soto="${soTo}" data-sothua="${soThua}">
+                <i class="icon fa-solid fa-layer-group"></i>
+                <div><strong>Tờ ${soTo} / Thửa ${soThua}</strong>
+                <span class="hint ml-2">thử xã ${code}</span></div>
+                </div>`);
             });
         }
+        }
+
+        // 2) Listings phù hợp tên
+        const listingResults = localListings.filter(item =>
+        (item.name || '').toLowerCase().includes(query.toLowerCase()) ||
+        (item.notes || '').toLowerCase().includes(query.toLowerCase())
+        );
+        if (listingResults.length > 0) {
+        parts.push('<div class="result-category">Tin đăng</div>');
+        listingResults.slice(0, 6).forEach(item => {
+            parts.push(`
+            <div class="result-item" data-type="listing" data-id="${item.id}">
+                <i class="icon fa-solid fa-tag"></i>
+                <div><strong>${item.name}</strong>
+                <span class="price">${item.priceValue} ${item.priceUnit}</span></div>
+            </div>`);
+        });
+        }
+
+        // 3) Geocoding địa điểm (Mapbox) — hủy request cũ nếu người dùng tiếp tục gõ
+        if (geocodeController) geocodeController.abort();
+        geocodeController = new AbortController();
+        const { signal } = geocodeController;
+
+        try {
         const mapCenter = map.getCenter();
         const endpointUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxAccessToken}&country=VN&language=vi&autocomplete=true&proximity=${mapCenter.lng},${mapCenter.lat}`;
-        try {
-            const response = await fetch(endpointUrl);
-            const data = await response.json();
-            if (data.features && data.features.length > 0) {
-                html += '<div class="result-category">Địa điểm</div>';
-                data.features.forEach(feature => {
-                    html += `<div class="result-item" data-type="location" data-lat="${feature.center[1]}" data-lng="${feature.center[0]}"><i class="icon fa-solid fa-map-marker-alt"></i><span>${feature.place_name}</span></div>`;
-                });
-            }
-        } catch (error) { console.error("Lỗi tìm kiếm địa chỉ Mapbox:", error); }
-        searchResultsContainer.innerHTML = html === '' ? '<div class="p-4 text-center text-gray-500">Không tìm thấy kết quả.</div>' : html;
+        const resp = await fetch(endpointUrl, { signal });
+        const data = await resp.json();
+        if (data.features && data.features.length > 0) {
+            parts.push('<div class="result-category">Địa điểm</div>');
+            data.features.slice(0, 6).forEach(f => {
+            parts.push(`
+                <div class="result-item" data-type="location" data-lat="${f.center[1]}" data-lng="${f.center[0]}">
+                <i class="icon fa-solid fa-map-marker-alt"></i>
+                <span>${f.place_name}</span>
+                </div>`);
+            });
+        }
+        } catch (e) {
+        if (e.name !== 'AbortError') console.error('Geocoding error:', e);
+        }
+
+        container.innerHTML = parts.length
+        ? parts.join('')
+        : '<div class="p-4 text-center text-gray-500">Không tìm thấy kết quả.</div>';
     };
+    })();
+
 
     // --- EVENT LISTENERS ---
     userProfileDiv.addEventListener('click', (event) => {
@@ -860,23 +1054,37 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     searchInput.addEventListener('input', (e) => { clearTimeout(debounceTimer); debounceTimer = setTimeout(() => { performSearch(e.target.value.trim()); }, 300); });
-    searchResultsContainer.addEventListener('click', (e) => {
-        const item = e.target.closest('.result-item');
-        if (!item) return;
-        hideInfoPanel();
-        const type = item.dataset.type;
-        if (type === 'location') {
-            map.setView([parseFloat(item.dataset.lat), parseFloat(item.dataset.lng)], 17);
-        } else if (type === 'listing') {
-            const listing = localListings.find(l => l.id === item.dataset.id);
-            if (listing) {
-                map.setView([listing.lat, listing.lng], 18);
-                showListingInfoPanel(listing);
-            }
+    searchResultsContainer.addEventListener('click', async (e) => {
+    const item = e.target.closest('.result-item');
+    if (!item) return;
+
+    hideInfoPanel();
+    const type = item.dataset.type;
+
+    if (type === 'location') {
+        map.setView([parseFloat(item.dataset.lat), parseFloat(item.dataset.lng)], 17);
+    } else if (type === 'listing') {
+        const listing = localListings.find(l => l.id === item.dataset.id);
+        if (listing) {
+        map.setView([listing.lat, listing.lng], 18);
+        showListingInfoPanel(listing);
         }
-        searchResultsContainer.classList.add('hidden');
-        searchInput.value = '';
+    } else if (type === 'parcel') {
+        const payload = {
+        maXa: item.dataset.maxa,
+        soTo: item.dataset.soto,
+        soThua: item.dataset.sothua
+        };
+        const ok = await focusParcelByToThua(payload);
+        if (!ok) {
+        alert(`Chưa tìm thấy thửa ${payload.soTo}/${payload.soThua} trong xã ${payload.maXa}. Thử xã khác hoặc kiểm tra lại số.`);
+        }
+    }
+
+    searchResultsContainer.classList.add('hidden');
+    searchInput.value = '';
     });
+
 
     closePanelBtn.addEventListener('click', hideInfoPanel);
     togglePanelBtn.addEventListener('click', () => {
