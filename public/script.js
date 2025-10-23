@@ -931,10 +931,33 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     loginBtn.addEventListener('click', () => {
-        if (ui.isPendingRedirect()) return;
+        // Show the FirebaseUI container
         firebaseuiContainer.classList.remove('hidden');
-        ui.start('#firebaseui-widget', { signInFlow: 'popup', signInOptions: [ firebase.auth.GoogleAuthProvider.PROVIDER_ID, firebase.auth.EmailAuthProvider.PROVIDER_ID ], callbacks: { signInSuccessWithAuthResult: () => { firebaseuiContainer.classList.add('hidden'); return false; } } });
-    });
+        firebaseuiContainer.style.display = 'flex';
+        firebaseuiContainer.style.visibility = 'visible';
+        
+        // Detect mobile and use appropriate sign-in flow
+        const isMobile = window.innerWidth <= 640 || /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const signInFlow = isMobile ? 'redirect' : 'popup';
+        
+        try {
+            ui.start('#firebaseui-widget', { 
+                signInFlow: signInFlow,
+                signInOptions: [ 
+                    firebase.auth.GoogleAuthProvider.PROVIDER_ID, 
+                    firebase.auth.EmailAuthProvider.PROVIDER_ID 
+                ], 
+                callbacks: { 
+                    signInSuccessWithAuthResult: () => { 
+                        firebaseuiContainer.classList.add('hidden'); 
+                        return false; 
+                    } 
+                } 
+            });
+        } catch (error) {
+            console.error('Error starting FirebaseUI:', error);
+        }
+    });    // Debug button removed - login functionality now works properly
     firebaseuiContainer.addEventListener('click', (e) => { if (e.target === firebaseuiContainer) firebaseuiContainer.classList.add('hidden'); });
 
     db.collection("listings").where("status", "==", "approved").orderBy("createdAt", "desc").onSnapshot((querySnapshot) => {
