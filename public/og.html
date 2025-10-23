@@ -30,10 +30,9 @@
     document.querySelector('meta[http-equiv="refresh"]').setAttribute("content", `2;url=${redirectUrl}`);
     document.querySelector('meta[property="og:url"]').setAttribute("content", window.location.href);
 
-    const mapboxAccessToken = "pk.eyJ1IjoiaHZkdW9jIiwiYSI6ImNtZDFwcjVxYTAzOGUybHEzc3ZrNTJmcnIifQ.D5VlPC8c_n1i3kezgqtzwg";
-
-    // Gọi API Mapbox để lấy địa chỉ
-    fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxAccessToken}&language=vi`)
+    // Use our proxy to avoid exposing Mapbox token in this page
+    const geocodeUrl = `/.netlify/functions/mapbox-proxy?mode=geocode&lat=${encodeURIComponent(lat)}&lng=${encodeURIComponent(lng)}`;
+    fetch(geocodeUrl)
       .then(res => res.json())
       .then(data => {
         const address = data.features?.[0]?.place_name || "Đà Nẵng";
@@ -42,11 +41,15 @@
         const title = `Thửa đất ${soThua}, tờ ${soTo} – ${shortAddress}`;
         const description = `Xem thông tin chi tiết thửa đất tại ${shortAddress} trên bản đồ cộng đồng.`;
 
-        const ogImage = `https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/pin-s+ff0000(${lng},${lat})/${lng},${lat},18/800x600?access_token=${mapboxAccessToken}`;
+        // Static image path routed through proxy (Mapbox token kept server-side)
+        const ogImage = `/.netlify/functions/mapbox-proxy?mode=static&lng=${encodeURIComponent(lng)}&lat=${encodeURIComponent(lat)}`;
 
         document.querySelector('meta[property="og:title"]').setAttribute("content", title);
         document.querySelector('meta[property="og:description"]').setAttribute("content", description);
         document.querySelector('meta[property="og:image"]').setAttribute("content", ogImage);
+      }).catch(() => {
+        // fallback
+        document.querySelector('meta[property="og:description"]').setAttribute("content", 'Xem thông tin thửa đất trên bản đồ.');
       });
   </script>
 </body>
