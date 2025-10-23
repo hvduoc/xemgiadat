@@ -931,14 +931,33 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     loginBtn.addEventListener('click', () => {
+        // Debug logging for production deployment differences
+        console.log('🌐 Environment:', {
+            hostname: window.location.hostname,
+            protocol: window.location.protocol,
+            userAgent: navigator.userAgent,
+            viewport: `${window.innerWidth}x${window.innerHeight}`,
+            platform: navigator.platform
+        });
+        
         // Show the FirebaseUI container
         firebaseuiContainer.classList.remove('hidden');
         firebaseuiContainer.style.display = 'flex';
         firebaseuiContainer.style.visibility = 'visible';
         
+        // Log container status after changes
+        console.log('📱 Container after show:', {
+            classes: firebaseuiContainer.className,
+            style: firebaseuiContainer.style.cssText,
+            computedDisplay: window.getComputedStyle(firebaseuiContainer).display,
+            rect: firebaseuiContainer.getBoundingClientRect()
+        });
+        
         // Detect mobile and use appropriate sign-in flow
         const isMobile = window.innerWidth <= 640 || /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         const signInFlow = isMobile ? 'redirect' : 'popup';
+        
+        console.log('🔧 Auth config:', { isMobile, signInFlow });
         
         try {
             ui.start('#firebaseui-widget', { 
@@ -954,8 +973,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     } 
                 } 
             });
+            console.log('✅ FirebaseUI started on', window.location.hostname);
         } catch (error) {
-            console.error('Error starting FirebaseUI:', error);
+            console.error('❌ FirebaseUI error:', error);
         }
     });    // Debug button removed - login functionality now works properly
     firebaseuiContainer.addEventListener('click', (e) => { if (e.target === firebaseuiContainer) firebaseuiContainer.classList.add('hidden'); });

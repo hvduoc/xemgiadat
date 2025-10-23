@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Login Button</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .debug-info { background: #f5f5f5; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .test-button { background: #22c55e; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin: 5px; }
+        .test-button:hover { background: #16a34a; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Debug Login Button</h1>
+    
+    <div class="debug-info">
+        <h3>Test này giúp kiểm tra nút login có hoạt động không</h3>
+        <p>Mở trang chủ, sau đó paste đoạn code này vào Console (F12):</p>
+        
+        <pre><code>
+// 🔍 DEBUG SCRIPT - Kiểm tra nút login
+console.log("=== KIỂM TRA NÚT LOGIN ===");
+
+const loginBtn = document.getElementById('login-btn');
+const authContainer = document.getElementById('auth-container');
+
+if (!loginBtn) {
+    console.error("❌ Không tìm thấy nút login!");
+} else {
+    console.log("✅ Tìm thấy nút login:", loginBtn);
+    
+    // Kiểm tra style CSS
+    const style = window.getComputedStyle(loginBtn);
+    console.log("📊 CSS của nút login:", {
+        display: style.display,
+        visibility: style.visibility,
+        pointerEvents: style.pointerEvents,
+        zIndex: style.zIndex,
+        position: style.position
+    });
+    
+    // Kiểm tra nút có bị che không
+    const rect = loginBtn.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const elementAtPoint = document.elementFromPoint(centerX, centerY);
+    
+    console.log("📍 Vị trí nút:", rect);
+    console.log("🎯 Element tại tâm nút:", elementAtPoint);
+    
+    if (elementAtPoint === loginBtn) {
+        console.log("✅ Nút login KHÔNG bị che!");
+    } else {
+        console.log("⚠️ Nút login có thể bị che bởi:", elementAtPoint);
+    }
+    
+    // Test click thủ công
+    console.log("🖱️ Thêm event listener test...");
+    loginBtn.addEventListener('click', function(e) {
+        console.log("🎉 NÚT LOGIN ĐÃ ĐƯỢC CLICK!", e);
+        alert("✅ Nút login hoạt động!");
+    });
+    
+    console.log("✨ Thử click nút login để xem có hoạt động không!");
+}
+
+// Kiểm tra auth container
+if (!authContainer) {
+    console.error("❌ Không tìm thấy auth container!");
+} else {
+    const authStyle = window.getComputedStyle(authContainer);
+    console.log("📊 CSS của auth container:", {
+        display: authStyle.display,
+        position: authStyle.position,
+        zIndex: authStyle.zIndex
+    });
+}
+        </code></pre>
+    </div>
+    
+    <div class="debug-info">
+        <h3>🔧 Nếu nút login không hoạt động:</h3>
+        <ol>
+            <li>Mở Console (F12 → Console)</li>
+            <li>Paste đoạn code phía trên</li>
+            <li>Nhấn Enter để chạy</li>
+            <li>Thử click nút login</li>
+            <li>Xem kết quả trong Console</li>
+        </ol>
+    </div>
+    
+    <div class="debug-info">
+        <h3>📱 Test đặc biệt cho mobile:</h3>
+        <p>Nếu trên mobile, hãy thêm đoạn này để test FirebaseUI:</p>
+        
+        <pre><code>
+// 📱 TEST MOBILE FIREBASEUI
+const loginBtn = document.getElementById('login-btn');
+const firebaseuiContainer = document.getElementById('firebaseui-auth-container');
+
+if (loginBtn && firebaseuiContainer) {
+    console.log('🔍 Testing mobile FirebaseUI...');
+    
+    // Test container display
+    loginBtn.addEventListener('click', function() {
+        console.log('�️ Login clicked on mobile!');
+        console.log('📱 Viewport:', window.innerWidth + 'x' + window.innerHeight);
+        console.log('📱 Container classes:', firebaseuiContainer.className);
+        
+        setTimeout(() => {
+            const isVisible = !firebaseuiContainer.classList.contains('hidden');
+            console.log('👁️ FirebaseUI visible?', isVisible);
+            
+            if (isVisible) {
+                const rect = firebaseuiContainer.getBoundingClientRect();
+                console.log('📐 Container rect:', rect);
+                
+                const widget = document.getElementById('firebaseui-widget');
+                if (widget) {
+                    const widgetRect = widget.getBoundingClientRect();
+                    console.log('🎨 Widget rect:', widgetRect);
+                } else {
+                    console.log('❌ Widget not found!');
+                }
+            }
+        }, 100);
+    });
+    
+    console.log('✅ Mobile FirebaseUI test ready!');
+} else {
+    console.log('❌ Login button hoặc FirebaseUI container không tìm thấy!');
+}
+        </code></pre>
+    </div>
+    
+    <button class="test-button" onclick="window.close()">Đóng trang test</button>
+    <button class="test-button" onclick="window.location.href='index.html'">Về trang chủ</button>
+</body>
+</html>
