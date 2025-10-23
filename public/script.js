@@ -456,6 +456,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <a class="action-button" onclick="getDirections(${lat}, ${lng})"><i class="fas fa-directions"></i><span>Chỉ đường</span></a>
                     <a class="action-button" onclick="openStreetView(${lat}, ${lng})"><i class="fas fa-street-view"></i><span>Street View</span></a>
                     <a class="action-button" onclick="copyLocationLink(${lat}, ${lng})"><i class="fas fa-link"></i><span>Sao chép</span></a>
+                    <a class="action-button" onclick="share('facebook', ${lat}, ${lng}, '${item.name.replace(/'/g,"\\'")}')"><i class="fab fa-facebook"></i><span>Chia sẻ</span></a>
                     ${adminDeleteButtonHtml}
                 </div>
             </div>
@@ -699,15 +700,25 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('share-submenu').classList.toggle('is-visible');
     };
 
-    window.share = function(platform, lat, lng, soTo, soThua) {
-        const url = `${window.location.origin}${window.location.pathname}?lat=${lat}&lng=${lng}`;
-        const text = `Khám phá thửa đất (Thửa: ${soThua}, Tờ: ${soTo}) tại Đà Nẵng trên Bản đồ Giá đất Cộng đồng!`;
-        let shareUrl = '';
+    window.share = function(platform, lat, lng, titleOrSoTo, soThua) {
+        const indexUrl = `${window.location.origin}${window.location.pathname}?lat=${lat}&lng=${lng}`;
+        // og.html is a small page that sets Open Graph meta for a specific lat/lng then redirects.
+        const ogUrl = `${window.location.origin}/og.html?lat=${encodeURIComponent(lat)}&lng=${encodeURIComponent(lng)}${titleOrSoTo ? `&soTo=${encodeURIComponent(titleOrSoTo)}` : ''}${soThua ? `&soThua=${encodeURIComponent(soThua)}` : ''}`;
+        // Support two call styles:
+        // share(platform, lat, lng, title)  OR  share(platform, lat, lng, soTo, soThua)
+        let text = 'Khám phá vị trí trên Bản đồ Giá đất Cộng đồng!';
+        if (soThua) {
+            text = `Khám phá thửa đất (Thửa: ${soThua}, Tờ: ${titleOrSoTo}) tại Đà Nẵng trên Bản đồ Giá đất Cộng đồng!`;
+        } else if (titleOrSoTo) {
+            text = `${titleOrSoTo} — Xem chi tiết tại ${window.location.hostname}`;
+        }
 
+        let shareUrl = '';
         if (platform === 'facebook') {
-            shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(text)}`;
+            // Use indexUrl so the shared post includes the coordinate link (index page with lat/lng)
+            shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(indexUrl)}&quote=${encodeURIComponent(text)}`;
         } else if (platform === 'whatsapp') {
-            shareUrl = `https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`;
+            shareUrl = `https://wa.me/?text=${encodeURIComponent(text + ' ' + indexUrl)}`;
         }
         if (shareUrl) window.open(shareUrl, '_blank', 'width=600,height=400');
         toggleShareMenu();
@@ -730,7 +741,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
         const mapCenter = map.getCenter();
-        const endpointUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxAccessToken}&country=VN&language=vi&autocomplete=true&proximity=${mapCenter.lng},${mapCenter.lat}`;
+        const endpointUrl = `/.netlify/functions/mapbox-proxy?mode=geocode&query=${encodeURIComponent(query)}&autocomplete=true&proximity=${mapCenter.lng},${mapCenter.lat}`;
         try {
             const response = await fetch(endpointUrl);
             const data = await response.json();
