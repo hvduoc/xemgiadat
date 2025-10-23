@@ -565,10 +565,54 @@ html, body, #map {
 #search-widget-container {
     position: absolute;
     top: 15px;
-    left: 15px; /* Chuyển sang trái để không bị che bởi các nút khác */
-    right: 15px;
-    z-index: 1001;
+    left: 15px; /* Giữ ở góc trái, không kéo to full-width */
+    /* removed right:15px to avoid covering top-right controls on small screens */
+    z-index: 900; /* đặt thấp hơn các nút điều khiển (login, toolbar) */
     max-width: 400px; /* Giới hạn chiều rộng */
+    width: auto;
+}
+
+/* Auth controls: placed inside the top-right vertical group. Keep positioning
+   minimal so the markup's parent container controls layout; this restores the
+   original behavior where login sits with community/donate/locate buttons. */
+#auth-container {
+    position: relative; /* flow with parent group */
+    z-index: auto;
+    pointer-events: auto;
+    /* Remove display override to let parent flex container control layout */
+}
+#login-btn, #user-profile {
+    position: relative;
+    z-index: auto;
+    /* Ensure clickable area and proper display */
+    pointer-events: auto;
+    touch-action: manipulation; /* Better touch handling on mobile */
+}
+
+/* Explicit mobile-friendly styles for auth buttons */
+@media (max-width: 640px) {
+    #login-btn, #user-profile {
+        /* Ensure minimum touch target size on mobile (44px recommended) */
+        min-width: 48px !important;
+        min-height: 48px !important;
+        /* Prevent any potential layout issues */
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    
+    #login-btn.hidden {
+        display: none !important;
+    }
+    
+    #user-profile.hidden {
+        display: none !important;
+    }
+    
+    #auth-container {
+        /* Ensure container doesn't interfere with touch events */
+        touch-action: manipulation;
+    }
 }
 
 /* Thanh tìm kiếm (có thể thu gọn) */
@@ -608,7 +652,7 @@ html, body, #map {
 
 /* Trạng thái MỞ RỘNG */
 #search-bar-container.is-expanded {
-    width: 100%;
+    width: calc(100% - 80px); /* leave room for top-right controls on small screens */
     border-radius: 24px; /* Hình viên thuốc */
     cursor: default;
     justify-content: flex-start;
