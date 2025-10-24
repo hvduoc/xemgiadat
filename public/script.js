@@ -17,9 +17,9 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 const cachedGeojsonByMaXa = {};
-const frequentlyUsedXa = ["20540", "20491", "20472"]; 
-// Ví dụ: Hòa Xuân, Sơn Trà, Ngũ Hành Sơn
-// Bạn có thể tra MaXa từ tên xã/phường thực tế nếu cần (nó là mã hành chính, 5 số)
+const frequentlyUsedXa = ["20194", "20195", "20197", "20198", "20200", "20203", "20206", "20207"]; 
+// Cập nhật danh sách các xã/phường có sẵn dữ liệu
+// Dựa trên các file .geojson thực tế trong thư mục data/parcels/
 
 
 
@@ -446,6 +446,28 @@ document.addEventListener('DOMContentLoaded', () => {
         actionToolbar.classList.add('is-raised');
     }
 
+    // Quick function to show parcel info from search results
+    async function showParcelFromSearchResult(soThua, soTo, maXa, lat, lng) {
+        // Highlight the parcel on map if it's a vector tile
+        try {
+            // Try to find and highlight the parcel in vector tiles
+            await queryAndDisplayParcelByLatLng(lat, lng);
+        } catch (error) {
+            // If vector tile method fails, show basic info
+            const basicProps = {
+                'Số thửa': soThua,
+                'Số hiệu tờ bản đồ': soTo,
+                'Diện tích': 'Đang tải...',
+                'Ký hiệu mục đích sử dụng': 'Đang tải...',
+                'Địa chỉ': 'Đang tìm địa chỉ...'
+            };
+            showInfoPanel('Thông tin Thửa đất', basicProps, lat, lng);
+            
+            // Load detailed info from GeoJSON
+            fetchAndDrawDimensions(maXa, soTo, soThua);
+        }
+    }
+
     // --- BẮT ĐẦU CODE MỚI: Thêm hàm này vào file script.js ---
 
     async function queryAndDisplayParcelByLatLng(lat, lng) {
@@ -832,35 +854,214 @@ document.addEventListener('DOMContentLoaded', () => {
         toggleShareMenu();
     };
 
+    // === ENHANCED SEARCH SYSTEM WITH PARCEL DATA ===
+    
+    // Parse Vietnamese parcel input formats
+    function parseParcelQuery(query) {
+        const patterns = [
+            /(?:thửa|thua)\s*(\d+)[\s,]*(?:tờ|to)\s*(\d+)/i, // "Thửa 123, Tờ 45"
+            /(\d+)\/(\d+)/, // "123/45" format
+            /^(\d+)$/ // Just number - assume parcel number
+        ];
+        
+        for (const pattern of patterns) {
+            const match = query.match(pattern);
+            if (match) {
+                if (pattern === patterns[2]) { // Just number
+                    return { soThua: match[1], soTo: null };
+                } else {
+                    return { soThua: match[1], soTo: match[2] };
+                }
+            }
+        }
+        return null;
+    }
+    
+    // Search parcels in loaded GeoJSON data - WITH DEBUG
+    async function searchParcelsInCache(soThua, soTo = null) {
+        console.log(`🔍 Tìm kiếm thửa ${soThua}, tờ ${soTo || 'bất kỳ'}`);
+        
+        const results = [];
+        const maxResults = 8;
+        
+        // Updated areas list to match actual available files
+        const availableAreas = ['20194', '20195', '20197', '20198', '20200']; // Start with these
+        
+        for (const maXa of availableAreas) {
+            if (results.length >= maxResults) break;
+            
+            console.log(`🗂️ Đang kiểm tra khu vực ${maXa}...`);
+            
+            if (!cachedGeojsonByMaXa[maXa]) {
+                try {
+                    console.log(`📥 Đang tải ${maXa}.geojson...`);
+                    const response = await fetch(`data/parcels/${maXa}.geojson`);
+                    
+                    if (response.ok) {
+                        const geojson = await response.json();
+                        cachedGeojsonByMaXa[maXa] = geojson;
+                        console.log(`✅ Đã tải ${maXa}.geojson - ${geojson.features?.length || 0} thửa`);
+                    } else {
+                        console.log(`❌ Lỗi tải ${maXa}.geojson: ${response.status}`);
+                        continue;
+                    }
+                } catch (error) {
+                    console.log(`❌ Không thể tải dữ liệu cho khu vực ${maXa}:`, error);
+                    continue;
+                }
+            }
+            
+            const geojson = cachedGeojsonByMaXa[maXa];
+            if (geojson && geojson.features) {
+                console.log(`🔎 Tìm kiếm trong ${geojson.features.length} thửa tại ${maXa}`);
+                
+                const matchedFeatures = geojson.features.filter(feature => {
+                    const props = feature.properties;
+                    const matchThua = props && props.SoThuTuThua == soThua;
+                    const matchTo = !soTo || props.SoHieuToBanDo == soTo;
+                    
+                    if (matchThua && matchTo) {
+                        console.log(`✨ Tìm thấy: Thửa ${props.SoThuTuThua}, Tờ ${props.SoHieuToBanDo}, Xã ${maXa}`);
+                    }
+                    
+                    return matchThua && matchTo;
+                });
+                
+                console.log(`📊 Tìm thấy ${matchedFeatures.length} kết quả tại ${maXa}`);
+                
+                matchedFeatures.slice(0, maxResults - results.length).forEach(feature => {
+                    const props = feature.properties;
+                    
+                    // Handle different coordinate structures
+                    let coords = feature.geometry.coordinates[0];
+                    
+                    // Skip if no valid coordinates
+                    if (!coords || coords.length < 3) {
+                        console.log(`⚠️ Thửa ${props.SoThuTuThua} có tọa độ không hợp lệ`);
+                        return;
+                    }
+                    
+                    // Fast centroid calculation
+                    let centerLng = 0, centerLat = 0;
+                    const validCoords = coords.filter(c => Array.isArray(c) && c.length >= 2);
+                    
+                    for (let i = 0; i < validCoords.length; i++) {
+                        centerLng += validCoords[i][0];
+                        centerLat += validCoords[i][1];
+                    }
+                    centerLng /= validCoords.length;
+                    centerLat /= validCoords.length;
+                    
+                    console.log(`📍 Centroid: ${centerLat.toFixed(6)}, ${centerLng.toFixed(6)}`);
+                    
+                    results.push({
+                        soThua: props.SoThuTuThua,
+                        soTo: props.SoHieuToBanDo,
+                        dienTich: props.DienTich ? Math.round(props.DienTich * 10) / 10 : null,
+                        loaiDat: props.KyHieuMucDichSuDung,
+                        maXa: maXa,
+                        lat: centerLat,
+                        lng: centerLng,
+                        feature: feature
+                    });
+                });
+            }
+            
+            if (results.length >= maxResults) break;
+        }
+        
+        console.log(`🎯 Tổng cộng tìm thấy ${results.length} kết quả`);
+        return results;
+    }
+
     const performSearch = async (query) => {
         if (!query) {
             searchResultsContainer.innerHTML = '';
             searchResultsContainer.classList.add('hidden');
             return;
         }
-        searchResultsContainer.innerHTML = '<div class="p-4 text-center text-gray-500">Đang tìm...</div>';
+        
+        searchResultsContainer.innerHTML = '<div class="p-4 text-center text-gray-500"><i class="fas fa-search animate-spin mr-2"></i>Đang tìm kiếm...</div>';
         searchResultsContainer.classList.remove('hidden');
-        const listingResults = localListings.filter(item => item.name.toLowerCase().includes(query.toLowerCase()));
+        
         let html = '';
-        if (listingResults.length > 0) {
-            html += '<div class="result-category">Tin đăng nổi bật</div>';
-            listingResults.slice(0, 5).forEach(item => {
-                html += `<div class="result-item" data-type="listing" data-id="${item.id}"><i class="icon fa-solid fa-tag"></i><div><strong>${item.name}</strong><span class="price">${item.priceValue} ${item.priceUnit}</span></div></div>`;
-            });
-        }
-        const mapCenter = map.getCenter();
-        const endpointUrl = `/.netlify/functions/mapbox-proxy?mode=geocode&query=${encodeURIComponent(query)}&autocomplete=true&proximity=${mapCenter.lng},${mapCenter.lat}`;
-        try {
-            const response = await fetch(endpointUrl);
-            const data = await response.json();
-            if (data.features && data.features.length > 0) {
-                html += '<div class="result-category">Địa điểm</div>';
-                data.features.forEach(feature => {
-                    html += `<div class="result-item" data-type="location" data-lat="${feature.center[1]}" data-lng="${feature.center[0]}"><i class="icon fa-solid fa-map-marker-alt"></i><span>${feature.place_name}</span></div>`;
+        
+        // 1. TÌM KIẾM THỬA ĐẤT (ưu tiên cao nhất)
+        const parcelQuery = parseParcelQuery(query);
+        if (parcelQuery) {
+            const parcelResults = await searchParcelsInCache(parcelQuery.soThua, parcelQuery.soTo);
+            if (parcelResults.length > 0) {
+                html += '<div class="result-category"><i class="fas fa-map-marked-alt mr-2"></i>Thửa đất</div>';
+                parcelResults.forEach(parcel => {
+                    const displayText = `Thửa ${parcel.soThua}, Tờ ${parcel.soTo}`;
+                    const subText = `${parcel.dienTich ? parcel.dienTich + ' m²' : ''} • ${parcel.loaiDat || 'N/A'}`;
+                    html += `<div class="result-item" data-type="parcel" data-lat="${parcel.lat}" data-lng="${parcel.lng}" 
+                             data-so-thua="${parcel.soThua}" data-so-to="${parcel.soTo}" data-ma-xa="${parcel.maXa}">
+                        <i class="icon fas fa-map-marker-alt text-red-500"></i>
+                        <div>
+                            <strong>${displayText}</strong>
+                            <div class="text-sm text-gray-600">${subText}</div>
+                        </div>
+                    </div>`;
                 });
             }
-        } catch (error) { console.error("Lỗi tìm kiếm địa chỉ Mapbox:", error); }
-        searchResultsContainer.innerHTML = html === '' ? '<div class="p-4 text-center text-gray-500">Không tìm thấy kết quả.</div>' : html;
+        }
+        
+        // 2. TÌM KIẾM TIN ĐĂNG
+        const listingResults = localListings.filter(item => 
+            item.name.toLowerCase().includes(query.toLowerCase())
+        );
+        if (listingResults.length > 0) {
+            html += '<div class="result-category"><i class="fas fa-tags mr-2"></i>Tin đăng bất động sản</div>';
+            listingResults.slice(0, 5).forEach(item => {
+                html += `<div class="result-item" data-type="listing" data-id="${item.id}">
+                    <i class="icon fa-solid fa-tag text-yellow-500"></i>
+                    <div>
+                        <strong>${item.name}</strong>
+                        <span class="price text-red-600">${item.priceValue} ${item.priceUnit}</span>
+                    </div>
+                </div>`;
+            });
+        }
+        
+        // 3. TÌM KIẾM ĐỊA ĐIỂM (chỉ khi không có kết quả thửa đất và không phải số)
+        if (!parcelQuery && html === '') {
+            // Chỉ tìm địa điểm khi không phải số thửa đất
+            if (!/^\d+/.test(query)) {
+                const mapCenter = map.getCenter();
+                const endpointUrl = `/.netlify/functions/mapbox-proxy?mode=geocode&query=${encodeURIComponent(query)}&autocomplete=true&proximity=${mapCenter.lng},${mapCenter.lat}`;
+                try {
+                    const response = await fetch(endpointUrl);
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.features && data.features.length > 0) {
+                            html += '<div class="result-category"><i class="fas fa-map-pin mr-2"></i>Địa điểm</div>';
+                            data.features.slice(0, 3).forEach(feature => {
+                                html += `<div class="result-item" data-type="location" data-lat="${feature.center[1]}" data-lng="${feature.center[0]}">
+                                    <i class="icon fa-solid fa-map-marker-alt text-blue-500"></i>
+                                    <span>${feature.place_name}</span>
+                                </div>`;
+                            });
+                        }
+                    }
+                } catch (error) { 
+                    console.error("Lỗi tìm kiếm địa chỉ Mapbox:", error); 
+                }
+            }
+        }
+        
+        if (html === '') {
+            let helpText = 'Thử tìm: "Thửa 123, Tờ 45" hoặc "123/45"';
+            if (parcelQuery) {
+                helpText = `Không tìm thấy thửa ${parcelQuery.soThua}${parcelQuery.soTo ? ', tờ ' + parcelQuery.soTo : ''}. Thử các khu vực khác hoặc kiểm tra lại số thửa.`;
+            }
+            searchResultsContainer.innerHTML = `<div class="p-4 text-center text-gray-500">
+                <i class="fas fa-search-minus mr-2"></i>Không tìm thấy kết quả nào.<br>
+                <small class="text-xs">${helpText}</small>
+            </div>`;
+        } else {
+            searchResultsContainer.innerHTML = html;
+        }
     };
 
     // --- EVENT LISTENERS ---
@@ -911,7 +1112,22 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!item) return;
         hideInfoPanel();
         const type = item.dataset.type;
-        if (type === 'location') {
+        
+        if (type === 'parcel') {
+            // Hiển thị thửa đất từ kết quả tìm kiếm
+            const lat = parseFloat(item.dataset.lat);
+            const lng = parseFloat(item.dataset.lng);
+            const soThua = item.dataset.soThua;
+            const soTo = item.dataset.soTo;
+            const maXa = item.dataset.maXa;
+            
+            // Zoom đến vị trí thửa đất
+            map.setView([lat, lng], 19);
+            
+            // Hiển thị thông tin nhanh
+            showParcelFromSearchResult(soThua, soTo, maXa, lat, lng);
+            
+        } else if (type === 'location') {
             map.setView([parseFloat(item.dataset.lat), parseFloat(item.dataset.lng)], 17);
         } else if (type === 'listing') {
             const listing = localListings.find(l => l.id === item.dataset.id);
@@ -920,6 +1136,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 showListingInfoPanel(listing);
             }
         }
+        
         searchResultsContainer.classList.add('hidden');
         searchInput.value = '';
     });

@@ -88,31 +88,65 @@ input[type=range][orient=vertical] {
 
 
 
-/* --- CSS CHO KHUNG KẾT QUẢ TÌM KIẾM --- */
+/* --- CSS CHO KHUNG KẾT QUẢ TÌM KIẾM - Cải thiện UI thân thiện --- */
+#search-results {
+    position: absolute;
+    top: 100%; /* Đặt ngay dưới search bar */
+    left: 0;
+    right: 0;
+    background: white;
+    border-radius: 16px; /* Bo tròn đẹp hơn */
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); /* Shadow đẹp hơn */
+    max-height: 400px; /* Giới hạn chiều cao */
+    overflow-y: auto;
+    z-index: 1000;
+    border: 1px solid rgba(0, 0, 0, 0.05); /* Border nhẹ */
+    backdrop-filter: blur(10px); /* Glass effect */
+    margin-top: 8px; /* Khoảng cách với search bar */
+}
+
 #search-results .result-category {
-    padding: 10px 15px;
-    font-size: 0.9rem;
-    font-weight: bold;
-    color: #6b7280; /* text-gray-500 */
-    background-color: #f9fafb; /* bg-gray-50 */
-    border-bottom: 1px solid #e5e7eb; /* border-gray-200 */
+    padding: 12px 20px; /* Padding lớn hơn */
+    font-size: 0.85rem;
+    font-weight: 600; /* Đậm hơn */
+    color: #6b7280;
+    background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%); /* Gradient nhẹ */
+    border-bottom: 1px solid #e5e7eb;
+    text-transform: uppercase; /* Chữ hoa để nổi bật */
+    letter-spacing: 0.5px; /* Spacing chữ */
+    position: sticky; /* Sticky header */
+    top: 0;
+    z-index: 1;
 }
 
 #search-results .result-item {
-    padding: 12px 15px;
+    padding: 16px 20px; /* Padding lớn hơn */
     cursor: pointer;
-    border-bottom: 1px solid #f3f4f6; /* border-gray-100 */
+    border-bottom: 1px solid #f3f4f6;
     display: flex;
     align-items: center;
+    transition: all 0.2s ease; /* Smooth transition */
+    position: relative;
 }
 
 #search-results .result-item:hover {
-    background-color: #eff6ff; /* bg-blue-50 */
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); /* Gradient hover */
+    transform: translateX(4px); /* Slide effect nhẹ */
+    border-left: 3px solid #3b82f6; /* Blue accent */
+}
+
+#search-results .result-item:last-child {
+    border-bottom: none; /* Bỏ border item cuối */
+    border-radius: 0 0 16px 16px; /* Bo tròn góc dưới */
 }
 
 #search-results .result-item .icon {
-    margin-right: 12px;
-    color: #9ca3af; /* text-gray-400 */
+    margin-right: 15px; /* Tăng margin */
+    color: #6366f1; /* Màu indigo đẹp hơn */
+    font-size: 18px; /* Icon lớn hơn */
+    width: 24px; /* Fixed width */
+    text-align: center; /* Căn giữa */
+}
 }
 
 #search-results .result-item .price {
@@ -120,6 +154,61 @@ input[type=range][orient=vertical] {
     color: #dc2626; /* text-red-600 */
     font-size: 0.9rem;
     margin-left: 8px;
+}
+
+/* Cải thiện typography cho text trong search results */
+#search-results .result-item .text {
+    flex: 1;
+    line-height: 1.4;
+}
+
+#search-results .result-item .text .title {
+    font-weight: 600;
+    color: #1f2937; /* gray-800 */
+    font-size: 15px;
+    margin-bottom: 2px;
+}
+
+#search-results .result-item .text .subtitle {
+    font-size: 13px;
+    color: #6b7280; /* gray-500 */
+    font-weight: 400;
+}
+
+/* Loading state cho search results */
+#search-results .loading {
+    padding: 20px;
+    text-align: center;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+/* Empty state cho search results */
+#search-results .no-results {
+    padding: 24px 20px;
+    text-align: center;
+    color: #9ca3af;
+    font-size: 14px;
+    font-style: italic;
+}
+
+/* Scrollbar styling cho search results */
+#search-results::-webkit-scrollbar {
+    width: 6px;
+}
+
+#search-results::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 3px;
+}
+
+#search-results::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
+
+#search-results::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
 }
 /* --- CSS CHO NHÃN KÍCH THƯỚC TRÊN BẢN ĐỒ --- */
 .dimension-label {
@@ -561,15 +650,37 @@ html, body, #map {
 
 /* == THÊM CSS MỚI NÀY VÀO CUỐI FILE STYLE.CSS == */
 
-/* Container chính cho cả widget tìm kiếm */
+/* Container chính cho cả widget tìm kiếm - Cải thiện UI thân thiện */
 #search-widget-container {
     position: absolute;
-    top: 15px;
-    left: 15px; /* Giữ ở góc trái, không kéo to full-width */
-    /* removed right:15px to avoid covering top-right controls on small screens */
-    z-index: 900; /* đặt thấp hơn các nút điều khiển (login, toolbar) */
-    max-width: 400px; /* Giới hạn chiều rộng */
+    top: 20px; /* Tăng margin top */
+    left: 20px; /* Tăng margin left */
+    right: 120px; /* Để lại chỗ cho controls bên phải */
+    z-index: 900; /* đặt thấp hơn các nút điều khiển */
+    max-width: 100%; /* Cho phép responsive */
     width: auto;
+    pointer-events: none; /* Cho phép click through container */
+}
+
+/* Đảm bảo các elements con có thể nhận click */
+#search-widget-container > * {
+    pointer-events: auto;
+}
+
+/* Responsive cho mobile */
+@media (max-width: 640px) {
+    #search-widget-container {
+        top: 15px;
+        left: 15px;
+        right: 70px; /* Giảm space trên mobile */
+    }
+}
+
+/* Responsive cho tablet */
+@media (min-width: 641px) and (max-width: 1024px) {
+    #search-widget-container {
+        right: 100px; /* Tablet spacing */
+    }
 }
 
 /* Auth controls: placed inside the top-right vertical group. Keep positioning
@@ -712,28 +823,42 @@ html, body, #map {
     }
 }
 
-/* Thanh tìm kiếm (có thể thu gọn) */
+/* Thanh tìm kiếm (có thể thu gọn) - Cải thiện UI thân thiện */
 #search-bar-container {
     display: flex;
     align-items: center;
     background-color: white;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1); /* Hiệu ứng mượt mà */
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1); /* Shadow nhẹ hơn, đẹp hơn */
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); /* Hiệu ứng smooth hơn */
     overflow: hidden;
+    border: 2px solid transparent; /* Để hover effect đẹp */
     
     /* Trạng thái thu gọn (mặc định) */
-    width: 48px;
-    height: 48px;
+    width: 52px; /* Tăng một chút để đẹp hơn */
+    height: 52px;
     border-radius: 50%; /* Hình tròn */
     cursor: pointer;
     justify-content: center;
 }
 
+/* Hover effect cho trạng thái thu gọn */
+#search-bar-container:hover:not(.is-expanded) {
+    box-shadow: 0 6px 25px rgba(0,0,0,0.15);
+    transform: scale(1.05); /* Phóng to nhẹ khi hover */
+    border-color: rgba(99, 102, 241, 0.2); /* Border màu indigo nhạt */
+}
+
 #search-bar-container .search-icon {
-    font-size: 18px;
-    color: #333;
-    flex-shrink: 0; /* Không bị co lại */
-    margin: 0 15px; /* Căn lề cho icon */
+    font-size: 20px; /* Tăng kích thước icon */
+    color: #6b7280; /* Màu xám dịu hơn */
+    flex-shrink: 0;
+    margin: 0 15px;
+    transition: color 0.3s ease;
+}
+
+/* Hover effect cho icon */
+#search-bar-container:hover .search-icon {
+    color: #6366f1; /* Màu indigo khi hover */
 }
 
 #search-bar-container #search-input {
@@ -747,20 +872,66 @@ html, body, #map {
     opacity: 0; /* Ẩn đi lúc đầu */
 }
 
-/* Trạng thái MỞ RỘNG */
+/* Trạng thái MỞ RỘNG - Cải thiện UI thân thiện hơn */
 #search-bar-container.is-expanded {
-    width: calc(100% - 80px); /* leave room for top-right controls on small screens */
-    border-radius: 24px; /* Hình viên thuốc */
+    width: calc(100vw - 120px); /* Tăng độ rộng, để lại ít chỗ hơn cho controls */
+    max-width: 600px; /* Giới hạn tối đa cho desktop */
+    min-width: 280px; /* Tối thiểu cho mobile */
+    border-radius: 28px; /* Bo tròn hơn để đẹp hơn */
     cursor: default;
     justify-content: flex-start;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15); /* Shadow đẹp hơn */
+    backdrop-filter: blur(10px); /* Glass effect */
+    background-color: rgba(255, 255, 255, 0.95); /* Trong suốt một chút */
 }
 
 #search-bar-container.is-expanded #search-input {
     opacity: 1; /* Hiện ra */
+    padding: 0 20px 0 0; /* Thêm padding bên phải */
 }
 
 #search-bar-container.is-expanded .search-icon {
-    margin: 0 0 0 15px; /* Chỉ giữ lề trái khi mở rộng */
+    margin: 0 0 0 20px; /* Tăng margin trái để thoáng hơn */
+    color: #6366f1; /* Màu indigo đẹp hơn */
+}
+
+/* Responsive cho mobile */
+@media (max-width: 640px) {
+    #search-bar-container.is-expanded {
+        width: calc(100vw - 80px); /* Mobile: để nhiều chỗ hơn cho search */
+        max-width: none;
+        min-width: 250px;
+    }
+    
+    #search-bar-container.is-expanded .search-icon {
+        margin: 0 0 0 15px; /* Giảm margin trên mobile */
+    }
+    
+    #search-bar-container #search-input {
+        font-size: 16px; /* Đảm bảo không zoom trên iOS */
+    }
+    
+    /* Mobile improvements cho search results */
+    #search-results {
+        margin-top: 6px; /* Giảm margin trên mobile */
+        border-radius: 12px; /* Bo tròn ít hơn trên mobile */
+        max-height: 350px; /* Giảm chiều cao trên mobile */
+    }
+    
+    #search-results .result-item {
+        padding: 14px 16px; /* Giảm padding trên mobile */
+    }
+    
+    #search-results .result-category {
+        padding: 10px 16px; /* Giảm padding trên mobile */
+        font-size: 0.8rem;
+    }
+    
+    /* Touch-friendly cho mobile */
+    #search-results .result-item {
+        min-height: 44px; /* Minimum touch target */
+        touch-action: manipulation;
+    }
 }
 
 /* === BẮT ĐẦU: CSS CHO GIAO DIỆN AKKORDEON === */
