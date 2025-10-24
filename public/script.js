@@ -368,6 +368,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const contactInfoBtn = document.getElementById('contact-info-btn');
     const contactInfoModal = document.getElementById('contact-info-modal');
     const closeContactModalBtn = document.getElementById('close-contact-modal');
+    const guideBtn = document.getElementById('guide-btn');
+    const feedbackBtn = document.getElementById('feedback-btn');
+    const feedbackModal = document.getElementById('feedback-modal');
+    const closeFeedbackModalBtn = document.getElementById('close-feedback-modal');
 
     // --- STATE & GLOBAL VARIABLES ---
     let currentUser = null;
@@ -1096,6 +1100,125 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target === contactInfoModal) contactInfoModal.classList.add('hidden');
     });
 
+    // Guide button - mở trang hướng dẫn trong tab mới
+    guideBtn.addEventListener('click', () => {
+        window.open('guide.html', '_blank');
+    });
+
+    // Feedback system
+    feedbackBtn.addEventListener('click', () => {
+        feedbackModal.classList.remove('hidden');
+    });
+
+    closeFeedbackModalBtn.addEventListener('click', () => {
+        feedbackModal.classList.add('hidden');
+    });
+
+    feedbackModal.addEventListener('click', (e) => {
+        if (e.target === feedbackModal) {
+            feedbackModal.classList.add('hidden');
+        }
+    });
+
+    // Rating system
+    let selectedRating = 0;
+    const ratingStars = document.querySelectorAll('.rating-star');
+    const ratingText = document.getElementById('rating-text');
+
+    ratingStars.forEach((star, index) => {
+        star.addEventListener('click', () => {
+            selectedRating = index + 1;
+            updateStarDisplay();
+            updateRatingText();
+        });
+
+        star.addEventListener('mouseenter', () => {
+            highlightStars(index + 1);
+        });
+
+        star.addEventListener('mouseleave', () => {
+            updateStarDisplay();
+        });
+    });
+
+    function highlightStars(count) {
+        ratingStars.forEach((star, index) => {
+            if (index < count) {
+                star.classList.remove('text-gray-300');
+                star.classList.add('text-yellow-400');
+            } else {
+                star.classList.add('text-gray-300');
+                star.classList.remove('text-yellow-400');
+            }
+        });
+    }
+
+    function updateStarDisplay() {
+        highlightStars(selectedRating);
+    }
+
+    function updateRatingText() {
+        const messages = [
+            'Click để đánh giá website',
+            '😞 Rất không hài lòng - Hãy cho chúng tôi biết vấn đề!',
+            '😐 Không hài lòng - Chúng tôi sẽ cải thiện!', 
+            '😊 Bình thường - Có thể làm tốt hơn!',
+            '😄 Hài lòng - Cảm ơn bạn!',
+            '🤩 Rất hài lòng - Tuyệt vời!'
+        ];
+        ratingText.textContent = messages[selectedRating];
+    }
+
+    // Feedback form submission
+    document.getElementById('feedback-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const formData = new FormData(e.target);
+        const feedbackData = {
+            type: formData.get('type'),
+            priority: formData.get('priority'),
+            content: formData.get('content'),
+            email: formData.get('email') || 'anonymous',
+            rating: selectedRating,
+            timestamp: new Date().toISOString(),
+            page: 'main',
+            userAgent: navigator.userAgent,
+            url: window.location.href
+        };
+
+        try {
+            // Store in Firebase (if user is logged in) or localStorage
+            if (currentUser) {
+                feedbackData.userId = currentUser.uid;
+                feedbackData.userName = currentUser.displayName || 'User';
+                
+                // Save to Firestore
+                await db.collection('feedback').add(feedbackData);
+                console.log('💾 Feedback saved to Firestore:', feedbackData);
+            } else {
+                // Save to localStorage for anonymous users
+                const localFeedback = JSON.parse(localStorage.getItem('userFeedback') || '[]');
+                localFeedback.push(feedbackData);
+                localStorage.setItem('userFeedback', JSON.stringify(localFeedback));
+                console.log('💾 Feedback saved locally:', feedbackData);
+            }
+
+            // Show success message
+            alert('🎉 Cảm ơn bạn đã góp ý! Chúng tôi sẽ xem xét và phản hồi sớm nhất có thể.');
+            
+            // Close modal and reset form
+            feedbackModal.classList.add('hidden');
+            e.target.reset();
+            selectedRating = 0;
+            updateStarDisplay();
+            updateRatingText();
+
+        } catch (error) {
+            console.error('❌ Error submitting feedback:', error);
+            alert('Có lỗi xảy ra khi gửi góp ý. Vui lòng thử lại sau.');
+        }
+    });
+
     searchInput.addEventListener('input', (e) => { 
         clearTimeout(debounceTimer); 
         const query = e.target.value.trim();
@@ -1442,6 +1565,327 @@ document.addEventListener('DOMContentLoaded', () => {
     // === KẾT THÚC: LOGIC ĐIỀU KHIỂN AKKORDEON ===
 
     handleUrlParameters();
+
+    // === USER ONBOARDING SYSTEM ===
+    function checkFirstTimeUser() {
+        const hasVisited = localStorage.getItem('hasVisitedBefore');
+        if (!hasVisited) {
+            // Delay để đảm bảo trang đã load xong
+            setTimeout(() => {
+                startOnboardingTour();
+                localStorage.setItem('hasVisitedBefore', 'true');
+            }, 2000);
+        }
+    }
+
+    function startOnboardingTour() {
+        // Tạo overlay cho onboarding
+        const overlay = document.createElement('div');
+        overlay.id = 'onboarding-overlay';
+        overlay.className = 'fixed inset-0 bg-black bg-opacity-70 z-[2000] flex items-center justify-center';
+        
+        overlay.innerHTML = `
+            <div class="bg-white rounded-2xl max-w-md mx-4 p-6 text-center animate-pulse">
+                <div class="text-6xl mb-4">👋</div>
+                <h2 class="text-2xl font-bold text-gray-800 mb-3">Chào mừng bạn!</h2>
+                <p class="text-gray-600 mb-6">Hãy để chúng tôi hướng dẫn bạn sử dụng website một cách hiệu quả nhất</p>
+                <div class="flex space-x-3">
+                    <button id="start-tour" class="flex-1 bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition">
+                        <i class="fas fa-play mr-2"></i>Bắt đầu tour
+                    </button>
+                    <button id="skip-tour" class="px-4 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+                        Bỏ qua
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(overlay);
+        
+        // Event listeners cho tour
+        document.getElementById('start-tour').addEventListener('click', () => {
+            overlay.remove();
+            runInteractiveTour();
+        });
+        
+        document.getElementById('skip-tour').addEventListener('click', () => {
+            overlay.remove();
+        });
+    }
+
+    function runInteractiveTour() {
+        const tourSteps = [
+            {
+                target: '#search-bar-container',
+                title: '🔍 Tìm kiếm thửa đất',
+                content: 'Nhập số thửa theo định dạng "Thửa 123, Tờ 45" hoặc "123/45" để tìm kiếm nhanh',
+                position: 'bottom'
+            },
+            {
+                target: '#query-btn', 
+                title: '👆 Chế độ xem thông tin',
+                content: 'Click vào nút này, sau đó click vào bất kỳ thửa đất nào trên bản đồ để xem thông tin chi tiết',
+                position: 'top'
+            },
+            {
+                target: '#add-location-btn',
+                title: '📍 Thêm tin đăng',
+                content: 'Đăng nhập và thêm thông tin bán/cho thuê để chia sẻ với cộng đồng',
+                position: 'top'
+            },
+            {
+                target: '#guide-btn',
+                title: '📖 Hướng dẫn chi tiết', 
+                content: 'Click để xem hướng dẫn sử dụng đầy đủ với video và ví dụ cụ thể',
+                position: 'left'
+            },
+            {
+                target: '#feedback-btn',
+                title: '💬 Góp ý & Phản hồi',
+                content: 'Chia sẻ ý kiến để giúp chúng tôi cải thiện website tốt hơn',
+                position: 'left'
+            }
+        ];
+        
+        let currentStep = 0;
+        showTourStep(tourSteps[currentStep]);
+        
+        function showTourStep(step) {
+            // Tìm element target
+            const target = document.querySelector(step.target);
+            if (!target) {
+                nextStep();
+                return;
+            }
+            
+            // Tạo highlight cho element
+            target.classList.add('tour-highlight');
+            
+            // Tạo tooltip
+            const tooltip = document.createElement('div');
+            tooltip.className = `tour-tooltip fixed z-[2001] bg-white rounded-lg shadow-2xl p-4 max-w-xs border-2 border-blue-500`;
+            tooltip.innerHTML = `
+                <div class="text-lg font-bold text-gray-800 mb-2">${step.title}</div>
+                <div class="text-gray-600 mb-4">${step.content}</div>
+                <div class="flex justify-between items-center">
+                    <div class="text-sm text-gray-500">${currentStep + 1}/${tourSteps.length}</div>
+                    <div class="space-x-2">
+                        ${currentStep > 0 ? '<button id="tour-prev" class="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-sm">Trước</button>' : ''}
+                        <button id="tour-next" class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">
+                            ${currentStep === tourSteps.length - 1 ? 'Hoàn thành' : 'Tiếp'}
+                        </button>
+                        <button id="tour-skip" class="px-3 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 text-sm">Bỏ qua</button>
+                    </div>
+                </div>
+            `;
+            
+            // Vị trí tooltip
+            const rect = target.getBoundingClientRect();
+            const tooltipRect = { width: 300, height: 150 }; // Ước tính
+            
+            let left, top;
+            switch(step.position) {
+                case 'bottom':
+                    left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
+                    top = rect.bottom + 10;
+                    break;
+                case 'top':
+                    left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
+                    top = rect.top - tooltipRect.height - 10;
+                    break;
+                case 'left':
+                    left = rect.left - tooltipRect.width - 10;
+                    top = rect.top + (rect.height / 2) - (tooltipRect.height / 2);
+                    break;
+                case 'right':
+                    left = rect.right + 10;
+                    top = rect.top + (rect.height / 2) - (tooltipRect.height / 2);
+                    break;
+            }
+            
+            // Đảm bảo tooltip không ra ngoài viewport
+            left = Math.max(10, Math.min(left, window.innerWidth - tooltipRect.width - 10));
+            top = Math.max(10, Math.min(top, window.innerHeight - tooltipRect.height - 10));
+            
+            tooltip.style.left = left + 'px';
+            tooltip.style.top = top + 'px';
+            
+            document.body.appendChild(tooltip);
+            
+            // Event handlers
+            const nextBtn = tooltip.querySelector('#tour-next');
+            const prevBtn = tooltip.querySelector('#tour-prev');
+            const skipBtn = tooltip.querySelector('#tour-skip');
+            
+            nextBtn?.addEventListener('click', nextStep);
+            prevBtn?.addEventListener('click', prevStep);
+            skipBtn?.addEventListener('click', endTour);
+        }
+        
+        function nextStep() {
+            cleanupCurrentStep();
+            currentStep++;
+            if (currentStep < tourSteps.length) {
+                showTourStep(tourSteps[currentStep]);
+            } else {
+                endTour();
+            }
+        }
+        
+        function prevStep() {
+            cleanupCurrentStep();
+            currentStep--;
+            if (currentStep >= 0) {
+                showTourStep(tourSteps[currentStep]);
+            }
+        }
+        
+        function cleanupCurrentStep() {
+            // Remove highlight
+            document.querySelectorAll('.tour-highlight').forEach(el => {
+                el.classList.remove('tour-highlight');
+            });
+            // Remove tooltip
+            document.querySelectorAll('.tour-tooltip').forEach(el => {
+                el.remove();
+            });
+        }
+        
+        function endTour() {
+            cleanupCurrentStep();
+            
+            // Show completion message
+            const completionModal = document.createElement('div');
+            completionModal.className = 'fixed inset-0 bg-black bg-opacity-50 z-[2000] flex items-center justify-center';
+            completionModal.innerHTML = `
+                <div class="bg-white rounded-2xl max-w-md mx-4 p-6 text-center">
+                    <div class="text-6xl mb-4">🎉</div>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-3">Hoàn thành!</h2>
+                    <p class="text-gray-600 mb-6">Bạn đã sẵn sàng sử dụng website. Hãy thử tìm kiếm thửa đất đầu tiên!</p>
+                    <button id="complete-tour" class="w-full bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700 transition">
+                        <i class="fas fa-check mr-2"></i>Bắt đầu sử dụng
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(completionModal);
+            
+            document.getElementById('complete-tour').addEventListener('click', () => {
+                completionModal.remove();
+                // Auto-expand search bar để khuyến khích người dùng thử
+                if (searchBarContainer && !searchBarContainer.classList.contains('is-expanded')) {
+                    searchBarContainer.classList.add('is-expanded');
+                    searchBarContainer.querySelector('#search-input').focus();
+                }
+            });
+        }
+    }
+
+    // Thêm CSS cho tour highlighting
+    const tourCSS = `
+        .tour-highlight {
+            position: relative;
+            z-index: 2000;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.5), 0 0 0 8px rgba(59, 130, 246, 0.2) !important;
+            border-radius: 8px;
+            animation: pulse-highlight 2s infinite;
+        }
+        
+        @keyframes pulse-highlight {
+            0%, 100% { box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.5), 0 0 0 8px rgba(59, 130, 246, 0.2); }
+            50% { box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.7), 0 0 0 12px rgba(59, 130, 246, 0.3); }
+        }
+    `;
+    
+    const styleSheet = document.createElement('style');
+    styleSheet.textContent = tourCSS;
+    document.head.appendChild(styleSheet);
+
+    // Start onboarding check
+    checkFirstTimeUser();
+
+    // === ENHANCED TOOLTIPS SYSTEM ===
+    function createEnhancedTooltips() {
+        const tooltipElements = [
+            { selector: '#search-bar-container', text: 'Tìm kiếm thửa đất (VD: Thửa 123, Tờ 45)', position: 'bottom' },
+            { selector: '#query-btn', text: 'Click để bật chế độ xem thông tin thửa đất', position: 'top' },
+            { selector: '#add-location-btn', text: 'Thêm tin đăng bán/cho thuê (Cần đăng nhập)', position: 'top' },
+            { selector: '#list-btn', text: 'Xem danh sách tất cả tin đăng', position: 'top' },
+            { selector: '#login-btn', text: 'Đăng nhập bằng Google hoặc Email', position: 'left' },
+            { selector: '#guide-btn', text: 'Hướng dẫn sử dụng chi tiết', position: 'left' },
+            { selector: '#feedback-btn', text: 'Gửi góp ý để cải thiện website', position: 'left' },
+            { selector: '#donate-btn', text: 'Ủng hộ dự án (Mời cafe)', position: 'left' },
+            { selector: '#locate-btn', text: 'Tìm vị trí hiện tại của bạn', position: 'left' }
+        ];
+
+        tooltipElements.forEach(item => {
+            const element = document.querySelector(item.selector);
+            if (element) {
+                let tooltip = null;
+                
+                element.addEventListener('mouseenter', (e) => {
+                    // Không hiển thị tooltip khi đang trong tour
+                    if (document.querySelector('.tour-tooltip')) return;
+                    
+                    tooltip = document.createElement('div');
+                    tooltip.className = 'enhanced-tooltip fixed z-[1500] bg-gray-800 text-white text-sm px-3 py-2 rounded-lg shadow-lg pointer-events-none';
+                    tooltip.textContent = item.text;
+                    
+                    const rect = element.getBoundingClientRect();
+                    let left, top;
+                    
+                    switch(item.position) {
+                        case 'top':
+                            left = rect.left + (rect.width / 2);
+                            top = rect.top - 10;
+                            tooltip.style.transform = 'translateX(-50%) translateY(-100%)';
+                            break;
+                        case 'bottom':
+                            left = rect.left + (rect.width / 2);
+                            top = rect.bottom + 10;
+                            tooltip.style.transform = 'translateX(-50%)';
+                            break;
+                        case 'left':
+                            left = rect.left - 10;
+                            top = rect.top + (rect.height / 2);
+                            tooltip.style.transform = 'translateX(-100%) translateY(-50%)';
+                            break;
+                        case 'right':
+                            left = rect.right + 10;
+                            top = rect.top + (rect.height / 2);
+                            tooltip.style.transform = 'translateY(-50%)';
+                            break;
+                    }
+                    
+                    tooltip.style.left = left + 'px';
+                    tooltip.style.top = top + 'px';
+                    tooltip.style.opacity = '0';
+                    tooltip.style.transition = 'opacity 0.2s ease';
+                    
+                    document.body.appendChild(tooltip);
+                    
+                    // Fade in
+                    setTimeout(() => {
+                        tooltip.style.opacity = '1';
+                    }, 10);
+                });
+                
+                element.addEventListener('mouseleave', () => {
+                    if (tooltip) {
+                        tooltip.style.opacity = '0';
+                        setTimeout(() => {
+                            if (tooltip && tooltip.parentNode) {
+                                tooltip.parentNode.removeChild(tooltip);
+                            }
+                        }, 200);
+                    }
+                });
+            }
+        });
+    }
+
+    // Initialize enhanced tooltips
+    createEnhancedTooltips();
 
     // === PARCEL LABELS SYSTEM ===
     let isLabelsVisible = true;
