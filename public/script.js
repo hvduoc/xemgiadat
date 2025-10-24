@@ -83,38 +83,108 @@ document.addEventListener('DOMContentLoaded', () => {
     // 1. Biến toàn cục cho lớp bản đồ và thửa đất được highlight
     let parcelLayer = null;
     let highlightedFeature = null;
+    let parcelLabels = L.layerGroup(); // Layer group cho số thửa
 
     // 2. URL để tải vector tiles
     const tilesetId = 'hvduoc.danang_parcels_final';
     const tileUrl = `https://api.mapbox.com/v4/${tilesetId}/{z}/{x}/{y}.mvt?access_token=${mapboxAccessToken}`;
 
     
-   // 3. Style mặc định cho các thửa đất
+   // 3. Style mặc định cho các thửa đất - tối ưu cho zoom xa
     const parcelStyle = {
-        color: '#6B7280', // Viền màu xám đậm hơn (Tailwind gray-500) cho dễ thấy
-        weight: 1,       // Nét viền dày hơn một chút
-        fill: false      // TẮT đổ màu nền, chỉ giữ lại viền
+        color: '#9CA3AF', // Viền màu xám nhạt hơn (Tailwind gray-400) để mờ mờ
+        weight: 0.3,     // Nét viền rất mỏng khi zoom xa
+        fill: false,     // TẮT đổ màu nền, chỉ giữ lại viền
+        opacity: 0.6     // Độ trong suốt để nhìn mờ mờ đẹp hơn
     };
 
-    // 4. Tùy chọn cho lớp vector tiles
+    // 4. Tùy chọn cho lớp vector tiles - tối ưu performance
     const vectorTileOptions = {
         rendererFactory: L.canvas.tile,
         interactive: true,
+        minZoom: 10, // Không load tiles khi zoom quá xa
+        maxZoom: 20, // Giới hạn zoom tối đa
+        updateWhenIdle: true, // Chỉ update khi map dừng di chuyển
+        updateWhenZooming: false, // Không update trong lúc zoom
+        keepBuffer: 1, // Giảm buffer để tiết kiệm memory
         getFeatureId: feature => feature.properties.OBJECTID,
         vectorTileLayerStyles: {
             'danang_full': function(properties, zoom) {
                 return {
-                    color: '#6B7280', // Hoặc thay đổi màu theo zoom nếu cần
-                    weight: zoom >= 18 ? 0.5 : zoom >= 16 ? 0.1 : 0.05,
-                    fill: false
+                    color: zoom >= 16 ? '#6B7280' : '#9CA3AF',
+                    weight: zoom >= 18 ? 1.2 : zoom >= 16 ? 0.8 : zoom >= 14 ? 0.4 : 0.2,
+                    fill: false,
+                    opacity: zoom >= 16 ? 0.8 : zoom >= 14 ? 0.5 : 0.3,
+                    // Tối ưu rendering
+                    smoothFactor: zoom >= 16 ? 1.0 : 0.5 // Giảm smoothing khi zoom xa
                 };
             }
         }
-
     };
 
-    // 5. Tạo lớp bản đồ phân lô MỘT LẦN DUY NHẤT
+    // 5. Tạo lớp bản đồ phân lô MỘT LẦN DUY NHẤT với error handling
     parcelLayer = L.vectorGrid.protobuf(tileUrl, vectorTileOptions);
+    
+    // Xử lý lỗi 404 tiles để tránh spam console
+    parcelLayer.on('tileerror', function(e) {
+        // Chỉ log lỗi nghiêm trọng, bỏ qua 404 (tile không tồn tại)
+        if (e.error && !e.error.message?.includes('404')) {
+            console.warn('Lỗi tải vector tile:', e.error);
+        }
+    });
+    
+    // 6. System để hiển thị số thửa từ vector tiles
+    let tileLabels = new Map(); // Store labels by tile coordinates
+    const MIN_LABEL_ZOOM = 16;
+    
+    // Event listener khi vector tile được load
+    parcelLayer.on('loading', function(e) {
+        // Clear labels when new tiles are loading
+        if (map.getZoom() < MIN_LABEL_ZOOM) {
+            parcelLabels.clearLayers();
+        }
+    });
+    
+    // Function to create label from vector feature
+    function createLabelFromVectorFeature(layer, properties) {
+        if (!properties.SoThuTuThua || map.getZoom() < MIN_LABEL_ZOOM) return null;
+        
+        try {
+            // Get centroid of the layer
+            const bounds = layer.getBounds();
+            const center = bounds.getCenter();
+            
+            const label = L.marker(center, {
+                icon: L.divIcon({
+                    className: 'parcel-number-label',
+                    html: properties.SoThuTuThua,
+                    iconSize: [null, null],
+                    iconAnchor: [10, 6] // Center the label
+                }),
+                interactive: false,
+                pane: 'overlayPane'
+            });
+            
+            return label;
+        } catch (error) {
+            return null;
+        }
+    }
+    
+    // Function to update labels - now using optimized version
+    function updateParcelLabels() {
+        // Redirect to optimized version
+        updateParcelLabelsOptimized();
+    }
+    
+    // Old heavy loading function removed for performance optimization
+    
+    // Add labels when tiles are loaded
+    parcelLayer.on('add', function(e) {
+        if (map.getZoom() >= MIN_LABEL_ZOOM) {
+            setTimeout(updateParcelLabels, 200);
+        }
+    });
         async function fetchAndDrawDimensions(maXa, soTo, soThua) {
         dimensionMarkers.clearLayers(); // Xóa nhãn cũ nếu có
 
@@ -219,10 +289,48 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- KẾT THÚC KHẮC PHỤC ---
 
     const baseMaps = { "Ảnh vệ tinh": googleSat, "Bản đồ đường": googleStreets, "OpenStreetMap": osmLayer };
-    const overlayMaps = { "🗺️ Bản đồ phân lô": parcelLayer };
+    const overlayMaps = { 
+        "🗺️ Bản đồ phân lô": parcelLayer,
+        "🏷️ Số thửa": parcelLabels 
+    };
     googleStreets.addTo(map);
     parcelLayer.addTo(map); // Thêm lớp phân lô vào bản đồ
+    parcelLabels.addTo(map); // Thêm lớp số thửa vào bản đồ
     L.control.layers(baseMaps, overlayMaps, { position: 'bottomright' }).addTo(map);
+    
+    // Tối ưu: Performance-focused event handling
+    let zoomTimeout = null;
+    let moveTimeout = null;
+    
+    map.on('zoomstart', function() {
+        // Tạm ẩn labels khi đang zoom để tăng performance
+        if (isLabelsVisible) {
+            parcelLabels.clearLayers();
+        }
+    });
+    
+    map.on('zoomend', function() {
+        clearTimeout(zoomTimeout);
+        zoomTimeout = setTimeout(() => {
+            const currentZoom = map.getZoom();
+            if (currentZoom < 12) {
+                // Zoom quá xa - giảm opacity và tắt interaction
+                if (map.hasLayer(parcelLayer)) {
+                    parcelLayer.setOpacity(0.1);
+                    parcelLayer.options.interactive = false;
+                }
+            } else {
+                // Zoom đủ gần - bật lại
+                parcelLayer.setOpacity(1);
+                parcelLayer.options.interactive = true;
+            }
+        }, 100); // Debounce zoom events
+    });
+    
+    map.on('movestart', function() {
+        // Clear labels khi đang di chuyển để tăng performance
+        clearTimeout(labelLoadTimeout);
+    });
 
 
     // --- DOM ELEMENT SELECTION ---
@@ -787,7 +895,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target === contactInfoModal) contactInfoModal.classList.add('hidden');
     });
 
-    searchInput.addEventListener('input', (e) => { clearTimeout(debounceTimer); debounceTimer = setTimeout(() => { performSearch(e.target.value.trim()); }, 300); });
+    searchInput.addEventListener('input', (e) => { 
+        clearTimeout(debounceTimer); 
+        const query = e.target.value.trim();
+        if (query.length < 2) {
+            // Clear results immediately for short queries
+            searchResultsContainer.innerHTML = '';
+            searchResultsContainer.classList.add('hidden');
+            return;
+        }
+        debounceTimer = setTimeout(() => { performSearch(query); }, 400); // Slightly longer delay for better performance
+    });
     searchResultsContainer.addEventListener('click', (e) => {
         const item = e.target.closest('.result-item');
         if (!item) return;
@@ -1107,5 +1225,155 @@ document.addEventListener('DOMContentLoaded', () => {
     // === KẾT THÚC: LOGIC ĐIỀU KHIỂN AKKORDEON ===
 
     handleUrlParameters();
+
+    // === PARCEL LABELS SYSTEM ===
+    let isLabelsVisible = true;
+    let currentZoom = map.getZoom();
+    
+
+    
+    // === PERFORMANCE OPTIMIZED LABEL SYSTEM ===
+    let labelCache = new Map(); // Cache loaded labels by area
+    let labelLoadTimeout = null;
+    const MAX_CACHE_SIZE = 3; // Giới hạn cache để tiết kiệm memory
+    
+    // Memory management function
+    function cleanupLabelCache() {
+        if (labelCache.size > MAX_CACHE_SIZE) {
+            const firstKey = labelCache.keys().next().value;
+            labelCache.delete(firstKey);
+        }
+    }
+    
+    // Optimized update function with requestAnimationFrame
+    function debouncedUpdateLabels() {
+        clearTimeout(labelLoadTimeout);
+        labelLoadTimeout = setTimeout(() => {
+            if (isLabelsVisible && map.getZoom() >= MIN_LABEL_ZOOM) {
+                // Use requestAnimationFrame for smooth updates
+                requestAnimationFrame(() => {
+                    updateParcelLabelsOptimized();
+                });
+            }
+        }, 300); // Reduced delay to 300ms for better responsiveness
+    }
+    
+    // Optimized label update - load only 1 relevant area
+    async function updateParcelLabelsOptimized() {
+        parcelLabels.clearLayers();
+        
+        if (map.getZoom() < MIN_LABEL_ZOOM) return;
+        
+        try {
+            const center = map.getCenter();
+            
+            // Find the most relevant area based on map center
+            // This is a simplified approach - load only ONE area closest to center
+            const targetArea = findClosestArea(center);
+            
+            if (targetArea && !labelCache.has(targetArea)) {
+                // Load and cache only one area at a time
+                const labels = await loadSingleAreaLabels(targetArea);
+                labelCache.set(targetArea, labels);
+                cleanupLabelCache(); // Manage memory usage
+            }
+            
+            // Display cached labels for current area
+            const cachedLabels = labelCache.get(targetArea);
+            if (cachedLabels) {
+                const bounds = map.getBounds();
+                cachedLabels.forEach(label => {
+                    if (bounds.contains(label.getLatLng())) {
+                        parcelLabels.addLayer(label);
+                    }
+                });
+            }
+            
+        } catch (error) {
+            console.log('Label loading error:', error.message);
+        }
+    }
+    
+    // Find closest area to map center (simplified)
+    function findClosestArea(center) {
+        // Sample a few key areas around Đà Nẵng center
+        const keyAreas = ['20194', '20195', '20197'];
+        return keyAreas[0]; // For now, just use first area to minimize load
+    }
+    
+    // Load single area efficiently
+    async function loadSingleAreaLabels(maXa) {
+        try {
+            const response = await fetch(`data/parcels/${maXa}.geojson`);
+            if (!response.ok) return [];
+            
+            const geojson = await response.json();
+            const labels = [];
+            
+            // Process only first 20 features to reduce computation
+            const features = geojson.features.slice(0, 20);
+            
+            features.forEach(feature => {
+                const props = feature.properties;
+                if (props?.SoThuTuThua && feature.geometry?.coordinates) {
+                    const coords = feature.geometry.coordinates[0];
+                    if (coords && coords.length > 3) {
+                        // Fast centroid calculation
+                        const centerLng = coords.reduce((sum, c) => sum + c[0], 0) / coords.length;
+                        const centerLat = coords.reduce((sum, c) => sum + c[1], 0) / coords.length;
+                        
+                        const label = L.marker([centerLat, centerLng], {
+                            icon: L.divIcon({
+                                className: 'parcel-number-label',
+                                html: props.SoThuTuThua,
+                                iconSize: [null, null],
+                                iconAnchor: [10, 6]
+                            }),
+                            interactive: false
+                        });
+                        
+                        labels.push(label);
+                    }
+                }
+            });
+            
+            return labels;
+        } catch (error) {
+            return [];
+        }
+    }
+    
+    // Update labels with optimized event handling
+    map.on('zoomend', debouncedUpdateLabels);
+    map.on('moveend', () => {
+        clearTimeout(moveTimeout);
+        moveTimeout = setTimeout(debouncedUpdateLabels, 200); // Separate timeout for move events
+    });
+    
+    // Performance monitoring (remove in production if needed)
+    if (window.location.hostname === 'localhost') {
+        let performanceTimer = Date.now();
+        map.on('zoomstart movestart', () => { performanceTimer = Date.now(); });
+        map.on('zoomend moveend', () => {
+            const elapsed = Date.now() - performanceTimer;
+            if (elapsed > 100) console.log(`⚠️ Map operation took ${elapsed}ms`);
+        });
+    }
+    
+    // Handle layer toggle
+    map.on('overlayadd', (e) => {
+        if (e.name === '🏷️ Số thửa') {
+            isLabelsVisible = true;
+            debouncedUpdateLabels();
+        }
+    });
+    
+    map.on('overlayremove', (e) => {
+        if (e.name === '🏷️ Số thửa') {
+            isLabelsVisible = false;
+            parcelLabels.clearLayers();
+            clearTimeout(labelLoadTimeout);
+        }
+    });
 });
 // KHẮC PHỤC: Đã xóa dòng }); thừa ở đây

@@ -46,11 +46,12 @@ exports.handler = async (event) => {
     }
 
     if (mode === 'tilequery') {
-      const { lat, lng, limit } = qs;
+      const { lat, lng, limit, radius } = qs;
       if (!lat || !lng) return { statusCode: 400, body: 'Missing lat/lng' };
       // tileset hardcoded for now to your public tileset
       const tileset = 'hvduoc.danang_parcels_final';
-      const url = `https://api.mapbox.com/v4/${tileset}/tilequery/${encodeURIComponent(lng)},${encodeURIComponent(lat)}.json?limit=${limit||1}&access_token=${MAPBOX_TOKEN}`;
+      let url = `https://api.mapbox.com/v4/${tileset}/tilequery/${encodeURIComponent(lng)},${encodeURIComponent(lat)}.json?limit=${limit||50}&access_token=${MAPBOX_TOKEN}`;
+      if (radius) url += `&radius=${encodeURIComponent(radius)}`;
       const resp = await fetch(url);
       const text = await resp.text();
       return { statusCode: resp.status, headers: { 'Content-Type': 'application/json' }, body: text };

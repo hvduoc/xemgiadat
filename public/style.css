@@ -653,6 +653,33 @@ html, body, #map {
     z-index: 2000 !important;
 }
 
+/* Parcel number labels */
+.parcel-number-label {
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid #374151;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    color: #1f2937;
+    text-align: center;
+    line-height: 1.2;
+    min-width: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    pointer-events: none;
+    user-select: none;
+    white-space: nowrap;
+}
+
+/* Responsive label sizes */
+@media (max-width: 768px) {
+    .parcel-number-label {
+        font-size: 10px;
+        padding: 1px 4px;
+    }
+}
+
 #firebaseui-widget {
     width: 100% !important;
     max-width: 400px !important;
