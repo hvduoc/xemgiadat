@@ -973,4 +973,18 @@ html, body, #map {
     transition: max-height 0.3s ease-out;
     background-color: white;
 }
+
+.accordion-content.active {
+    max-height: 500px; /* Fallback height for complex content */
+    overflow: visible;
+}
+
+/* Đảm bảo accordion hoạt động trong modal */
+#contact-info-modal .accordion-content {
+    transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+}
+
+#contact-info-modal .accordion-content.active {
+    padding-bottom: 1rem;
+}
 /* === KẾT THÚC: CSS CHO GIAO DIỆN AKKORDEON === */

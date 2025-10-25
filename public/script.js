@@ -70,6 +70,7 @@ async function getCachedAddress(lat, lng) {
     }
 
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('🚀 DOM Content Loaded - Initializing app...');
 
     // --- MAP AND LAYERS INITIALIZATION ---
     const map = L.map('map', { center: [16.054456, 108.202167], zoom: 13, zoomControl: false });
@@ -373,6 +374,85 @@ document.addEventListener('DOMContentLoaded', () => {
     const feedbackModal = document.getElementById('feedback-modal');
     const closeFeedbackModalBtn = document.getElementById('close-feedback-modal');
     const adminBtn = document.getElementById('admin-btn');
+
+    // Debug: Check if elements exist
+    console.log('🔍 Button elements check:', {
+        feedbackBtn: !!feedbackBtn,
+        feedbackModal: !!feedbackModal,
+        closeFeedbackModalBtn: !!closeFeedbackModalBtn,
+        adminBtn: !!adminBtn,
+        contactInfoBtn: !!contactInfoBtn,
+        contactInfoModal: !!contactInfoModal
+    });
+
+    // === IMMEDIATE EVENT LISTENERS SETUP ===
+    // Setup button event listeners immediately after DOM element declarations
+    
+    // Feedback system - Setup immediately
+    if (feedbackBtn && feedbackModal && closeFeedbackModalBtn) {
+        console.log('✅ Setting up feedback button listeners...');
+        feedbackBtn.addEventListener('click', () => {
+            console.log('👆 Feedback button clicked!');
+            // Simple, clean modal opening
+            feedbackModal.style.display = 'flex';
+            feedbackModal.classList.remove('hidden');
+        });
+
+        closeFeedbackModalBtn.addEventListener('click', () => {
+            console.log('❌ Closing feedback modal');
+            feedbackModal.classList.add('hidden');
+        });
+
+        feedbackModal.addEventListener('click', (e) => {
+            if (e.target === feedbackModal) {
+                feedbackModal.classList.add('hidden');
+            }
+        });
+    } else {
+        console.error('❌ Feedback elements not found:', {
+            feedbackBtn: !!feedbackBtn,
+            feedbackModal: !!feedbackModal,
+            closeFeedbackModalBtn: !!closeFeedbackModalBtn
+        });
+    }
+
+    // Guide button
+    if (guideBtn) {
+        guideBtn.addEventListener('click', () => {
+            console.log('📖 Guide button clicked');
+            window.open('guide.html', '_blank');
+        });
+    }
+
+    // Admin button (visible only for admin users after login)
+    if (adminBtn) {
+        adminBtn.addEventListener('click', () => {
+            console.log('⚙️ Admin button clicked');
+            window.open('admin.html', '_blank');
+        });
+    }
+
+    // Contact info modal
+    if (contactInfoBtn && contactInfoModal && closeContactModalBtn) {
+        contactInfoBtn.addEventListener('click', () => {
+            console.log('ℹ️ Contact info button clicked');
+            console.log('📱 Contact modal element:', contactInfoModal);
+            console.log('📱 Modal classes before:', contactInfoModal.className);
+            contactInfoModal.classList.remove('hidden');
+            console.log('📱 Modal classes after:', contactInfoModal.className);
+            setupInfoAccordion();
+        });
+
+        closeContactModalBtn.addEventListener('click', () => {
+            contactInfoModal.classList.add('hidden');
+        });
+
+        contactInfoModal.addEventListener('click', (e) => {
+            if (e.target === contactInfoModal) {
+                contactInfoModal.classList.add('hidden');
+            }
+        });
+    }
 
     // --- STATE & GLOBAL VARIABLES ---
     let currentUser = null;
@@ -1095,41 +1175,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    contactInfoBtn.addEventListener('click', () => contactInfoModal.classList.remove('hidden'));
-    closeContactModalBtn.addEventListener('click', () => contactInfoModal.classList.add('hidden'));
-    contactInfoModal.addEventListener('click', (e) => {
-        if (e.target === contactInfoModal) contactInfoModal.classList.add('hidden');
-    });
-
-    // Guide button - mở trang hướng dẫn trong tab mới
-    guideBtn.addEventListener('click', () => {
-        window.open('guide.html', '_blank');
-    });
-
-    // Admin dashboard access
-    adminBtn.addEventListener('click', () => {
-        window.open('admin.html', '_blank');
-    });
-
-    // Feedback system
-    feedbackBtn.addEventListener('click', () => {
-        feedbackModal.classList.remove('hidden');
-    });
-
-    closeFeedbackModalBtn.addEventListener('click', () => {
-        feedbackModal.classList.add('hidden');
-    });
-
-    feedbackModal.addEventListener('click', (e) => {
-        if (e.target === feedbackModal) {
-            feedbackModal.classList.add('hidden');
-        }
-    });
+    // Note: Guide, Admin, and Feedback event listeners are now setup earlier in the code
+    // Donate button handlers
+    donateBtn.addEventListener('click', () => donateModal.classList.remove('hidden'));
+    closeDonateModalBtn.addEventListener('click', () => donateModal.classList.add('hidden'));
+    donateModal.addEventListener('click', (e) => { if (e.target === donateModal) donateModal.classList.add('hidden'); });
 
     // Rating system
     let selectedRating = 0;
     const ratingStars = document.querySelectorAll('.rating-star');
     const ratingText = document.getElementById('rating-text');
+
+    // Initialize rating display
+    updateStarDisplay();
+    updateRatingText();
 
     ratingStars.forEach((star, index) => {
         star.addEventListener('click', () => {
@@ -1152,9 +1211,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (index < count) {
                 star.classList.remove('text-gray-300');
                 star.classList.add('text-yellow-400');
+                star.textContent = '★'; // Filled star
             } else {
                 star.classList.add('text-gray-300');
                 star.classList.remove('text-yellow-400');
+                star.textContent = '☆'; // Empty star
             }
         });
     }
@@ -1165,7 +1226,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateRatingText() {
         const messages = [
-            'Click để đánh giá website',
+            'Click để đánh giá website (chưa chọn)',
             '😞 Rất không hài lòng - Hãy cho chúng tôi biết vấn đề!',
             '😐 Không hài lòng - Chúng tôi sẽ cải thiện!', 
             '😊 Bình thường - Có thể làm tốt hơn!',
@@ -1333,9 +1394,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (map.hasLayer(parcelLayer)) opacityControl.classList.remove('hidden');
     else opacityControl.classList.add('hidden');
 
-    donateBtn.addEventListener('click', () => donateModal.classList.remove('hidden'));
-    closeDonateModalBtn.addEventListener('click', () => donateModal.classList.add('hidden'));
-    donateModal.addEventListener('click', (e) => { if (e.target === donateModal) donateModal.classList.add('hidden'); });
+    // Donate handlers already setup earlier - avoid duplicate
     copyBtn.addEventListener('click', () => navigator.clipboard.writeText(accountNumber).then(() => alert("Đã sao chép số tài khoản!")));
 
     addLocationBtn.addEventListener('click', () => {
@@ -1372,6 +1431,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const ADMIN_UID = "FEpPWWT1EaTWQ9FOqBxWN5FeEJk1";
         const adminBtn = document.getElementById('admin-btn');
         
+        console.log('🔐 Auth state changed:', { 
+            userExists: !!user, 
+            userUID: user?.uid, 
+            isAdmin: user?.uid === ADMIN_UID,
+            adminBtnExists: !!adminBtn 
+        });
+        
         if (user) {
             currentUser = user;
             const userRef = db.collection("users").doc(user.uid);
@@ -1382,11 +1448,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
             
-            // Show admin button if user is admin
-            if (user.uid === ADMIN_UID) {
-                adminBtn.style.display = 'flex';
+            // Show admin button if user is admin OR if running on localhost for testing
+            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            if (user.uid === ADMIN_UID || isLocalhost) {
+                console.log('👑 Showing admin button (admin user or localhost)');
+                if (adminBtn) adminBtn.style.display = 'flex';
             } else {
-                adminBtn.style.display = 'none';
+                if (adminBtn) adminBtn.style.display = 'none';
             }
             
             firebaseuiContainer.classList.add('hidden');
@@ -1397,7 +1465,7 @@ document.addEventListener('DOMContentLoaded', () => {
             addLocationBtn.disabled = false;
         } else {
             currentUser = null;
-            adminBtn.style.display = 'none';
+            if (adminBtn) adminBtn.style.display = 'none';
             loginBtn.classList.remove('hidden');
             userProfileDiv.classList.add('hidden');
             userProfileDiv.classList.remove('flex');
@@ -1550,11 +1618,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Đóng mục đang mở nếu nó không phải là mục vừa được click
                 if (currentlyActive && currentlyActive !== header) {
                     currentlyActive.classList.remove('active');
-                    currentlyActive.nextElementSibling.style.maxHeight = null;
+                    const currentContent = currentlyActive.nextElementSibling;
+                    currentContent.classList.remove('active');
+                    currentContent.style.maxHeight = null;
                 }
                 
                 // Mở hoặc đóng mục vừa click
                 header.classList.toggle('active');
+                content.classList.toggle('active');
                 
                 if (header.classList.contains('active')) {
                     // Đặt max-height bằng chiều cao thực của nội dung để CSS transition hoạt động
@@ -1566,18 +1637,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Gọi hàm này khi modal được mở ra, ví dụ:
-    // trong sự kiện click của nút #contact-info-btn
-    document.getElementById('contact-info-btn').addEventListener('click', () => {
-        document.getElementById('contact-info-modal').classList.remove('hidden');
-        // Khởi tạo accordion mỗi khi modal được mở
-        setupInfoAccordion();
-    });
-
-    // Bạn cũng cần đảm bảo nút đóng hoạt động
-    document.getElementById('close-contact-modal').addEventListener('click', () => {
-        document.getElementById('contact-info-modal').classList.add('hidden');
-    });
+    // Contact info modal handlers - Already setup earlier in immediate event listeners section
+    // Note: setupInfoAccordion is called when contact modal opens
 
 
     // === KẾT THÚC: LOGIC ĐIỀU KHIỂN AKKORDEON ===
