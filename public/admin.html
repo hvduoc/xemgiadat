@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Xem Giá Đất</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .admin-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .admin-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        .stat-card.users {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        .stat-card.listings {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+        .stat-card.feedback {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+        .stat-card.visits {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        }
+        .sidebar {
+            background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+        }
+        .sidebar-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+        }
+        .content-area {
+            background: #f8fafc;
+            min-height: calc(100vh - 4rem);
+        }
+        .table-row:hover {
+            background: #f1f5f9;
+        }
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .status-approved {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .status-rejected {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .priority-high {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        .priority-medium {
+            background: #fef3c7;
+            color: #d97706;
+        }
+        .priority-low {
+            background: #d1fae5;
+            color: #059669;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <!-- Top Navigation -->
+    <nav class="bg-white shadow-sm border-b h-16 fixed w-full top-0 z-50">
+        <div class="flex items-center justify-between h-full px-6">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-tachometer-alt text-2xl text-blue-600"></i>
+                <h1 class="text-xl font-bold text-gray-800">Admin Dashboard</h1>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="relative">
+                    <button id="notification-btn" class="p-2 text-gray-600 hover:text-gray-800 relative">
+                        <i class="fas fa-bell text-xl"></i>
+                        <span id="notification-badge" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center hidden">0</span>
+                    </button>
+                </div>
+                <div id="admin-profile" class="flex items-center space-x-2 cursor-pointer">
+                    <img id="admin-avatar" class="w-8 h-8 rounded-full" src="https://placehold.co/32x32/3b82f6/white?text=A" alt="Admin">
+                    <span id="admin-name" class="text-gray-700 font-medium">Admin</span>
+                </div>
+                <a href="index.html" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                    <i class="fas fa-home mr-2"></i>Về trang chính
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="flex pt-16">
+        <!-- Sidebar -->
+        <aside class="sidebar w-64 h-screen fixed left-0 text-white">
+            <div class="p-6">
+                <div class="space-y-2">
+                    <button onclick="showSection('dashboard')" class="sidebar-item w-full text-left px-4 py-3 rounded-lg transition">
+                        <i class="fas fa-chart-line mr-3"></i>Dashboard
+                    </button>
+                    <button onclick="showSection('users')" class="sidebar-item w-full text-left px-4 py-3 rounded-lg transition">
+                        <i class="fas fa-users mr-3"></i>Quản lý người dùng
+                    </button>
+                    <button onclick="showSection('listings')" class="sidebar-item w-full text-left px-4 py-3 rounded-lg transition">
+                        <i class="fas fa-building mr-3"></i>Tin đăng BDS
+                    </button>
+                    <button onclick="showSection('feedback')" class="sidebar-item w-full text-left px-4 py-3 rounded-lg transition">
+                        <i class="fas fa-comments mr-3"></i>Góp ý & Phản hồi
+                    </button>
+                    <button onclick="showSection('analytics')" class="sidebar-item w-full text-left px-4 py-3 rounded-lg transition">
+                        <i class="fas fa-chart-bar mr-3"></i>Thống kê & Báo cáo
+                    </button>
+                    <button onclick="showSection('settings')" class="sidebar-item w-full text-left px-4 py-3 rounded-lg transition">
+                        <i class="fas fa-cog mr-3"></i>Cài đặt hệ thống
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quick Stats in Sidebar -->
+            <div class="p-6 border-t border-gray-600">
+                <h3 class="text-sm font-semibold text-gray-300 mb-3">Hoạt động hôm nay</h3>
+                <div class="space-y-2 text-sm">
+                    <div class="flex justify-between">
+                        <span>Người dùng mới:</span>
+                        <span id="today-users" class="text-green-400">0</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Tin đăng mới:</span>
+                        <span id="today-listings" class="text-blue-400">0</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Góp ý mới:</span>
+                        <span id="today-feedback" class="text-yellow-400">0</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="content-area ml-64 flex-1 p-6">
+            <!-- Dashboard Section -->
+            <section id="dashboard-section" class="section">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Dashboard Tổng quan</h2>
+                    <p class="text-gray-600">Thống kê và quản lý hoạt động của website</p>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="stat-card users p-6 rounded-xl text-white shadow-lg">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm opacity-80">Tổng người dùng</p>
+                                <p id="total-users" class="text-3xl font-bold">0</p>
+                                <p class="text-sm opacity-70">↗ +<span id="users-growth">0</span> tuần này</p>
+                            </div>
+                            <i class="fas fa-users text-4xl opacity-60"></i>
+                        </div>
+                    </div>
+
+                    <div class="stat-card listings p-6 rounded-xl text-white shadow-lg">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm opacity-80">Tin đăng BDS</p>
+                                <p id="total-listings" class="text-3xl font-bold">0</p>
+                                <p class="text-sm opacity-70">↗ +<span id="listings-growth">0</span> tuần này</p>
+                            </div>
+                            <i class="fas fa-building text-4xl opacity-60"></i>
+                        </div>
+                    </div>
+
+                    <div class="stat-card feedback p-6 rounded-xl text-white shadow-lg">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm opacity-80">Góp ý & Phản hồi</p>
+                                <p id="total-feedback" class="text-3xl font-bold">0</p>
+                                <p class="text-sm opacity-70">🌟 <span id="avg-rating">0</span> sao TB</p>
+                            </div>
+                            <i class="fas fa-comments text-4xl opacity-60"></i>
+                        </div>
+                    </div>
+
+                    <div class="stat-card visits p-6 rounded-xl text-white shadow-lg">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm opacity-80">Lượt truy cập</p>
+                                <p id="total-visits" class="text-3xl font-bold">0</p>
+                                <p class="text-sm opacity-70">📊 Ước tính</p>
+                            </div>
+                            <i class="fas fa-chart-line text-4xl opacity-60"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">Tăng trưởng người dùng (7 ngày qua)</h3>
+                        <canvas id="userGrowthChart" width="400" height="200"></canvas>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">Phân bố đánh giá</h3>
+                        <canvas id="ratingChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">Hoạt động gần đây</h3>
+                        <div id="recent-activities" class="space-y-3">
+                            <!-- Activities will be populated by JS -->
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">Tin đăng cần duyệt</h3>
+                        <div id="pending-listings" class="space-y-3">
+                            <!-- Pending listings will be populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Users Management Section -->
+            <section id="users-section" class="section hidden">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Quản lý người dùng</h2>
+                    <p class="text-gray-600">Xem và quản lý tài khoản người dùng</p>
+                </div>
+
+                <!-- User Stats & Actions -->
+                <div class="bg-white p-6 rounded-xl shadow-lg mb-6">
+                    <div class="flex flex-wrap justify-between items-center gap-4">
+                        <div class="flex space-x-6">
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-blue-600" id="users-active">0</div>
+                                <div class="text-sm text-gray-600">Hoạt động</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-green-600" id="users-premium">0</div>
+                                <div class="text-sm text-gray-600">Premium</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-yellow-600" id="users-banned">0</div>
+                                <div class="text-sm text-gray-600">Bị khóa</div>
+                            </div>
+                        </div>
+                        <div class="flex space-x-2">
+                            <input type="text" id="search-users" placeholder="Tìm kiếm người dùng..." 
+                                   class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <button onclick="exportUsers()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+                                <i class="fas fa-download mr-2"></i>Xuất Excel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Users Table -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Người dùng</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Đăng ký</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tin đăng</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Trạng thái</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-table-body" class="divide-y divide-gray-200">
+                                <!-- Users will be populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Listings Management Section -->
+            <section id="listings-section" class="section hidden">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Quản lý tin đăng BDS</h2>
+                    <p class="text-gray-600">Kiểm duyệt và quản lý tin đăng bất động sản</p>
+                </div>
+
+                <!-- Listing Filters -->
+                <div class="bg-white p-6 rounded-xl shadow-lg mb-6">
+                    <div class="flex flex-wrap justify-between items-center gap-4">
+                        <div class="flex space-x-4">
+                            <select id="filter-status" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="">Tất cả trạng thái</option>
+                                <option value="pending">Chờ duyệt</option>
+                                <option value="approved">Đã duyệt</option>
+                                <option value="rejected">Từ chối</option>
+                            </select>
+                            <input type="text" id="search-listings" placeholder="Tìm kiếm tin đăng..." 
+                                   class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div class="flex space-x-2">
+                            <button onclick="bulkApproveListings()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+                                <i class="fas fa-check mr-2"></i>Duyệt hàng loạt
+                            </button>
+                            <button onclick="exportListings()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                                <i class="fas fa-download mr-2"></i>Xuất dữ liệu
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Listings Table -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left">
+                                        <input type="checkbox" id="select-all-listings" class="rounded">
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tin đăng</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Người đăng</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Giá</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ngày đăng</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Trạng thái</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody id="listings-table-body" class="divide-y divide-gray-200">
+                                <!-- Listings will be populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Feedback Management Section -->
+            <section id="feedback-section" class="section hidden">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Quản lý góp ý & phản hồi</h2>
+                    <p class="text-gray-600">Xem và phản hồi ý kiến từ người dùng</p>
+                </div>
+
+                <!-- Feedback Stats -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-600">Góp ý chưa đọc</p>
+                                <p id="feedback-unread" class="text-2xl font-bold text-red-600">0</p>
+                            </div>
+                            <i class="fas fa-exclamation-circle text-3xl text-red-600"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-600">Đã phản hồi</p>
+                                <p id="feedback-replied" class="text-2xl font-bold text-green-600">0</p>
+                            </div>
+                            <i class="fas fa-reply text-3xl text-green-600"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-600">Đánh giá trung bình</p>
+                                <p id="feedback-avg-rating" class="text-2xl font-bold text-yellow-600">0.0</p>
+                            </div>
+                            <i class="fas fa-star text-3xl text-yellow-600"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feedback Filters -->
+                <div class="bg-white p-6 rounded-xl shadow-lg mb-6">
+                    <div class="flex flex-wrap justify-between items-center gap-4">
+                        <div class="flex space-x-4">
+                            <select id="filter-feedback-type" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="">Tất cả loại</option>
+                                <option value="suggestion">Đề xuất</option>
+                                <option value="bug">Báo lỗi</option>
+                                <option value="improvement">Cải thiện</option>
+                                <option value="ui">Giao diện</option>
+                                <option value="data">Dữ liệu</option>
+                                <option value="general">Chung</option>
+                            </select>
+                            <select id="filter-feedback-priority" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="">Tất cả mức độ</option>
+                                <option value="high">Cao</option>
+                                <option value="medium">Trung bình</option>
+                                <option value="low">Thấp</option>
+                            </select>
+                            <select id="filter-feedback-rating" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="">Tất cả đánh giá</option>
+                                <option value="5">5 sao</option>
+                                <option value="4">4 sao</option>
+                                <option value="3">3 sao</option>
+                                <option value="2">2 sao</option>
+                                <option value="1">1 sao</option>
+                            </select>
+                        </div>
+                        <button onclick="exportFeedback()" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">
+                            <i class="fas fa-download mr-2"></i>Xuất báo cáo
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Feedback List -->
+                <div id="feedback-list" class="space-y-4">
+                    <!-- Feedback items will be populated by JS -->
+                </div>
+            </section>
+
+            <!-- Analytics Section -->
+            <section id="analytics-section" class="section hidden">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Thống kê & Báo cáo</h2>
+                    <p class="text-gray-600">Phân tích dữ liệu và xu hướng sử dụng</p>
+                </div>
+
+                <!-- Date Range Selector -->
+                <div class="bg-white p-6 rounded-xl shadow-lg mb-6">
+                    <div class="flex flex-wrap justify-between items-center gap-4">
+                        <div class="flex space-x-4">
+                            <select id="analytics-period" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="7">7 ngày qua</option>
+                                <option value="30">30 ngày qua</option>
+                                <option value="90">3 tháng qua</option>
+                                <option value="365">1 năm qua</option>
+                            </select>
+                            <button onclick="refreshAnalytics()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                                <i class="fas fa-sync-alt mr-2"></i>Làm mới
+                            </button>
+                        </div>
+                        <button onclick="exportAnalytics()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+                            <i class="fas fa-file-excel mr-2"></i>Xuất báo cáo
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Analytics Charts -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">Xu hướng tăng trưởng</h3>
+                        <canvas id="growthTrendChart" width="400" height="200"></canvas>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">Phân loại góp ý</h3>
+                        <canvas id="feedbackTypeChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+
+                <!-- Popular Areas -->
+                <div class="bg-white p-6 rounded-xl shadow-lg mb-6">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">Khu vực được tìm kiếm nhiều nhất</h3>
+                    <div id="popular-areas" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <!-- Popular areas will be populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Detailed Tables -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">Top người dùng tích cực</h3>
+                        <div id="top-active-users" class="space-y-3">
+                            <!-- Top users will be populated by JS -->
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">Tin đăng phổ biến</h3>
+                        <div id="popular-listings" class="space-y-3">
+                            <!-- Popular listings will be populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Settings Section -->
+            <section id="settings-section" class="section hidden">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Cài đặt hệ thống</h2>
+                    <p class="text-gray-600">Cấu hình và quản lý hệ thống</p>
+                </div>
+
+                <!-- Settings Tabs -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                    <div class="border-b border-gray-200">
+                        <nav class="flex space-x-8 px-6">
+                            <button onclick="showSettingsTab('general')" class="settings-tab py-4 text-sm font-medium border-b-2 border-transparent hover:border-gray-300 active">
+                                Cài đặt chung
+                            </button>
+                            <button onclick="showSettingsTab('permissions')" class="settings-tab py-4 text-sm font-medium border-b-2 border-transparent hover:border-gray-300">
+                                Phân quyền
+                            </button>
+                            <button onclick="showSettingsTab('moderation')" class="settings-tab py-4 text-sm font-medium border-b-2 border-transparent hover:border-gray-300">
+                                Kiểm duyệt
+                            </button>
+                            <button onclick="showSettingsTab('backup')" class="settings-tab py-4 text-sm font-medium border-b-2 border-transparent hover:border-gray-300">
+                                Sao lưu & Bảo mật
+                            </button>
+                        </nav>
+                    </div>
+
+                    <!-- General Settings -->
+                    <div id="general-settings" class="settings-content p-6">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">Cài đặt chung</h3>
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Tên website</label>
+                                <input type="text" id="site-name" value="Xem Giá Đất" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Mô tả website</label>
+                                <textarea id="site-description" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg">Bản đồ giá đất cộng đồng Đà Nẵng</textarea>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Giới hạn tin đăng/người dùng</label>
+                                <input type="number" id="listing-limit" value="10" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                            </div>
+                            <div class="flex items-center">
+                                <input type="checkbox" id="auto-approve" class="rounded mr-2">
+                                <label for="auto-approve" class="text-sm text-gray-700">Tự động duyệt tin đăng</label>
+                            </div>
+                            <button onclick="saveGeneralSettings()" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
+                                Lưu cài đặt
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Permission Settings -->
+                    <div id="permissions-settings" class="settings-content p-6 hidden">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">Phân quyền người dùng</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Admin UID (có toàn quyền)</label>
+                                <input type="text" id="admin-uid" value="FEpPWWT1EaTWQ9FOqBxWN5FeEJk1" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Moderator UIDs (phân cách bằng dấu phẩy)</label>
+                                <textarea id="moderator-uids" rows="3" placeholder="uid1,uid2,uid3" class="w-full px-4 py-2 border border-gray-300 rounded-lg"></textarea>
+                            </div>
+                            <button onclick="savePermissions()" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700">
+                                Cập nhật phân quyền
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Moderation Settings -->
+                    <div id="moderation-settings" class="settings-content p-6 hidden">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">Cài đặt kiểm duyệt</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-center">
+                                <input type="checkbox" id="require-approval" class="rounded mr-2" checked>
+                                <label for="require-approval" class="text-sm text-gray-700">Yêu cầu duyệt tin đăng trước khi hiển thị</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="checkbox" id="auto-moderate" class="rounded mr-2">
+                                <label for="auto-moderate" class="text-sm text-gray-700">Tự động kiểm duyệt nội dung</label>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Từ khóa cấm (phân cách bằng dấu phẩy)</label>
+                                <textarea id="banned-keywords" rows="3" placeholder="từ khóa 1, từ khóa 2" class="w-full px-4 py-2 border border-gray-300 rounded-lg"></textarea>
+                            </div>
+                            <button onclick="saveModerationSettings()" class="bg-orange-600 text-white px-6 py-2 rounded-lg hover:bg-orange-700">
+                                Lưu cài đặt kiểm duyệt
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Backup Settings -->
+                    <div id="backup-settings" class="settings-content p-6 hidden">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">Sao lưu & Bảo mật</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <h4 class="font-medium text-gray-800 mb-2">Sao lưu dữ liệu</h4>
+                                <div class="flex space-x-4">
+                                    <button onclick="backupData('users')" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                                        Sao lưu người dùng
+                                    </button>
+                                    <button onclick="backupData('listings')" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+                                        Sao lưu tin đăng
+                                    </button>
+                                    <button onclick="backupData('feedback')" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">
+                                        Sao lưu góp ý
+                                    </button>
+                                </div>
+                            </div>
+                            <div>
+                                <h4 class="font-medium text-gray-800 mb-2">Bảo mật</h4>
+                                <div class="space-y-2">
+                                    <div class="flex items-center">
+                                        <input type="checkbox" id="enable-2fa" class="rounded mr-2">
+                                        <label for="enable-2fa" class="text-sm text-gray-700">Bật xác thực 2 lớp cho admin</label>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <input type="checkbox" id="enable-logging" class="rounded mr-2" checked>
+                                        <label for="enable-logging" class="text-sm text-gray-700">Ghi log hoạt động admin</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <button onclick="saveSecuritySettings()" class="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700">
+                                Lưu cài đặt bảo mật
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Notification Modal -->
+    <div id="notification-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+        <div class="bg-white rounded-xl max-w-md w-full mx-4 p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-gray-800">Thông báo</h3>
+                <button onclick="closeNotificationModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="notification-content">
+                <!-- Notification content will be populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- User Detail Modal -->
+    <div id="user-detail-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+        <div class="bg-white rounded-xl max-w-2xl w-full mx-4 p-6">
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <h3 id="user-detail-name" class="text-xl font-bold text-gray-800"></h3>
+                    <p id="user-detail-id" class="text-xs text-gray-500"></p>
+                </div>
+                <button onclick="closeUserDetailModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div class="flex flex-col items-center md:items-start">
+                    <img id="user-detail-avatar" class="w-24 h-24 rounded-full mb-3" src="https://placehold.co/80x80/e2e8f0/64748b?text=U">
+                    <div id="user-detail-status" class="px-3 py-1 rounded-full text-sm"></div>
+                </div>
+                <div class="md:col-span-2">
+                    <div class="mb-2"><strong>Email:</strong> <span id="user-detail-email"></span></div>
+                    <div class="mb-2"><strong>Điện thoại:</strong> <span id="user-detail-phone"></span></div>
+                    <div class="mb-2"><strong>Facebook:</strong> <a id="user-detail-fb" href="#" target="_blank" class="text-blue-600"></a></div>
+                    <div class="mb-2"><strong>Đăng ký:</strong> <span id="user-detail-created"></span></div>
+                    <div class="mb-2"><strong>Số tin đăng:</strong> <span id="user-detail-listings-count"></span></div>
+                    <div class="mb-2"><strong>Ghi chú:</strong> <span id="user-detail-notes">-</span></div>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <h4 class="font-medium text-gray-800 mb-2">Tin đăng gần đây</h4>
+                <div id="user-detail-listings" class="space-y-3"></div>
+            </div>
+
+            <div class="flex justify-end space-x-3">
+                <button id="user-detail-ban-btn" onclick="toggleUserStatus(currentViewedUserId, currentViewedUserStatus)" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">Khóa</button>
+                <button onclick="closeUserDetailModal()" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Configuration -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+
+    <script src="admin.js"></script>
+</body>
+</html>

@@ -372,6 +372,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const feedbackBtn = document.getElementById('feedback-btn');
     const feedbackModal = document.getElementById('feedback-modal');
     const closeFeedbackModalBtn = document.getElementById('close-feedback-modal');
+    const adminBtn = document.getElementById('admin-btn');
 
     // --- STATE & GLOBAL VARIABLES ---
     let currentUser = null;
@@ -1105,6 +1106,11 @@ document.addEventListener('DOMContentLoaded', () => {
         window.open('guide.html', '_blank');
     });
 
+    // Admin dashboard access
+    adminBtn.addEventListener('click', () => {
+        window.open('admin.html', '_blank');
+    });
+
     // Feedback system
     feedbackBtn.addEventListener('click', () => {
         feedbackModal.classList.remove('hidden');
@@ -1363,6 +1369,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     auth.onAuthStateChanged(async (user) => {
+        const ADMIN_UID = "FEpPWWT1EaTWQ9FOqBxWN5FeEJk1";
+        const adminBtn = document.getElementById('admin-btn');
+        
         if (user) {
             currentUser = user;
             const userRef = db.collection("users").doc(user.uid);
@@ -1372,6 +1381,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     displayName: user.displayName || "", email: user.email || "", phone: "", contactFacebook: "", createdAt: firebase.firestore.FieldValue.serverTimestamp(), updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
             }
+            
+            // Show admin button if user is admin
+            if (user.uid === ADMIN_UID) {
+                adminBtn.style.display = 'flex';
+            } else {
+                adminBtn.style.display = 'none';
+            }
+            
             firebaseuiContainer.classList.add('hidden');
             loginBtn.classList.add('hidden');
             userProfileDiv.classList.remove('hidden');
@@ -1380,6 +1397,7 @@ document.addEventListener('DOMContentLoaded', () => {
             addLocationBtn.disabled = false;
         } else {
             currentUser = null;
+            adminBtn.style.display = 'none';
             loginBtn.classList.remove('hidden');
             userProfileDiv.classList.add('hidden');
             userProfileDiv.classList.remove('flex');
