@@ -3441,13 +3441,7 @@ function goToStep2() {
 });
 
 // Initialize community contribution system after DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 Initializing community contribution system...');
-    setTimeout(initializeCommunityContribution, 1000); // Small delay to ensure all elements are ready
-    
-    console.log('📊 Initializing analytics system...');
-    setTimeout(initializeAnalytics, 1500); // Initialize analytics after community system
-});
+// Moved to end of file to ensure all functions are defined
 
 /*
 === PHASE 2.6: COMMUNITY CONTRIBUTION SYSTEM - COMPLETE ===
@@ -3510,12 +3504,78 @@ let analyticsData = {
 
 let analyticsCharts = {};
 
+// === GLOBAL TOAST NOTIFICATION SYSTEM ===
+function showToast(message, type = 'info', duration = 3000) {
+    // Remove existing toast if any
+    const existingToast = document.querySelector('.toast-notification');
+    if (existingToast) {
+        existingToast.remove();
+    }
+
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = `toast-notification fixed top-4 right-4 max-w-sm rounded-lg shadow-lg p-4 z-50 transform transition-all duration-300 translate-x-full`;
+    
+    // Set colors based on type
+    const typeClasses = {
+        success: 'bg-green-600 text-white',
+        error: 'bg-red-600 text-white',
+        warning: 'bg-yellow-600 text-white',
+        info: 'bg-blue-600 text-white'
+    };
+    
+    toast.className += ` ${typeClasses[type] || typeClasses.info}`;
+    toast.innerHTML = `
+        <div class="flex items-center">
+            <span class="flex-1">${message}</span>
+            <button onclick="this.parentElement.parentElement.remove()" class="ml-3 text-white hover:text-gray-200">
+                ✕
+            </button>
+        </div>
+    `;
+
+    document.body.appendChild(toast);
+
+    // Trigger animation
+    setTimeout(() => {
+        toast.classList.remove('translate-x-full');
+    }, 100);
+
+    // Auto remove after duration
+    setTimeout(() => {
+        if (toast.parentElement) {
+            toast.classList.add('translate-x-full');
+            setTimeout(() => toast.remove(), 300);
+        }
+    }, duration);
+}
+
 // Initialize Analytics System
 function initializeAnalytics() {
     console.log('🚀 Initializing Analytics System...');
     
-    // Add event listeners
-    document.getElementById('analytics-btn')?.addEventListener('click', openAnalyticsDashboard);
+    const analyticsBtn = document.getElementById('analytics-btn');
+    console.log('Analytics button found:', analyticsBtn);
+    
+    if (analyticsBtn) {
+        // Remove any existing listeners first
+        analyticsBtn.replaceWith(analyticsBtn.cloneNode(true));
+        const newBtn = document.getElementById('analytics-btn');
+        
+        console.log('Adding click listener to analytics button...');
+        newBtn.addEventListener('click', function(event) {
+            console.log('🔥 Analytics button clicked!', event);
+            event.preventDefault();
+            event.stopPropagation();
+            openAnalyticsDashboard();
+        });
+        
+        console.log('✅ Analytics button event listeners added');
+    } else {
+        console.error('❌ Analytics button not found!');
+    }
+    
+    // Add other event listeners
     document.getElementById('close-analytics')?.addEventListener('click', closeAnalyticsDashboard);
     document.getElementById('refresh-analytics')?.addEventListener('click', refreshAnalyticsData);
     document.getElementById('export-pdf')?.addEventListener('click', exportAnalyticsToPDF);
@@ -3529,9 +3589,24 @@ function initializeAnalytics() {
 function openAnalyticsDashboard() {
     console.log('📊 Opening Analytics Dashboard...');
     const modal = document.getElementById('analytics-modal');
+    console.log('Modal element:', modal);
+    
     if (modal) {
+        console.log('Modal classes before:', modal.className);
         modal.classList.remove('hidden');
+        console.log('Modal classes after:', modal.className);
+        console.log('Modal style display:', window.getComputedStyle(modal).display);
+        console.log('Modal style visibility:', window.getComputedStyle(modal).visibility);
+        console.log('Modal style z-index:', window.getComputedStyle(modal).zIndex);
+        
+        // Force show the modal
+        modal.style.display = 'flex';
+        modal.style.visibility = 'visible';
+        modal.style.zIndex = '3000';
+        
         refreshAnalyticsData();
+    } else {
+        console.error('❌ Analytics modal not found!');
     }
 }
 
@@ -3741,6 +3816,9 @@ function renderAllCharts() {
     console.log('📊 Rendering analytics charts...');
     
     try {
+        // Destroy all existing charts first
+        destroyAllCharts();
+        
         renderPriceDistributionChart();
         renderAreaDistributionChart();
         renderDistrictPriceChart();
@@ -3749,6 +3827,25 @@ function renderAllCharts() {
     } catch (error) {
         console.error('❌ Error rendering charts:', error);
     }
+}
+
+// Destroy All Existing Charts
+function destroyAllCharts() {
+    console.log('🧹 Destroying existing charts...');
+    
+    Object.keys(analyticsCharts).forEach(key => {
+        if (analyticsCharts[key] && typeof analyticsCharts[key].destroy === 'function') {
+            try {
+                analyticsCharts[key].destroy();
+                console.log(`✅ Destroyed chart: ${key}`);
+            } catch (error) {
+                console.error(`❌ Error destroying chart ${key}:`, error);
+            }
+        }
+    });
+    
+    // Clear the charts object
+    analyticsCharts = {};
 }
 
 // Price Distribution Chart
@@ -3871,7 +3968,7 @@ function renderDistrictPriceChart() {
     const counts = districts.map(district => analyticsData.districtData[district].count);
     
     analyticsCharts.districtPrice = new Chart(ctx, {
-        type: 'horizontalBar',
+        type: 'bar',
         data: {
             labels: districts,
             datasets: [{
@@ -4195,4 +4292,88 @@ function getFieldLabel(fieldName) {
         contributorName: 'Tên người đóng góp'
     };
     return labels[fieldName] || fieldName;
+}
+
+// =============================================================================
+// INITIALIZE ALL SYSTEMS
+// =============================================================================
+
+// Initialize all systems after DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Initializing all systems...');
+    
+    // Initialize community contribution system
+    console.log('👥 Initializing community contribution system...');
+    setTimeout(() => {
+        try {
+            initializeCommunityContribution();
+            console.log('✅ Community contribution system initialized');
+        } catch (error) {
+            console.error('❌ Error initializing community system:', error);
+        }
+    }, 1000);
+    
+    // Initialize analytics system
+    console.log('📊 Initializing analytics system...');
+    setTimeout(() => {
+        try {
+            initializeAnalytics();
+            console.log('✅ Analytics system initialized');
+        } catch (error) {
+            console.error('❌ Error initializing analytics system:', error);
+        }
+    }, 1500);
+    
+    // Add debug functions after 2 seconds
+    setTimeout(() => {
+        console.log('🔍 Running debug check...');
+        debugAnalyticsButton();
+        setTimeout(() => {
+            console.log('🧪 Running manual test...');
+            testAnalyticsButton();
+        }, 1000);
+    }, 2000);
+});
+
+// Debug function to check button status
+function debugAnalyticsButton() {
+    const btn = document.getElementById('analytics-btn');
+    console.log('=== Analytics Button Debug ===');
+    console.log('Button element:', btn);
+    console.log('Button exists:', !!btn);
+    if (btn) {
+        console.log('Button onclick:', btn.onclick);
+        console.log('Button parent:', btn.parentElement);
+        console.log('Button style display:', window.getComputedStyle(btn).display);
+        console.log('Button style visibility:', window.getComputedStyle(btn).visibility);
+        console.log('Button disabled:', btn.disabled);
+        console.log('Button class:', btn.className);
+    }
+    console.log('=== End Debug ===');
+}
+
+// Manual test function
+function testAnalyticsButton() {
+    console.log('Testing analytics button click...');
+    const btn = document.getElementById('analytics-btn');
+    if (btn) {
+        console.log('Simulating click...');
+        
+        // Test what element is at the button's position
+        const rect = btn.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const elementAtPoint = document.elementFromPoint(centerX, centerY);
+        
+        console.log('Button position:', {x: centerX, y: centerY});
+        console.log('Element at button position:', elementAtPoint);
+        console.log('Is element the button?', elementAtPoint === btn);
+        console.log('Element ID:', elementAtPoint?.id);
+        console.log('Element classes:', elementAtPoint?.className);
+        
+        btn.click();
+        console.log('Button clicked programmatically');
+    } else {
+        console.error('Button not found for test');
+    }
 }

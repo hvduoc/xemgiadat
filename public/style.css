@@ -337,11 +337,18 @@ input[type=range][orient=vertical] {
     font-weight: 500;
     color: #374151; /* text-gray-700 */
     transition: background-color 0.2s, color 0.2s;
+    cursor: pointer;
+    position: relative;
 }
 
 .toolbar-btn i {
     margin-right: 6px;
     font-size: 16px;
+    pointer-events: none; /* Allow clicks to pass through to button */
+}
+
+.toolbar-btn span {
+    pointer-events: none; /* Allow clicks to pass through to button */
 }
 
 .toolbar-btn:hover {
