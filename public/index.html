@@ -11,7 +11,6 @@
     <meta property="og:image" content="https://xemgiadat.com/images/thumbnail.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <link rel="icon" type="image/png" href="/images/favicon.png">
      <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Xem Giá Đất - Đà Nẵng</title>
@@ -19,8 +18,6 @@
     <meta name="description" content="Nền tảng BĐS Đà Nẵng thế hệ mới. Dễ dàng tra cứu thông tin thửa đất, đồng thời đăng tin bán hoặc cho thuê siêu nhẹ chỉ trong vài giây. Hoàn toàn miễn phí.">
 
     <meta name="google-site-verification" content="nrKfIVzm3ZtWmjujvI0CZmrxyDYhN4Ep-AKVy_X8_Ws" />
-
-    <link rel="icon" type="image/png" href="/images/favicon.png">
 
     <meta name="description" content="Nền tảng BĐS Đà Nẵng thế hệ mới. Dễ dàng tra cứu thông tin thửa đất, đồng thời đăng tin bán hoặc cho thuê siêu nhẹ chỉ trong vài giây. Hoàn toàn miễn phí.">
     
@@ -47,12 +44,88 @@
             <i class="fas fa-search search-icon"></i>
             <input type="search" id="search-input" placeholder="🔍 Tìm thửa đất (VD: Thửa 123, Tờ 45 hoặc 123/45)...">
         </div>
+        
+        <!-- Advanced Filters Panel -->
+        <div id="filters-panel" class="bg-white/95 backdrop-blur-md border border-gray-200 rounded-xl shadow-lg p-4 space-y-3 hidden mt-2">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="font-bold text-gray-800 text-sm">🔧 Bộ lọc nâng cao</h3>
+                <button id="reset-filters" class="text-xs text-blue-600 hover:text-blue-800">Đặt lại</button>
+            </div>
+            
+            <!-- Land Use Filter -->
+            <div class="space-y-1">
+                <label class="text-xs font-medium text-gray-700">Mục đích sử dụng đất</label>
+                <select id="land-use-filter" class="w-full text-xs border border-gray-300 rounded-lg px-2 py-1.5 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="">Tất cả loại đất</option>
+                    <option value="ODT">🏘️ Đất ở đô thị (ODT)</option>
+                    <option value="DGT">🚶 Đất giao thông (DGT)</option>
+                    <option value="NTO">🌾 Đất nông nghiệp (NTO)</option>
+                    <option value="LUP">🌳 Đất lâm nghiệp (LUP)</option>
+                    <option value="SXD">🏭 Đất sản xuất (SXD)</option>
+                    <option value="CQT">🏢 Đất cơ quan (CQT)</option>
+                </select>
+            </div>
+            
+            <!-- Area Range Filter -->
+            <div class="space-y-1">
+                <label class="text-xs font-medium text-gray-700">Diện tích (m²)</label>
+                <div class="flex space-x-2">
+                    <input type="number" id="area-min" placeholder="Từ" 
+                           class="w-1/2 text-xs border border-gray-300 rounded-lg px-2 py-1.5 focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                    <input type="number" id="area-max" placeholder="Đến" 
+                           class="w-1/2 text-xs border border-gray-300 rounded-lg px-2 py-1.5 focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                </div>
+                <div class="flex flex-wrap gap-1 mt-1">
+                    <button class="area-preset text-xs px-2 py-1 bg-gray-100 hover:bg-blue-100 rounded" data-min="0" data-max="100">≤100m²</button>
+                    <button class="area-preset text-xs px-2 py-1 bg-gray-100 hover:bg-blue-100 rounded" data-min="100" data-max="300">100-300m²</button>
+                    <button class="area-preset text-xs px-2 py-1 bg-gray-100 hover:bg-blue-100 rounded" data-min="300" data-max="500">300-500m²</button>
+                    <button class="area-preset text-xs px-2 py-1 bg-gray-100 hover:bg-blue-100 rounded" data-min="500" data-max="">≥500m²</button>
+                </div>
+            </div>
+            
+            <!-- Administrative Area Filter -->
+            <div class="space-y-1">
+                <label class="text-xs font-medium text-gray-700">Khu vực hành chính</label>
+                <select id="district-filter" class="w-full text-xs border border-gray-300 rounded-lg px-2 py-1.5 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="">Tất cả quận/huyện</option>
+                    <option value="201">Quận Liên Chiểu</option>
+                    <option value="202">Quận Hải Châu</option>
+                    <option value="203">Quận Thanh Khê</option>
+                    <option value="204">Quận Sơn Trà</option>
+                    <option value="205">Quận Ngũ Hành Sơn</option>
+                    <option value="206">Quận Cẩm Lệ</option>
+                    <option value="207">Huyện Hòa Vang</option>
+                </select>
+            </div>
+            
+            <!-- Map Sheet Filter -->
+            <div class="space-y-1">
+                <label class="text-xs font-medium text-gray-700">Số tờ bản đồ</label>
+                <input type="number" id="map-sheet-filter" placeholder="VD: 1, 2, 3..." 
+                       class="w-full text-xs border border-gray-300 rounded-lg px-2 py-1.5 focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+            </div>
+            
+            <!-- Results Count -->
+            <div class="text-xs text-gray-600 pt-2 border-t">
+                <span id="filter-count">Đang tải...</span>
+            </div>
+        </div>
+        
         <!-- Khung kết quả giữ nguyên -->
         <div id="search-results" class="hidden"></div>
     </div>
 
+    <!-- Filter Toggle Button -->
+    <button id="toggle-filters" class="fixed top-20 left-4 z-[1000] bg-white/90 backdrop-blur-md w-10 h-10 rounded-full shadow-lg flex items-center justify-center hover:bg-white transition-all duration-200">
+        <i class="fas fa-filter text-gray-600"></i>
+    </button>
+
     <div id="map"></div>
     <div id="action-toolbar" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-[1001] flex items-center space-x-2 bg-white/80 backdrop-blur-sm p-2 rounded-full shadow-lg">
+        <button id="analytics-btn" class="toolbar-btn">
+            <i class="fa-solid fa-chart-bar"></i>
+            <span>Phân tích</span>
+        </button>
         <button id="list-btn" class="toolbar-btn">
             <i class="fa-solid fa-list"></i>
             <span>Danh sách</span>
@@ -116,6 +189,9 @@
         </button>
         <button id="admin-btn" title="Quản trị hệ thống" class="bg-red-600 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-red-700 transition" style="display: none;">
             <i class="fa-solid fa-cog text-xl"></i>
+        </button>
+        <button id="contribute-btn" title="Bổ sung thông tin thửa đất" class="bg-green-600 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-green-700 transition">
+            <i class="fa-solid fa-plus-circle text-xl"></i>
         </button>
         <button id="donate-btn" title="Ủng hộ (Mời cafe)" class="bg-yellow-400 text-black w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-yellow-500 transition">
             <i class="fa-solid fa-mug-saucer"></i>
@@ -300,6 +376,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/ui/4.8.1/firebase-ui-auth.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script async defer crossorigin="anonymous" src="https://connect.facebook.net/vi_VN/sdk.js#xfbml=1&version=v19.0" nonce="fb-plugin"></script>
 
     <!-- User Guide & Feedback Modal -->
@@ -363,7 +440,12 @@
                     <label class="block text-sm font-bold text-gray-700 mb-2">Nội dung chi tiết</label>
                     <textarea name="content" rows="4" required 
                               placeholder="Mô tả chi tiết góp ý của bạn. Ví dụ: vị trí lỗi, tính năng mong muốn, cách cải thiện..." 
-                              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"></textarea>
+                              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-smooth"
+                              maxlength="500" oninput="updateCharCounter(this)"></textarea>
+                    <div class="flex justify-between text-xs text-gray-500 mt-1">
+                        <span>Tối thiểu 10 ký tự</span>
+                        <span id="char-counter">0/500</span>
+                    </div>
                 </div>
 
                 <div class="mb-4">
@@ -374,8 +456,12 @@
                 </div>
 
                 <div class="flex space-x-3">
-                    <button type="submit" class="flex-1 bg-purple-600 text-white py-3 rounded-lg font-bold hover:bg-purple-700 transition">
-                        <i class="fas fa-paper-plane mr-2"></i>Gửi góp ý
+                    <button type="submit" class="flex-1 bg-purple-600 text-white py-3 rounded-lg font-bold hover:bg-purple-700 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fas fa-paper-plane mr-2"></i>
+                        <span class="submit-text">Gửi góp ý</span>
+                        <span class="loading-text hidden">
+                            <i class="fas fa-spinner fa-spin mr-2"></i>Đang gửi...
+                        </span>
                     </button>
                     <button type="button" onclick="window.open('guide.html', '_blank')" 
                             class="px-4 py-3 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition">
@@ -391,6 +477,305 @@
                         <i class="fas fa-users mr-1"></i>
                         Cảm ơn hơn <strong>1000+</strong> người dùng đã góp ý để cải thiện website
                     </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Community Contribution Modal -->
+    <div id="contribution-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[2001] flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-gray-800">
+                    <i class="fas fa-plus-circle text-green-600 mr-2"></i>
+                    Bổ sung thông tin thửa đất
+                </h3>
+                <button id="close-contribution-modal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <!-- Step 1: Select Parcel -->
+            <div id="contribution-step-1" class="contribution-step">
+                <div class="mb-4 p-4 bg-blue-50 rounded-lg">
+                    <h4 class="font-bold text-blue-800 mb-2">📍 Bước 1: Chọn thửa đất</h4>
+                    <p class="text-sm text-blue-700">Click vào thửa đất trên bản đồ hoặc tìm kiếm theo số tờ/thửa</p>
+                </div>
+                
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Tìm thửa đất</label>
+                        <div class="flex space-x-2">
+                            <input type="number" id="contrib-parcel" placeholder="Số thửa" 
+                                   class="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" />
+                            <input type="number" id="contrib-map-sheet" placeholder="Số tờ" 
+                                   class="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" />
+                            <button type="button" id="search-parcel-btn" class="px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="selected-parcel-info" class="hidden p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <div class="flex items-center text-green-800">
+                            <i class="fas fa-check-circle mr-2"></i>
+                            <span id="parcel-info-text">Đã chọn thửa đất</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <button id="next-step-1" class="w-full mt-4 bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700 transition disabled:opacity-50" disabled>
+                    Tiếp tục <i class="fas fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+
+            <!-- Step 2: Add Community Data -->
+            <div id="contribution-step-2" class="contribution-step hidden">
+                <div class="mb-4 p-4 bg-green-50 rounded-lg">
+                    <h4 class="font-bold text-green-800 mb-2">📝 Bước 2: Bổ sung thông tin</h4>
+                    <p class="text-sm text-green-700">Thêm thông tin thực tế mà cộng đồng sử dụng</p>
+                </div>
+
+                <form id="contribution-form" class="space-y-4">
+                    <!-- Project Information -->
+                    <div class="p-4 bg-gray-50 rounded-lg">
+                        <h5 class="font-bold text-gray-800 mb-3">🏗️ Thông tin dự án</h5>
+                        <div class="space-y-3">
+                            <input type="text" name="projectName" placeholder="Tên dự án (VD: Khu đô thị Vinhomes Central Park)" 
+                                   maxlength="100"
+                                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" />
+                            <input type="text" name="lotNumber" placeholder="Số lô theo dự án (VD: Lô 19 B2, Plot A-15)" 
+                                   maxlength="50"
+                                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" />
+                            <input type="text" name="blockCode" placeholder="Mã block/khu (VD: Block B, Khu A, Phase 2)" 
+                                   maxlength="50"
+                                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" />
+                        </div>
+                    </div>
+
+                    <!-- Market Information -->
+                    <div class="p-4 bg-gray-50 rounded-lg">
+                        <h5 class="font-bold text-gray-800 mb-3">💰 Thông tin thị trường</h5>
+                        <div class="space-y-3">
+                            <input type="text" name="commonName" placeholder="Tên gọi thông dụng (VD: Lô góc đường Trần Hưng Đạo)" 
+                                   maxlength="100"
+                                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" />
+                            <div class="flex space-x-2">
+                                <input type="number" name="marketPrice" placeholder="Giá thị trường (triệu)" 
+                                       min="0" max="10000" step="0.1"
+                                       class="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" />
+                                <select name="priceUnit" class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                    <option value="total">Tổng giá</option>
+                                    <option value="per_m2">Triệu/m²</option>
+                                </select>
+                            </div>
+                            <input type="text" name="brokerCode" placeholder="Mã môi giới/code nội bộ (nếu có)" 
+                                   maxlength="30"
+                                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" />
+                        </div>
+                    </div>
+
+                    <!-- Additional Info -->
+                    <div class="p-4 bg-gray-50 rounded-lg">
+                        <h5 class="font-bold text-gray-800 mb-3">📋 Thông tin bổ sung</h5>
+                        <div class="space-y-3">
+                            <textarea name="description" rows="3" placeholder="Mô tả chi tiết: vị trí, đặc điểm, ghi chú..." 
+                                      maxlength="500" oninput="updateDescriptionCounter(this)"
+                                      class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"></textarea>
+                            <div class="flex justify-between text-xs text-gray-500">
+                                <span>Mô tả ngắn gọn, chân thực</span>
+                                <span id="desc-counter">0/500</span>
+                            </div>
+                            <div class="flex items-center space-x-4">
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="isVerified" class="mr-2">
+                                    <span class="text-sm">Tôi xác nhận thông tin này chính xác</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contact Info -->
+                    <div class="p-4 bg-yellow-50 rounded-lg">
+                        <h5 class="font-bold text-yellow-800 mb-2">📞 Thông tin liên hệ (tùy chọn)</h5>
+                        <p class="text-xs text-yellow-700 mb-3">Để cộng đồng có thể xác minh và phản hồi</p>
+                        <div class="space-y-2">
+                            <input type="text" name="contributorName" placeholder="Tên của bạn" 
+                                   maxlength="50"
+                                   class="w-full p-2 border border-yellow-300 rounded text-sm focus:ring-2 focus:ring-yellow-500 focus:border-transparent" />
+                            <input type="tel" name="contributorPhone" placeholder="Số điện thoại" 
+                                   pattern="[0-9]{10,11}" maxlength="15"
+                                   class="w-full p-2 border border-yellow-300 rounded text-sm focus:ring-2 focus:ring-yellow-500 focus:border-transparent" />
+                        </div>
+                    </div>
+                </form>
+
+                <div class="flex space-x-3 mt-6">
+                    <button id="back-step-2" class="flex-1 bg-gray-500 text-white py-3 rounded-lg font-bold hover:bg-gray-600 transition">
+                        <i class="fas fa-arrow-left mr-2"></i> Quay lại
+                    </button>
+                    <button id="submit-contribution" class="flex-1 bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span class="submit-text">
+                            <i class="fas fa-paper-plane mr-2"></i> Gửi đóng góp
+                        </span>
+                        <span class="submit-loading hidden">
+                            <i class="fas fa-spinner fa-spin mr-2"></i> Đang xử lý...
+                        </span>
+                    </button>
+                </div>
+
+                <!-- Success/Error Messages -->
+                <div id="contribution-message" class="hidden mt-4 p-4 rounded-lg">
+                    <div id="contribution-message-text"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analytics Dashboard Modal -->
+    <div id="analytics-modal" class="fixed inset-0 bg-black bg-opacity-50 z-[2000] hidden">
+        <div class="fixed inset-4 bg-white rounded-xl shadow-2xl overflow-hidden">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-4 flex justify-between items-center">
+                <div class="flex items-center">
+                    <i class="fas fa-chart-bar mr-3 text-xl"></i>
+                    <h2 class="text-xl font-bold">Phân tích thị trường bất động sản Đà Nẵng</h2>
+                </div>
+                <button id="close-analytics" class="text-white hover:text-gray-200 transition">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <!-- Dashboard Content -->
+            <div class="p-6 h-full overflow-y-auto" style="max-height: calc(100vh - 120px);">
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-4 text-white">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-blue-100 text-sm">Tổng số thửa</p>
+                                <p id="total-parcels" class="text-2xl font-bold">0</p>
+                            </div>
+                            <i class="fas fa-map text-3xl text-blue-200"></i>
+                        </div>
+                    </div>
+                    <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-4 text-white">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-green-100 text-sm">Giá trung bình</p>
+                                <p id="avg-price" class="text-2xl font-bold">0</p>
+                            </div>
+                            <i class="fas fa-dollar-sign text-3xl text-green-200"></i>
+                        </div>
+                    </div>
+                    <div class="bg-gradient-to-br from-yellow-500 to-orange-600 rounded-lg p-4 text-white">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-orange-100 text-sm">Diện tích TB</p>
+                                <p id="avg-area" class="text-2xl font-bold">0</p>
+                            </div>
+                            <i class="fas fa-expand-arrows-alt text-3xl text-orange-200"></i>
+                        </div>
+                    </div>
+                    <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg p-4 text-white">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-purple-100 text-sm">Đóng góp cộng đồng</p>
+                                <p id="community-contributions" class="text-2xl font-bold">0</p>
+                            </div>
+                            <i class="fas fa-users text-3xl text-purple-200"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    <!-- Price Distribution Chart -->
+                    <div class="bg-white rounded-lg border border-gray-200 p-4">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold text-gray-800">Phân bố giá đất</h3>
+                            <div class="text-sm text-gray-500">
+                                <i class="fas fa-chart-pie mr-1"></i>Theo mức giá
+                            </div>
+                        </div>
+                        <div class="h-64">
+                            <canvas id="price-distribution-chart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Area Distribution Chart -->
+                    <div class="bg-white rounded-lg border border-gray-200 p-4">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold text-gray-800">Phân bố diện tích</h3>
+                            <div class="text-sm text-gray-500">
+                                <i class="fas fa-chart-bar mr-1"></i>Theo kích thước
+                            </div>
+                        </div>
+                        <div class="h-64">
+                            <canvas id="area-distribution-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- District Analysis -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    <!-- District Price Comparison -->
+                    <div class="bg-white rounded-lg border border-gray-200 p-4">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold text-gray-800">So sánh giá theo quận/huyện</h3>
+                            <div class="text-sm text-gray-500">
+                                <i class="fas fa-map-marked-alt mr-1"></i>Theo vùng
+                            </div>
+                        </div>
+                        <div class="h-64">
+                            <canvas id="district-price-chart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Land Use Distribution -->
+                    <div class="bg-white rounded-lg border border-gray-200 p-4">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold text-gray-800">Phân bố mục đích sử dụng</h3>
+                            <div class="text-sm text-gray-500">
+                                <i class="fas fa-home mr-1"></i>Loại đất
+                            </div>
+                        </div>
+                        <div class="h-64">
+                            <canvas id="land-use-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Community Data Insights -->
+                <div class="bg-white rounded-lg border border-gray-200 p-4 mb-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-800">Thông tin từ cộng đồng</h3>
+                        <div class="text-sm text-gray-500">
+                            <i class="fas fa-users mr-1"></i>Dữ liệu thực tế
+                        </div>
+                    </div>
+                    <div class="h-64">
+                        <canvas id="community-data-chart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Export & Actions -->
+                <div class="flex justify-between items-center">
+                    <div class="text-sm text-gray-500">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Dữ liệu cập nhật lần cuối: <span id="last-updated">Loading...</span>
+                    </div>
+                    <div class="space-x-2">
+                        <button id="export-pdf" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition">
+                            <i class="fas fa-file-pdf mr-2"></i>Xuất PDF
+                        </button>
+                        <button id="export-excel" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">
+                            <i class="fas fa-file-excel mr-2"></i>Xuất Excel
+                        </button>
+                        <button id="refresh-analytics" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                            <i class="fas fa-sync-alt mr-2"></i>Làm mới
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

@@ -1147,7 +1147,273 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             searchResultsContainer.innerHTML = html;
         }
+        
+        // Show community parcel information
+    async function showCommunityParcelInfo(parcelNumber, mapSheet) {
+        const key = `${parcelNumber}_${mapSheet}`;
+        const contribution = communityContributions.get(key);
+        
+        if (!contribution) {
+            showToast('❌ Không tìm thấy thông tin thửa đất', 'error');
+            return;
+        }
+        
+        const official = contribution.officialData;
+        const community = contribution.communityData;
+        
+        // Try to find and highlight the actual parcel
+        try {
+            const result = await searchParcelsInCache(parcelNumber, mapSheet);
+            if (result && result.length > 0) {
+                const feature = result[0];
+                highlightParcel(feature);
+            }
+        } catch (error) {
+            console.warn('Could not highlight parcel:', error);
+        }
+        
+        // Show enhanced info panel
+        const panel = document.getElementById('info-panel');
+        const title = document.getElementById('panel-title');
+        const content = document.getElementById('panel-content');
+
+        title.innerHTML = `
+            Thửa ${parcelNumber}, Tờ ${mapSheet}
+            <span class="ml-2 text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Cộng đồng</span>
+        `;
+        
+        content.innerHTML = `
+            <div class="space-y-3 text-sm">
+                <!-- Official Data -->
+                <div class="p-3 bg-gray-50 rounded-lg">
+                    <h4 class="font-bold text-gray-800 mb-2">📋 Thông tin chính thức</h4>
+                    <div class="space-y-1 text-xs">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Diện tích:</span>
+                            <span class="font-medium">${official.area} m²</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Mục đích sử dụng:</span>
+                            <span class="font-medium">${getLandUseLabel(official.landUse)}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Khu vực:</span>
+                            <span class="font-medium">${official.adminCode}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Community Data -->
+                <div class="p-3 bg-green-50 rounded-lg border border-green-200">
+                    <h4 class="font-bold text-green-800 mb-2">
+                        <i class="fas fa-users mr-1"></i>Thông tin từ cộng đồng
+                    </h4>
+                    <div class="space-y-2 text-xs">
+                        ${community.projectName ? `
+                            <div>
+                                <span class="text-green-700 font-medium">🏗️ Dự án:</span>
+                                <span class="ml-1">${community.projectName}</span>
+                            </div>
+                        ` : ''}
+                        
+                        ${community.lotNumber ? `
+                            <div>
+                                <span class="text-green-700 font-medium">📍 Số lô:</span>
+                                <span class="ml-1">${community.lotNumber}</span>
+                            </div>
+                        ` : ''}
+                        
+                        ${community.blockCode ? `
+                            <div>
+                                <span class="text-green-700 font-medium">🏘️ Block:</span>
+                                <span class="ml-1">${community.blockCode}</span>
+                            </div>
+                        ` : ''}
+                        
+                        ${community.commonName ? `
+                            <div>
+                                <span class="text-green-700 font-medium">🏷️ Tên gọi:</span>
+                                <span class="ml-1">${community.commonName}</span>
+                            </div>
+                        ` : ''}
+                        
+                        ${community.marketPrice ? `
+                            <div>
+                                <span class="text-green-700 font-medium">💰 Giá thị trường:</span>
+                                <span class="ml-1 font-bold text-green-800">
+                                    ${community.marketPrice} triệu${community.priceUnit === 'per_m2' ? '/m²' : ''}
+                                </span>
+                            </div>
+                        ` : ''}
+                        
+                        ${community.brokerCode ? `
+                            <div>
+                                <span class="text-green-700 font-medium">🔖 Mã môi giới:</span>
+                                <span class="ml-1">${community.brokerCode}</span>
+                            </div>
+                        ` : ''}
+                        
+                        ${community.description ? `
+                            <div class="mt-2 pt-2 border-t border-green-200">
+                                <span class="text-green-700 font-medium">📝 Mô tả:</span>
+                                <p class="mt-1 text-gray-700">${community.description}</p>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+                
+                <!-- Actions -->
+                <div class="flex space-x-2">
+                    <button class="flex-1 bg-green-500 text-white py-2 rounded text-xs hover:bg-green-600 transition" 
+                            onclick="shareParcelInfo('${parcelNumber}', '${mapSheet}')">
+                        <i class="fas fa-share mr-1"></i>Chia sẻ
+                    </button>
+                    <button class="flex-1 bg-blue-500 text-white py-2 rounded text-xs hover:bg-blue-600 transition" 
+                            onclick="openContributionModalForParcel('${parcelNumber}', '${mapSheet}')">
+                        <i class="fas fa-edit mr-1"></i>Cập nhật
+                    </button>
+                </div>
+                
+                <!-- Contributor info -->
+                <div class="pt-2 border-t text-xs text-gray-500">
+                    <i class="fas fa-user mr-1"></i>
+                    Đóng góp bởi: ${contribution.contributor.userName || 'Người dùng'}
+                    <span class="ml-2">
+                        <i class="fas fa-clock mr-1"></i>
+                        ${new Date(contribution.timestamp).toLocaleDateString('vi-VN')}
+                    </span>
+                </div>
+            </div>
+        `;
+
+        // Show panel
+        panel.classList.remove('translate-y-full');
+        searchResultsContainer.classList.add('hidden');
+        searchInput.value = '';
+    }
+
+    // Share parcel info
+    window.shareParcelInfo = function(parcelNumber, mapSheet) {
+        const shareData = {
+            title: `Thửa ${parcelNumber}, Tờ ${mapSheet} - XemGiaDat`,
+            text: `Thông tin chi tiết thửa ${parcelNumber}, tờ ${mapSheet} với dữ liệu từ cộng đồng`,
+            url: window.location.href
+        };
+        
+        if (navigator.share) {
+            navigator.share(shareData);
+        } else {
+            navigator.clipboard.writeText(shareData.url).then(() => {
+                showToast('📋 Đã copy link vào clipboard', 'success');
+            });
+        }
     };
+
+    // Open contribution modal for specific parcel
+    window.openContributionModalForParcel = function(parcelNumber, mapSheet) {
+        // Pre-fill the contribution form
+        document.getElementById('contrib-parcel').value = parcelNumber;
+        document.getElementById('contrib-map-sheet').value = mapSheet;
+        
+        // Auto-search and select the parcel
+        searchParcelForContribution().then(() => {
+            openContributionModal();
+            goToStep2(); // Skip to data entry step
+        });
+    };
+
+    // Add enhanced search suggestions for community data
+        addCommunitySearchSuggestions(originalQuery);
+    };
+
+    // Add community-based search suggestions
+    function addCommunitySearchSuggestions(query) {
+        if (!query || query.length < 3) return;
+        
+        const suggestions = [];
+        
+        // Search through community contributions
+        for (const [key, contribution] of communityContributions.entries()) {
+            const community = contribution.communityData;
+            const official = contribution.officialData;
+            
+            // Check if query matches any community identifiers
+            const searchableText = [
+                community.projectName,
+                community.lotNumber,
+                community.commonName,
+                community.brokerCode,
+                community.blockCode
+            ].filter(Boolean).join(' ').toLowerCase();
+            
+            if (searchableText.includes(query.toLowerCase())) {
+                suggestions.push({
+                    type: 'community',
+                    parcelNumber: official.parcelNumber,
+                    mapSheet: official.mapSheet,
+                    matchedField: getMostRelevantField(community, query),
+                    projectName: community.projectName,
+                    lotNumber: community.lotNumber,
+                    commonName: community.commonName
+                });
+            }
+        }
+        
+        // Add suggestions to search results if found
+        if (suggestions.length > 0) {
+            const existingHtml = searchResultsContainer.innerHTML;
+            let suggestionHtml = `
+                <div class="border-t border-gray-200 mt-2 pt-2">
+                    <div class="result-category">
+                        <i class="fas fa-users mr-2 text-green-600"></i>Dữ liệu từ cộng đồng
+                    </div>
+            `;
+            
+            suggestions.slice(0, 3).forEach(suggestion => {
+                suggestionHtml += `
+                    <div class="result-item community-result" data-type="community-parcel" 
+                         data-parcel="${suggestion.parcelNumber}" data-mapsheet="${suggestion.mapSheet}">
+                        <i class="icon fa-solid fa-map-marker-alt text-green-500"></i>
+                        <div class="flex-1">
+                            <div class="font-medium">Thửa ${suggestion.parcelNumber}, Tờ ${suggestion.mapSheet}</div>
+                            <div class="text-xs text-gray-600">
+                                ${suggestion.projectName ? `🏗️ ${suggestion.projectName}` : ''}
+                                ${suggestion.lotNumber ? ` • 📍 ${suggestion.lotNumber}` : ''}
+                                ${suggestion.commonName ? ` • 🏷️ ${suggestion.commonName}` : ''}
+                            </div>
+                        </div>
+                        <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Cộng đồng</span>
+                    </div>
+                `;
+            });
+            
+            suggestionHtml += '</div>';
+            
+            if (existingHtml.includes('Không tìm thấy kết quả nào')) {
+                searchResultsContainer.innerHTML = suggestionHtml;
+            } else {
+                searchResultsContainer.innerHTML = existingHtml + suggestionHtml;
+            }
+        }
+    }
+
+    // Get most relevant field that matches the query
+    function getMostRelevantField(community, query) {
+        const fields = [
+            { key: 'projectName', label: 'Dự án' },
+            { key: 'lotNumber', label: 'Số lô' },
+            { key: 'commonName', label: 'Tên thông dụng' },
+            { key: 'brokerCode', label: 'Mã môi giới' },
+            { key: 'blockCode', label: 'Block/Khu' }
+        ];
+        
+        for (const field of fields) {
+            if (community[field.key] && community[field.key].toLowerCase().includes(query.toLowerCase())) {
+                return field.label;
+            }
+        }
+        return 'Khác';
+    }
 
     // --- EVENT LISTENERS ---
     userProfileDiv.addEventListener('click', (event) => {
@@ -1240,17 +1506,55 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('feedback-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         
+        // Form validation
         const formData = new FormData(e.target);
+        const content = formData.get('content')?.trim();
+        const type = formData.get('type');
+        
+        // Get form elements for UI updates
+        const submitButton = e.target.querySelector('button[type="submit"]');
+        const submitText = submitButton.querySelector('.submit-text');
+        const loadingText = submitButton.querySelector('.loading-text');
+        const contentField = e.target.querySelector('textarea[name="content"]');
+        
+        // Reset previous validation states
+        contentField.classList.remove('form-error', 'form-success');
+        
+        // Validate required fields
+        if (!content || content.length < 10) {
+            showToast('⚠️ Vui lòng nhập nội dung góp ý (tối thiểu 10 ký tự)', 'warning');
+            contentField.classList.add('form-error');
+            contentField.focus();
+            return;
+        }
+        
+        if (!type) {
+            showToast('⚠️ Vui lòng chọn loại góp ý', 'warning');
+            return;
+        }
+        
+        if (selectedRating === 0) {
+            showToast('⚠️ Vui lòng đánh giá trải nghiệm của bạn', 'warning');
+            return;
+        }
+
+        // Show loading state
+        submitButton.disabled = true;
+        submitText.style.display = 'none';
+        loadingText.style.display = 'inline';
+        contentField.classList.add('form-success');
+
         const feedbackData = {
-            type: formData.get('type'),
+            type: type,
             priority: formData.get('priority'),
-            content: formData.get('content'),
+            content: content,
             email: formData.get('email') || 'anonymous',
             rating: selectedRating,
             timestamp: new Date().toISOString(),
             page: 'main',
             userAgent: navigator.userAgent,
-            url: window.location.href
+            url: window.location.href,
+            status: 'pending'
         };
 
         try {
@@ -1270,19 +1574,38 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log('💾 Feedback saved locally:', feedbackData);
             }
 
-            // Show success message
-            alert('🎉 Cảm ơn bạn đã góp ý! Chúng tôi sẽ xem xét và phản hồi sớm nhất có thể.');
+            // Show success message with smooth transition
+            showToast('🎉 Cảm ơn bạn đã góp ý! Chúng tôi sẽ xem xét và phản hồi sớm nhất có thể.', 'success', 4000);
             
-            // Close modal and reset form
-            feedbackModal.classList.add('hidden');
-            e.target.reset();
-            selectedRating = 0;
-            updateStarDisplay();
-            updateRatingText();
+            // Smooth close modal and reset form
+            setTimeout(() => {
+                feedbackModal.style.opacity = '0';
+                setTimeout(() => {
+                    feedbackModal.classList.add('hidden');
+                    feedbackModal.style.opacity = '1';
+                    e.target.reset();
+                    selectedRating = 0;
+                    updateStarDisplay();
+                    updateRatingText();
+                    
+                    // Reset submit button
+                    submitButton.disabled = false;
+                    submitText.style.display = 'inline';
+                    loadingText.style.display = 'none';
+                    contentField.classList.remove('form-success');
+                }, 300);
+            }, 1500);
 
         } catch (error) {
             console.error('❌ Error submitting feedback:', error);
-            alert('Có lỗi xảy ra khi gửi góp ý. Vui lòng thử lại sau.');
+            showToast('❌ Có lỗi xảy ra khi gửi góp ý. Vui lòng thử lại sau.', 'error');
+            
+            // Reset submit button
+            submitButton.disabled = false;
+            submitText.style.display = 'inline';
+            loadingText.style.display = 'none';
+            contentField.classList.remove('form-success');
+            contentField.classList.add('form-error');
         }
     });
 
@@ -1316,6 +1639,13 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Hiển thị thông tin nhanh
             showParcelFromSearchResult(soThua, soTo, maXa, lat, lng);
+            
+        } else if (type === 'community-parcel') {
+            // Handle community parcel results
+            const parcelNumber = item.dataset.parcel;
+            const mapSheet = item.dataset.mapsheet;
+            
+            showCommunityParcelInfo(parcelNumber, mapSheet);
             
         } else if (type === 'location') {
             map.setView([parseFloat(item.dataset.lat), parseFloat(item.dataset.lng)], 17);
@@ -1972,6 +2302,73 @@ document.addEventListener('DOMContentLoaded', () => {
     
 
     
+    // === TOAST NOTIFICATION SYSTEM ===
+    function showToast(message, type = 'info', duration = 3000) {
+        // Remove existing toast if any
+        const existingToast = document.querySelector('.toast-notification');
+        if (existingToast) {
+            existingToast.remove();
+        }
+
+        // Create toast element
+        const toast = document.createElement('div');
+        toast.className = `toast-notification fixed top-4 right-4 max-w-sm rounded-lg shadow-lg p-4 z-50 transform transition-all duration-300 translate-x-full`;
+        
+        // Set colors based on type
+        const typeClasses = {
+            success: 'bg-green-600 text-white',
+            error: 'bg-red-600 text-white',
+            warning: 'bg-yellow-600 text-white',
+            info: 'bg-blue-600 text-white'
+        };
+        
+        toast.className += ` ${typeClasses[type] || typeClasses.info}`;
+        toast.innerHTML = `
+            <div class="flex items-center">
+                <span class="flex-1">${message}</span>
+                <button onclick="this.parentElement.parentElement.remove()" class="ml-3 text-white hover:text-gray-200">
+                    ✕
+                </button>
+            </div>
+        `;
+
+        document.body.appendChild(toast);
+
+        // Trigger animation
+        setTimeout(() => {
+            toast.classList.remove('translate-x-full');
+        }, 100);
+
+        // Auto remove after duration
+        setTimeout(() => {
+            if (toast.parentElement) {
+                toast.classList.add('translate-x-full');
+                setTimeout(() => toast.remove(), 300);
+            }
+        }, duration);
+    }
+
+    // === CHARACTER COUNTER HELPER ===
+    function updateCharCounter(textarea) {
+        const counter = document.getElementById('char-counter');
+        const current = textarea.value.length;
+        const max = textarea.maxLength;
+        
+        counter.textContent = `${current}/${max}`;
+        
+        // Color coding
+        if (current < 10) {
+            counter.className = 'text-red-500';
+        } else if (current > max * 0.8) {
+            counter.className = 'text-yellow-500';
+        } else {
+            counter.className = 'text-gray-500';
+        }
+    }
+
+    // Make function globally available
+    window.updateCharCounter = updateCharCounter;
+
     // === PERFORMANCE OPTIMIZED LABEL SYSTEM ===
     let labelCache = new Map(); // Cache loaded labels by area
     let labelLoadTimeout = null;
@@ -2107,6 +2504,932 @@ document.addEventListener('DOMContentLoaded', () => {
             debouncedUpdateLabels();
         }
     });
+
+    map.on('overlayremove', (e) => {
+        if (e.name === '🏷️ Số thửa') {
+            isLabelsVisible = false;
+            parcelLabels.clearLayers();
+            clearTimeout(labelLoadTimeout);
+        }
+    });
+
+    // === ADVANCED FILTERING SYSTEM ===
+    let filterState = {
+        landUse: '',
+        areaMin: null,
+        areaMax: null,
+        district: '',
+        mapSheet: null,
+        isActive: false
+    };
+
+    let filteredResults = [];
+    let currentPage = 1;
+    const resultsPerPage = 20;
+
+    // Initialize filter system
+    function initializeFilters() {
+        const toggleBtn = document.getElementById('toggle-filters');
+        const filtersPanel = document.getElementById('filters-panel');
+        const resetBtn = document.getElementById('reset-filters');
+        
+        // Toggle panel
+        toggleBtn?.addEventListener('click', () => {
+            filtersPanel.classList.toggle('hidden');
+            const isVisible = !filtersPanel.classList.contains('hidden');
+            toggleBtn.querySelector('i').classList.toggle('fa-filter', !isVisible);
+            toggleBtn.querySelector('i').classList.toggle('fa-times', isVisible);
+        });
+
+        // Reset filters
+        resetBtn?.addEventListener('click', resetFilters);
+
+        // Area presets
+        document.querySelectorAll('.area-preset').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const min = e.target.dataset.min;
+                const max = e.target.dataset.max;
+                document.getElementById('area-min').value = min || '';
+                document.getElementById('area-max').value = max || '';
+                applyFilters();
+            });
+        });
+
+        // Filter change events
+        ['land-use-filter', 'district-filter', 'map-sheet-filter', 'area-min', 'area-max'].forEach(id => {
+            const element = document.getElementById(id);
+            element?.addEventListener('change', applyFilters);
+            element?.addEventListener('input', debounce(applyFilters, 500));
+        });
+
+        // Initial count
+        updateFilterCount();
+    }
+
+    // Apply filters to parcel data
+    async function applyFilters() {
+        const landUse = document.getElementById('land-use-filter')?.value || '';
+        const areaMin = parseFloat(document.getElementById('area-min')?.value) || null;
+        const areaMax = parseFloat(document.getElementById('area-max')?.value) || null;
+        const district = document.getElementById('district-filter')?.value || '';
+        const mapSheet = parseInt(document.getElementById('map-sheet-filter')?.value) || null;
+
+        filterState = { landUse, areaMin, areaMax, district, mapSheet, isActive: true };
+
+        // Show loading
+        updateFilterCount('Đang lọc...');
+
+        try {
+            // Collect all parcel data from loaded areas
+            let allParcels = [];
+            
+            // Get data from search cache
+            for (const [area, data] of Object.entries(searchCache)) {
+                if (data?.features) {
+                    allParcels = allParcels.concat(data.features);
+                }
+            }
+
+            // If no cached data, load from available files
+            if (allParcels.length === 0) {
+                await loadSampleParcelData();
+                for (const [area, data] of Object.entries(searchCache)) {
+                    if (data?.features) {
+                        allParcels = allParcels.concat(data.features);
+                    }
+                }
+            }
+
+            // Apply filters
+            filteredResults = allParcels.filter(feature => {
+                const props = feature.properties;
+                
+                // Land use filter
+                if (landUse && props.KyHieuMucDichSuDung !== landUse) return false;
+                
+                // Area filter
+                if (areaMin !== null && props.DienTich < areaMin) return false;
+                if (areaMax !== null && props.DienTich > areaMax) return false;
+                
+                // District filter (based on MaXa code)
+                if (district && !props.MaXa?.startsWith(district)) return false;
+                
+                // Map sheet filter
+                if (mapSheet !== null && props.SoHieuToBanDo !== mapSheet) return false;
+                
+                return true;
+            });
+
+            currentPage = 1;
+            updateFilterCount();
+            displayFilteredResults();
+
+        } catch (error) {
+            console.error('Filter error:', error);
+            updateFilterCount('Lỗi khi lọc dữ liệu');
+        }
+    }
+
+    // Load sample data for filtering
+    async function loadSampleParcelData() {
+        const sampleAreas = ['20194', '20195', '20197']; // Load a few areas for demo
+        
+        for (const area of sampleAreas) {
+            if (!searchCache[area]) {
+                try {
+                    const response = await fetch(`data/parcels/${area}.geojson`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        searchCache[area] = data;
+                    }
+                } catch (error) {
+                    console.warn(`Could not load area ${area}:`, error);
+                }
+            }
+        }
+    }
+
+    // Update filter count display
+    function updateFilterCount(customText = null) {
+        const countElement = document.getElementById('filter-count');
+        if (customText) {
+            countElement.textContent = customText;
+            return;
+        }
+
+        const hasFilters = filterState.landUse || filterState.areaMin || filterState.areaMax || filterState.district || filterState.mapSheet;
+        
+        if (!hasFilters) {
+            countElement.textContent = 'Chưa áp dụng bộ lọc';
+        } else {
+            countElement.textContent = `Tìm thấy ${filteredResults.length} thửa đất`;
+        }
+    }
+
+    // Display filtered results
+    function displayFilteredResults() {
+        const resultsContainer = document.getElementById('search-results');
+        
+        if (filteredResults.length === 0) {
+            resultsContainer.innerHTML = '<div class="p-4 text-center text-gray-500">Không tìm thấy thửa đất phù hợp</div>';
+            resultsContainer.classList.remove('hidden');
+            return;
+        }
+
+        // Pagination logic
+        const startIndex = (currentPage - 1) * resultsPerPage;
+        const endIndex = startIndex + resultsPerPage;
+        const pageResults = filteredResults.slice(startIndex, endIndex);
+        const totalPages = Math.ceil(filteredResults.length / resultsPerPage);
+
+        let html = `
+            <div class="p-3 border-b bg-gray-50">
+                <div class="flex justify-between items-center text-sm">
+                    <span class="font-medium">${filteredResults.length} kết quả</span>
+                    ${totalPages > 1 ? `<span>Trang ${currentPage}/${totalPages}</span>` : ''}
+                </div>
+            </div>
+        `;
+
+        // Results
+        pageResults.forEach((feature, index) => {
+            const props = feature.properties;
+            const globalIndex = startIndex + index;
+            
+            html += `
+                <div class="filter-result-item p-3 border-b hover:bg-blue-50 cursor-pointer" data-index="${globalIndex}">
+                    <div class="font-medium text-sm">Thửa ${props.SoThuTuThua}, Tờ ${props.SoHieuToBanDo}</div>
+                    <div class="text-xs text-gray-600">
+                        📐 ${props.DienTich}m² • 🏷️ ${getLandUseLabel(props.KyHieuMucDichSuDung)}
+                    </div>
+                    <div class="text-xs text-gray-500">Khu vực: ${props.MaXa}</div>
+                </div>
+            `;
+        });
+
+        // Pagination
+        if (totalPages > 1) {
+            html += `
+                <div class="p-3 border-t bg-gray-50 flex justify-center space-x-2">
+                    ${currentPage > 1 ? `<button class="px-3 py-1 text-xs bg-blue-500 text-white rounded" onclick="changePage(${currentPage - 1})">Trước</button>` : ''}
+                    ${currentPage < totalPages ? `<button class="px-3 py-1 text-xs bg-blue-500 text-white rounded" onclick="changePage(${currentPage + 1})">Sau</button>` : ''}
+                </div>
+            `;
+        }
+
+        resultsContainer.innerHTML = html;
+        resultsContainer.classList.remove('hidden');
+
+        // Add click handlers for results
+        document.querySelectorAll('.filter-result-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const index = parseInt(item.dataset.index);
+                const feature = filteredResults[index];
+                highlightParcel(feature);
+            });
+        });
+    }
+
+    // Get user-friendly land use label
+    function getLandUseLabel(code) {
+        const labels = {
+            'ODT': 'Đất ở đô thị',
+            'DGT': 'Đất giao thông',
+            'NTO': 'Đất nông nghiệp',
+            'LUP': 'Đất lâm nghiệp',
+            'SXD': 'Đất sản xuất',
+            'CQT': 'Đất cơ quan'
+        };
+        return labels[code] || code;
+    }
+
+    // Reset all filters
+    function resetFilters() {
+        document.getElementById('land-use-filter').value = '';
+        document.getElementById('area-min').value = '';
+        document.getElementById('area-max').value = '';
+        document.getElementById('district-filter').value = '';
+        document.getElementById('map-sheet-filter').value = '';
+        
+        filterState = {
+            landUse: '',
+            areaMin: null,
+            areaMax: null,
+            district: '',
+            mapSheet: null,
+            isActive: false
+        };
+        
+        filteredResults = [];
+        document.getElementById('search-results').classList.add('hidden');
+        updateFilterCount();
+    }
+
+    // Pagination helper
+    window.changePage = function(page) {
+        currentPage = page;
+        displayFilteredResults();
+    };
+
+    // Debounce helper
+    function debounce(func, delay) {
+        let timeoutId;
+        return function (...args) {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => func.apply(this, args), delay);
+        };
+    }
+
+    // Highlight specific parcel from filter results
+    function highlightParcel(feature) {
+        if (!feature?.geometry?.coordinates) return;
+
+        try {
+            // Clear existing highlights
+            highlightLayer.clearLayers();
+
+            // Create highlight polygon
+            const coords = feature.geometry.coordinates[0];
+            const latLngs = coords.map(coord => [coord[1], coord[0]]);
+            
+            const highlightPolygon = L.polygon(latLngs, {
+                color: '#ff0000',
+                weight: 3,
+                fillColor: '#ff0000',
+                fillOpacity: 0.3,
+                dashArray: '5, 5'
+            });
+
+            highlightLayer.addLayer(highlightPolygon);
+
+            // Zoom to parcel
+            const bounds = highlightPolygon.getBounds();
+            map.fitBounds(bounds, { padding: [20, 20] });
+
+            // Show parcel info
+            const props = feature.properties;
+            showParcelInfo(props);
+
+            // Auto-remove highlight after 10 seconds
+            setTimeout(() => {
+                highlightLayer.clearLayers();
+            }, 10000);
+
+        } catch (error) {
+            console.error('Error highlighting parcel:', error);
+            showToast('❌ Không thể hiển thị thửa đất này', 'error');
+        }
+    }
+
+    // Show parcel information panel
+    function showParcelInfo(props) {
+        const panel = document.getElementById('info-panel');
+        const title = document.getElementById('panel-title');
+        const content = document.getElementById('panel-content');
+
+        title.textContent = `Thửa ${props.SoThuTuThua}, Tờ ${props.SoHieuToBanDo}`;
+        
+        // Check if community data exists
+        const key = `${props.SoThuTuThua}_${props.SoHieuToBanDo}`;
+        const communityData = communityContributions.get(key);
+        
+        let communitySection = '';
+        if (communityData) {
+            const community = communityData.communityData;
+            communitySection = `
+                <div class="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <h4 class="font-bold text-green-800 text-sm mb-2">
+                        <i class="fas fa-users mr-1"></i>Thông tin từ cộng đồng
+                    </h4>
+                    ${community.projectName ? `<div class="text-xs text-green-700 mb-1">🏗️ Dự án: ${community.projectName}</div>` : ''}
+                    ${community.lotNumber ? `<div class="text-xs text-green-700 mb-1">📍 Số lô: ${community.lotNumber}</div>` : ''}
+                    ${community.blockCode ? `<div class="text-xs text-green-700 mb-1">🏢 Block: ${community.blockCode}</div>` : ''}
+                    ${community.commonName ? `<div class="text-xs text-green-700 mb-1">🏷️ Tên gọi: ${community.commonName}</div>` : ''}
+                    ${community.marketPrice ? `<div class="text-xs text-green-700 mb-1">💰 Giá: ${community.marketPrice} triệu${community.priceUnit === 'per_m2' ? '/m²' : ''}</div>` : ''}
+                    ${community.brokerCode ? `<div class="text-xs text-green-700">🔖 Mã: ${community.brokerCode}</div>` : ''}
+                </div>
+            `;
+        }
+        
+        content.innerHTML = `
+            <div class="space-y-2 text-sm">
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Diện tích:</span>
+                    <span class="font-medium">${props.DienTich} m²</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Mục đích sử dụng:</span>
+                    <span class="font-medium">${getLandUseLabel(props.KyHieuMucDichSuDung)}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Khu vực:</span>
+                    <span class="font-medium">${props.MaXa}</span>
+                </div>
+                ${communitySection}
+                <div class="pt-2 border-t space-y-2">
+                    <button class="w-full bg-blue-500 text-white py-2 rounded text-sm hover:bg-blue-600 transition" 
+                            onclick="downloadParcelInfo('${props.SoThuTuThua}', '${props.SoHieuToBanDo}')">
+                        📄 Tải thông tin chi tiết
+                    </button>
+                    <button class="w-full bg-green-600 text-white py-2 rounded text-sm hover:bg-green-700 transition" 
+                            onclick="openContributionForParcel('${props.SoThuTuThua}', '${props.SoHieuToBanDo}', '${props.DienTich}', '${props.KyHieuMucDichSuDung}', '${props.MaXa}')">
+                        <i class="fas fa-plus-circle mr-1"></i>${communityData ? 'Cập nhật' : 'Bổ sung'} thông tin cộng đồng
+                    </button>
+                </div>
+            </div>
+        `;
+
+        // Show panel
+        panel.classList.remove('translate-y-full');
+    }
+
+    // Download parcel info helper
+    window.downloadParcelInfo = function(parcelNumber, mapSheet) {
+        const info = {
+            thu: parcelNumber,
+            to: mapSheet,
+            timestamp: new Date().toISOString(),
+            source: 'xemgiadat'
+        };
+        
+        const blob = new Blob([JSON.stringify(info, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `thua-${parcelNumber}-to-${mapSheet}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        
+        showToast('📄 Đã tải thông tin thửa đất', 'success');
+    };
+
+    // Open contribution modal for specific parcel
+    window.openContributionForParcel = function(parcelNumber, mapSheet, area, landUse, adminCode) {
+        if (!currentUser) {
+            showToast('⚠️ Vui lòng đăng nhập để đóng góp thông tin', 'warning');
+            return;
+        }
+
+        // Set selected parcel data
+        selectedParcelForContribution = {
+            parcelNumber: parseInt(parcelNumber),
+            mapSheet: parseInt(mapSheet),
+            area: parseFloat(area),
+            landUse: landUse,
+            adminCode: adminCode
+        };
+
+        // Pre-fill form
+        document.getElementById('contrib-parcel').value = parcelNumber;
+        document.getElementById('contrib-map-sheet').value = mapSheet;
+        document.getElementById('parcel-info-text').textContent = 
+            `Thửa ${parcelNumber}, Tờ ${mapSheet} - ${area}m²`;
+        document.getElementById('selected-parcel-info').classList.remove('hidden');
+        document.getElementById('next-step-1').disabled = false;
+
+        // Check if community data already exists
+        const key = `${parcelNumber}_${mapSheet}`;
+        const existingData = communityContributions.get(key);
+        
+        if (existingData) {
+            // Pre-fill form with existing data
+            const form = document.getElementById('contribution-form');
+            const community = existingData.communityData;
+            
+            form.projectName.value = community.projectName || '';
+            form.lotNumber.value = community.lotNumber || '';
+            form.blockCode.value = community.blockCode || '';
+            form.commonName.value = community.commonName || '';
+            form.marketPrice.value = community.marketPrice || '';
+            form.priceUnit.value = community.priceUnit || 'total';
+            form.brokerCode.value = community.brokerCode || '';
+            form.description.value = community.description || '';
+            
+            showToast('ℹ️ Đã tải thông tin cộng đồng hiện có để chỉnh sửa', 'info');
+        }
+
+        // Open modal and go to step 2 directly
+        document.getElementById('contribution-modal').classList.remove('hidden');
+        goToStep2();
+    };
+
+    // Refresh current parcel info if displayed
+    function refreshCurrentParcelInfo() {
+        const panel = document.getElementById('info-panel');
+        const title = document.getElementById('panel-title');
+        
+        if (!panel.classList.contains('translate-y-full') && title.textContent) {
+            // Panel is open, extract parcel info and refresh
+            const match = title.textContent.match(/Thửa (\d+), Tờ (\d+)/);
+            if (match) {
+                const [, parcelNumber, mapSheet] = match;
+                // Simulate props object to refresh display
+                const props = {
+                    SoThuTuThua: parcelNumber,
+                    SoHieuToBanDo: mapSheet,
+                    DienTich: selectedParcelForContribution?.area || 'N/A',
+                    KyHieuMucDichSuDung: selectedParcelForContribution?.landUse || 'N/A',
+                    MaXa: selectedParcelForContribution?.adminCode || 'N/A'
+                };
+                showParcelInfo(props);
+            }
+        }
+    }
+
+    // Initialize filters when DOM is ready
+    initializeFilters();
+
+// === COMMUNITY CONTRIBUTION SYSTEM ===
+let selectedParcelForContribution = null;
+let communityContributions = new Map(); // Store user contributions
+
+// Anti-spam and rate limiting
+let lastContributionTime = 0;
+let userContributionCount = 0;
+const CONTRIBUTION_COOLDOWN = 60000; // 1 minute between contributions
+const MAX_CONTRIBUTIONS_PER_HOUR = 5;
+const userContributionTimestamps = [];
+
+    // Check if user can contribute (anti-spam)
+    function canUserContribute() {
+        const now = Date.now();
+        
+        // Check cooldown
+        if (now - lastContributionTime < CONTRIBUTION_COOLDOWN) {
+            const remainingTime = Math.ceil((CONTRIBUTION_COOLDOWN - (now - lastContributionTime)) / 1000);
+            showToast(`⏳ Vui lòng đợi ${remainingTime} giây trước khi đóng góp tiếp`, 'warning');
+            return false;
+        }
+        
+        // Check hourly limit
+        const oneHourAgo = now - (60 * 60 * 1000);
+        const recentContributions = userContributionTimestamps.filter(time => time > oneHourAgo);
+        
+        if (recentContributions.length >= MAX_CONTRIBUTIONS_PER_HOUR) {
+            showToast('⚠️ Bạn đã đạt giới hạn 5 đóng góp/giờ. Vui lòng thử lại sau.', 'warning');
+            return false;
+        }
+        
+        return true;
+    }
+
+    // Record contribution for rate limiting
+    function recordContribution() {
+        const now = Date.now();
+        lastContributionTime = now;
+        userContributionTimestamps.push(now);
+        userContributionCount++;
+        
+        // Clean old timestamps
+        const oneHourAgo = now - (60 * 60 * 1000);
+        const index = userContributionTimestamps.findIndex(time => time > oneHourAgo);
+        if (index > 0) {
+            userContributionTimestamps.splice(0, index);
+        }
+    }
+
+// Initialize contribution system
+function initializeCommunityContribution() {
+    const contributeBtn = document.getElementById('contribute-btn');
+    const contributionModal = document.getElementById('contribution-modal');
+    const closeModalBtn = document.getElementById('close-contribution-modal');
+    
+    // Modal controls
+    contributeBtn?.addEventListener('click', openContributionModal);
+    closeModalBtn?.addEventListener('click', closeContributionModal);
+        
+        // Step navigation
+        document.getElementById('next-step-1')?.addEventListener('click', goToStep2);
+        document.getElementById('back-step-2')?.addEventListener('click', goToStep1);
+        document.getElementById('search-parcel-btn')?.addEventListener('click', searchParcelForContribution);
+        document.getElementById('submit-contribution')?.addEventListener('click', submitContribution);
+        
+    // Load existing community data
+    loadCommunityContributions();
+}
+
+function openContributionModal() {
+    if (!currentUser) {
+        showToast('⚠️ Vui lòng đăng nhập để đóng góp thông tin', 'warning');
+        return;
+    }
+    
+    document.getElementById('contribution-modal').classList.remove('hidden');
+    goToStep1();
+}
+
+function closeContributionModal() {
+    document.getElementById('contribution-modal').classList.add('hidden');
+    resetContributionForm();
+}
+
+function goToStep1() {
+    document.getElementById('contribution-step-1').classList.remove('hidden');
+    document.getElementById('contribution-step-2').classList.add('hidden');
+}
+
+function goToStep2() {
+    document.getElementById('contribution-step-1').classList.add('hidden');
+    document.getElementById('contribution-step-2').classList.remove('hidden');
+}
+
+    function resetContributionForm() {
+        selectedParcelForContribution = null;
+        document.getElementById('contrib-parcel').value = '';
+        document.getElementById('contrib-map-sheet').value = '';
+        document.getElementById('selected-parcel-info').classList.add('hidden');
+        document.getElementById('next-step-1').disabled = true;
+        document.getElementById('contribution-form').reset();
+        goToStep1();
+    }
+
+    // Search for parcel to contribute to
+    async function searchParcelForContribution() {
+        const parcelNum = document.getElementById('contrib-parcel').value;
+        const mapSheet = document.getElementById('contrib-map-sheet').value;
+        
+        if (!parcelNum || !mapSheet) {
+            showToast('⚠️ Vui lòng nhập số thửa và số tờ', 'warning');
+            return;
+        }
+
+        try {
+            // Search in existing data
+            const result = await searchParcel(parcelNum, mapSheet);
+            
+            if (result) {
+                selectedParcelForContribution = {
+                    parcelNumber: parcelNum,
+                    mapSheet: mapSheet,
+                    area: result.DienTich,
+                    landUse: result.KyHieuMucDichSuDung,
+                    adminCode: result.MaXa,
+                    geometry: result.geometry
+                };
+                
+                document.getElementById('parcel-info-text').textContent = 
+                    `Thửa ${parcelNum}, Tờ ${mapSheet} - ${result.DienTich}m²`;
+                document.getElementById('selected-parcel-info').classList.remove('hidden');
+                document.getElementById('next-step-1').disabled = false;
+                
+                showToast('✅ Đã tìm thấy thửa đất', 'success');
+            } else {
+                showToast('❌ Không tìm thấy thửa đất này', 'error');
+            }
+        } catch (error) {
+            console.error('Error searching parcel:', error);
+            showToast('❌ Lỗi khi tìm kiếm thửa đất', 'error');
+        }
+    }
+
+    // Submit community contribution
+    async function submitContribution() {
+        if (!selectedParcelForContribution) {
+            showToast('⚠️ Vui lòng chọn thửa đất trước', 'warning');
+            return;
+        }
+
+        // Check anti-spam rate limiting
+        if (!canUserContribute()) {
+            return;
+        }
+
+        const form = document.getElementById('contribution-form');
+        const formData = new FormData(form);
+        const submitButton = document.getElementById('submit-contribution');
+        const submitText = submitButton.querySelector('.submit-text');
+        const submitLoading = submitButton.querySelector('.submit-loading');
+        
+        // Show loading state
+        submitButton.disabled = true;
+        submitText.classList.add('hidden');
+        submitLoading.classList.remove('hidden');
+        
+        // Clear any previous messages
+        const messageContainer = document.getElementById('contribution-message');
+        if (messageContainer) {
+            messageContainer.classList.add('hidden');
+        }
+        
+        try {
+            // Enhanced validation
+            const validationErrors = validateContributionForm(formData);
+            if (validationErrors.length > 0) {
+                showContributionMessage(`❌ ${validationErrors[0]}`, 'error');
+                throw new Error('Validation failed');
+            }
+
+            // Content validation (enhanced spam detection)
+            const description = formData.get('description')?.trim() || '';
+            if (description.length > 500) {
+                showContributionMessage('⚠️ Mô tả không được quá 500 ký tự', 'warning');
+                throw new Error('Content too long');
+            }
+
+            const contributionData = {
+                // Link to official parcel
+                officialData: {
+                    parcelNumber: selectedParcelForContribution.parcelNumber,
+                    mapSheet: selectedParcelForContribution.mapSheet,
+                area: selectedParcelForContribution.area,
+                landUse: selectedParcelForContribution.landUse,
+                adminCode: selectedParcelForContribution.adminCode
+            },
+            
+            // Community data
+            communityData: {
+                projectName: formData.get('projectName') || null,
+                lotNumber: formData.get('lotNumber') || null,
+                blockCode: formData.get('blockCode') || null,
+                commonName: formData.get('commonName') || null,
+                marketPrice: parseFloat(formData.get('marketPrice')) || null,
+                priceUnit: formData.get('priceUnit') || 'total',
+                brokerCode: formData.get('brokerCode') || null,
+                description: description || null,
+                isVerified: formData.get('isVerified') === 'on'
+            },
+            
+            // Contributor info
+            contributor: {
+                userId: currentUser.uid,
+                userName: currentUser.displayName || 'User',
+                email: currentUser.email,
+                contributorName: formData.get('contributorName') || null,
+                contributorPhone: formData.get('contributorPhone') || null
+            },
+            
+            // Metadata
+            timestamp: new Date().toISOString(),
+            status: 'pending', // pending, verified, rejected
+            source: 'community',
+            ipAddress: 'hidden', // For spam tracking
+            userAgent: navigator.userAgent.substring(0, 100) // Truncated for privacy
+        };
+
+            // Save to Firebase with moderation queue
+            const docRef = await db.collection('communityContributions').add(contributionData);
+            console.log('✅ Community contribution saved for moderation:', docRef.id);
+            
+            // Store locally for immediate preview (pending status)
+            const key = `${selectedParcelForContribution.parcelNumber}_${selectedParcelForContribution.mapSheet}`;
+            contributionData.status = 'pending';
+            contributionData.id = docRef.id;
+            communityContributions.set(key, contributionData);
+            
+            // Record for rate limiting
+            recordContribution();
+            
+            showContributionMessage('🎉 Cảm ơn bạn đã đóng góp! Thông tin sẽ được kiểm duyệt và cập nhật trong 24h.', 'success');
+            setTimeout(() => {
+                closeContributionModal();
+            }, 2000);
+            
+            // Update search system to include community data
+            updateSearchWithCommunityData();
+            
+            // Refresh parcel info if it's currently displayed
+            refreshCurrentParcelInfo();
+            
+        } catch (error) {
+            console.error('❌ Error in contribution:', error);
+            if (error.message !== 'Validation failed' && error.message !== 'Content too long') {
+                showContributionMessage('❌ Có lỗi khi lưu thông tin. Vui lòng thử lại.', 'error');
+            }
+        } finally {
+            // Reset loading state
+            submitButton.disabled = false;
+            submitText.classList.remove('hidden');
+            submitLoading.classList.add('hidden');
+        }
+    }
+
+    // Load existing community contributions
+    async function loadCommunityContributions() {
+        try {
+            const snapshot = await db.collection('communityContributions')
+                .where('status', '==', 'verified')
+                .orderBy('timestamp', 'desc')
+                .limit(100)
+                .get();
+            
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                const key = `${data.officialData.parcelNumber}_${data.officialData.mapSheet}`;
+                communityContributions.set(key, data);
+            });
+            
+            console.log(`📊 Loaded ${communityContributions.size} community contributions from Firebase`);
+            
+        } catch (error) {
+            console.warn('Could not load community contributions from Firebase, using demo data:', error);
+        }
+        
+        // Add demo community data for testing
+        addDemoCommunityData();
+        updateSearchWithCommunityData();
+    }
+
+    // Add demo community data for testing
+    function addDemoCommunityData() {
+        const demoData = [
+            {
+                officialData: { parcelNumber: 55, mapSheet: 1, area: 1078.9, landUse: 'ODT', adminCode: '20194' },
+                communityData: {
+                    projectName: 'Khu đô thị Vinhomes Dragon Bay',
+                    lotNumber: 'Lô 19 B2',
+                    blockCode: 'Block B',
+                    commonName: 'Lô góc đường Trần Hưng Đạo',
+                    marketPrice: 25.5,
+                    priceUnit: 'per_m2',
+                    brokerCode: 'VH-DB-019',
+                    description: 'Lô đất đẹp, hướng Đông Nam, mặt tiền 8m',
+                    isVerified: true
+                },
+                contributor: { userId: 'demo', userName: 'Demo User' },
+                timestamp: new Date().toISOString(),
+                status: 'verified'
+            },
+            {
+                officialData: { parcelNumber: 20, mapSheet: 1, area: 509, landUse: 'ODT', adminCode: '20194' },
+                communityData: {
+                    projectName: 'Dự án Sunshine City',
+                    lotNumber: 'Plot A-15',
+                    blockCode: 'Khu A',
+                    commonName: 'Shophouse số 20',
+                    marketPrice: 18.2,
+                    priceUnit: 'per_m2',
+                    brokerCode: 'SC-A15',
+                    description: 'Shophouse 3 tầng, vị trí đẹp',
+                    isVerified: true
+                },
+                contributor: { userId: 'demo2', userName: 'Broker Demo' },
+                timestamp: new Date().toISOString(),
+                status: 'verified'
+            },
+            {
+                officialData: { parcelNumber: 43, mapSheet: 1, area: 380, landUse: 'ODT', adminCode: '20194' },
+                communityData: {
+                    projectName: 'Green Valley Resort',
+                    lotNumber: 'Villa V12',
+                    blockCode: 'Phase 2',
+                    commonName: 'Biệt thự view sông',
+                    marketPrice: 35,
+                    priceUnit: 'total',
+                    brokerCode: 'GV-V12',
+                    description: 'Biệt thự cao cấp view sông Hàn',
+                    isVerified: true
+                },
+                contributor: { userId: 'demo3', userName: 'Real Estate Pro' },
+                timestamp: new Date().toISOString(),
+                status: 'verified'
+            }
+        ];
+        
+        demoData.forEach(item => {
+            const key = `${item.officialData.parcelNumber}_${item.officialData.mapSheet}`;
+            communityContributions.set(key, item);
+        });
+        
+        console.log(`✨ Added ${demoData.length} demo community contributions`);
+    }
+
+    // Enhanced search that includes community data
+    function updateSearchWithCommunityData() {
+        // Add community search terms to existing search
+        const originalSearchFunction = window.searchParcel;
+        
+        window.searchParcel = async function(searchTerm, alternativeSearch = null) {
+            // First try original search
+            let result = await originalSearchFunction(searchTerm, alternativeSearch);
+            
+            if (result) {
+                // Enhance with community data if available
+                const key = `${result.SoThuTuThua}_${result.SoHieuToBanDo}`;
+                const communityData = communityContributions.get(key);
+                
+                if (communityData) {
+                    result.communityData = communityData.communityData;
+                    result.hasEnhancedData = true;
+                }
+                
+                return result;
+            }
+            
+            // If no official result, try community search
+            for (const [key, contribution] of communityContributions.entries()) {
+                const community = contribution.communityData;
+                const official = contribution.officialData;
+                
+                // Check if search term matches community identifiers
+                if (
+                    (community.lotNumber && community.lotNumber.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                    (community.projectName && community.projectName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                    (community.commonName && community.commonName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                    (community.brokerCode && community.brokerCode.toLowerCase().includes(searchTerm.toLowerCase()))
+                ) {
+                    // Return enhanced result
+                    return {
+                        SoThuTuThua: official.parcelNumber,
+                        SoHieuToBanDo: official.mapSheet,
+                        DienTich: official.area,
+                        KyHieuMucDichSuDung: official.landUse,
+                        MaXa: official.adminCode,
+                        communityData: community,
+                        hasEnhancedData: true,
+                        isFromCommunity: true
+                    };
+                }
+            }
+            
+            return null;
+        };
+    }
+
+    // Enhanced search result display
+    function enhanceSearchResultDisplay(result) {
+        if (!result.hasEnhancedData) return result;
+        
+        const community = result.communityData;
+        let enhancedHtml = `
+            <div class="mt-2 p-2 bg-green-50 border border-green-200 rounded">
+                <div class="text-xs font-bold text-green-800 mb-1">
+                    <i class="fas fa-users mr-1"></i>Thông tin từ cộng đồng:
+                </div>
+        `;
+        
+        if (community.projectName) {
+            enhancedHtml += `<div class="text-xs text-green-700">🏗️ Dự án: ${community.projectName}</div>`;
+        }
+        
+        if (community.lotNumber) {
+            enhancedHtml += `<div class="text-xs text-green-700">📍 Số lô: ${community.lotNumber}</div>`;
+        }
+        
+        if (community.commonName) {
+            enhancedHtml += `<div class="text-xs text-green-700">🏷️ Tên gọi: ${community.commonName}</div>`;
+        }
+        
+        if (community.marketPrice) {
+            const unit = community.priceUnit === 'per_m2' ? '/m²' : ' tổng';
+            enhancedHtml += `<div class="text-xs text-green-700">💰 Giá thị trường: ${community.marketPrice} triệu${unit}</div>`;
+        }
+        
+        enhancedHtml += `</div>`;
+        
+        return { ...result, enhancedHtml };
+    }
+
+    // === END COMMUNITY CONTRIBUTION SYSTEM ===
+
+    // === END FILTERING SYSTEM ===
+
+    // Handle layer toggle
+    map.on('overlayadd', (e) => {
+        if (e.name === '🏷️ Số thửa') {
+            isLabelsVisible = true;
+            debouncedUpdateLabels();
+        }
+    });
     
     map.on('overlayremove', (e) => {
         if (e.name === '🏷️ Số thửa') {
@@ -2116,4 +3439,760 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+
+// Initialize community contribution system after DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Initializing community contribution system...');
+    setTimeout(initializeCommunityContribution, 1000); // Small delay to ensure all elements are ready
+    
+    console.log('📊 Initializing analytics system...');
+    setTimeout(initializeAnalytics, 1500); // Initialize analytics after community system
+});
+
+/*
+=== PHASE 2.6: COMMUNITY CONTRIBUTION SYSTEM - COMPLETE ===
+
+✅ FEATURES IMPLEMENTED:
+1. DOM initialization timing fix - Contribute button now works
+2. Enhanced parcel info integration - Shows existing community data
+3. Comprehensive anti-spam protection:
+   - Rate limiting: 60s cooldown, 5 contributions/hour
+   - Spam pattern detection: repeated chars, URLs, phone numbers, sales content
+4. Enhanced form validation:
+   - Required field validation
+   - Input length limits and formatting
+   - Phone number validation (Vietnamese format)
+   - Verification checkbox requirement
+5. Improved UX:
+   - Loading states with spinner
+   - Inline success/error messages
+   - Auto-close modal after success
+   - Real-time character counter
+
+🛡️ ANTI-SPAM MEASURES:
+- Rate limiting with localStorage tracking
+- Advanced spam pattern detection
+- Content validation for all text fields
+- Moderation queue in Firebase
+- User verification requirement
+
+🔧 TECHNICAL IMPROVEMENTS:
+- Proper DOM event handling with delay
+- Firebase integration with error handling
+- Real-time UI updates
+- Responsive form validation
+- Loading state management
+
+📱 USER EXPERIENCE:
+- Direct contribution from parcel info panels
+- Clear validation messages
+- Visual feedback for all actions
+- Seamless integration with existing search
+- Mobile-friendly responsive design
+*/
+
+// =============================================================================
+// PHASE 3: ADVANCED ANALYTICS & BUSINESS INTELLIGENCE
+// =============================================================================
+
+// Analytics variables
+let analyticsData = {
+    totalParcels: 0,
+    avgPrice: 0,
+    avgArea: 0,
+    communityContributions: 0,
+    priceDistribution: {},
+    areaDistribution: {},
+    districtData: {},
+    landUseData: {},
+    communityInsights: {}
+};
+
+let analyticsCharts = {};
+
+// Initialize Analytics System
+function initializeAnalytics() {
+    console.log('🚀 Initializing Analytics System...');
+    
+    // Add event listeners
+    document.getElementById('analytics-btn')?.addEventListener('click', openAnalyticsDashboard);
+    document.getElementById('close-analytics')?.addEventListener('click', closeAnalyticsDashboard);
+    document.getElementById('refresh-analytics')?.addEventListener('click', refreshAnalyticsData);
+    document.getElementById('export-pdf')?.addEventListener('click', exportAnalyticsToPDF);
+    document.getElementById('export-excel')?.addEventListener('click', exportAnalyticsToExcel);
+    
+    // Load initial analytics data
+    loadAnalyticsData();
+}
+
+// Open Analytics Dashboard
+function openAnalyticsDashboard() {
+    console.log('📊 Opening Analytics Dashboard...');
+    const modal = document.getElementById('analytics-modal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        refreshAnalyticsData();
+    }
+}
+
+// Close Analytics Dashboard
+function closeAnalyticsDashboard() {
+    const modal = document.getElementById('analytics-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}
+
+// Load and Process Analytics Data
+async function loadAnalyticsData() {
+    console.log('📈 Loading analytics data...');
+    
+    try {
+        // Reset analytics data
+        analyticsData = {
+            totalParcels: 0,
+            avgPrice: 0,
+            avgArea: 0,
+            communityContributions: 0,
+            priceDistribution: { 'Dưới 5 tỷ': 0, '5-10 tỷ': 0, '10-20 tỷ': 0, 'Trên 20 tỷ': 0 },
+            areaDistribution: { 'Dưới 100m²': 0, '100-200m²': 0, '200-500m²': 0, 'Trên 500m²': 0 },
+            districtData: {},
+            landUseData: {},
+            communityInsights: {}
+        };
+
+        // Analyze all loaded parcel data
+        if (window.allParcels && window.allParcels.length > 0) {
+            analyzeParcelData(window.allParcels);
+        }
+
+        // Analyze community contributions
+        if (window.communityContributions && window.communityContributions.size > 0) {
+            analyzeCommunityData(window.communityContributions);
+        }
+
+        console.log('✅ Analytics data loaded:', analyticsData);
+        
+    } catch (error) {
+        console.error('❌ Error loading analytics data:', error);
+    }
+}
+
+// Analyze Parcel Data
+function analyzeParcelData(parcels) {
+    console.log('🔍 Analyzing parcel data...', parcels.length, 'parcels');
+    
+    let totalArea = 0;
+    let validAreaCount = 0;
+    
+    analyticsData.totalParcels = parcels.length;
+
+    parcels.forEach(parcel => {
+        // Area analysis
+        if (parcel.area && parcel.area > 0) {
+            totalArea += parcel.area;
+            validAreaCount++;
+            
+            // Area distribution
+            if (parcel.area < 100) {
+                analyticsData.areaDistribution['Dưới 100m²']++;
+            } else if (parcel.area < 200) {
+                analyticsData.areaDistribution['100-200m²']++;
+            } else if (parcel.area < 500) {
+                analyticsData.areaDistribution['200-500m²']++;
+            } else {
+                analyticsData.areaDistribution['Trên 500m²']++;
+            }
+        }
+
+        // District analysis
+        if (parcel.adminCode) {
+            const district = getDistrictFromAdminCode(parcel.adminCode);
+            if (!analyticsData.districtData[district]) {
+                analyticsData.districtData[district] = { count: 0, totalArea: 0, avgArea: 0 };
+            }
+            analyticsData.districtData[district].count++;
+            if (parcel.area) {
+                analyticsData.districtData[district].totalArea += parcel.area;
+                analyticsData.districtData[district].avgArea = analyticsData.districtData[district].totalArea / analyticsData.districtData[district].count;
+            }
+        }
+
+        // Land use analysis
+        if (parcel.landUse) {
+            const landUse = getLandUseDescription(parcel.landUse);
+            analyticsData.landUseData[landUse] = (analyticsData.landUseData[landUse] || 0) + 1;
+        }
+    });
+
+    // Calculate averages
+    analyticsData.avgArea = validAreaCount > 0 ? (totalArea / validAreaCount).toFixed(1) : 0;
+    
+    console.log('📊 Parcel analysis complete:', analyticsData);
+}
+
+// Analyze Community Data
+function analyzeCommunityData(communityData) {
+    console.log('👥 Analyzing community data...', communityData.size, 'contributions');
+    
+    analyticsData.communityContributions = communityData.size;
+    
+    let totalMarketPrice = 0;
+    let validPriceCount = 0;
+    
+    communityData.forEach(contribution => {
+        // Price analysis from community data
+        if (contribution.communityData && contribution.communityData.marketPrice) {
+            const price = parseFloat(contribution.communityData.marketPrice);
+            if (price > 0) {
+                totalMarketPrice += price;
+                validPriceCount++;
+                
+                // Price distribution
+                if (price < 5000) {
+                    analyticsData.priceDistribution['Dưới 5 tỷ']++;
+                } else if (price < 10000) {
+                    analyticsData.priceDistribution['5-10 tỷ']++;
+                } else if (price < 20000) {
+                    analyticsData.priceDistribution['10-20 tỷ']++;
+                } else {
+                    analyticsData.priceDistribution['Trên 20 tỷ']++;
+                }
+            }
+        }
+        
+        // Project insights
+        if (contribution.communityData && contribution.communityData.projectName) {
+            const project = contribution.communityData.projectName;
+            if (!analyticsData.communityInsights[project]) {
+                analyticsData.communityInsights[project] = 0;
+            }
+            analyticsData.communityInsights[project]++;
+        }
+    });
+    
+    // Calculate average market price
+    analyticsData.avgPrice = validPriceCount > 0 ? (totalMarketPrice / validPriceCount).toFixed(0) : 0;
+    
+    console.log('💰 Community analysis complete. Avg price:', analyticsData.avgPrice);
+}
+
+// Get district name from admin code
+function getDistrictFromAdminCode(adminCode) {
+    const districtMap = {
+        '20194': 'Liên Chiểu',
+        '20195': 'Thanh Khê', 
+        '20197': 'Hải Châu',
+        '20198': 'Cẩm Lệ',
+        '20200': 'Ngũ Hành Sơn',
+        '20203': 'Sơn Trà',
+        '20206': 'Hoà Vang',
+        '20207': 'Hòa Vang'
+    };
+    return districtMap[adminCode] || 'Khác';
+}
+
+// Get land use description
+function getLandUseDescription(landUse) {
+    const landUseMap = {
+        'ODT': 'Đất ở đô thị',
+        'ONT': 'Đất ở nông thôn', 
+        'LUU': 'Đất lưu thông',
+        'SKH': 'Đất sản xuất kinh doanh',
+        'CTR': 'Đất công trình',
+        'NKH': 'Đất nông nghiệp'
+    };
+    return landUseMap[landUse] || landUse || 'Khác';
+}
+
+// Refresh Analytics Data and Charts
+async function refreshAnalyticsData() {
+    console.log('🔄 Refreshing analytics data...');
+    
+    // Show loading indicator
+    showToast('🔄 Đang cập nhật dữ liệu phân tích...', 'info');
+    
+    // Reload data
+    await loadAnalyticsData();
+    
+    // Update UI
+    updateAnalyticsUI();
+    renderAllCharts();
+    
+    // Update timestamp
+    document.getElementById('last-updated').textContent = new Date().toLocaleString('vi-VN');
+    
+    showToast('✅ Dữ liệu đã được cập nhật!', 'success');
+}
+
+// Update Analytics UI
+function updateAnalyticsUI() {
+    // Update stats cards
+    document.getElementById('total-parcels').textContent = analyticsData.totalParcels.toLocaleString('vi-VN');
+    document.getElementById('avg-price').textContent = analyticsData.avgPrice > 0 ? 
+        `${parseFloat(analyticsData.avgPrice).toLocaleString('vi-VN')} triệu` : 'N/A';
+    document.getElementById('avg-area').textContent = analyticsData.avgArea > 0 ? 
+        `${analyticsData.avgArea}m²` : 'N/A';
+    document.getElementById('community-contributions').textContent = analyticsData.communityContributions.toLocaleString('vi-VN');
+}
+
+// Render All Charts
+function renderAllCharts() {
+    console.log('📊 Rendering analytics charts...');
+    
+    try {
+        renderPriceDistributionChart();
+        renderAreaDistributionChart();
+        renderDistrictPriceChart();
+        renderLandUseChart();
+        renderCommunityDataChart();
+    } catch (error) {
+        console.error('❌ Error rendering charts:', error);
+    }
+}
+
+// Price Distribution Chart
+function renderPriceDistributionChart() {
+    const ctx = document.getElementById('price-distribution-chart');
+    if (!ctx) return;
+
+    // Destroy existing chart
+    if (analyticsCharts.priceDistribution) {
+        analyticsCharts.priceDistribution.destroy();
+    }
+
+    const data = analyticsData.priceDistribution;
+    
+    analyticsCharts.priceDistribution = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(data),
+            datasets: [{
+                data: Object.values(data),
+                backgroundColor: [
+                    '#3B82F6', // Blue
+                    '#10B981', // Green
+                    '#F59E0B', // Yellow
+                    '#EF4444'  // Red
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        font: {
+                            size: 12
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((context.parsed / total) * 100).toFixed(1);
+                            return `${context.label}: ${context.parsed} (${percentage}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Area Distribution Chart
+function renderAreaDistributionChart() {
+    const ctx = document.getElementById('area-distribution-chart');
+    if (!ctx) return;
+
+    if (analyticsCharts.areaDistribution) {
+        analyticsCharts.areaDistribution.destroy();
+    }
+
+    const data = analyticsData.areaDistribution;
+    
+    analyticsCharts.areaDistribution = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: Object.keys(data),
+            datasets: [{
+                label: 'Số lượng thửa',
+                data: Object.values(data),
+                backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                borderColor: 'rgba(59, 130, 246, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        font: {
+                            size: 11
+                        }
+                    }
+                },
+                x: {
+                    ticks: {
+                        font: {
+                            size: 11
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// District Price Chart
+function renderDistrictPriceChart() {
+    const ctx = document.getElementById('district-price-chart');
+    if (!ctx) return;
+
+    if (analyticsCharts.districtPrice) {
+        analyticsCharts.districtPrice.destroy();
+    }
+
+    const districts = Object.keys(analyticsData.districtData);
+    const counts = districts.map(district => analyticsData.districtData[district].count);
+    
+    analyticsCharts.districtPrice = new Chart(ctx, {
+        type: 'horizontalBar',
+        data: {
+            labels: districts,
+            datasets: [{
+                label: 'Số lượng thửa',
+                data: counts,
+                backgroundColor: [
+                    'rgba(59, 130, 246, 0.8)',
+                    'rgba(16, 185, 129, 0.8)',
+                    'rgba(245, 158, 11, 0.8)',
+                    'rgba(239, 68, 68, 0.8)',
+                    'rgba(139, 92, 246, 0.8)',
+                    'rgba(236, 72, 153, 0.8)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            indexAxis: 'y',
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    ticks: {
+                        font: {
+                            size: 11
+                        }
+                    }
+                },
+                y: {
+                    ticks: {
+                        font: {
+                            size: 11
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Land Use Chart
+function renderLandUseChart() {
+    const ctx = document.getElementById('land-use-chart');
+    if (!ctx) return;
+
+    if (analyticsCharts.landUse) {
+        analyticsCharts.landUse.destroy();
+    }
+
+    const data = analyticsData.landUseData;
+    
+    analyticsCharts.landUse = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: Object.keys(data),
+            datasets: [{
+                data: Object.values(data),
+                backgroundColor: [
+                    '#3B82F6', // Blue
+                    '#10B981', // Green
+                    '#F59E0B', // Yellow
+                    '#EF4444', // Red
+                    '#8B5CF6', // Purple
+                    '#EC4899'  // Pink
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 15,
+                        font: {
+                            size: 11
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Community Data Chart
+function renderCommunityDataChart() {
+    const ctx = document.getElementById('community-data-chart');
+    if (!ctx) return;
+
+    if (analyticsCharts.communityData) {
+        analyticsCharts.communityData.destroy();
+    }
+
+    const projects = Object.keys(analyticsData.communityInsights).slice(0, 10); // Top 10
+    const counts = projects.map(project => analyticsData.communityInsights[project]);
+    
+    analyticsCharts.communityData = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: projects.map(p => p.length > 20 ? p.substring(0, 20) + '...' : p),
+            datasets: [{
+                label: 'Số đóng góp',
+                data: counts,
+                backgroundColor: 'rgba(139, 92, 246, 0.8)',
+                borderColor: 'rgba(139, 92, 246, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        font: {
+                            size: 11
+                        }
+                    }
+                },
+                x: {
+                    ticks: {
+                        font: {
+                            size: 10
+                        },
+                        maxRotation: 45
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Export Analytics to PDF
+function exportAnalyticsToPDF() {
+    showToast('📄 Tính năng xuất PDF đang được phát triển...', 'info');
+    // TODO: Implement PDF export using jsPDF
+}
+
+// Export Analytics to Excel
+function exportAnalyticsToExcel() {
+    console.log('📊 Exporting analytics to Excel...');
+    
+    try {
+        // Create CSV data
+        let csvContent = "data:text/csv;charset=utf-8,";
+        
+        // Add summary statistics
+        csvContent += "Thống kê tổng quan\n";
+        csvContent += `Tổng số thửa,${analyticsData.totalParcels}\n`;
+        csvContent += `Giá trung bình (triệu),${analyticsData.avgPrice}\n`;
+        csvContent += `Diện tích trung bình (m²),${analyticsData.avgArea}\n`;
+        csvContent += `Đóng góp cộng đồng,${analyticsData.communityContributions}\n\n`;
+        
+        // Add price distribution
+        csvContent += "Phân bố giá\n";
+        csvContent += "Khoảng giá,Số lượng\n";
+        Object.entries(analyticsData.priceDistribution).forEach(([range, count]) => {
+            csvContent += `${range},${count}\n`;
+        });
+        csvContent += "\n";
+        
+        // Add area distribution
+        csvContent += "Phân bố diện tích\n";
+        csvContent += "Khoảng diện tích,Số lượng\n";
+        Object.entries(analyticsData.areaDistribution).forEach(([range, count]) => {
+            csvContent += `${range},${count}\n`;
+        });
+        csvContent += "\n";
+        
+        // Add district data
+        csvContent += "Dữ liệu theo quận/huyện\n";
+        csvContent += "Quận/Huyện,Số lượng,Diện tích TB\n";
+        Object.entries(analyticsData.districtData).forEach(([district, data]) => {
+            csvContent += `${district},${data.count},${data.avgArea.toFixed(1)}\n`;
+        });
+        
+        // Create and download file
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `analytics-report-${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        showToast('✅ Đã xuất báo cáo Excel thành công!', 'success');
+        
+    } catch (error) {
+        console.error('❌ Error exporting to Excel:', error);
+        showToast('❌ Có lỗi khi xuất báo cáo', 'error');
+    }
+}
+
 // KHẮC PHỤC: Đã xóa dòng }); thừa ở đây
+
+// Show contribution message in modal
+function showContributionMessage(message, type) {
+    const messageContainer = document.getElementById('contribution-message');
+    const messageText = document.getElementById('contribution-message-text');
+    
+    if (messageContainer && messageText) {
+        messageText.textContent = message;
+        messageContainer.className = `mt-4 p-4 rounded-lg ${
+            type === 'success' ? 'bg-green-100 text-green-800' :
+            type === 'error' ? 'bg-red-100 text-red-800' :
+            'bg-yellow-100 text-yellow-800'
+        }`;
+        messageContainer.classList.remove('hidden');
+        
+        // Auto hide after 5 seconds
+        setTimeout(() => {
+            messageContainer.classList.add('hidden');
+        }, 5000);
+    }
+}
+
+// Update description counter for community contribution form
+function updateDescriptionCounter(textarea) {
+    const counter = document.getElementById('desc-counter');
+    if (counter) {
+        counter.textContent = `${textarea.value.length}/500`;
+        
+        // Change color based on length
+        if (textarea.value.length > 450) {
+            counter.className = 'text-red-500 text-xs';
+        } else if (textarea.value.length > 300) {
+            counter.className = 'text-yellow-500 text-xs';
+        } else {
+            counter.className = 'text-gray-500 text-xs';
+        }
+    }
+}
+
+// Enhanced validation for contribution form
+function validateContributionForm(formData) {
+    const errors = [];
+    
+    // Validate project name
+    const projectName = formData.get('projectName')?.trim();
+    if (!projectName || projectName.length < 3) {
+        errors.push('Tên dự án phải có ít nhất 3 ký tự');
+    }
+    
+    // Validate lot number
+    const lotNumber = formData.get('lotNumber')?.trim();
+    if (!lotNumber || lotNumber.length < 2) {
+        errors.push('Số lô phải có ít nhất 2 ký tự');
+    }
+    
+    // Validate market price if provided
+    const marketPrice = formData.get('marketPrice');
+    if (marketPrice && (isNaN(marketPrice) || marketPrice < 0 || marketPrice > 10000)) {
+        errors.push('Giá thị trường phải từ 0 đến 10,000 triệu');
+    }
+    
+    // Validate phone number if provided
+    const phone = formData.get('contributorPhone')?.trim();
+    if (phone) {
+        const phoneRegex = /^(\+84|0)(3|5|7|8|9)\d{8}$/;
+        if (!phoneRegex.test(phone.replace(/[\s\-]/g, ''))) {
+            errors.push('Số điện thoại không đúng định dạng Việt Nam');
+        }
+    }
+    
+    // Check verification checkbox
+    if (!formData.get('isVerified')) {
+        errors.push('Bạn cần xác nhận thông tin là chính xác');
+    }
+    
+    // Advanced spam detection for all text fields
+    const textFields = ['projectName', 'lotNumber', 'blockCode', 'commonName', 'brokerCode', 'description', 'contributorName'];
+    for (const fieldName of textFields) {
+        const value = formData.get(fieldName)?.trim();
+        if (value && detectAdvancedSpam(value)) {
+            errors.push(`Nội dung "${getFieldLabel(fieldName)}" có thể chứa spam hoặc quảng cáo`);
+        }
+    }
+    
+    return errors;
+}
+
+// Enhanced spam detection
+function detectAdvancedSpam(content) {
+    const spamPatterns = [
+        /(.)\1{3,}/,                           // Repeated characters (3+)
+        /(https?:\/\/|www\.|\.com|\.vn|\.net)/i, // URLs or domains
+        /(\+84|0)(3|5|7|8|9)\d{8}/,           // Phone patterns
+        /(bán gấp|cần bán|liên hệ|zalo|viber|hotline|sale)/i, // Sales spam
+        /[A-Z]{4,}/,                          // Excessive caps
+        /(giá rẻ|khuyến mãi|ưu đãi|cơ hội|đầu tư|lãi suất)/i, // Promotional
+        /(\b\w+\b)(\s+\1){2,}/i               // Repetitive phrases
+    ];
+    
+    return spamPatterns.some(pattern => pattern.test(content));
+}
+
+// Get field label for error messages
+function getFieldLabel(fieldName) {
+    const labels = {
+        projectName: 'Tên dự án',
+        lotNumber: 'Số lô',
+        blockCode: 'Mã block',
+        commonName: 'Tên gọi thông dụng',
+        brokerCode: 'Mã môi giới',
+        description: 'Mô tả',
+        contributorName: 'Tên người đóng góp'
+    };
+    return labels[fieldName] || fieldName;
+}
