@@ -760,6 +760,16 @@ html, body, #map {
     display: none !important;
 }
 
+/* Override hidden class for analytics modal when it should be visible */
+#analytics-modal:not(.hidden) {
+    display: flex !important;
+}
+
+#analytics-modal.show {
+    display: flex !important;
+    visibility: visible !important;
+}
+
 /* Force ensure FirebaseUI shows on production */
 #firebaseui-auth-container:not(.hidden) {
     display: flex !important;
@@ -1041,6 +1051,41 @@ button:disabled .loading-text {
 #feedback-modal.hidden {
     opacity: 0;
     pointer-events: none;
+}
+
+#feedback-modal:not(.hidden) {
+    display: flex !important;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+#feedback-modal.show {
+    display: flex !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+/* Contribution modal styling */
+#contribution-modal:not(.hidden) {
+    display: flex !important;
+}
+
+#contribution-modal.show {
+    display: flex !important;
+    visibility: visible !important;
+}
+
+/* Contact info modal styling */
+#contact-info-modal:not(.hidden) {
+    display: flex !important;
+}
+
+/* Force all modals to show when not hidden */
+.modal:not(.hidden), 
+[id$="-modal"]:not(.hidden) {
+    display: flex !important;
+    opacity: 1 !important;
+    visibility: visible !important;
 }
 
 #feedback-modal .bg-white {

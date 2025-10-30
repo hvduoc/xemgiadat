@@ -124,15 +124,21 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // 5. Tạo lớp bản đồ phân lô MỘT LẦN DUY NHẤT với error handling
-    parcelLayer = L.vectorGrid.protobuf(tileUrl, vectorTileOptions);
-    
-    // Xử lý lỗi 404 tiles để tránh spam console
-    parcelLayer.on('tileerror', function(e) {
-        // Chỉ log lỗi nghiêm trọng, bỏ qua 404 (tile không tồn tại)
-        if (e.error && !e.error.message?.includes('404')) {
-            console.warn('Lỗi tải vector tile:', e.error);
-        }
-    });
+    try {
+        parcelLayer = L.vectorGrid.protobuf(tileUrl, vectorTileOptions);
+        
+        // Xử lý lỗi 404 tiles để tránh spam console
+        parcelLayer.on('tileerror', function(e) {
+            // Chỉ log lỗi nghiêm trọng, bỏ qua 404 (tile không tồn tại)
+            if (e.error && !e.error.message?.includes('404')) {
+                console.warn('Lỗi tải vector tile:', e.error);
+            }
+        });
+    } catch (err) {
+        console.warn('Map layer failed to load (non-fatal):', err);
+        // Tạo empty layer group để UI vẫn hoạt động
+        parcelLayer = L.layerGroup();
+    }
     
     // 6. System để hiển thị số thửa từ vector tiles
     let tileLabels = new Map(); // Store labels by tile coordinates
@@ -393,19 +399,18 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('✅ Setting up feedback button listeners...');
         feedbackBtn.addEventListener('click', () => {
             console.log('👆 Feedback button clicked!');
-            // Simple, clean modal opening
-            feedbackModal.style.display = 'flex';
-            feedbackModal.classList.remove('hidden');
+            // Use utility function for consistent modal management
+            showModal(feedbackModal);
         });
 
         closeFeedbackModalBtn.addEventListener('click', () => {
             console.log('❌ Closing feedback modal');
-            feedbackModal.classList.add('hidden');
+            hideModal(feedbackModal);
         });
 
         feedbackModal.addEventListener('click', (e) => {
             if (e.target === feedbackModal) {
-                feedbackModal.classList.add('hidden');
+                hideModal(feedbackModal);
             }
         });
     } else {
@@ -438,18 +443,24 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('ℹ️ Contact info button clicked');
             console.log('📱 Contact modal element:', contactInfoModal);
             console.log('📱 Modal classes before:', contactInfoModal.className);
+            
+            // BẮT BUỘC: khôi phục hiển thị phòng trường hợp bị set display:none ở nơi khác
+            contactInfoModal.style.display = 'flex';   // <— Fix cho vấn đề 2-step
             contactInfoModal.classList.remove('hidden');
+            
             console.log('📱 Modal classes after:', contactInfoModal.className);
             setupInfoAccordion();
         });
 
         closeContactModalBtn.addEventListener('click', () => {
             contactInfoModal.classList.add('hidden');
+            contactInfoModal.style.display = 'none';   // <— Đồng bộ state
         });
 
         contactInfoModal.addEventListener('click', (e) => {
             if (e.target === contactInfoModal) {
                 contactInfoModal.classList.add('hidden');
+                contactInfoModal.style.display = 'none'; // <— Đồng bộ state
             }
         });
     }
@@ -3030,36 +3041,70 @@ const userContributionTimestamps = [];
 
 // Initialize contribution system
 function initializeCommunityContribution() {
+    console.log('🚀 Initializing Community Contribution System...');
     const contributeBtn = document.getElementById('contribute-btn');
     const contributionModal = document.getElementById('contribution-modal');
     const closeModalBtn = document.getElementById('close-contribution-modal');
     
-    // Modal controls
-    contributeBtn?.addEventListener('click', openContributionModal);
+    console.log('Contribute button:', contributeBtn);
+    console.log('Contribution modal:', contributionModal);
+    
+    // Modal controls with debugging
+    if (contributeBtn) {
+        // Clear any existing listeners
+        const newBtn = contributeBtn.cloneNode(true);
+        contributeBtn.parentNode.replaceChild(newBtn, contributeBtn);
+        
+        newBtn.addEventListener('click', function(e) {
+            console.log('🔥 Contribute button clicked!');
+            e.preventDefault();
+            e.stopPropagation();
+            openContributionModal();
+        });
+        console.log('✅ Contribute button listener added');
+    }
+    
     closeModalBtn?.addEventListener('click', closeContributionModal);
-        
-        // Step navigation
-        document.getElementById('next-step-1')?.addEventListener('click', goToStep2);
-        document.getElementById('back-step-2')?.addEventListener('click', goToStep1);
-        document.getElementById('search-parcel-btn')?.addEventListener('click', searchParcelForContribution);
-        document.getElementById('submit-contribution')?.addEventListener('click', submitContribution);
-        
+    
+    // Step navigation
+    document.getElementById('next-step-1')?.addEventListener('click', goToStep2);
+    document.getElementById('back-step-2')?.addEventListener('click', goToStep1);
+    document.getElementById('search-parcel-btn')?.addEventListener('click', searchParcelForContribution);
+    document.getElementById('submit-contribution')?.addEventListener('click', submitContribution);
+    
     // Load existing community data
     loadCommunityContributions();
 }
 
+// Đảm bảo hàm sẵn sàng ở global scope
+window.initializeCommunityContribution = initializeCommunityContribution;
+
+// Export các functions modal để đảm bảo accessible
+window.openContributionModal = openContributionModal;
+window.closeContributionModal = closeContributionModal;
+window.openAnalyticsDashboard = openAnalyticsDashboard;
+window.closeAnalyticsDashboard = closeAnalyticsDashboard;
+
 function openContributionModal() {
+    console.log('🔥 Opening contribution modal...');
     if (!currentUser) {
         showToast('⚠️ Vui lòng đăng nhập để đóng góp thông tin', 'warning');
         return;
     }
     
-    document.getElementById('contribution-modal').classList.remove('hidden');
-    goToStep1();
+    const modal = document.getElementById('contribution-modal');
+    modal.classList.remove('hidden');
+    modal.classList.add('show');
+    
+    // Force display with high z-index
+    modal.style.display = 'flex';
+    modal.style.zIndex = '10000';
 }
 
 function closeContributionModal() {
-    document.getElementById('contribution-modal').classList.add('hidden');
+    const modal = document.getElementById('contribution-modal');
+    modal.classList.add('hidden');
+    modal.classList.remove('show');
     resetContributionForm();
 }
 
@@ -3504,6 +3549,23 @@ let analyticsData = {
 
 let analyticsCharts = {};
 
+// === GLOBAL UTILITY FUNCTIONS ===
+
+// Universal modal management functions to prevent display conflicts
+function showModal(el) { 
+    if (el) { 
+        el.style.display = 'flex'; 
+        el.classList.remove('hidden'); 
+    } 
+}
+
+function hideModal(el) { 
+    if (el) { 
+        el.classList.add('hidden'); 
+        el.style.display = 'none'; 
+    } 
+}
+
 // === GLOBAL TOAST NOTIFICATION SYSTEM ===
 function showToast(message, type = 'info', duration = 3000) {
     // Remove existing toast if any
@@ -3554,28 +3616,22 @@ function showToast(message, type = 'info', duration = 3000) {
 function initializeAnalytics() {
     console.log('🚀 Initializing Analytics System...');
     
-    const analyticsBtn = document.getElementById('analytics-btn');
-    console.log('Analytics button found:', analyticsBtn);
+// Simple analytics button listener
+const analyticsBtn = document.getElementById('analytics-btn');
+if (analyticsBtn) {
+    // Clear any existing listeners
+    const newBtn = analyticsBtn.cloneNode(true);
+    analyticsBtn.parentNode.replaceChild(newBtn, analyticsBtn);
     
-    if (analyticsBtn) {
-        // Remove any existing listeners first
-        analyticsBtn.replaceWith(analyticsBtn.cloneNode(true));
-        const newBtn = document.getElementById('analytics-btn');
-        
-        console.log('Adding click listener to analytics button...');
-        newBtn.addEventListener('click', function(event) {
-            console.log('🔥 Analytics button clicked!', event);
-            event.preventDefault();
-            event.stopPropagation();
-            openAnalyticsDashboard();
-        });
-        
-        console.log('✅ Analytics button event listeners added');
-    } else {
-        console.error('❌ Analytics button not found!');
-    }
-    
-    // Add other event listeners
+    // Add new listener
+    newBtn.addEventListener('click', function(e) {
+        console.log('🔥 Analytics button clicked!');
+        e.preventDefault();
+        e.stopPropagation();
+        openAnalyticsDashboard();
+    });
+    console.log('✅ Analytics button listener added');
+}    // Add other event listeners
     document.getElementById('close-analytics')?.addEventListener('click', closeAnalyticsDashboard);
     document.getElementById('refresh-analytics')?.addEventListener('click', refreshAnalyticsData);
     document.getElementById('export-pdf')?.addEventListener('click', exportAnalyticsToPDF);
@@ -3593,16 +3649,14 @@ function openAnalyticsDashboard() {
     
     if (modal) {
         console.log('Modal classes before:', modal.className);
-        modal.classList.remove('hidden');
-        console.log('Modal classes after:', modal.className);
-        console.log('Modal style display:', window.getComputedStyle(modal).display);
-        console.log('Modal style visibility:', window.getComputedStyle(modal).visibility);
-        console.log('Modal style z-index:', window.getComputedStyle(modal).zIndex);
         
-        // Force show the modal
-        modal.style.display = 'flex';
-        modal.style.visibility = 'visible';
-        modal.style.zIndex = '3000';
+        // Use utility function for consistent modal management
+        showModal(modal);
+        
+        console.log('Modal classes after:', modal.className);
+        
+        // DO NOT close other modals - let them coexist or use proper modal management
+        // This was the root cause of the 2-step clicking issue
         
         refreshAnalyticsData();
     } else {
@@ -3614,7 +3668,7 @@ function openAnalyticsDashboard() {
 function closeAnalyticsDashboard() {
     const modal = document.getElementById('analytics-modal');
     if (modal) {
-        modal.classList.add('hidden');
+        hideModal(modal);
     }
 }
 
@@ -4306,8 +4360,12 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('👥 Initializing community contribution system...');
     setTimeout(() => {
         try {
-            initializeCommunityContribution();
-            console.log('✅ Community contribution system initialized');
+            if (typeof window.initializeCommunityContribution === 'function') {
+                window.initializeCommunityContribution();
+                console.log('✅ Community contribution system initialized');
+            } else {
+                console.error('❌ initializeCommunityContribution is not available on window');
+            }
         } catch (error) {
             console.error('❌ Error initializing community system:', error);
         }
@@ -4324,15 +4382,48 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }, 1500);
     
-    // Add debug functions after 2 seconds
+    // Final verification after all systems loaded
     setTimeout(() => {
-        console.log('🔍 Running debug check...');
-        debugAnalyticsButton();
-        setTimeout(() => {
-            console.log('🧪 Running manual test...');
-            testAnalyticsButton();
-        }, 1000);
-    }, 2000);
+        console.log('🔍 Final system verification...');
+        
+        // Verify all modal functions are available
+        const requiredFunctions = [
+            'initializeCommunityContribution',
+            'openContributionModal', 
+            'closeContributionModal',
+            'openAnalyticsDashboard',
+            'closeAnalyticsDashboard'
+        ];
+        
+        requiredFunctions.forEach(funcName => {
+            if (typeof window[funcName] === 'function') {
+                console.log(`✅ ${funcName} is available on window`);
+            } else {
+                console.warn(`❌ ${funcName} is NOT available on window`);
+            }
+        });
+        
+        // Test all modal buttons
+        console.log('🧪 Testing modal buttons...');
+        const buttons = [
+            { id: 'analytics-btn', name: 'Analytics' },
+            { id: 'feedback-btn', name: 'Feedback' },
+            { id: 'contribute-btn', name: 'Contribute' },
+            { id: 'contact-info-btn', name: 'Contact Info' }
+        ];
+        
+        buttons.forEach(button => {
+            const btn = document.getElementById(button.id);
+            if (btn) {
+                console.log(`✅ ${button.name} button found:`, btn);
+                console.log(`   - Classes: ${btn.className}`);
+                console.log(`   - Style display: ${btn.style.display}`);
+                console.log(`   - Visible: ${btn.offsetWidth > 0 && btn.offsetHeight > 0}`);
+            } else {
+                console.warn(`❌ ${button.name} button NOT found`);
+            }
+        });
+    }, 3000);
 });
 
 // Debug function to check button status
