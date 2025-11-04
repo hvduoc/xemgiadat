@@ -469,8 +469,38 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Portfolio modal event listeners
+    // Portfolio button event listener
     if (portfolioBtn) {
-        portfolioBtn.addEventListener('click', showPortfolioModal);
+        console.log('✅ Portfolio button found, adding event listener');
+        portfolioBtn.addEventListener('click', (e) => {
+            console.log('🎯 Portfolio button clicked!', {
+                event: e,
+                target: e.target,
+                currentTarget: e.currentTarget,
+                timestamp: new Date().toISOString(),
+                user: currentUser ? 'Logged in' : 'Not logged in'
+            });
+            
+            try {
+                showPortfolioModal();
+            } catch (error) {
+                console.error('❌ Error in showPortfolioModal:', error);
+                alert('Có lỗi xảy ra khi mở ví bất động sản. Vui lòng thử lại.');
+            }
+        });
+        
+        // Test button accessibility
+        console.log('🔍 Portfolio button properties:', {
+            id: portfolioBtn.id,
+            className: portfolioBtn.className,
+            style: portfolioBtn.style.cssText,
+            position: portfolioBtn.getBoundingClientRect(),
+            visible: portfolioBtn.offsetParent !== null,
+            zIndex: window.getComputedStyle(portfolioBtn).zIndex,
+            pointerEvents: window.getComputedStyle(portfolioBtn).pointerEvents
+        });
+    } else {
+        console.error('❌ Portfolio button not found!');
     }
 
     if (closePortfolioModal) {
@@ -4520,11 +4550,31 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Function to show modal helper
 function showModal(modal) {
+    console.log('🔧 showModal called', {
+        modal: modal ? modal.id : 'null',
+        exists: !!modal
+    });
+    
     if (modal) {
+        console.log('📖 Before showing modal:', {
+            classes: modal.className,
+            display: modal.style.display,
+            hidden: modal.classList.contains('hidden')
+        });
+        
         modal.classList.remove('hidden');
         modal.style.display = 'flex';
         // Prevent body scroll
         document.body.style.overflow = 'hidden';
+        
+        console.log('✅ After showing modal:', {
+            classes: modal.className,
+            display: modal.style.display,
+            computedDisplay: window.getComputedStyle(modal).display,
+            visible: modal.offsetParent !== null
+        });
+    } else {
+        console.error('❌ Modal element is null');
     }
 }
 
@@ -4590,14 +4640,36 @@ window.addToPortfolioFromPanel = function(soThua, soTo, loaiDat, dienTich, lat, 
 
 // Show portfolio modal
 function showPortfolioModal() {
+    console.log('🎯 showPortfolioModal called', {
+        currentUser: currentUser ? {
+            uid: currentUser.uid,
+            email: currentUser.email
+        } : null,
+        portfolioModal: !!portfolioModal
+    });
+    
     if (!currentUser) {
+        console.log('⚠️ User not logged in, showing alert');
         alert('Vui lòng đăng nhập để xem ví bất động sản!');
+        
+        // Trigger login flow
+        const loginBtn = document.getElementById('login-btn');
+        if (loginBtn) {
+            console.log('🔄 Triggering login button click');
+            loginBtn.click();
+        }
         return;
     }
 
+    console.log('✅ User authenticated, loading portfolio...');
     loadUserPortfolio().then(() => {
+        console.log('📊 Portfolio loaded, rendering list...');
         renderPortfolioList();
         showModal(portfolioModal);
+        console.log('✅ Portfolio modal shown');
+    }).catch(error => {
+        console.error('❌ Error loading portfolio:', error);
+        alert('Có lỗi khi tải ví bất động sản. Vui lòng thử lại.');
     });
 }
 

@@ -1278,6 +1278,34 @@ button:disabled .loading-text {
 }
 /* ============================================================================= */
 /*  PORTFOLIO WALLET STYLES */
+
+/* Portfolio Main Button - Đảm bảo vị trí riêng biệt */
+#portfolio-btn {
+    position: fixed !important;
+    bottom: 80px !important;
+    left: 16px !important;
+    z-index: 1100 !important;
+    pointer-events: auto !important;
+    touch-action: manipulation !important;
+    user-select: none !important;
+    width: 56px !important;
+    height: 56px !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2) !important;
+    background-color: #4f46e5 !important;
+    color: white !important;
+    border-radius: 50% !important;
+    border: none !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.2s ease !important;
+}
+
+#portfolio-btn:hover {
+    transform: scale(1.05) !important;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3) !important;
+    background-color: #3730a3 !important;
+}
 /* ============================================================================= */
 
 .portfolio-card {
