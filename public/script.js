@@ -4617,6 +4617,12 @@ function showModal(modal) {
             parentElement: modal.parentElement?.tagName
         });
         
+        // SOLUTION: Move modal to body root to avoid parent container issues
+        if (modal.parentElement !== document.body) {
+            console.log('🔄 Moving modal to document.body...');
+            document.body.appendChild(modal);
+        }
+        
         // Force remove hidden class and set visibility
         modal.classList.remove('hidden');
         modal.style.display = 'flex';
@@ -4658,7 +4664,8 @@ function showModal(modal) {
             computedVisibility: window.getComputedStyle(modal).visibility,
             computedZIndex: window.getComputedStyle(modal).zIndex,
             visible: modal.offsetParent !== null,
-            rect: modal.getBoundingClientRect()
+            rect: modal.getBoundingClientRect(),
+            parentIsBody: modal.parentElement === document.body
         });
         
         // Test: Add click listener to modal background
