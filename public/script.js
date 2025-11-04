@@ -4996,6 +4996,7 @@ async function loadUserPortfolio() {
         userPortfolio = [];
         portfolioSnapshot.forEach(doc => {
             const data = doc.data();
+            console.log('📄 Portfolio data loaded:', { id: doc.id, images: data.images });
             userPortfolio.push({ 
                 id: doc.id, 
                 ...data,
@@ -5131,6 +5132,7 @@ function renderPortfolioList() {
         portfolioList.innerHTML = filteredPortfolio.map(item => {
             // Get first image as thumbnail
             const thumbnail = item.images && item.images.length > 0 ? item.images[0] : null;
+            console.log('🖼️ Portfolio item:', { id: item.id, name: item.name, images: item.images, thumbnail });
             
             return `
             <div class="portfolio-card">
@@ -5143,7 +5145,8 @@ function renderPortfolioList() {
                 ${thumbnail ? `
                 <div class="portfolio-image">
                     <img src="${thumbnail}" alt="Hình ảnh bất động sản" 
-                         onerror="this.style.display='none'"
+                         onerror="console.error('❌ Image load error:', '${thumbnail}'); this.closest('.portfolio-image').style.display='none'"
+                         onload="console.log('✅ Image loaded:', '${thumbnail}')"
                          onclick="viewPortfolioImages('${item.id}')">
                     ${item.images && item.images.length > 1 ? 
                         `<div class="image-count-badge">
@@ -5844,7 +5847,9 @@ async function uploadPortfolioImages(portfolioId, userId) {
         }
         
         console.log('🎉 All images uploaded successfully:', uploadedUrls);
-        return uploadedUrls;
+        
+        // Return array of URLs only for Firestore
+        return uploadedUrls.map(item => item.url);
         
     } catch (error) {
         console.error('❌ Error uploading images:', error);
