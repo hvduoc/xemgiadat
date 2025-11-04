@@ -2905,6 +2905,79 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Add parcel to portfolio from search results
+    window.addParcelToPortfolio = function(soThua, soTo, dienTich, loaiDat, maXa) {
+        console.log('🎯 Adding parcel to portfolio:', { soThua, soTo, dienTich, loaiDat, maXa });
+        
+        if (!currentUser) {
+            alert('Vui lòng đăng nhập để sử dụng chức năng Ví BĐS!');
+            
+            // Trigger login
+            const loginBtn = document.getElementById('login-btn');
+            if (loginBtn) {
+                loginBtn.click();
+            }
+            return;
+        }
+
+        // Store parcel data globally for form
+        selectedParcelData = {
+            soThua: soThua,
+            soTo: soTo,
+            dienTich: dienTich,
+            loaiDat: loaiDat,
+            maXa: maXa,
+            diaChi: `Thửa ${soThua}, Tờ ${soTo}, ${maXa}`,
+            // Add coordinates if available from current map view
+            lat: map.getCenter().lat,
+            lng: map.getCenter().lng
+        };
+
+        console.log('📍 Selected parcel data:', selectedParcelData);
+
+        // Open add portfolio modal with pre-filled data
+        const addModal = document.getElementById('add-portfolio-modal');
+        const portfolioForm = document.getElementById('portfolio-form');
+        
+        if (addModal && portfolioForm) {
+            // Pre-fill form
+            const nameInput = document.getElementById('portfolio-name');
+            const areaInput = document.getElementById('portfolio-area');
+            
+            // Reset form first
+            portfolioForm.reset();
+            
+            // Then set values
+            if (nameInput) {
+                nameInput.value = `${loaiDat} - Thửa ${soThua}, Tờ ${soTo}`;
+            }
+            if (areaInput) {
+                areaInput.value = dienTich;
+            }
+            
+            delete portfolioForm.dataset.editingId;
+            
+            // Update modal title
+            const titleElement = document.getElementById('add-portfolio-title');
+            if (titleElement) {
+                titleElement.innerHTML = `
+                    <i class="fa-solid fa-plus mr-2 text-indigo-600"></i>
+                    Thêm "${loaiDat}" vào Ví BĐS
+                `;
+            }
+
+            showModal(addModal);
+            
+            // Focus on name input for editing
+            setTimeout(() => {
+                if (nameInput) {
+                    nameInput.focus();
+                    nameInput.select();
+                }
+            }, 200);
+        }
+    };
+
     // Get user-friendly land use label
     function getLandUseLabel(code) {
         const labels = {
@@ -3042,6 +3115,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 ${communitySection}
                 <div class="pt-2 border-t space-y-2">
+                    <button class="w-full bg-indigo-600 text-white py-2 rounded text-sm hover:bg-indigo-700 transition font-medium" 
+                            onclick="addParcelToPortfolio('${props.SoThuTuThua}', '${props.SoHieuToBanDo}', '${props.DienTich}', '${getLandUseLabel(props.KyHieuMucDichSuDung)}', '${props.MaXa}')">
+                        <i class="fa-solid fa-briefcase mr-2"></i>Thêm vào Ví BĐS
+                    </button>
                     <button class="w-full bg-blue-500 text-white py-2 rounded text-sm hover:bg-blue-600 transition" 
                             onclick="downloadParcelInfo('${props.SoThuTuThua}', '${props.SoHieuToBanDo}')">
                         📄 Tải thông tin chi tiết
@@ -4874,18 +4951,51 @@ function renderPortfolioList() {
 // View portfolio item on map
 window.viewPortfolioItem = function(itemId) {
     const item = userPortfolio.find(p => p.id === itemId);
-    if (!item) return;
+    if (!item) {
+        console.error('❌ Portfolio item not found:', itemId);
+        return;
+    }
+
+    console.log('👀 Viewing portfolio item:', item);
 
     if (item.lat && item.lng) {
+        // Close portfolio modal
         hideModal(portfolioModal);
-        map.setView([item.lat, item.lng], 18);
+        
+        // Zoom to location with nice animation
+        map.setView([item.lat, item.lng], 18, {
+            animate: true,
+            duration: 1.5
+        });
+        
+        // Show success message
+        showToast(`📍 Đã zoom đến "${item.name}"`, 'success');
         
         // If it's a parcel, try to show parcel info
         if (item.soThua && item.soTo) {
-            queryAndDisplayParcelByLatLng(item.lat, item.lng);
+            setTimeout(() => {
+                queryAndDisplayParcelByLatLng(item.lat, item.lng);
+            }, 1000); // Wait for zoom animation to complete
         }
+        
+        // Add a temporary marker for highlight
+        const highlightMarker = L.marker([item.lat, item.lng], {
+            icon: L.divIcon({
+                className: 'highlight-marker',
+                html: `<div style="background: #4f46e5; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">📍 ${item.name}</div>`,
+                iconSize: [120, 30],
+                iconAnchor: [60, 30]
+            })
+        }).addTo(map);
+        
+        // Remove highlight marker after 3 seconds
+        setTimeout(() => {
+            map.removeLayer(highlightMarker);
+        }, 3000);
+        
     } else {
-        alert('Không có tọa độ để hiển thị trên bản đồ');
+        alert('❌ Không có tọa độ để hiển thị trên bản đồ.\n\nBĐS này có thể được thêm thủ công mà không có vị trí địa lý.');
+        showToast('⚠️ Không có tọa độ GPS', 'warning');
     }
 };
 
@@ -4939,17 +5049,33 @@ async function handlePortfolioFormSubmit(e) {
         return;
     }
 
-    const formData = new FormData(e.target);
+    // Get form data directly from elements for better reliability
+    const nameInput = document.getElementById('portfolio-name');
+    const priceInput = document.getElementById('portfolio-price');
+    const areaInput = document.getElementById('portfolio-area');
+    const notesInput = document.getElementById('portfolio-notes');
+    const visibilityInput = document.querySelector('input[name="portfolio-visibility"]:checked');
+
+    console.log('🔍 Form elements check:', {
+        nameElement: !!nameInput,
+        priceElement: !!priceInput,
+        areaElement: !!areaInput,
+        notesElement: !!notesInput,
+        visibilityElement: !!visibilityInput
+    });
+
     const portfolioData = {
-        name: formData.get('portfolio-name')?.trim(),
-        price: formData.get('portfolio-price') ? parseFloat(formData.get('portfolio-price')) : null,
-        area: formData.get('portfolio-area') ? parseFloat(formData.get('portfolio-area')) : null,
-        notes: formData.get('portfolio-notes')?.trim() || '',
-        visibility: formData.get('portfolio-visibility') || 'private',
+        name: nameInput?.value?.trim() || '',
+        price: priceInput?.value ? parseFloat(priceInput.value) : null,
+        area: areaInput?.value ? parseFloat(areaInput.value) : null,
+        notes: notesInput?.value?.trim() || '',
+        visibility: visibilityInput?.value || 'private',
         userId: currentUser.uid,
         userName: currentUser.displayName || 'User',
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     };
+
+    console.log('📋 Portfolio data to submit:', portfolioData);
 
     // Add parcel data if available
     if (selectedParcelData) {
@@ -4958,10 +5084,20 @@ async function handlePortfolioFormSubmit(e) {
         portfolioData.loaiDat = selectedParcelData.loaiDat;
         portfolioData.lat = selectedParcelData.lat;
         portfolioData.lng = selectedParcelData.lng;
+        console.log('📍 Added parcel data:', selectedParcelData);
     }
 
-    if (!portfolioData.name) {
+    if (!portfolioData.name || portfolioData.name.length === 0) {
+        console.error('❌ Validation failed - empty name:', {
+            nameValue: portfolioData.name,
+            nameLength: portfolioData.name.length,
+            inputElement: nameInput,
+            inputValue: nameInput?.value
+        });
         alert('Vui lòng nhập tên cho bất động sản');
+        nameInput?.focus();
+        return;
+    }
         return;
     }
 
