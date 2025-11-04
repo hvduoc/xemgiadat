@@ -2920,6 +2920,11 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        // Get current coordinates and create location link
+        const currentLat = window.map.getCenter().lat;
+        const currentLng = window.map.getCenter().lng;
+        const locationUrl = `${window.location.origin}${window.location.pathname}?lat=${currentLat}&lng=${currentLng}`;
+
         // Store parcel data globally for form
         selectedParcelData = {
             soThua: soThua,
@@ -2928,9 +2933,9 @@ document.addEventListener('DOMContentLoaded', () => {
             loaiDat: loaiDat,
             maXa: maXa,
             diaChi: `Thửa ${soThua}, Tờ ${soTo}, ${maXa}`,
-            // Add coordinates if available from current map view
-            lat: map.getCenter().lat,
-            lng: map.getCenter().lng
+            lat: currentLat,
+            lng: currentLng,
+            locationUrl: locationUrl  // Add location URL for viewing
         };
 
         console.log('📍 Selected parcel data:', selectedParcelData);
@@ -5067,75 +5072,36 @@ window.viewPortfolioItem = function(itemId) {
 
     console.log('👀 Viewing portfolio item:', item);
 
-    if (item.lat && item.lng) {
+    // Check if we have a saved location URL
+    if (item.locationUrl) {
+        console.log('🔗 Opening location URL:', item.locationUrl);
+        
         // Close portfolio modal
         hideModal(portfolioModal);
         
-        // Zoom to location with nice animation
-        map.setView([item.lat, item.lng], 18, {
-            animate: true,
-            duration: 1.5
-        });
-        
-        // Show success message
-        showToast(`📍 Đã zoom đến "${item.name}"`, 'success');
-        
-        // If it's a parcel, show parcel info with full details
-        if (item.soThua && item.soTo) {
-            console.log('🔍 Showing parcel info for:', {
-                soThua: item.soThua,
-                soTo: item.soTo,
-                lat: item.lat,
-                lng: item.lng
-            });
-            
-            // Wait for zoom animation to complete, then show parcel info
-            setTimeout(() => {
-                // Create parcel info object from portfolio data
-                const parcelInfo = {
-                    SoThuTuThua: item.soThua,
-                    SoHieuToBanDo: item.soTo,
-                    DienTich: item.area || item.dienTich || 'Không rõ',
-                    KyHieuMucDichSuDung: item.loaiDat || 'ODT',
-                    MaXa: item.maXa || item.diaChi || 'Không rõ'
-                };
-                
-                console.log('📋 Displaying parcel info:', parcelInfo);
-                
-                // Show parcel info in the info panel
-                showParcelInfo(parcelInfo);
-                
-                // Also try to query from vector tiles for complete info
-                if (typeof queryAndDisplayParcelByLatLng === 'function') {
-                    queryAndDisplayParcelByLatLng(item.lat, item.lng);
-                }
-            }, 1500); // Wait for zoom animation to complete
-        } else {
-            // Show basic portfolio info if no parcel data
-            setTimeout(() => {
-                showPortfolioItemInfo(item);
-            }, 1500);
-        }
-        
-        // Add a temporary marker for highlight
-        const highlightMarker = L.marker([item.lat, item.lng], {
-            icon: L.divIcon({
-                className: 'highlight-marker',
-                html: `<div style="background: #4f46e5; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; box-shadow: 0 2px 8px rgba(0,0,0,0.3); border-radius: 8px;">📍 ${item.name}</div>`,
-                iconSize: [200, 40],
-                iconAnchor: [100, 40]
-            })
-        }).addTo(map);
-        
-        // Remove highlight marker after 3 seconds
-        setTimeout(() => {
-            map.removeLayer(highlightMarker);
-        }, 3000);
-        
-    } else {
-        alert('❌ Không có tọa độ để hiển thị trên bản đồ.\n\nBĐS này có thể được thêm thủ công mà không có vị trí địa lý.');
-        showToast('⚠️ Không có tọa độ GPS', 'warning');
+        // Open the location URL which will trigger coordinate-based search
+        window.location.href = item.locationUrl;
+        return;
     }
+
+    // Fallback: if no location URL but has coordinates
+    if (item.lat && item.lng) {
+        console.log('� Creating location URL from coordinates');
+        
+        // Create location URL from coordinates
+        const locationUrl = `${window.location.origin}${window.location.pathname}?lat=${item.lat}&lng=${item.lng}`;
+        
+        // Close portfolio modal
+        hideModal(portfolioModal);
+        
+        // Open the location URL
+        window.location.href = locationUrl;
+        return;
+    }
+
+    // No location data available
+    alert('❌ Không có tọa độ để hiển thị trên bản đồ.\n\nBĐS này có thể được thêm thủ công mà không có vị trí địa lý.');
+    showToast('⚠️ Không có tọa độ GPS', 'warning');
 };
 
 // Edit portfolio item
@@ -5223,6 +5189,7 @@ async function handlePortfolioFormSubmit(e) {
         portfolioData.loaiDat = selectedParcelData.loaiDat;
         portfolioData.lat = selectedParcelData.lat;
         portfolioData.lng = selectedParcelData.lng;
+        portfolioData.locationUrl = selectedParcelData.locationUrl; // Add location URL
         console.log('📍 Added parcel data:', selectedParcelData);
     }
 
