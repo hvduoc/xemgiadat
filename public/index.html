@@ -156,14 +156,20 @@
         </div>
         
         <div id="panel-content" class="space-y-3 text-gray-700">
+
         </div>
     </div>
-      
     <div id="opacity-control" class="hidden bg-white p-2 rounded-lg shadow-lg">
         <input id="opacity-slider" type="range" min="0" max="1" step="0.1" value="0.7">
     </div>
-
-    <div id="instruction-banner" class="hidden absolute top-4 left-1/2 -translate-x-1/2 z-[1000] bg-yellow-400 text-black font-semibold py-2 px-4 rounded-lg shadow-lg"></div>
+    <!-- Banner hướng dẫn chỉ hiển thị khi cần -->
+    <div id="instruction-banner" class="hidden absolute top-4 left-1/2 -translate-x-1/2 z-[1000] bg-yellow-400 text-black font-semibold py-2 px-4 rounded-lg shadow-lg">
+        <span id="instruction-text"></span>
+    </div>
+    <!-- Nút mở hướng dẫn -->
+    <button id="show-guide-btn" class="fixed bottom-20 right-4 z-[1000] bg-blue-600 text-white rounded-full px-4 py-2 shadow-lg text-sm font-semibold flex items-center gap-2">
+        <i class="fas fa-question-circle"></i> Hướng dẫn
+    </button>
 
    <div class="absolute top-4 right-4 z-[1000] flex flex-col items-center space-y-3">
         <div id="auth-container" class="relative">
@@ -190,8 +196,8 @@
         <button id="admin-btn" title="Quản trị hệ thống" class="bg-red-600 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-red-700 transition" style="display: none;">
             <i class="fa-solid fa-cog text-xl"></i>
         </button>
-        <button id="contribute-btn" title="Bổ sung thông tin thửa đất" class="bg-green-600 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-green-700 transition">
-            <i class="fa-solid fa-plus-circle text-xl"></i>
+        <button id="portfolio-btn" title="Ví bất động sản của tôi" class="bg-indigo-600 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-indigo-700 transition">
+            <i class="fa-solid fa-briefcase text-xl"></i>
         </button>
         <button id="donate-btn" title="Ủng hộ (Mời cafe)" class="bg-yellow-400 text-black w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-yellow-500 transition">
             <i class="fa-solid fa-mug-saucer"></i>
@@ -368,6 +374,144 @@
         </button>
     </div>
     
+    <!-- Modal Ví Bất Động Sản -->
+    <div id="portfolio-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[1003] overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+                <div class="flex items-center justify-between p-6 border-b border-gray-200">
+                    <h2 class="text-2xl font-bold text-gray-800">
+                        <i class="fa-solid fa-briefcase mr-2 text-indigo-600"></i>
+                        Ví Bất Động Sản Của Tôi
+                    </h2>
+                    <button id="close-portfolio-modal" class="text-gray-500 hover:text-gray-700 text-2xl">
+                        <i class="fa-solid fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="p-6 overflow-y-auto max-h-[75vh]">
+                    <!-- Thanh công cụ -->
+                    <div class="flex flex-wrap gap-4 mb-6">
+                        <button id="add-to-portfolio-btn" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition flex items-center">
+                            <i class="fa-solid fa-plus mr-2"></i>
+                            Thêm BĐS mới
+                        </button>
+                        <div class="flex items-center space-x-2">
+                            <label class="text-sm font-medium text-gray-700">Hiển thị:</label>
+                            <select id="portfolio-filter" class="border border-gray-300 rounded-lg px-3 py-1 text-sm">
+                                <option value="all">Tất cả</option>
+                                <option value="private">Riêng tư</option>
+                                <option value="public">Công khai</option>
+                            </select>
+                        </div>
+                        <div class="flex-1"></div>
+                        <div class="text-sm text-gray-500">
+                            <span id="portfolio-count">0</span> bất động sản
+                        </div>
+                    </div>
+                    
+                    <!-- Danh sách bất động sản -->
+                    <div id="portfolio-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <!-- Sẽ được populate bằng JavaScript -->
+                    </div>
+                    
+                    <!-- Empty state -->
+                    <div id="portfolio-empty" class="hidden text-center py-12">
+                        <i class="fa-solid fa-briefcase text-6xl text-gray-300 mb-4"></i>
+                        <h3 class="text-xl font-semibold text-gray-600 mb-2">Ví của bạn còn trống</h3>
+                        <p class="text-gray-500 mb-6">Hãy bắt đầu thêm những bất động sản mà bạn quan tâm</p>
+                        <button class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition">
+                            <i class="fa-solid fa-plus mr-2"></i>
+                            Thêm BĐS đầu tiên
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Thêm/Sửa BĐS vào Ví -->
+    <div id="add-portfolio-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[1004] overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg">
+                <div class="flex items-center justify-between p-6 border-b border-gray-200">
+                    <h3 id="add-portfolio-title" class="text-xl font-bold text-gray-800">
+                        <i class="fa-solid fa-plus mr-2 text-indigo-600"></i>
+                        Thêm vào Ví BĐS
+                    </h3>
+                    <button id="close-add-portfolio-modal" class="text-gray-500 hover:text-gray-700 text-xl">
+                        <i class="fa-solid fa-times"></i>
+                    </button>
+                </div>
+                
+                <form id="portfolio-form" class="p-6 space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tên gọi</label>
+                        <input type="text" id="portfolio-name" required 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                               placeholder="VD: Nhà phố Hòa Cường, Lô góc An Thượng...">
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Giá (tỷ VNĐ)</label>
+                            <input type="number" id="portfolio-price" step="0.1" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                   placeholder="VD: 5.2">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Diện tích (m²)</label>
+                            <input type="number" id="portfolio-area" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                   placeholder="VD: 100">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Ghi chú</label>
+                        <textarea id="portfolio-notes" rows="3" 
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                  placeholder="Hướng nhà, tình trạng, ưu nhược điểm..."></textarea>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Chế độ hiển thị</label>
+                        <div class="flex space-x-4">
+                            <label class="flex items-center">
+                                <input type="radio" name="portfolio-visibility" value="private" checked 
+                                       class="text-indigo-600 focus:ring-indigo-500">
+                                <span class="ml-2 text-sm text-gray-700">
+                                    <i class="fa-solid fa-lock mr-1 text-gray-500"></i>
+                                    Riêng tư (chỉ tôi xem)
+                                </span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="portfolio-visibility" value="public" 
+                                       class="text-indigo-600 focus:ring-indigo-500">
+                                <span class="ml-2 text-sm text-gray-700">
+                                    <i class="fa-solid fa-globe mr-1 text-green-500"></i>
+                                    Công khai
+                                </span>
+                            </label>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">
+                            Bất động sản công khai sẽ hiển thị trên bản đồ và có thể được chia sẻ với cộng đồng
+                        </p>
+                    </div>
+                    
+                    <div class="flex space-x-3 pt-4">
+                        <button type="submit" class="flex-1 bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition">
+                            <i class="fa-solid fa-save mr-2"></i>
+                            Lưu vào ví
+                        </button>
+                        <button type="button" id="cancel-portfolio-form" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
+                            Hủy
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="https://unpkg.com/esri-leaflet@3.0.10/dist/esri-leaflet.js"></script>
     <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>

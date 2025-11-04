@@ -1277,6 +1277,209 @@ button:disabled .loading-text {
     }
 }
 /* ============================================================================= */
+/*  PORTFOLIO WALLET STYLES */
+/* ============================================================================= */
+
+.portfolio-card {
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+    transition: box-shadow 0.2s ease-in-out;
+}
+
+.portfolio-card:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.portfolio-card-header {
+    position: relative;
+}
+
+.portfolio-card-body {
+    padding: 1rem;
+}
+
+.portfolio-badge-private {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background-color: #4b5563;
+    color: white;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+}
+
+.portfolio-badge-public {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background-color: #059669;
+    color: white;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+}
+
+.portfolio-price {
+    font-size: 1.125rem;
+    font-weight: bold;
+    color: #dc2626;
+    margin-bottom: 0.5rem;
+}
+
+.portfolio-name {
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 0.25rem;
+    font-size: 0.875rem;
+}
+
+.portfolio-details {
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.portfolio-details > * + * {
+    margin-top: 0.25rem;
+}
+
+.portfolio-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #f3f4f6;
+}
+
+.portfolio-btn {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 0.25rem;
+    transition: background-color 0.2s ease-in-out;
+    border: none;
+    cursor: pointer;
+}
+
+.portfolio-btn-primary {
+    background-color: #e0e7ff;
+    color: #3730a3;
+}
+
+.portfolio-btn-primary:hover {
+    background-color: #c7d2fe;
+}
+
+.portfolio-btn-secondary {
+    background-color: #f3f4f6;
+    color: #374151;
+}
+
+.portfolio-btn-secondary:hover {
+    background-color: #e5e7eb;
+}
+
+.portfolio-btn-danger {
+    background-color: #fee2e2;
+    color: #b91c1c;
+}
+
+.portfolio-btn-danger:hover {
+    background-color: #fecaca;
+}
+
+/* Add to portfolio button in info panel */
+.add-to-portfolio-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.25rem 0.75rem;
+    background-color: #4f46e5;
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border-radius: 0.375rem;
+    transition: background-color 0.2s ease-in-out;
+    border: none;
+    cursor: pointer;
+}
+
+.add-to-portfolio-btn:hover {
+    background-color: #4338ca;
+}
+
+/* Portfolio filter dropdown */
+#portfolio-filter {
+    background-color: white;
+    border: 1px solid #d1d5db;
+    color: #374151;
+    border-radius: 0.5rem;
+    padding: 0.25rem 0.75rem;
+}
+
+#portfolio-filter:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px #4f46e5;
+    border-color: #4f46e5;
+}
+
+/* Portfolio modal responsive */
+@media (max-width: 768px) {
+    #portfolio-modal .bg-white {
+        width: 100%;
+        height: 100%;
+        border-radius: 0;
+        max-height: none;
+    }
+    
+    #add-portfolio-modal .bg-white {
+        width: calc(100% - 2rem);
+        margin: 0 1rem;
+        max-width: none;
+    }
+    
+    #portfolio-list {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+}
+
+/* Loading and empty states */
+.portfolio-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 0;
+    color: #6b7280;
+}
+
+.portfolio-empty {
+    text-align: center;
+    padding: 3rem 0;
+}
+
+/* Enhanced tooltips for portfolio features */
+.portfolio-tooltip {
+    position: absolute;
+    z-index: 50;
+    padding: 0.5rem;
+    font-size: 0.75rem;
+    color: white;
+    background-color: #1f2937;
+    border-radius: 0.375rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    pointer-events: none;
+    transform: translateX(-50%);
+}
+
+/* ============================================================================= */
 /*  PHASE 3: ANALYTICS DASHBOARD STYLES */
 /* ============================================================================= */
 

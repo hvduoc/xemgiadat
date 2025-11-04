@@ -380,6 +380,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const feedbackModal = document.getElementById('feedback-modal');
     const closeFeedbackModalBtn = document.getElementById('close-feedback-modal');
     const adminBtn = document.getElementById('admin-btn');
+    const portfolioBtn = document.getElementById('portfolio-btn');
+    const portfolioModal = document.getElementById('portfolio-modal');
+    const closePortfolioModal = document.getElementById('close-portfolio-modal');
+    const addPortfolioModal = document.getElementById('add-portfolio-modal');
+    const closeAddPortfolioModal = document.getElementById('close-add-portfolio-modal');
+    const portfolioForm = document.getElementById('portfolio-form');
 
     // Debug: Check if elements exist
     console.log('🔍 Button elements check:', {
@@ -443,25 +449,93 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('ℹ️ Contact info button clicked');
             console.log('📱 Contact modal element:', contactInfoModal);
             console.log('📱 Modal classes before:', contactInfoModal.className);
-            
-            // BẮT BUỘC: khôi phục hiển thị phòng trường hợp bị set display:none ở nơi khác
-            contactInfoModal.style.display = 'flex';   // <— Fix cho vấn đề 2-step
-            contactInfoModal.classList.remove('hidden');
-            
+
+            // Use modal helper to ensure consistent state
+            showModal(contactInfoModal);
+
             console.log('📱 Modal classes after:', contactInfoModal.className);
             setupInfoAccordion();
         });
 
         closeContactModalBtn.addEventListener('click', () => {
-            contactInfoModal.classList.add('hidden');
-            contactInfoModal.style.display = 'none';   // <— Đồng bộ state
+            hideModal(contactInfoModal);
         });
 
         contactInfoModal.addEventListener('click', (e) => {
             if (e.target === contactInfoModal) {
-                contactInfoModal.classList.add('hidden');
-                contactInfoModal.style.display = 'none'; // <— Đồng bộ state
+                hideModal(contactInfoModal);
             }
+        });
+    }
+
+    // Portfolio modal event listeners
+    if (portfolioBtn) {
+        portfolioBtn.addEventListener('click', showPortfolioModal);
+    }
+
+    if (closePortfolioModal) {
+        closePortfolioModal.addEventListener('click', () => {
+            hideModal(portfolioModal);
+        });
+    }
+
+    if (portfolioModal) {
+        portfolioModal.addEventListener('click', (e) => {
+            if (e.target === portfolioModal) {
+                hideModal(portfolioModal);
+            }
+        });
+    }
+
+    // Add portfolio modal event listeners
+    if (closeAddPortfolioModal) {
+        closeAddPortfolioModal.addEventListener('click', () => {
+            hideModal(addPortfolioModal);
+            portfolioForm.reset();
+            delete portfolioForm.dataset.editingId;
+            selectedParcelData = null;
+        });
+    }
+
+    if (document.getElementById('cancel-portfolio-form')) {
+        document.getElementById('cancel-portfolio-form').addEventListener('click', () => {
+            hideModal(addPortfolioModal);
+            portfolioForm.reset();
+            delete portfolioForm.dataset.editingId;
+            selectedParcelData = null;
+        });
+    }
+
+    if (addPortfolioModal) {
+        addPortfolioModal.addEventListener('click', (e) => {
+            if (e.target === addPortfolioModal) {
+                hideModal(addPortfolioModal);
+                portfolioForm.reset();
+                delete portfolioForm.dataset.editingId;
+                selectedParcelData = null;
+            }
+        });
+    }
+
+    // Portfolio form submission
+    if (portfolioForm) {
+        portfolioForm.addEventListener('submit', handlePortfolioFormSubmit);
+    }
+
+    // Portfolio filter change
+    if (document.getElementById('portfolio-filter')) {
+        document.getElementById('portfolio-filter').addEventListener('change', renderPortfolioList);
+    }
+
+    // Add portfolio button in modal
+    if (document.getElementById('add-to-portfolio-btn')) {
+        document.getElementById('add-to-portfolio-btn').addEventListener('click', () => {
+            // Reset form for new item
+            portfolioForm.reset();
+            delete portfolioForm.dataset.editingId;
+            selectedParcelData = null;
+            document.getElementById('add-portfolio-title').innerHTML = '<i class="fa-solid fa-plus mr-2 text-indigo-600"></i>Thêm vào Ví BĐS';
+            showModal(addPortfolioModal);
         });
     }
 
@@ -472,6 +546,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let isAddMode = false;
     let isQueryMode = false; // Vẫn giữ để đổi con trỏ chuột
     let localListings = [];
+    let userPortfolio = [];
+    let selectedParcelData = null; // Lưu dữ liệu thửa đất được chọn để thêm vào ví
     let debounceTimer;
     let dimensionMarkers = L.layerGroup().addTo(map); // Thêm vào map để dễ quản lý
     let userLocationMarker = null;
@@ -523,6 +599,10 @@ document.addEventListener('DOMContentLoaded', () => {
             <button onclick="copyLocationLink(${lat}, ${lng})">
                 <i class="icon fas fa-link text-gray-500"></i>
                 <span class="text">Sao chép</span>
+            </button>
+            <button onclick="addToPortfolioFromPanel('${soThua}', '${soTo}', '${loaiDat}', ${dienTich}, ${lat}, ${lng})">
+                <i class="icon fas fa-briefcase text-indigo-600"></i>
+                <span class="text">Thêm vào ví</span>
             </button>
             <button onclick="toggleShareMenu()" id="share-btn">
                 <i class="icon fas fa-share-alt text-indigo-600"></i>
@@ -839,21 +919,25 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- KẾT THÚC THAY ĐỔI ---
 
     function enterAddMode() {
-        exitAllModes();
-        isAddMode = true;
-        map.getContainer().classList.add('map-add-mode');
-        addLocationBtn.classList.add('active-tool');
-        instructionBanner.textContent = 'Nhấp vào bản đồ để chọn vị trí cần thêm.';
-        instructionBanner.classList.remove('hidden');
+    exitAllModes();
+    isAddMode = true;
+    map.getContainer().classList.add('map-add-mode');
+    addLocationBtn.classList.add('active-tool');
+    const instructionText = document.getElementById('instruction-text');
+    instructionText.textContent = 'Nhấp vào bản đồ để chọn vị trí cần thêm.';
+    instructionBanner.classList.remove('hidden');
+    setTimeout(() => instructionBanner.classList.add('hidden'), 3500);
     }
 
     function enterQueryMode() {
-        exitAllModes();
-        isQueryMode = true;
-        map.getContainer().classList.add('map-query-mode');
-        queryBtn.classList.add('active-tool');
-        instructionBanner.textContent = 'Nhấp vào một thửa đất trên bản đồ để xem thông tin.';
-        instructionBanner.classList.remove('hidden');
+    exitAllModes();
+    isQueryMode = true;
+    map.getContainer().classList.add('map-query-mode');
+    queryBtn.classList.add('active-tool');
+    const instructionText = document.getElementById('instruction-text');
+    instructionText.textContent = 'Nhấp vào một thửa đất trên bản đồ để xem thông tin.';
+    instructionBanner.classList.remove('hidden');
+    setTimeout(() => instructionBanner.classList.add('hidden'), 3500);
     }
 
     function exitAllModes() {
@@ -867,6 +951,16 @@ document.addEventListener('DOMContentLoaded', () => {
             map.removeLayer(tempMarker);
             tempMarker = null;
         }
+    // Hiển thị hướng dẫn khi nhấn nút
+    const showGuideBtn = document.getElementById('show-guide-btn');
+    if (showGuideBtn) {
+        showGuideBtn.addEventListener('click', () => {
+            const instructionText = document.getElementById('instruction-text');
+            instructionText.textContent = 'Hướng dẫn: Nhấn vào bản đồ để chọn vị trí hoặc tra cứu thông tin thửa đất. Sử dụng các nút bên dưới để thao tác nhanh.';
+            instructionBanner.classList.remove('hidden');
+            setTimeout(() => instructionBanner.classList.add('hidden'), 5000);
+        });
+    }
     }
     
     async function prefillUserContact() {
@@ -1454,9 +1548,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Note: Guide, Admin, and Feedback event listeners are now setup earlier in the code
     // Donate button handlers
-    donateBtn.addEventListener('click', () => donateModal.classList.remove('hidden'));
-    closeDonateModalBtn.addEventListener('click', () => donateModal.classList.add('hidden'));
-    donateModal.addEventListener('click', (e) => { if (e.target === donateModal) donateModal.classList.add('hidden'); });
+    donateBtn.addEventListener('click', () => showModal(donateModal));
+    closeDonateModalBtn.addEventListener('click', () => hideModal(donateModal));
+    donateModal.addEventListener('click', (e) => { if (e.target === donateModal) hideModal(donateModal); });
 
     // Rating system
     let selectedRating = 0;
@@ -1789,6 +1883,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
             
+            // Load user portfolio when logged in
+            await loadUserPortfolio();
+            
             // Show admin button if user is admin OR if running on localhost for testing
             const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
             if (user.uid === ADMIN_UID || isLocalhost) {
@@ -1806,6 +1903,7 @@ document.addEventListener('DOMContentLoaded', () => {
             addLocationBtn.disabled = false;
         } else {
             currentUser = null;
+            userPortfolio = []; // Clear portfolio when logged out
             if (adminBtn) adminBtn.style.display = 'none';
             loginBtn.classList.remove('hidden');
             userProfileDiv.classList.add('hidden');
@@ -2228,7 +2326,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function createEnhancedTooltips() {
         const tooltipElements = [
             { selector: '#search-bar-container', text: 'Tìm kiếm thửa đất (VD: Thửa 123, Tờ 45)', position: 'bottom' },
-            { selector: '#query-btn', text: 'Click để bật chế độ xem thông tin thửa đất', position: 'top' },
+            // { selector: '#query-btn', text: 'Click để bật chế độ xem thông tin thửa đất', position: 'top' }, // Đã loại bỏ theo yêu cầu
             { selector: '#add-location-btn', text: 'Thêm tin đăng bán/cho thuê (Cần đăng nhập)', position: 'top' },
             { selector: '#list-btn', text: 'Xem danh sách tất cả tin đăng', position: 'top' },
             { selector: '#login-btn', text: 'Đăng nhập bằng Google hoặc Email', position: 'left' },
@@ -2959,8 +3057,8 @@ document.addEventListener('DOMContentLoaded', () => {
             showToast('ℹ️ Đã tải thông tin cộng đồng hiện có để chỉnh sửa', 'info');
         }
 
-        // Open modal and go to step 2 directly
-        document.getElementById('contribution-modal').classList.remove('hidden');
+    // Open modal and go to step 2 directly
+    showModal(document.getElementById('contribution-modal'));
         goToStep2();
     };
 
@@ -3042,7 +3140,6 @@ const userContributionTimestamps = [];
 // Initialize contribution system
 function initializeCommunityContribution() {
     console.log('🚀 Initializing Community Contribution System...');
-    const contributeBtn = document.getElementById('contribute-btn');
     const contributionModal = document.getElementById('contribution-modal');
     const closeModalBtn = document.getElementById('close-contribution-modal');
     
@@ -3093,18 +3190,12 @@ function openContributionModal() {
     }
     
     const modal = document.getElementById('contribution-modal');
-    modal.classList.remove('hidden');
-    modal.classList.add('show');
-    
-    // Force display with high z-index
-    modal.style.display = 'flex';
-    modal.style.zIndex = '10000';
+    showModal(modal);
 }
 
 function closeContributionModal() {
     const modal = document.getElementById('contribution-modal');
-    modal.classList.add('hidden');
-    modal.classList.remove('show');
+    hideModal(modal);
     resetContributionForm();
 }
 
@@ -4408,7 +4499,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const buttons = [
             { id: 'analytics-btn', name: 'Analytics' },
             { id: 'feedback-btn', name: 'Feedback' },
-            { id: 'contribute-btn', name: 'Contribute' },
             { id: 'contact-info-btn', name: 'Contact Info' }
         ];
         
@@ -4425,6 +4515,283 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }, 3000);
 });
+
+// === PORTFOLIO MANAGEMENT FUNCTIONS ===
+
+// Function to show modal helper
+function showModal(modal) {
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.style.display = 'flex';
+        // Prevent body scroll
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function hideModal(modal) {
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+        // Restore body scroll
+        document.body.style.overflow = 'auto';
+    }
+}
+
+// Load user portfolio from Firestore
+async function loadUserPortfolio() {
+    if (!currentUser) {
+        userPortfolio = [];
+        return;
+    }
+
+    try {
+        const portfolioSnapshot = await db.collection('portfolios')
+            .where('userId', '==', currentUser.uid)
+            .orderBy('createdAt', 'desc')
+            .get();
+
+        userPortfolio = [];
+        portfolioSnapshot.forEach(doc => {
+            userPortfolio.push({ id: doc.id, ...doc.data() });
+        });
+
+        console.log(`📁 Loaded ${userPortfolio.length} items in portfolio`);
+    } catch (error) {
+        console.error('❌ Error loading portfolio:', error);
+        userPortfolio = [];
+    }
+}
+
+// Add parcel to portfolio from info panel
+window.addToPortfolioFromPanel = function(soThua, soTo, loaiDat, dienTich, lat, lng) {
+    if (!currentUser) {
+        alert('Vui lòng đăng nhập để sử dụng tính năng ví bất động sản!');
+        return;
+    }
+
+    // Store selected parcel data
+    selectedParcelData = {
+        soThua: soThua,
+        soTo: soTo,
+        loaiDat: loaiDat,
+        dienTich: dienTich,
+        lat: lat,
+        lng: lng
+    };
+
+    // Pre-fill form
+    document.getElementById('portfolio-name').value = `Thửa ${soThua}, Tờ ${soTo}`;
+    document.getElementById('portfolio-area').value = dienTich || '';
+    document.getElementById('portfolio-notes').value = `Loại đất: ${loaiDat || 'N/A'}`;
+
+    // Show add portfolio modal
+    showModal(addPortfolioModal);
+};
+
+// Show portfolio modal
+function showPortfolioModal() {
+    if (!currentUser) {
+        alert('Vui lòng đăng nhập để xem ví bất động sản!');
+        return;
+    }
+
+    loadUserPortfolio().then(() => {
+        renderPortfolioList();
+        showModal(portfolioModal);
+    });
+}
+
+// Render portfolio list
+function renderPortfolioList() {
+    const portfolioList = document.getElementById('portfolio-list');
+    const portfolioCount = document.getElementById('portfolio-count');
+    const portfolioEmpty = document.getElementById('portfolio-empty');
+    const filter = document.getElementById('portfolio-filter').value;
+
+    // Filter portfolio
+    let filteredPortfolio = userPortfolio;
+    if (filter !== 'all') {
+        filteredPortfolio = userPortfolio.filter(item => item.visibility === filter);
+    }
+
+    portfolioCount.textContent = filteredPortfolio.length;
+
+    if (filteredPortfolio.length === 0) {
+        portfolioList.classList.add('hidden');
+        portfolioEmpty.classList.remove('hidden');
+        return;
+    }
+
+    portfolioList.classList.remove('hidden');
+    portfolioEmpty.classList.add('hidden');
+
+    portfolioList.innerHTML = filteredPortfolio.map(item => `
+        <div class="portfolio-card">
+            <div class="portfolio-card-header">
+                ${item.visibility === 'private' 
+                    ? '<div class="portfolio-badge-private"><i class="fa-solid fa-lock mr-1"></i>Riêng tư</div>'
+                    : '<div class="portfolio-badge-public"><i class="fa-solid fa-globe mr-1"></i>Công khai</div>'
+                }
+            </div>
+            <div class="portfolio-card-body">
+                <div class="portfolio-price">${item.price ? item.price + ' tỷ VNĐ' : 'Chưa có giá'}</div>
+                <div class="portfolio-name">${item.name}</div>
+                <div class="portfolio-details">
+                    ${item.area ? `<div><i class="fa-solid fa-ruler-combined mr-1"></i>${item.area} m²</div>` : ''}
+                    ${item.soThua ? `<div><i class="fa-solid fa-map-marker-alt mr-1"></i>Thửa ${item.soThua}, Tờ ${item.soTo}</div>` : ''}
+                    ${item.notes ? `<div><i class="fa-solid fa-sticky-note mr-1"></i>${item.notes.substring(0, 50)}${item.notes.length > 50 ? '...' : ''}</div>` : ''}
+                    <div><i class="fa-solid fa-calendar mr-1"></i>${formatDate(item.createdAt?.toDate())}</div>
+                </div>
+                <div class="portfolio-actions">
+                    <button class="portfolio-btn portfolio-btn-primary" onclick="viewPortfolioItem('${item.id}')">
+                        <i class="fa-solid fa-eye mr-1"></i>Xem
+                    </button>
+                    <button class="portfolio-btn portfolio-btn-secondary" onclick="editPortfolioItem('${item.id}')">
+                        <i class="fa-solid fa-edit mr-1"></i>Sửa
+                    </button>
+                    <button class="portfolio-btn portfolio-btn-danger" onclick="deletePortfolioItem('${item.id}')">
+                        <i class="fa-solid fa-trash mr-1"></i>Xóa
+                    </button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+// View portfolio item on map
+window.viewPortfolioItem = function(itemId) {
+    const item = userPortfolio.find(p => p.id === itemId);
+    if (!item) return;
+
+    if (item.lat && item.lng) {
+        hideModal(portfolioModal);
+        map.setView([item.lat, item.lng], 18);
+        
+        // If it's a parcel, try to show parcel info
+        if (item.soThua && item.soTo) {
+            queryAndDisplayParcelByLatLng(item.lat, item.lng);
+        }
+    } else {
+        alert('Không có tọa độ để hiển thị trên bản đồ');
+    }
+};
+
+// Edit portfolio item
+window.editPortfolioItem = function(itemId) {
+    const item = userPortfolio.find(p => p.id === itemId);
+    if (!item) return;
+
+    selectedParcelData = item; // Store for editing
+    
+    // Pre-fill form
+    document.getElementById('portfolio-name').value = item.name || '';
+    document.getElementById('portfolio-price').value = item.price || '';
+    document.getElementById('portfolio-area').value = item.area || '';
+    document.getElementById('portfolio-notes').value = item.notes || '';
+    
+    // Set visibility
+    const visibilityRadio = document.querySelector(`input[name="portfolio-visibility"][value="${item.visibility}"]`);
+    if (visibilityRadio) visibilityRadio.checked = true;
+
+    // Change modal title
+    document.getElementById('add-portfolio-title').innerHTML = '<i class="fa-solid fa-edit mr-2 text-indigo-600"></i>Chỉnh sửa BĐS';
+    
+    // Store item ID for updating
+    portfolioForm.dataset.editingId = itemId;
+    
+    showModal(addPortfolioModal);
+};
+
+// Delete portfolio item
+window.deletePortfolioItem = async function(itemId) {
+    if (!confirm('Bạn có chắc muốn xóa bất động sản này khỏi ví?')) return;
+
+    try {
+        await db.collection('portfolios').doc(itemId).delete();
+        await loadUserPortfolio();
+        renderPortfolioList();
+        showToast('✅ Đã xóa khỏi ví bất động sản', 'success');
+    } catch (error) {
+        console.error('❌ Error deleting portfolio item:', error);
+        showToast('❌ Có lỗi khi xóa khỏi ví', 'error');
+    }
+};
+
+// Handle portfolio form submission
+async function handlePortfolioFormSubmit(e) {
+    e.preventDefault();
+    
+    if (!currentUser) {
+        alert('Vui lòng đăng nhập!');
+        return;
+    }
+
+    const formData = new FormData(e.target);
+    const portfolioData = {
+        name: formData.get('portfolio-name')?.trim(),
+        price: formData.get('portfolio-price') ? parseFloat(formData.get('portfolio-price')) : null,
+        area: formData.get('portfolio-area') ? parseFloat(formData.get('portfolio-area')) : null,
+        notes: formData.get('portfolio-notes')?.trim() || '',
+        visibility: formData.get('portfolio-visibility') || 'private',
+        userId: currentUser.uid,
+        userName: currentUser.displayName || 'User',
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    // Add parcel data if available
+    if (selectedParcelData) {
+        portfolioData.soThua = selectedParcelData.soThua;
+        portfolioData.soTo = selectedParcelData.soTo;
+        portfolioData.loaiDat = selectedParcelData.loaiDat;
+        portfolioData.lat = selectedParcelData.lat;
+        portfolioData.lng = selectedParcelData.lng;
+    }
+
+    if (!portfolioData.name) {
+        alert('Vui lòng nhập tên cho bất động sản');
+        return;
+    }
+
+    try {
+        const editingId = portfolioForm.dataset.editingId;
+        
+        if (editingId) {
+            // Update existing item
+            await db.collection('portfolios').doc(editingId).update(portfolioData);
+            showToast('✅ Đã cập nhật ví bất động sản', 'success');
+        } else {
+            // Add new item
+            portfolioData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+            await db.collection('portfolios').add(portfolioData);
+            showToast('✅ Đã thêm vào ví bất động sản', 'success');
+        }
+
+        // Reset form and close modal
+        portfolioForm.reset();
+        delete portfolioForm.dataset.editingId;
+        selectedParcelData = null;
+        hideModal(addPortfolioModal);
+        
+        // Reload portfolio
+        await loadUserPortfolio();
+        if (!portfolioModal.classList.contains('hidden')) {
+            renderPortfolioList();
+        }
+
+    } catch (error) {
+        console.error('❌ Error saving to portfolio:', error);
+        showToast('❌ Có lỗi khi lưu vào ví', 'error');
+    }
+}
+
+function formatPortfolioDate(date) {
+    if (!date) return 'Không rõ';
+    return new Intl.DateTimeFormat('vi-VN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+    }).format(date);
+}
 
 // Debug function to check button status
 function debugAnalyticsButton() {
