@@ -5414,3 +5414,228 @@ function testAnalyticsButton() {
         console.error('Button not found for test');
     }
 }
+
+// ============================================================================= 
+//  PHASE 4: IMAGE UPLOAD SYSTEM
+// ============================================================================= 
+
+// Global variables for image handling
+let selectedImages = [];
+let uploadedImageUrls = [];
+
+// Initialize image upload system
+function initializeImageUpload() {
+    console.log('🖼️ Initializing image upload system...');
+    
+    const uploadZone = document.getElementById('image-upload-zone');
+    const fileInput = document.getElementById('portfolio-images');
+    const selectBtn = document.getElementById('select-images-btn');
+    const clearBtn = document.getElementById('clear-images-btn');
+    const previewGallery = document.getElementById('image-preview-gallery');
+    const previewContainer = document.getElementById('preview-container');
+    const imageCount = document.getElementById('image-count');
+    
+    if (!uploadZone || !fileInput) {
+        console.log('⚠️ Image upload elements not found, skipping initialization');
+        return;
+    }
+    
+    // Drag and drop handlers
+    uploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadZone.classList.add('dragover');
+    });
+    
+    uploadZone.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        uploadZone.classList.remove('dragover');
+    });
+    
+    uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadZone.classList.remove('dragover');
+        const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/'));
+        handleImageFiles(files);
+    });
+    
+    // Click to select images
+    uploadZone.addEventListener('click', () => {
+        fileInput.click();
+    });
+    
+    selectBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        fileInput.click();
+    });
+    
+    // File input change
+    fileInput.addEventListener('change', (e) => {
+        const files = Array.from(e.target.files);
+        handleImageFiles(files);
+    });
+    
+    // Clear all images
+    if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+            clearAllImages();
+        });
+    }
+    
+    console.log('✅ Image upload system initialized');
+}
+
+// Handle selected image files
+function handleImageFiles(files) {
+    console.log('📷 Processing', files.length, 'image files');
+    
+    // Validate file count
+    if (selectedImages.length + files.length > 10) {
+        alert('Bạn chỉ có thể chọn tối đa 10 ảnh. Vui lòng bỏ bớt một số ảnh.');
+        return;
+    }
+    
+    // Validate file sizes and types
+    const validFiles = [];
+    for (const file of files) {
+        if (!file.type.startsWith('image/')) {
+            alert(`File "${file.name}" không phải là ảnh. Vui lòng chọn file JPG, PNG, hoặc HEIC.`);
+            continue;
+        }
+        
+        if (file.size > 10 * 1024 * 1024) { // 10MB
+            alert(`File "${file.name}" quá lớn (${(file.size / 1024 / 1024).toFixed(1)}MB). Vui lòng chọn ảnh nhỏ hơn 10MB.`);
+            continue;
+        }
+        
+        validFiles.push(file);
+    }
+    
+    // Add valid files to selection
+    validFiles.forEach(file => {
+        const imageData = {
+            file: file,
+            id: Date.now() + Math.random(), // Unique ID
+            preview: null,
+            uploaded: false,
+            url: null
+        };
+        
+        selectedImages.push(imageData);
+        createImagePreview(imageData);
+    });
+    
+    updateImageCount();
+    showPreviewGallery();
+}
+
+// Create image preview
+function createImagePreview(imageData) {
+    const previewContainer = document.getElementById('preview-container');
+    
+    // Create preview element
+    const previewDiv = document.createElement('div');
+    previewDiv.className = 'image-preview';
+    previewDiv.dataset.imageId = imageData.id;
+    
+    // Create loading state
+    previewDiv.innerHTML = `
+        <div class="image-loading">
+            <div class="loading-spinner"></div>
+        </div>
+    `;
+    
+    previewContainer.appendChild(previewDiv);
+    
+    // Load image preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        imageData.preview = e.target.result;
+        previewDiv.innerHTML = `
+            <img src="${e.target.result}" alt="Preview">
+            <div class="image-overlay">
+                <button type="button" class="remove-btn" onclick="removeImage('${imageData.id}')">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </div>
+        `;
+    };
+    
+    reader.readAsDataURL(imageData.file);
+}
+
+// Remove image from selection
+window.removeImage = function(imageId) {
+    console.log('🗑️ Removing image:', imageId);
+    
+    // Remove from array
+    selectedImages = selectedImages.filter(img => img.id != imageId);
+    
+    // Remove preview element
+    const previewElement = document.querySelector(`[data-image-id="${imageId}"]`);
+    if (previewElement) {
+        previewElement.remove();
+    }
+    
+    updateImageCount();
+    
+    // Hide gallery if no images
+    if (selectedImages.length === 0) {
+        hidePreviewGallery();
+    }
+};
+
+// Clear all images
+function clearAllImages() {
+    console.log('🧹 Clearing all images');
+    
+    selectedImages = [];
+    uploadedImageUrls = [];
+    
+    const previewContainer = document.getElementById('preview-container');
+    if (previewContainer) {
+        previewContainer.innerHTML = '';
+    }
+    
+    hidePreviewGallery();
+    updateImageCount();
+    
+    // Reset file input
+    const fileInput = document.getElementById('portfolio-images');
+    if (fileInput) {
+        fileInput.value = '';
+    }
+}
+
+// Update image count display
+function updateImageCount() {
+    const imageCount = document.getElementById('image-count');
+    const count = selectedImages.length;
+    if (imageCount) {
+        imageCount.textContent = `${count} ảnh được chọn`;
+    }
+}
+
+// Show preview gallery
+function showPreviewGallery() {
+    const previewGallery = document.getElementById('image-preview-gallery');
+    if (previewGallery) {
+        previewGallery.classList.remove('hidden');
+    }
+}
+
+// Hide preview gallery
+function hidePreviewGallery() {
+    const previewGallery = document.getElementById('image-preview-gallery');
+    if (previewGallery) {
+        previewGallery.classList.add('hidden');
+    }
+}
+
+// Initialize image upload when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(initializeImageUpload, 1000);
+    });
+} else {
+    setTimeout(initializeImageUpload, 1000);
+}
