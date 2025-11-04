@@ -474,6 +474,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // Portfolio button event listener
     if (portfolioBtn) {
         console.log('✅ Portfolio button found, adding event listener');
+        
+        // Add test function to window for debugging
+        window.testPortfolioModal = function() {
+            console.log('🧪 Testing portfolio modal manually...');
+            const modal = document.getElementById('portfolio-modal');
+            if (modal) {
+                showModal(modal);
+            } else {
+                console.error('❌ Portfolio modal not found');
+            }
+        };
+        
         portfolioBtn.addEventListener('click', (e) => {
             console.log('🎯 Portfolio button clicked!', {
                 event: e,
@@ -4597,21 +4609,46 @@ function showModal(modal) {
     
     if (modal) {
         console.log('📖 Before showing modal:', {
+            id: modal.id,
             classes: modal.className,
             display: modal.style.display,
-            hidden: modal.classList.contains('hidden')
+            hidden: modal.classList.contains('hidden'),
+            offsetParent: modal.offsetParent,
+            parentElement: modal.parentElement?.tagName
         });
         
+        // Force remove hidden class and set visibility
         modal.classList.remove('hidden');
         modal.style.display = 'flex';
         modal.style.visibility = 'visible';
         modal.style.opacity = '1';
-        modal.style.zIndex = '1003';
+        modal.style.zIndex = '9999';
+        modal.style.position = 'fixed';
+        modal.style.top = '0';
+        modal.style.left = '0';
+        modal.style.width = '100vw';
+        modal.style.height = '100vh';
+        modal.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+        
+        // Force re-render
+        modal.offsetHeight; // Trigger reflow
         
         // Prevent body scroll
         document.body.style.overflow = 'hidden';
         
+        // Check all parent elements for hidden
+        let parent = modal.parentElement;
+        while (parent && parent !== document.body) {
+            console.log(`👀 Parent ${parent.tagName}:`, {
+                classes: parent.className,
+                display: window.getComputedStyle(parent).display,
+                visibility: window.getComputedStyle(parent).visibility
+            });
+            parent = parent.parentElement;
+        }
+        
         console.log('✅ After showing modal:', {
+            id: modal.id,
             classes: modal.className,
             display: modal.style.display,
             visibility: modal.style.visibility,
@@ -4619,9 +4656,17 @@ function showModal(modal) {
             zIndex: modal.style.zIndex,
             computedDisplay: window.getComputedStyle(modal).display,
             computedVisibility: window.getComputedStyle(modal).visibility,
+            computedZIndex: window.getComputedStyle(modal).zIndex,
             visible: modal.offsetParent !== null,
             rect: modal.getBoundingClientRect()
         });
+        
+        // Test: Add click listener to modal background
+        const testClick = (e) => {
+            console.log('🔥 Modal clicked!', e.target);
+        };
+        modal.addEventListener('click', testClick, { once: true });
+        
     } else {
         console.error('❌ Modal element is null');
     }
