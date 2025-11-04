@@ -4604,14 +4604,23 @@ function showModal(modal) {
         
         modal.classList.remove('hidden');
         modal.style.display = 'flex';
+        modal.style.visibility = 'visible';
+        modal.style.opacity = '1';
+        modal.style.zIndex = '1003';
+        
         // Prevent body scroll
         document.body.style.overflow = 'hidden';
         
         console.log('✅ After showing modal:', {
             classes: modal.className,
             display: modal.style.display,
+            visibility: modal.style.visibility,
+            opacity: modal.style.opacity,
+            zIndex: modal.style.zIndex,
             computedDisplay: window.getComputedStyle(modal).display,
-            visible: modal.offsetParent !== null
+            computedVisibility: window.getComputedStyle(modal).visibility,
+            visible: modal.offsetParent !== null,
+            rect: modal.getBoundingClientRect()
         });
     } else {
         console.error('❌ Modal element is null');
@@ -4635,19 +4644,43 @@ async function loadUserPortfolio() {
     }
 
     try {
+        console.log('🔍 Loading portfolio for user:', currentUser.uid);
+        
+        // Simple query without composite index requirement
         const portfolioSnapshot = await db.collection('portfolios')
             .where('userId', '==', currentUser.uid)
-            .orderBy('createdAt', 'desc')
             .get();
 
         userPortfolio = [];
         portfolioSnapshot.forEach(doc => {
-            userPortfolio.push({ id: doc.id, ...doc.data() });
+            const data = doc.data();
+            userPortfolio.push({ 
+                id: doc.id, 
+                ...data,
+                createdAt: data.createdAt || firebase.firestore.Timestamp.now()
+            });
+        });
+
+        // Sort by createdAt on client side (avoid composite index)
+        userPortfolio.sort((a, b) => {
+            const timeA = a.createdAt?.toDate?.() || new Date(0);
+            const timeB = b.createdAt?.toDate?.() || new Date(0);
+            return timeB - timeA; // Newest first
         });
 
         console.log(`📁 Loaded ${userPortfolio.length} items in portfolio`);
     } catch (error) {
         console.error('❌ Error loading portfolio:', error);
+        
+        // Initialize empty portfolio on error
+        userPortfolio = [];
+        
+        // Show user-friendly message
+        if (error.code === 'failed-precondition' || error.message?.includes('index')) {
+            console.log('📝 Index not ready yet, showing empty portfolio');
+        } else {
+            console.error('🚨 Unexpected portfolio error:', error);
+        }
         userPortfolio = [];
     }
 }
@@ -4715,10 +4748,22 @@ function showPortfolioModal() {
 
 // Render portfolio list
 function renderPortfolioList() {
+    console.log('🎨 Rendering portfolio list...', {
+        totalItems: userPortfolio.length,
+        currentUser: currentUser ? currentUser.uid : 'null'
+    });
+    
     const portfolioList = document.getElementById('portfolio-list');
     const portfolioCount = document.getElementById('portfolio-count');
     const portfolioEmpty = document.getElementById('portfolio-empty');
-    const filter = document.getElementById('portfolio-filter').value;
+    const filter = document.getElementById('portfolio-filter')?.value || 'all';
+
+    console.log('📋 Portfolio elements:', {
+        portfolioList: !!portfolioList,
+        portfolioCount: !!portfolioCount,
+        portfolioEmpty: !!portfolioEmpty,
+        filter: filter
+    });
 
     // Filter portfolio
     let filteredPortfolio = userPortfolio;
@@ -4726,18 +4771,21 @@ function renderPortfolioList() {
         filteredPortfolio = userPortfolio.filter(item => item.visibility === filter);
     }
 
-    portfolioCount.textContent = filteredPortfolio.length;
+    if (portfolioCount) portfolioCount.textContent = filteredPortfolio.length;
 
     if (filteredPortfolio.length === 0) {
-        portfolioList.classList.add('hidden');
-        portfolioEmpty.classList.remove('hidden');
+        console.log('📭 No portfolio items to display');
+        if (portfolioList) portfolioList.classList.add('hidden');
+        if (portfolioEmpty) portfolioEmpty.classList.remove('hidden');
         return;
     }
 
-    portfolioList.classList.remove('hidden');
-    portfolioEmpty.classList.add('hidden');
+    console.log(`📊 Displaying ${filteredPortfolio.length} portfolio items`);
+    if (portfolioList) portfolioList.classList.remove('hidden');
+    if (portfolioEmpty) portfolioEmpty.classList.add('hidden');
 
-    portfolioList.innerHTML = filteredPortfolio.map(item => `
+    if (portfolioList) {
+        portfolioList.innerHTML = filteredPortfolio.map(item => `
         <div class="portfolio-card">
             <div class="portfolio-card-header">
                 ${item.visibility === 'private' 
@@ -4768,6 +4816,7 @@ function renderPortfolioList() {
             </div>
         </div>
     `).join('');
+    }
 }
 
 // View portfolio item on map
