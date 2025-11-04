@@ -383,7 +383,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const adminBtn = document.getElementById('admin-btn');
     
     // Initialize portfolio DOM elements
-    portfolioBtn = document.getElementById('portfolio-btn');
+    portfolioBtn = document.getElementById('portfolio-menu-btn'); // Changed from 'portfolio-btn' to 'portfolio-menu-btn'
     portfolioModal = document.getElementById('portfolio-modal');
     closePortfolioModal = document.getElementById('close-portfolio-modal');
     addPortfolioModal = document.getElementById('add-portfolio-modal');
@@ -472,9 +472,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Portfolio modal event listeners
-    // Portfolio button event listener
+    // Portfolio button event listener - MOVED TO PROFILE MENU
     if (portfolioBtn) {
-        console.log('✅ Portfolio button found, adding event listener');
+        console.log('✅ Portfolio button found (now in menu)');
         
         // Add test function to window for debugging
         window.testPortfolioModal = function() {
@@ -487,22 +487,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
         
-        portfolioBtn.addEventListener('click', (e) => {
-            console.log('🎯 Portfolio button clicked!', {
-                event: e,
-                target: e.target,
-                currentTarget: e.currentTarget,
-                timestamp: new Date().toISOString(),
-                user: currentUser ? 'Logged in' : 'Not logged in'
-            });
-            
-            try {
-                showPortfolioModal();
-            } catch (error) {
-                console.error('❌ Error in showPortfolioModal:', error);
-                alert('Có lỗi xảy ra khi mở ví bất động sản. Vui lòng thử lại.');
-            }
-        });
+        // NOTE: Event listener now handled in profile menu section (portfolio-menu-btn)
         
         // Test button accessibility
         console.log('🔍 Portfolio button properties:', {
@@ -515,7 +500,7 @@ document.addEventListener('DOMContentLoaded', () => {
             pointerEvents: window.getComputedStyle(portfolioBtn).pointerEvents
         });
     } else {
-        console.error('❌ Portfolio button not found!');
+        console.log('⚠️ Portfolio button not found - using menu item instead');
     }
 
     if (closePortfolioModal) {
@@ -1609,6 +1594,18 @@ document.addEventListener('DOMContentLoaded', () => {
         auth.signOut();
         profileMenu.classList.add('hidden');
     });
+
+    // Portfolio menu button handler
+    const portfolioMenuBtn = document.getElementById('portfolio-menu-btn');
+    if (portfolioMenuBtn) {
+        portfolioMenuBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            // Close the profile menu first
+            profileMenu.classList.add('hidden');
+            // Then open portfolio modal
+            showPortfolioModal();
+        });
+    }
 
     document.addEventListener('click', (event) => {
         if (!profileMenu.classList.contains('hidden') && !userProfileDiv.contains(event.target)) {
