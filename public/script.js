@@ -1577,8 +1577,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- EVENT LISTENERS ---
     userProfileDiv.addEventListener('click', (event) => {
+        console.log('👤 User profile clicked, toggling menu');
         event.stopPropagation();
         profileMenu.classList.toggle('hidden');
+        
+        // Debug menu state
+        console.log('📋 Profile menu state:', {
+            hidden: profileMenu.classList.contains('hidden'),
+            zIndex: window.getComputedStyle(profileMenu).zIndex,
+            display: window.getComputedStyle(profileMenu).display,
+            pointerEvents: window.getComputedStyle(profileMenu).pointerEvents
+        });
     });
 
     updateProfileBtn.addEventListener('click', (e) => {
@@ -1597,18 +1606,56 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Portfolio menu button handler
     const portfolioMenuBtn = document.getElementById('portfolio-menu-btn');
+    console.log('🔍 Portfolio menu button check:', {
+        element: portfolioMenuBtn,
+        exists: !!portfolioMenuBtn,
+        id: portfolioMenuBtn?.id,
+        className: portfolioMenuBtn?.className,
+        visible: portfolioMenuBtn?.offsetParent !== null,
+        zIndex: portfolioMenuBtn ? window.getComputedStyle(portfolioMenuBtn).zIndex : 'N/A',
+        pointerEvents: portfolioMenuBtn ? window.getComputedStyle(portfolioMenuBtn).pointerEvents : 'N/A'
+    });
+    
     if (portfolioMenuBtn) {
         portfolioMenuBtn.addEventListener('click', (e) => {
+            console.log('🎯 Portfolio menu item clicked!', {
+                event: e,
+                target: e.target,
+                currentTarget: e.currentTarget,
+                timestamp: new Date().toISOString()
+            });
             e.preventDefault();
+            e.stopPropagation();
+            
             // Close the profile menu first
             profileMenu.classList.add('hidden');
+            console.log('✅ Profile menu closed');
+            
             // Then open portfolio modal
-            showPortfolioModal();
+            try {
+                showPortfolioModal();
+                console.log('✅ Portfolio modal opened');
+            } catch (error) {
+                console.error('❌ Error opening portfolio modal:', error);
+                alert('Có lỗi khi mở ví bất động sản. Vui lòng thử lại.');
+            }
         });
+        
+        // Test click programmatically
+        window.testPortfolioMenuClick = function() {
+            console.log('🧪 Testing portfolio menu click programmatically...');
+            portfolioMenuBtn.click();
+        };
+        
+        console.log('✅ Portfolio menu button event listener added');
+    } else {
+        console.error('❌ Portfolio menu button not found!');
     }
 
     document.addEventListener('click', (event) => {
-        if (!profileMenu.classList.contains('hidden') && !userProfileDiv.contains(event.target)) {
+        if (!profileMenu.classList.contains('hidden') && 
+            !userProfileDiv.contains(event.target) && 
+            !profileMenu.contains(event.target)) {
             profileMenu.classList.add('hidden');
         }
     });
