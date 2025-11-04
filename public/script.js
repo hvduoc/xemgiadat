@@ -5098,8 +5098,6 @@ async function handlePortfolioFormSubmit(e) {
         nameInput?.focus();
         return;
     }
-        return;
-    }
 
     try {
         const editingId = portfolioForm.dataset.editingId;
