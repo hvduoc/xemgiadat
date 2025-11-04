@@ -2935,6 +2935,14 @@ document.addEventListener('DOMContentLoaded', () => {
             locationUrl = `${window.location.origin}${window.location.pathname}?lat=${currentLat}&lng=${currentLng}`;
         }
 
+        console.log('🔍 Debug location creation:', {
+            mapExists: !!window.map,
+            mapGetCenter: typeof window.map?.getCenter,
+            currentLat,
+            currentLng,
+            locationUrl
+        });
+
         // Store parcel data globally for form
         selectedParcelData = {
             soThua: soThua,
@@ -4952,7 +4960,8 @@ window.addToPortfolioFromPanel = function(soThua, soTo, loaiDat, dienTich, lat, 
         loaiDat: loaiDat,
         dienTich: dienTich,
         lat: lat,
-        lng: lng
+        lng: lng,
+        locationUrl: `${window.location.origin}${window.location.pathname}?lat=${lat}&lng=${lng}` // Add locationUrl
     };
 
     // Pre-fill form
@@ -5121,6 +5130,11 @@ window.editPortfolioItem = function(itemId) {
 
     selectedParcelData = item; // Store for editing
     
+    // Ensure locationUrl exists for editing
+    if (item.lat && item.lng && !item.locationUrl) {
+        selectedParcelData.locationUrl = `${window.location.origin}${window.location.pathname}?lat=${item.lat}&lng=${item.lng}`;
+    }
+    
     // Pre-fill form
     document.getElementById('portfolio-name').value = item.name || '';
     document.getElementById('portfolio-price').value = item.price || '';
@@ -5194,15 +5208,29 @@ async function handlePortfolioFormSubmit(e) {
 
     // Add parcel data if available
     if (selectedParcelData) {
+        console.log('🔍 Debug selectedParcelData:', selectedParcelData);
+        console.log('🔍 locationUrl value:', selectedParcelData.locationUrl, 'type:', typeof selectedParcelData.locationUrl);
+        
         portfolioData.soThua = selectedParcelData.soThua;
         portfolioData.soTo = selectedParcelData.soTo;
         portfolioData.loaiDat = selectedParcelData.loaiDat;
         portfolioData.lat = selectedParcelData.lat;
         portfolioData.lng = selectedParcelData.lng;
         
-        // Only add locationUrl if it's defined and not empty
-        if (selectedParcelData.locationUrl) {
+        // Create locationUrl from coordinates if not exists or invalid
+        if (!selectedParcelData.locationUrl || selectedParcelData.locationUrl === 'undefined') {
+            if (selectedParcelData.lat && selectedParcelData.lng) {
+                selectedParcelData.locationUrl = `${window.location.origin}${window.location.pathname}?lat=${selectedParcelData.lat}&lng=${selectedParcelData.lng}`;
+                console.log('🔧 Created locationUrl from coordinates:', selectedParcelData.locationUrl);
+            }
+        }
+        
+        // Only add locationUrl if it's valid
+        if (selectedParcelData.locationUrl && selectedParcelData.locationUrl !== 'undefined') {
             portfolioData.locationUrl = selectedParcelData.locationUrl;
+            console.log('✅ Added locationUrl:', selectedParcelData.locationUrl);
+        } else {
+            console.log('⚠️ No valid locationUrl, skipping');
         }
         
         console.log('📍 Added parcel data:', selectedParcelData);
