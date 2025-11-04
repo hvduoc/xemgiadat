@@ -16,6 +16,7 @@ const mapboxAccessToken = "pk.eyJ1IjoiaHZkdW9jIiwiYSI6ImNtZDFwcjVxYTAzOGUybHEzc3
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
+const storage = firebase.storage();
 const cachedGeojsonByMaXa = {};
 const frequentlyUsedXa = ["20194", "20195", "20197", "20198", "20200", "20203", "20206", "20207"]; 
 // Cập nhật danh sách các xã/phường có sẵn dữ liệu
@@ -5127,39 +5128,111 @@ function renderPortfolioList() {
     if (portfolioEmpty) portfolioEmpty.classList.add('hidden');
 
     if (portfolioList) {
-        portfolioList.innerHTML = filteredPortfolio.map(item => `
-        <div class="portfolio-card">
-            <div class="portfolio-card-header">
-                ${item.visibility === 'private' 
-                    ? '<div class="portfolio-badge-private"><i class="fa-solid fa-lock mr-1"></i>Riêng tư</div>'
-                    : '<div class="portfolio-badge-public"><i class="fa-solid fa-globe mr-1"></i>Công khai</div>'
-                }
-            </div>
-            <div class="portfolio-card-body">
-                <div class="portfolio-price">${item.price ? item.price + ' tỷ VNĐ' : 'Chưa có giá'}</div>
-                <div class="portfolio-name">${item.name}</div>
-                <div class="portfolio-details">
-                    ${item.area ? `<div><i class="fa-solid fa-ruler-combined mr-1"></i>${item.area} m²</div>` : ''}
-                    ${item.soThua ? `<div><i class="fa-solid fa-map-marker-alt mr-1"></i>Thửa ${item.soThua}, Tờ ${item.soTo}</div>` : ''}
-                    ${item.notes ? `<div><i class="fa-solid fa-sticky-note mr-1"></i>${item.notes.substring(0, 50)}${item.notes.length > 50 ? '...' : ''}</div>` : ''}
-                    <div><i class="fa-solid fa-calendar mr-1"></i>${formatPortfolioDate(item.createdAt?.toDate())}</div>
+        portfolioList.innerHTML = filteredPortfolio.map(item => {
+            // Get first image as thumbnail
+            const thumbnail = item.images && item.images.length > 0 ? item.images[0] : null;
+            
+            return `
+            <div class="portfolio-card">
+                <div class="portfolio-card-header">
+                    ${item.visibility === 'private' 
+                        ? '<div class="portfolio-badge-private"><i class="fa-solid fa-lock mr-1"></i>Riêng tư</div>'
+                        : '<div class="portfolio-badge-public"><i class="fa-solid fa-globe mr-1"></i>Công khai</div>'
+                    }
                 </div>
-                <div class="portfolio-actions">
-                    <button class="portfolio-btn portfolio-btn-primary" onclick="viewPortfolioItem('${item.id}')">
-                        <i class="fa-solid fa-eye mr-1"></i>Xem
-                    </button>
-                    <button class="portfolio-btn portfolio-btn-secondary" onclick="editPortfolioItem('${item.id}')">
-                        <i class="fa-solid fa-edit mr-1"></i>Sửa
-                    </button>
-                    <button class="portfolio-btn portfolio-btn-danger" onclick="deletePortfolioItem('${item.id}')">
-                        <i class="fa-solid fa-trash mr-1"></i>Xóa
-                    </button>
+                ${thumbnail ? `
+                <div class="portfolio-image">
+                    <img src="${thumbnail}" alt="Hình ảnh bất động sản" 
+                         onerror="this.style.display='none'"
+                         onclick="viewPortfolioImages('${item.id}')">
+                    ${item.images && item.images.length > 1 ? 
+                        `<div class="image-count-badge">
+                            <i class="fa-solid fa-images mr-1"></i>${item.images.length}
+                        </div>` : ''
+                    }
+                </div>
+                ` : ''}
+                <div class="portfolio-card-body">
+                    <div class="portfolio-price">${item.price ? item.price + ' tỷ VNĐ' : 'Chưa có giá'}</div>
+                    <div class="portfolio-name">${item.name}</div>
+                    <div class="portfolio-details">
+                        ${item.area ? `<div><i class="fa-solid fa-ruler-combined mr-1"></i>${item.area} m²</div>` : ''}
+                        ${item.soThua ? `<div><i class="fa-solid fa-map-marker-alt mr-1"></i>Thửa ${item.soThua}, Tờ ${item.soTo}</div>` : ''}
+                        ${item.notes ? `<div><i class="fa-solid fa-sticky-note mr-1"></i>${item.notes.substring(0, 50)}${item.notes.length > 50 ? '...' : ''}</div>` : ''}
+                        <div><i class="fa-solid fa-calendar mr-1"></i>${formatPortfolioDate(item.createdAt?.toDate())}</div>
+                    </div>
+                    <div class="portfolio-actions">
+                        <button class="portfolio-btn portfolio-btn-primary" onclick="viewPortfolioItem('${item.id}')">
+                            <i class="fa-solid fa-eye mr-1"></i>Xem
+                        </button>
+                        <button class="portfolio-btn portfolio-btn-secondary" onclick="editPortfolioItem('${item.id}')">
+                            <i class="fa-solid fa-edit mr-1"></i>Sửa
+                        </button>
+                        <button class="portfolio-btn portfolio-btn-danger" onclick="deletePortfolioItem('${item.id}')">
+                            <i class="fa-solid fa-trash mr-1"></i>Xóa
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        }).join('');
+    }
+}
+
+// View portfolio images gallery
+window.viewPortfolioImages = function(itemId) {
+    const item = userPortfolio.find(p => p.id === itemId);
+    if (!item || !item.images || item.images.length === 0) {
+        showToast('❌ Không có hình ảnh nào', 'error');
+        return;
+    }
+
+    // Create image gallery modal
+    const galleryModal = document.createElement('div');
+    galleryModal.className = 'modal-overlay active';
+    galleryModal.innerHTML = `
+        <div class="modal-content max-w-4xl">
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="fa-solid fa-images mr-2"></i>
+                    Hình ảnh - ${item.name}
+                </h3>
+                <button type="button" class="modal-close" onclick="this.closest('.modal-overlay').remove()">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="image-gallery">
+                    ${item.images.map((imageUrl, index) => `
+                        <div class="gallery-item">
+                            <img src="${imageUrl}" alt="Hình ảnh ${index + 1}" 
+                                 onclick="openImageFullscreen('${imageUrl}')"
+                                 onerror="this.closest('.gallery-item').style.display='none'">
+                        </div>
+                    `).join('')}
                 </div>
             </div>
         </div>
-    `).join('');
-    }
-}
+    `;
+    
+    document.body.appendChild(galleryModal);
+};
+
+// Open image in fullscreen
+window.openImageFullscreen = function(imageUrl) {
+    const fullscreenModal = document.createElement('div');
+    fullscreenModal.className = 'fullscreen-image-modal';
+    fullscreenModal.innerHTML = `
+        <div class="fullscreen-overlay" onclick="this.closest('.fullscreen-image-modal').remove()">
+            <img src="${imageUrl}" alt="Hình ảnh phóng to">
+            <button class="fullscreen-close" onclick="this.closest('.fullscreen-image-modal').remove()">
+                <i class="fa-solid fa-times"></i>
+            </button>
+        </div>
+    `;
+    
+    document.body.appendChild(fullscreenModal);
+};
 
 // View portfolio item on map
 window.viewPortfolioItem = function(itemId) {
@@ -5225,6 +5298,27 @@ window.editPortfolioItem = function(itemId) {
     const visibilityRadio = document.querySelector(`input[name="portfolio-visibility"][value="${item.visibility}"]`);
     if (visibilityRadio) visibilityRadio.checked = true;
 
+    // Display existing images if any
+    if (item.images && item.images.length > 0) {
+        const imagePreview = document.getElementById('image-preview');
+        const imageUploadText = document.querySelector('.image-upload-text');
+        
+        imagePreview.innerHTML = item.images.map((imageUrl, index) => `
+            <div class="image-preview-item" data-existing="true" data-url="${imageUrl}">
+                <img src="${imageUrl}" alt="Existing image ${index + 1}" onerror="this.closest('.image-preview-item').remove()">
+                <div class="image-preview-overlay">
+                    <button type="button" class="image-remove-btn" onclick="removeExistingImage('${imageUrl}', this)">
+                        <i class="fa-solid fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        `).join('');
+        
+        if (imageUploadText) {
+            imageUploadText.style.display = 'none';
+        }
+    }
+
     // Change modal title
     document.getElementById('add-portfolio-title').innerHTML = '<i class="fa-solid fa-edit mr-2 text-indigo-600"></i>Chỉnh sửa BĐS';
     
@@ -5232,6 +5326,22 @@ window.editPortfolioItem = function(itemId) {
     portfolioForm.dataset.editingId = itemId;
     
     showModal(addPortfolioModal);
+};
+
+// Remove existing image
+window.removeExistingImage = function(imageUrl, buttonElement) {
+    const imageItem = buttonElement.closest('.image-preview-item');
+    if (imageItem) {
+        imageItem.remove();
+        
+        // Check if preview is empty and show upload text
+        const imagePreview = document.getElementById('image-preview');
+        const imageUploadText = document.querySelector('.image-upload-text');
+        
+        if (imagePreview.children.length === 0 && imageUploadText) {
+            imageUploadText.style.display = 'block';
+        }
+    }
 };
 
 // Delete portfolio item
@@ -5330,15 +5440,48 @@ async function handlePortfolioFormSubmit(e) {
 
     try {
         const editingId = portfolioForm.dataset.editingId;
+        let portfolioId = editingId;
+        let portfolioRef;
         
         if (editingId) {
             // Update existing item
-            await db.collection('portfolios').doc(editingId).update(portfolioData);
+            portfolioRef = db.collection('portfolios').doc(editingId);
+            
+            // Get remaining existing images from the preview
+            const existingImageItems = document.querySelectorAll('.image-preview-item[data-existing="true"]');
+            const remainingExistingImages = Array.from(existingImageItems).map(item => item.dataset.url);
+            
+            // Upload new images if any selected
+            let newUploadedImages = [];
+            if (selectedImages.length > 0) {
+                console.log('📤 Uploading new images for existing portfolio...');
+                newUploadedImages = await uploadPortfolioImages(editingId, currentUser.uid);
+            }
+            
+            // Combine remaining existing images with new uploaded images
+            portfolioData.images = [...remainingExistingImages, ...newUploadedImages];
+            
+            await portfolioRef.update(portfolioData);
             showToast('✅ Đã cập nhật ví bất động sản', 'success');
         } else {
             // Add new item
             portfolioData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-            await db.collection('portfolios').add(portfolioData);
+            
+            // First create the document to get ID
+            portfolioRef = await db.collection('portfolios').add(portfolioData);
+            portfolioId = portfolioRef.id;
+            
+            // Upload images if any selected
+            if (selectedImages.length > 0) {
+                console.log('📤 Uploading images for new portfolio...');
+                const uploadedImages = await uploadPortfolioImages(portfolioId, currentUser.uid);
+                
+                // Update document with image URLs
+                await portfolioRef.update({
+                    images: uploadedImages
+                });
+            }
+            
             showToast('✅ Đã thêm vào ví bất động sản', 'success');
         }
 
@@ -5346,6 +5489,7 @@ async function handlePortfolioFormSubmit(e) {
         portfolioForm.reset();
         delete portfolioForm.dataset.editingId;
         selectedParcelData = null;
+        clearAllImages(); // Clear uploaded images
         hideModal(addPortfolioModal);
         
         // Reload portfolio
@@ -5629,6 +5773,146 @@ function hidePreviewGallery() {
     if (previewGallery) {
         previewGallery.classList.add('hidden');
     }
+}
+
+// Upload images to Firebase Storage for specific portfolio item
+async function uploadPortfolioImages(portfolioId, userId) {
+    console.log('📤 Starting image upload for portfolio:', portfolioId);
+    
+    if (selectedImages.length === 0) {
+        console.log('📷 No images to upload');
+        return [];
+    }
+    
+    const uploadedUrls = [];
+    const progressBar = document.getElementById('progress-bar');
+    const progressText = document.getElementById('progress-text');
+    const uploadProgress = document.getElementById('upload-progress');
+    
+    // Show progress
+    if (uploadProgress) {
+        uploadProgress.classList.remove('hidden');
+    }
+    
+    try {
+        for (let i = 0; i < selectedImages.length; i++) {
+            const imageData = selectedImages[i];
+            const progress = ((i + 1) / selectedImages.length) * 100;
+            
+            // Update progress
+            if (progressBar) {
+                progressBar.style.width = `${progress}%`;
+            }
+            if (progressText) {
+                progressText.textContent = `Đang tải ảnh ${i + 1}/${selectedImages.length}...`;
+            }
+            
+            // Create unique filename
+            const timestamp = Date.now();
+            const extension = imageData.file.name.split('.').pop();
+            const filename = `image_${timestamp}_${Math.random().toString(36).substr(2, 9)}.${extension}`;
+            
+            // Define storage path: /portfolio-images/{userId}/{portfolioId}/{filename}
+            const storagePath = `portfolio-images/${userId}/${portfolioId}/${filename}`;
+            const storageRef = storage.ref().child(storagePath);
+            
+            console.log(`📁 Uploading to: ${storagePath}`);
+            
+            // Upload file
+            const uploadTask = await storageRef.put(imageData.file);
+            
+            // Get download URL
+            const downloadUrl = await uploadTask.ref.getDownloadURL();
+            
+            uploadedUrls.push({
+                url: downloadUrl,
+                filename: filename,
+                originalName: imageData.file.name,
+                size: imageData.file.size,
+                storagePath: storagePath
+            });
+            
+            console.log(`✅ Uploaded: ${filename} → ${downloadUrl}`);
+        }
+        
+        // Final progress
+        if (progressBar) {
+            progressBar.style.width = '100%';
+        }
+        if (progressText) {
+            progressText.textContent = 'Hoàn thành tải ảnh!';
+        }
+        
+        console.log('🎉 All images uploaded successfully:', uploadedUrls);
+        return uploadedUrls;
+        
+    } catch (error) {
+        console.error('❌ Error uploading images:', error);
+        
+        if (progressText) {
+            progressText.textContent = 'Lỗi khi tải ảnh. Vui lòng thử lại.';
+        }
+        
+        throw error;
+    } finally {
+        // Hide progress after 2 seconds
+        setTimeout(() => {
+            if (uploadProgress) {
+                uploadProgress.classList.add('hidden');
+            }
+        }, 2000);
+    }
+    function clearAllImages() {
+        selectedImages = [];
+        imagePreview.innerHTML = '';
+        imageUploadText.style.display = 'block';
+        imageProgress.style.display = 'none';
+        
+        // Reset image count
+        updateImageCount();
+    }
+
+    function updateImageCount() {
+        const imageCountText = document.querySelector('.image-count-text');
+        if (imageCountText) {
+            if (selectedImages.length > 0) {
+                imageCountText.textContent = `${selectedImages.length} ảnh đã chọn`;
+                imageCountText.style.display = 'block';
+            } else {
+                imageCountText.style.display = 'none';
+            }
+        }
+    }
+}
+
+// Compress image before upload (simple canvas-based compression)
+function compressImage(file, maxWidth = 1200, quality = 0.8) {
+    return new Promise((resolve) => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+        
+        img.onload = () => {
+            // Calculate new dimensions
+            let { width, height } = img;
+            
+            if (width > maxWidth) {
+                height = (height * maxWidth) / width;
+                width = maxWidth;
+            }
+            
+            // Set canvas size
+            canvas.width = width;
+            canvas.height = height;
+            
+            // Draw and compress
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            canvas.toBlob(resolve, 'image/jpeg', quality);
+        };
+        
+        img.src = URL.createObjectURL(file);
+    });
 }
 
 // Initialize image upload when DOM is ready
