@@ -2921,9 +2921,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Get current coordinates and create location link
-        const currentLat = window.map.getCenter().lat;
-        const currentLng = window.map.getCenter().lng;
-        const locationUrl = `${window.location.origin}${window.location.pathname}?lat=${currentLat}&lng=${currentLng}`;
+        let currentLat, currentLng, locationUrl;
+        
+        if (window.map && typeof window.map.getCenter === 'function') {
+            const center = window.map.getCenter();
+            currentLat = center.lat;
+            currentLng = center.lng;
+            locationUrl = `${window.location.origin}${window.location.pathname}?lat=${currentLat}&lng=${currentLng}`;
+        } else {
+            console.warn('⚠️ Map not available, using default coordinates');
+            currentLat = 16.054456; // Default Da Nang coordinates
+            currentLng = 108.202167;
+            locationUrl = `${window.location.origin}${window.location.pathname}?lat=${currentLat}&lng=${currentLng}`;
+        }
 
         // Store parcel data globally for form
         selectedParcelData = {
@@ -5189,7 +5199,12 @@ async function handlePortfolioFormSubmit(e) {
         portfolioData.loaiDat = selectedParcelData.loaiDat;
         portfolioData.lat = selectedParcelData.lat;
         portfolioData.lng = selectedParcelData.lng;
-        portfolioData.locationUrl = selectedParcelData.locationUrl; // Add location URL
+        
+        // Only add locationUrl if it's defined and not empty
+        if (selectedParcelData.locationUrl) {
+            portfolioData.locationUrl = selectedParcelData.locationUrl;
+        }
+        
         console.log('📍 Added parcel data:', selectedParcelData);
     }
 
