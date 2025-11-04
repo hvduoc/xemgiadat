@@ -1938,13 +1938,23 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     loginBtn.addEventListener('click', () => {
+        // Verify Firebase Auth is initialized
+        if (!auth || !firebase.auth) {
+            console.error('❌ Firebase Auth not initialized!');
+            alert('Hệ thống đăng nhập chưa sẵn sàng. Vui lòng tải lại trang.');
+            return;
+        }
+        
         // Debug logging for production deployment differences
         console.log('🌐 Environment:', {
             hostname: window.location.hostname,
             protocol: window.location.protocol,
             userAgent: navigator.userAgent,
             viewport: `${window.innerWidth}x${window.innerHeight}`,
-            platform: navigator.platform
+            platform: navigator.platform,
+            authExists: !!auth,
+            firebaseExists: !!firebase,
+            firebaseuiExists: !!firebaseui
         });
         
         // Show the FirebaseUI container
@@ -1960,29 +1970,49 @@ document.addEventListener('DOMContentLoaded', () => {
             rect: firebaseuiContainer.getBoundingClientRect()
         });
         
-        // Detect mobile and use appropriate sign-in flow
-        const isMobile = window.innerWidth <= 640 || /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        const signInFlow = isMobile ? 'redirect' : 'popup';
+        // Force popup flow for all devices to avoid page redirect
+        const signInFlow = 'popup';
         
-        console.log('🔧 Auth config:', { isMobile, signInFlow });
+        console.log('🔧 Auth config:', { 
+            isMobile: window.innerWidth <= 640,
+            userAgent: navigator.userAgent,
+            signInFlow: signInFlow,
+            hostname: window.location.hostname
+        });
         
         try {
             ui.start('#firebaseui-widget', { 
                 signInFlow: signInFlow,
                 signInOptions: [ 
-                    firebase.auth.GoogleAuthProvider.PROVIDER_ID, 
+                    {
+                        provider: firebase.auth.GoogleAuthProvider.PROVIDER_ID,
+                        customParameters: {
+                            prompt: 'select_account'
+                        }
+                    },
                     firebase.auth.EmailAuthProvider.PROVIDER_ID 
                 ], 
                 callbacks: { 
                     signInSuccessWithAuthResult: () => { 
-                        firebaseuiContainer.classList.add('hidden'); 
-                        return false; 
-                    } 
-                } 
+                        console.log('✅ Sign in success!');
+                        firebaseuiContainer.classList.add('hidden');
+                        firebaseuiContainer.style.display = 'none';
+                        return false; // Prevent redirect
+                    },
+                    signInFailure: (error) => {
+                        console.error('❌ Sign in failed:', error);
+                        return Promise.resolve();
+                    }
+                },
+                credentialHelper: firebaseui.auth.CredentialHelper.NONE
             });
             console.log('✅ FirebaseUI started on', window.location.hostname);
         } catch (error) {
             console.error('❌ FirebaseUI error:', error);
+            
+            // Fallback: Show error message to user
+            alert('Không thể khởi tạo đăng nhập. Vui lòng thử lại hoặc liên hệ admin.');
+            firebaseuiContainer.classList.add('hidden');
         }
     });    // Debug button removed - login functionality now works properly
     firebaseuiContainer.addEventListener('click', (e) => { if (e.target === firebaseuiContainer) firebaseuiContainer.classList.add('hidden'); });
