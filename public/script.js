@@ -3135,6 +3135,115 @@ document.addEventListener('DOMContentLoaded', () => {
         panel.classList.remove('translate-y-full');
     }
 
+    // Show portfolio item info when parcel data is not available
+    function showPortfolioItemInfo(item) {
+        const panel = document.getElementById('info-panel');
+        const title = document.getElementById('panel-title');
+        const content = document.getElementById('panel-content');
+
+        title.textContent = item.name || 'Bất động sản trong ví';
+        
+        const formatDate = (timestamp) => {
+            if (!timestamp) return 'Không có thông tin';
+            const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+            return date.toLocaleDateString('vi-VN', { 
+                year: 'numeric', 
+                month: '2-digit', 
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        };
+
+        content.innerHTML = `
+            <div class="space-y-3 text-sm">
+                <div class="p-3 bg-indigo-50 border border-indigo-200 rounded-lg">
+                    <h4 class="font-bold text-indigo-800 text-sm mb-2">
+                        <i class="fa-solid fa-briefcase mr-1"></i>Thông tin Ví BĐS
+                    </h4>
+                </div>
+                
+                <div class="space-y-2">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Tên gọi:</span>
+                        <span class="font-medium">${item.name || 'Chưa đặt tên'}</span>
+                    </div>
+                    
+                    ${item.area ? `
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Diện tích:</span>
+                        <span class="font-medium">${item.area} m²</span>
+                    </div>` : ''}
+                    
+                    ${item.landUse ? `
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Mục đích sử dụng:</span>
+                        <span class="font-medium">${item.landUse}</span>
+                    </div>` : ''}
+                    
+                    ${item.price ? `
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Giá ước tính:</span>
+                        <span class="font-medium">${item.price} triệu</span>
+                    </div>` : ''}
+                    
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Vị trí:</span>
+                        <span class="font-medium">${item.lat ? `${item.lat.toFixed(6)}, ${item.lng.toFixed(6)}` : 'Chưa xác định'}</span>
+                    </div>
+                    
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Tình trạng:</span>
+                        <span class="font-medium">
+                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs ${item.isPrivate ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}">
+                                <i class="fas ${item.isPrivate ? 'fa-lock' : 'fa-globe'} mr-1"></i>
+                                ${item.isPrivate ? 'Riêng tư' : 'Công khai'}
+                            </span>
+                        </span>
+                    </div>
+                    
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Ngày lưu:</span>
+                        <span class="font-medium">${formatDate(item.createdAt)}</span>
+                    </div>
+                    
+                    ${item.notes ? `
+                    <div class="pt-2 border-t">
+                        <span class="text-gray-600 block mb-1">Ghi chú:</span>
+                        <div class="bg-gray-50 p-2 rounded text-xs">${item.notes}</div>
+                    </div>` : ''}
+                </div>
+                
+                <div class="pt-3 border-t space-y-2">
+                    <button class="w-full bg-indigo-600 text-white py-2 rounded text-sm hover:bg-indigo-700 transition font-medium" 
+                            onclick="editPortfolioItem('${item.id}')">
+                        <i class="fas fa-edit mr-2"></i>Chỉnh sửa
+                    </button>
+                    <button class="w-full bg-red-500 text-white py-2 rounded text-sm hover:bg-red-600 transition" 
+                            onclick="deletePortfolioItem('${item.id}')">
+                        <i class="fas fa-trash mr-2"></i>Xóa khỏi ví
+                    </button>
+                    <button class="w-full bg-gray-500 text-white py-2 rounded text-sm hover:bg-gray-600 transition" 
+                            onclick="closeInfoPanel()">
+                        <i class="fas fa-times mr-2"></i>Đóng
+                    </button>
+                </div>
+            </div>
+        `;
+
+        // Show panel
+        panel.classList.remove('translate-y-full');
+    }
+
+    // Close info panel function
+    function closeInfoPanel() {
+        const panel = document.getElementById('info-panel');
+        panel.classList.add('translate-y-full');
+    }
+    
+    // Make closeInfoPanel available globally
+    window.closeInfoPanel = closeInfoPanel;
+
     // Download parcel info helper
     window.downloadParcelInfo = function(parcelNumber, mapSheet) {
         const info = {
@@ -4971,20 +5080,50 @@ window.viewPortfolioItem = function(itemId) {
         // Show success message
         showToast(`📍 Đã zoom đến "${item.name}"`, 'success');
         
-        // If it's a parcel, try to show parcel info
+        // If it's a parcel, show parcel info with full details
         if (item.soThua && item.soTo) {
+            console.log('🔍 Showing parcel info for:', {
+                soThua: item.soThua,
+                soTo: item.soTo,
+                lat: item.lat,
+                lng: item.lng
+            });
+            
+            // Wait for zoom animation to complete, then show parcel info
             setTimeout(() => {
-                queryAndDisplayParcelByLatLng(item.lat, item.lng);
-            }, 1000); // Wait for zoom animation to complete
+                // Create parcel info object from portfolio data
+                const parcelInfo = {
+                    SoThuTuThua: item.soThua,
+                    SoHieuToBanDo: item.soTo,
+                    DienTich: item.area || item.dienTich || 'Không rõ',
+                    KyHieuMucDichSuDung: item.loaiDat || 'ODT',
+                    MaXa: item.maXa || item.diaChi || 'Không rõ'
+                };
+                
+                console.log('📋 Displaying parcel info:', parcelInfo);
+                
+                // Show parcel info in the info panel
+                showParcelInfo(parcelInfo);
+                
+                // Also try to query from vector tiles for complete info
+                if (typeof queryAndDisplayParcelByLatLng === 'function') {
+                    queryAndDisplayParcelByLatLng(item.lat, item.lng);
+                }
+            }, 1500); // Wait for zoom animation to complete
+        } else {
+            // Show basic portfolio info if no parcel data
+            setTimeout(() => {
+                showPortfolioItemInfo(item);
+            }, 1500);
         }
         
         // Add a temporary marker for highlight
         const highlightMarker = L.marker([item.lat, item.lng], {
             icon: L.divIcon({
                 className: 'highlight-marker',
-                html: `<div style="background: #4f46e5; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">📍 ${item.name}</div>`,
-                iconSize: [120, 30],
-                iconAnchor: [60, 30]
+                html: `<div style="background: #4f46e5; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; box-shadow: 0 2px 8px rgba(0,0,0,0.3); border-radius: 8px;">📍 ${item.name}</div>`,
+                iconSize: [200, 40],
+                iconAnchor: [100, 40]
             })
         }).addTo(map);
         
