@@ -85,6 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let parcelLayer = null;
     let highlightedFeature = null;
     let parcelLabels = L.layerGroup(); // Layer group cho số thửa
+    let isLabelsVisible = true; // Biến kiểm soát hiển thị labels
 
     // 2. URL để tải vector tiles
     const tilesetId = 'hvduoc.danang_parcels_final';
@@ -683,36 +684,52 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- BẮT ĐẦU CODE MỚI: Thêm hàm này vào file script.js ---
 
     async function queryAndDisplayParcelByLatLng(lat, lng) {
+        console.log('🔍 Starting parcel query:', { lat, lng });
+        
+        // Kiểm tra xem map đã sẵn sàng chưa
+        if (!window.map) {
+            console.error('❌ Map not available for parcel query');
+            return;
+        }
+        
         // Hiển thị một thông báo cho người dùng biết hệ thống đang xử lý
         const loadingPopup = L.popup()
             .setLatLng([lat, lng])
             .setContent('Đang tìm thông tin thửa đất tại đây...')
-            .openOn(map);
+            .openOn(window.map);
 
         const tilesetId = 'hvduoc.danang_parcels_final'; // Lấy từ code của bạn
         const queryUrl = `https://api.mapbox.com/v4/${tilesetId}/tilequery/${lng},${lat}.json?limit=1&access_token=${mapboxAccessToken}`;
+        
+        console.log('🌐 Making request to:', queryUrl);
 
         try {
             const response = await fetch(queryUrl);
             const data = await response.json();
+            
+            console.log('📡 Received response:', data);
 
             if (!data.features || data.features.length === 0) {
+                console.log('⚠️ No parcel found at coordinates');
                 loadingPopup.setContent('Không tìm thấy thửa đất nào tại vị trí này.');
-                setTimeout(() => map.closePopup(loadingPopup), 3000); // Tự đóng sau 3s
+                setTimeout(() => window.map.closePopup(loadingPopup), 3000); // Tự đóng sau 3s
                 return;
             }
 
             // Đã tìm thấy thửa đất!
-            map.closePopup(loadingPopup); // Đóng thông báo loading
+            console.log('✅ Found parcel:', data.features[0]);
+            window.map.closePopup(loadingPopup); // Đóng thông báo loading
             const feature = data.features[0];
             const props = feature.properties;
 
             // 1. Xóa các thông tin cũ và highlight thửa đất mới
             hideInfoPanel();
             highlightedFeature = props.OBJECTID;
-            parcelLayer.setFeatureStyle(highlightedFeature, {
-                color: '#EF4444', weight: 3, fillColor: '#EF4444', fill: true, fillOpacity: 0.3
-            });
+            if (parcelLayer && typeof parcelLayer.setFeatureStyle === 'function') {
+                parcelLayer.setFeatureStyle(highlightedFeature, {
+                    color: '#EF4444', weight: 3, fillColor: '#EF4444', fill: true, fillOpacity: 0.3
+                });
+            }
 
             // 2. Vẽ kích thước thửa đất
             if (props.MaXa && props.SoHieuToBanDo && props.SoThuTuThua) {
@@ -737,7 +754,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error("Lỗi khi truy vấn thửa đất từ tọa độ:", error);
             loadingPopup.setContent('Đã xảy ra lỗi. Vui lòng thử lại.');
-            setTimeout(() => map.closePopup(loadingPopup), 3000);
+            setTimeout(() => window.map.closePopup(loadingPopup), 3000);
         }
     }
     // --- KẾT THÚC CODE MỚI ---
@@ -943,13 +960,30 @@ document.addEventListener('DOMContentLoaded', () => {
         const lng = urlParams.get('lng');
         
         if (lat && lng) {
+            console.log('🔗 Processing URL parameters:', { lat, lng });
+            
+            // Đảm bảo map đã được khởi tạo
+            if (!window.map) {
+                console.error('❌ Map not initialized yet, retrying...');
+                setTimeout(() => handleUrlParameters(), 500);
+                return;
+            }
+            
             const targetLatLng = L.latLng(parseFloat(lat), parseFloat(lng));
+            console.log('📍 Setting map view to:', targetLatLng);
             
             // Phóng to bản đồ tới vị trí
-            map.setView(targetLatLng, 19);
+            window.map.setView(targetLatLng, 19);
 
-            // Gọi hàm mới để tìm và hiển thị thông tin thửa đất
-            queryAndDisplayParcelByLatLng(parseFloat(lat), parseFloat(lng));
+            // Đợi một chút để map render xong rồi mới query parcel
+            setTimeout(() => {
+                console.log('🔍 Querying parcel at coordinates...');
+                if (typeof queryAndDisplayParcelByLatLng === 'function') {
+                    queryAndDisplayParcelByLatLng(parseFloat(lat), parseFloat(lng));
+                } else {
+                    console.error('❌ queryAndDisplayParcelByLatLng function not available');
+                }
+            }, 1000);
         }
     }
     // --- KẾT THÚC THAY ĐỔI ---
@@ -2148,7 +2182,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // === KẾT THÚC: LOGIC ĐIỀU KHIỂN AKKORDEON ===
 
-    handleUrlParameters();
+    // Đợi một chút để đảm bảo tất cả component đã load xong
+    setTimeout(() => {
+        handleUrlParameters();
+    }, 1000);
 
     // === USER ONBOARDING SYSTEM ===
     function checkFirstTimeUser() {
@@ -2472,7 +2509,6 @@ document.addEventListener('DOMContentLoaded', () => {
     createEnhancedTooltips();
 
     // === PARCEL LABELS SYSTEM ===
-    let isLabelsVisible = true;
     let currentZoom = map.getZoom();
     
 
