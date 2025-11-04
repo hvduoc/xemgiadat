@@ -4929,7 +4929,7 @@ function renderPortfolioList() {
                     ${item.area ? `<div><i class="fa-solid fa-ruler-combined mr-1"></i>${item.area} m²</div>` : ''}
                     ${item.soThua ? `<div><i class="fa-solid fa-map-marker-alt mr-1"></i>Thửa ${item.soThua}, Tờ ${item.soTo}</div>` : ''}
                     ${item.notes ? `<div><i class="fa-solid fa-sticky-note mr-1"></i>${item.notes.substring(0, 50)}${item.notes.length > 50 ? '...' : ''}</div>` : ''}
-                    <div><i class="fa-solid fa-calendar mr-1"></i>${formatDate(item.createdAt?.toDate())}</div>
+                    <div><i class="fa-solid fa-calendar mr-1"></i>${formatPortfolioDate(item.createdAt?.toDate())}</div>
                 </div>
                 <div class="portfolio-actions">
                     <button class="portfolio-btn portfolio-btn-primary" onclick="viewPortfolioItem('${item.id}')">
@@ -5139,6 +5139,9 @@ function formatPortfolioDate(date) {
         day: '2-digit'
     }).format(date);
 }
+
+// Alias for compatibility
+const formatDate = formatPortfolioDate;
 
 // Debug function to check button status
 function debugAnalyticsButton() {
