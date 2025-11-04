@@ -380,12 +380,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const feedbackModal = document.getElementById('feedback-modal');
     const closeFeedbackModalBtn = document.getElementById('close-feedback-modal');
     const adminBtn = document.getElementById('admin-btn');
-    const portfolioBtn = document.getElementById('portfolio-btn');
-    const portfolioModal = document.getElementById('portfolio-modal');
-    const closePortfolioModal = document.getElementById('close-portfolio-modal');
-    const addPortfolioModal = document.getElementById('add-portfolio-modal');
-    const closeAddPortfolioModal = document.getElementById('close-add-portfolio-modal');
-    const portfolioForm = document.getElementById('portfolio-form');
+    
+    // Initialize portfolio DOM elements
+    portfolioBtn = document.getElementById('portfolio-btn');
+    portfolioModal = document.getElementById('portfolio-modal');
+    closePortfolioModal = document.getElementById('close-portfolio-modal');
+    addPortfolioModal = document.getElementById('add-portfolio-modal');
+    closeAddPortfolioModal = document.getElementById('close-add-portfolio-modal');
+    portfolioForm = document.getElementById('portfolio-form');
 
     // Debug: Check if elements exist
     console.log('🔍 Button elements check:', {
@@ -569,15 +571,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- STATE & GLOBAL VARIABLES ---
-    let currentUser = null;
-    let tempMarker = null;
-    let selectedCoords = null;
-    let isAddMode = false;
-    let isQueryMode = false; // Vẫn giữ để đổi con trỏ chuột
-    let localListings = [];
-    let userPortfolio = [];
-    let selectedParcelData = null; // Lưu dữ liệu thửa đất được chọn để thêm vào ví
+    // --- INITIALIZE LISTENERS & SETUP ---
     let debounceTimer;
     let dimensionMarkers = L.layerGroup().addTo(map); // Thêm vào map để dễ quản lý
     let userLocationMarker = null;
@@ -3170,10 +3164,13 @@ const userContributionTimestamps = [];
 // Initialize contribution system
 function initializeCommunityContribution() {
     console.log('🚀 Initializing Community Contribution System...');
+    
+    // Check if contribute button exists (it was removed from UI)
+    const contributeBtn = document.getElementById('contribute-btn');
     const contributionModal = document.getElementById('contribution-modal');
     const closeModalBtn = document.getElementById('close-contribution-modal');
     
-    console.log('Contribute button:', contributeBtn);
+    console.log('Contribute button:', contributeBtn ? 'Found' : 'Not found (removed from UI)');
     console.log('Contribution modal:', contributionModal);
     
     // Modal controls with debugging
@@ -4474,6 +4471,19 @@ function getFieldLabel(fieldName) {
 // =============================================================================
 
 // Initialize all systems after DOM is loaded
+// === GLOBAL VARIABLES ===
+let currentUser = null;
+let tempMarker = null;
+let selectedCoords = null;
+let isAddMode = false;
+let isQueryMode = false; // Vẫn giữ để đổi con trỏ chuột
+let localListings = [];
+let userPortfolio = [];
+let selectedParcelData = null; // Lưu dữ liệu thửa đất được chọn để thêm vào ví
+
+// === DOM ELEMENTS ===
+let portfolioBtn, portfolioModal, closePortfolioModal, addPortfolioModal, closeAddPortfolioModal, portfolioForm;
+
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 Initializing all systems...');
     
