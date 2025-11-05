@@ -5154,7 +5154,14 @@ function renderPortfolioList() {
                         </div>` : ''
                     }
                 </div>
-                ` : ''}
+                ` : `
+                <div class="portfolio-no-image">
+                    <div style="text-align: center;">
+                        <i class="fa-solid fa-image block mb-2"></i>
+                        <span>Chưa có hình ảnh</span>
+                    </div>
+                </div>
+                `}
                 <div class="portfolio-card-body">
                     <div class="portfolio-price">${item.price ? item.price + ' tỷ VNĐ' : 'Chưa có giá'}</div>
                     <div class="portfolio-name">${item.name}</div>
