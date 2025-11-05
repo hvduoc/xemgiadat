@@ -5897,15 +5897,15 @@ async function uploadPortfolioImages(portfolioId, userId) {
     }
 }
 
-// Compress image before upload (simple canvas-based compression)
-function compressImage(file, maxWidth = 1200, quality = 0.8) {
+// Enhanced image compression with better quality and WebP support
+function compressImage(file, maxWidth = 800, quality = 0.8) {
     return new Promise((resolve) => {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         const img = new Image();
         
         img.onload = () => {
-            // Calculate new dimensions
+            // Calculate new dimensions maintaining aspect ratio
             let { width, height } = img;
             
             if (width > maxWidth) {
@@ -5917,10 +5917,36 @@ function compressImage(file, maxWidth = 1200, quality = 0.8) {
             canvas.width = width;
             canvas.height = height;
             
+            // Enable better image smoothing
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            
             // Draw and compress
             ctx.drawImage(img, 0, 0, width, height);
             
-            canvas.toBlob(resolve, 'image/jpeg', quality);
+            // Try WebP first (better compression), fallback to JPEG
+            canvas.toBlob((webpBlob) => {
+                if (webpBlob && webpBlob.size < file.size) {
+                    console.log(`🗜️ WebP compression: ${file.size} → ${webpBlob.size} bytes (${Math.round((1 - webpBlob.size/file.size) * 100)}% reduction)`);
+                    resolve(webpBlob);
+                } else {
+                    // Fallback to JPEG
+                    canvas.toBlob((jpegBlob) => {
+                        if (jpegBlob && jpegBlob.size < file.size) {
+                            console.log(`🗜️ JPEG compression: ${file.size} → ${jpegBlob.size} bytes (${Math.round((1 - jpegBlob.size/file.size) * 100)}% reduction)`);
+                            resolve(jpegBlob);
+                        } else {
+                            console.log('⚠️ Compression not beneficial, using original');
+                            resolve(file);
+                        }
+                    }, 'image/jpeg', quality);
+                }
+            }, 'image/webp', quality);
+        };
+        
+        img.onerror = () => {
+            console.error('❌ Image compression failed, using original');
+            resolve(file);
         };
         
         img.src = URL.createObjectURL(file);
