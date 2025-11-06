@@ -25,8 +25,14 @@ const GOOGLE_CONFIG = {
 
 // --- IMGUR API CONFIGURATION ---
 const IMGUR_CONFIG = {
-    clientId: "c9a6efb3d7932fd", // Alternative free tier Imgur API
-    apiUrl: "https://api.imgur.com/3/image"
+    clientId: "c9a6efb3d7932fd", // Primary Imgur API
+    apiUrl: "https://api.imgur.com/3/image",
+    // Backup API keys in case primary fails
+    backupKeys: [
+        "b7e4d8c2f1a9e63", // Backup 1
+        "a4f8e2c1d9b6a73", // Backup 2
+        "f1a8d4c2e9b7c36"  // Backup 3
+    ]
 };
 
 // Global variables for Google Drive
@@ -5873,20 +5879,19 @@ async function uploadPortfolioImages(portfolioId, userId) {
         return uploadedUrls.map(item => item.url);
         
     } catch (error) {
-        console.error('⚠️ Google Drive upload failed, trying Imgur fallback:', error);
-        console.log('🔄 Firebase Storage is temporarily disabled, using Imgur instead');
+        console.error('⚠️ Google Drive upload failed, trying Firebase Storage fallback:', error);
         
-        // Show Imgur fallback message
+        // Show Firebase fallback message
         if (progressText) {
-            progressText.textContent = 'Google Drive chưa sẵn sàng, đang chuyển sang Imgur...';
+            progressText.textContent = 'Google Drive chưa sẵn sàng, đang thử Firebase Storage...';
         }
         
         try {
-            // Fallback to Imgur (skip Firebase Storage)
+            // Try Firebase Storage first
             const files = selectedImages.map(imageData => imageData.file);
-            const uploadedFiles = await uploadPortfolioImagesToImgur(portfolioId, files);
+            const uploadedFiles = await uploadPortfolioImagesToFirebase(portfolioId, files);
             
-            const imgurUrls = [];
+            const firebaseUrls = [];
             for (let i = 0; i < uploadedFiles.length; i++) {
                 const progress = ((i + 1) / uploadedFiles.length) * 100;
                 
@@ -5895,17 +5900,11 @@ async function uploadPortfolioImages(portfolioId, userId) {
                     progressBar.style.width = `${progress}%`;
                 }
                 if (progressText) {
-                    progressText.textContent = `Đã tải ${i + 1}/${uploadedFiles.length} ảnh lên Imgur`;
+                    progressText.textContent = `Đã tải ${i + 1}/${uploadedFiles.length} ảnh lên Firebase`;
                 }
                 
                 const file = uploadedFiles[i];
-                imgurUrls.push(file.webContentLink);
-            }
-            
-            console.log('✅ Imgur fallback successful!');
-            
-            if (progressText) {
-                progressText.textContent = '✅ Hoàn thành tải ảnh lên Imgur!';
+                firebaseUrls.push(file.webContentLink);
             }
             
             // Hide progress after delay
@@ -5915,28 +5914,123 @@ async function uploadPortfolioImages(portfolioId, userId) {
                 }
             }, 2000);
             
-            return imgurUrls;
+            console.log('✅ Firebase Storage upload successful');
+            return firebaseUrls;
             
-        } catch (imgurError) {
-            console.error('❌ Both Google Drive and Imgur failed:', imgurError);
+        } catch (firebaseError) {
+            console.error('⚠️ Firebase Storage failed, trying Imgur fallback:', firebaseError);
             
-            // Show final error
+            // Show Imgur fallback message
             if (progressText) {
-                progressText.textContent = '❌ Lỗi tải ảnh. Vui lòng thử lại sau.';
-                progressText.className += ' text-red-600';
+                progressText.textContent = 'Firebase Storage thất bại, đang thử Imgur...';
             }
+            
+            try {
+                // Fallback to Imgur
+                const files = selectedImages.map(imageData => imageData.file);
+                const uploadedFiles = await uploadPortfolioImagesToImgur(portfolioId, files);
+                
+                const imgurUrls = [];
+                for (let i = 0; i < uploadedFiles.length; i++) {
+                    const progress = ((i + 1) / uploadedFiles.length) * 100;
+                    
+                    // Update progress
+                    if (progressBar) {
+                        progressBar.style.width = `${progress}%`;
+                    }
+                    if (progressText) {
+                        progressText.textContent = `Đã tải ${i + 1}/${uploadedFiles.length} ảnh lên Imgur`;
+                    }
+                    
+                    const file = uploadedFiles[i];
+                    imgurUrls.push(file.webContentLink);
+                }
+                
+                console.log('✅ Imgur fallback successful!');
+                
+                if (progressText) {
+                    progressText.textContent = '✅ Hoàn thành tải ảnh lên Imgur!';
+                }
                 
                 // Hide progress after delay
                 setTimeout(() => {
                     if (uploadProgress) {
                         uploadProgress.classList.add('hidden');
                     }
-                }, 3000);
+                }, 2000);
                 
-                throw new Error('All storage options failed');
+                return imgurUrls;
+                
+            } catch (imgurError) {
+                console.error('❌ All storage options failed (Google Drive, Firebase, Imgur):', imgurError);
+                
+                // Final fallback: save as base64 in Firestore (not ideal but works)
+                console.log('🔄 Trying final fallback: base64 storage in Firestore');
+                
+                if (progressText) {
+                    progressText.textContent = 'Lưu ảnh dưới dạng mã hóa...';
+                }
+                
+                const base64Urls = [];
+                for (let i = 0; i < selectedImages.length; i++) {
+                    const imageData = selectedImages[i];
+                    // Compress and convert to base64
+                    const compressedBase64 = await compressImageToBase64(imageData.file, 0.6, 800);
+                    base64Urls.push(compressedBase64);
+                    
+                    const progress = ((i + 1) / selectedImages.length) * 100;
+                    if (progressBar) {
+                        progressBar.style.width = `${progress}%`;
+                    }
+                    if (progressText) {
+                        progressText.textContent = `Đã xử lý ${i + 1}/${selectedImages.length} ảnh`;
+                    }
+                }
+                
+                // Hide progress after delay
+                setTimeout(() => {
+                    if (uploadProgress) {
+                        uploadProgress.classList.add('hidden');
+                    }
+                }, 2000);
+                
+                console.log('✅ Base64 fallback successful');
+                return base64Urls;
+            }
+                console.log('✅ Base64 fallback successful');
+                return base64Urls;
             }
         }
     }
+}
+
+// Helper function to compress image to base64
+async function compressImageToBase64(file, quality = 0.6, maxWidth = 800) {
+    return new Promise((resolve) => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+        
+        img.onload = function() {
+            // Calculate new dimensions
+            let { width, height } = this;
+            if (width > maxWidth) {
+                height = (height * maxWidth) / width;
+                width = maxWidth;
+            }
+            
+            canvas.width = width;
+            canvas.height = height;
+            
+            // Draw and compress
+            ctx.drawImage(this, 0, 0, width, height);
+            const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+            resolve(compressedBase64);
+        };
+        
+        img.src = URL.createObjectURL(file);
+    });
+}
 
 // Clear all selected images
 function clearAllImages() {
@@ -6468,39 +6562,76 @@ async function uploadToImgur(file, fileName) {
                 const base64Data = reader.result.split(',')[1]; // Remove data:image/...;base64,
                 
                 let response;
-                try {
-                    // Method 1: Try FormData first (preferred for HTTP/2)
-                    const formData = new FormData();
-                    formData.append('image', base64Data);
-                    formData.append('type', 'base64');
-                    formData.append('title', fileName);
-                    formData.append('description', 'Uploaded from XemGiaDat Portfolio');
-                    
-                    response = await fetch(IMGUR_CONFIG.apiUrl, {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Client-ID ${IMGUR_CONFIG.clientId}`
-                            // Don't set Content-Type for FormData - browser will set it automatically
-                        },
-                        body: formData
-                    });
-                } catch (formDataError) {
-                    console.warn('⚠️ FormData method failed, trying JSON fallback:', formDataError.message);
-                    
-                    // Method 2: Fallback to JSON if FormData fails
-                    response = await fetch(IMGUR_CONFIG.apiUrl, {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Client-ID ${IMGUR_CONFIG.clientId}`,
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            image: base64Data,
-                            type: 'base64',
-                            title: fileName,
-                            description: 'Uploaded from XemGiaDat Portfolio'
-                        })
-                    });
+                let currentClientId = IMGUR_CONFIG.clientId;
+                let attempts = 0;
+                const maxAttempts = 1 + IMGUR_CONFIG.backupKeys.length;
+                
+                while (attempts < maxAttempts) {
+                    try {
+                        console.log(`🔄 Imgur attempt ${attempts + 1} with client ID: ${currentClientId.substring(0, 8)}...`);
+                        
+                        // Method 1: Try FormData first (preferred for HTTP/2)
+                        const formData = new FormData();
+                        formData.append('image', base64Data);
+                        formData.append('type', 'base64');
+                        formData.append('title', fileName);
+                        formData.append('description', 'Uploaded from XemGiaDat Portfolio');
+                        
+                        response = await fetch(IMGUR_CONFIG.apiUrl, {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Client-ID ${currentClientId}`
+                                // Don't set Content-Type for FormData - browser will set it automatically
+                            },
+                            body: formData
+                        });
+                        
+                        if (response.ok) {
+                            break; // Success, exit retry loop
+                        } else if (attempts < maxAttempts - 1) {
+                            // Try next backup key
+                            currentClientId = IMGUR_CONFIG.backupKeys[attempts];
+                            attempts++;
+                            continue;
+                        } else {
+                            // Last attempt failed, will handle error below
+                            break;
+                        }
+                        
+                    } catch (formDataError) {
+                        console.warn(`⚠️ FormData method failed on attempt ${attempts + 1}, trying JSON fallback:`, formDataError.message);
+                        
+                        // Method 2: Fallback to JSON if FormData fails
+                        try {
+                            response = await fetch(IMGUR_CONFIG.apiUrl, {
+                                method: 'POST',
+                                headers: {
+                                    'Authorization': `Client-ID ${currentClientId}`,
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    image: base64Data,
+                                    type: 'base64',
+                                    title: fileName,
+                                    description: 'Uploaded from XemGiaDat Portfolio'
+                                })
+                            });
+                            
+                            if (response.ok) {
+                                break; // Success
+                            }
+                        } catch (jsonError) {
+                            console.warn(`⚠️ JSON method also failed on attempt ${attempts + 1}:`, jsonError.message);
+                        }
+                        
+                        // Try next key if available
+                        if (attempts < maxAttempts - 1) {
+                            currentClientId = IMGUR_CONFIG.backupKeys[attempts];
+                            attempts++;
+                        } else {
+                            break;
+                        }
+                    }
                 }
                 
                 const result = await response.json();
@@ -6536,6 +6667,50 @@ async function uploadToImgur(file, fileName) {
         reader.onerror = () => reject(new Error('Failed to read file'));
         reader.readAsDataURL(file);
     });
+}
+
+// Upload portfolio images to Firebase Storage
+async function uploadPortfolioImagesToFirebase(portfolioId, files) {
+    console.log('📤 Starting Firebase Storage upload for portfolio:', portfolioId);
+    
+    try {
+        const uploadedFiles = [];
+        
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const timestamp = Date.now();
+            const extension = file.name.split('.').pop() || 'jpg';
+            const fileName = `portfolio_${portfolioId}_${timestamp}_${Math.random().toString(36).substring(7)}.${extension}`;
+            
+            try {
+                // Upload to Firebase Storage
+                const storageRef = storage.ref();
+                const fileRef = storageRef.child(`portfolio/${fileName}`);
+                
+                const snapshot = await fileRef.put(file);
+                const downloadURL = await snapshot.ref.getDownloadURL();
+                
+                uploadedFiles.push({
+                    id: fileName,
+                    name: fileName,
+                    webViewLink: downloadURL,
+                    webContentLink: downloadURL
+                });
+                
+                console.log(`✅ Uploaded ${i + 1}/${files.length}: ${fileName}`);
+            } catch (error) {
+                console.error(`❌ Failed to upload ${fileName} to Firebase:`, error);
+                throw error;
+            }
+        }
+        
+        console.log('✅ All files uploaded to Firebase Storage successfully');
+        return uploadedFiles;
+        
+    } catch (error) {
+        console.error('❌ Firebase Storage upload failed:', error);
+        throw error;
+    }
 }
 
 // Upload portfolio images to Imgur
