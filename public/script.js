@@ -6029,6 +6029,20 @@ async function initializeGoogleDrive() {
         const currentDomain = window.location.hostname;
         console.log('🌐 Current domain:', currentDomain);
         
+        // Use different config based on domain
+        let initConfig = { ...GOOGLE_CONFIG };
+        
+        // Remove domain restrictions for localhost or if having issues
+        if (currentDomain === 'localhost' || currentDomain === '127.0.0.1') {
+            console.log('🏠 Running on localhost, removing domain restrictions');
+            delete initConfig.hostedDomain;
+            delete initConfig.redirectUri;
+        } else if (currentDomain === 'xemgiadat.com') {
+            console.log('🌐 Running on production domain');
+            // Keep domain restrictions but add fallback
+            initConfig.cookie_policy = 'none';
+        }
+        
         // Load Google APIs with timeout
         if (typeof gapi === 'undefined') {
             console.log('📦 Loading Google API script...');
@@ -6047,15 +6061,8 @@ async function initializeGoogleDrive() {
             });
         });
         
-        console.log('🔑 Initializing Google client...');
-        await gapi.client.init({
-            apiKey: GOOGLE_CONFIG.apiKey,
-            clientId: GOOGLE_CONFIG.clientId,
-            discoveryDocs: GOOGLE_CONFIG.discoveryDocs,
-            scope: GOOGLE_CONFIG.scope,
-            // Add hosted domain if needed
-            plugin_name: "XemGiaDat"
-        });
+        console.log('🔑 Initializing Google client with config:', initConfig);
+        await gapi.client.init(initConfig);
         
         googleAuthInstance = gapi.auth2.getAuthInstance();
         
@@ -6078,6 +6085,8 @@ async function initializeGoogleDrive() {
         if (error.error === 'idpiframe_initialization_failed') {
             console.error('🚨 Domain authorization issue. Need to add domain to Google Console.');
             console.error('📋 Current domain needs to be added to authorized domains.');
+            console.error('🔗 Go to: https://console.cloud.google.com/apis/credentials');
+            console.error('🔧 Add https://xemgiadat.com to Authorized JavaScript origins');
         }
         
         return false;
@@ -6291,6 +6300,50 @@ window.testGoogleDriveConnection = async function() {
     }
 };
 
+// Test with localhost configuration
+window.testGoogleDriveWithLocalhost = async function() {
+    console.log('🧪 Testing Google Drive with localhost configuration...');
+    
+    // Temporary localhost config
+    const localhostConfig = {
+        apiKey: GOOGLE_CONFIG.apiKey,
+        clientId: "895990431722-7oeoa9vmib64n88g29omn5p6jgv7uqvn.apps.googleusercontent.com", 
+        discoveryDocs: GOOGLE_CONFIG.discoveryDocs,
+        scope: GOOGLE_CONFIG.scope
+        // Remove domain restrictions for localhost
+    };
+    
+    try {
+        console.log('🔧 Using localhost configuration...');
+        
+        // Reinitialize with localhost config
+        await gapi.client.init(localhostConfig);
+        
+        const authInstance = gapi.auth2.getAuthInstance();
+        if (!authInstance.isSignedIn.get()) {
+            console.log('🔑 Signing in...');
+            await authInstance.signIn();
+        }
+        
+        // Test API call
+        const response = await gapi.client.drive.about.get({
+            fields: 'user,storageQuota'
+        });
+        
+        console.log('✅ Localhost test successful!');
+        console.log('👤 User:', response.result.user.displayName);
+        console.log('💾 Storage:', response.result.storageQuota);
+        
+        alert('✅ Localhost test successful! Google Drive API is working.');
+        return true;
+        
+    } catch (error) {
+        console.error('❌ Localhost test failed:', error);
+        alert(`❌ Localhost test failed:\n${error.message}`);
+        return false;
+    }
+};
+
 // Test Google Drive upload with a small test file
 window.testGoogleDriveUpload = async function() {
     console.log('🧪 Testing Google Drive upload...');
@@ -6315,6 +6368,32 @@ window.testGoogleDriveUpload = async function() {
     }
 };
 
+// Create a direct OAuth test with popup
+window.testGoogleOAuthDirect = async function() {
+    console.log('🧪 Testing Google OAuth with direct popup...');
+    
+    try {
+        const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
+            `client_id=${GOOGLE_CONFIG.clientId}&` +
+            `redirect_uri=${encodeURIComponent('https://xemgiadat.com')}&` +
+            `response_type=token&` +
+            `scope=${encodeURIComponent(GOOGLE_CONFIG.scope)}&` +
+            `include_granted_scopes=true&` +
+            `state=test123`;
+            
+        console.log('🔗 Auth URL:', authUrl);
+        
+        // Open popup
+        const popup = window.open(authUrl, 'googleAuth', 'width=500,height=600');
+        
+        alert('Check the popup window for Google authentication.\nThis is a direct OAuth test.');
+        
+    } catch (error) {
+        console.error('❌ Direct OAuth test failed:', error);
+        alert(`❌ Direct OAuth test failed:\n${error.message}`);
+    }
+};
+
 // Debug Google Drive status
 window.debugGoogleDriveStatus = function() {
     console.log('🔍 Google Drive Debug Status:');
@@ -6333,6 +6412,11 @@ window.debugGoogleDriveStatus = function() {
     
     console.log('- Config:', GOOGLE_CONFIG);
     console.log('- Current Domain:', window.location.hostname);
+    
+    // Additional debug info
+    console.log('- Document referrer:', document.referrer);
+    console.log('- Window origin:', window.location.origin);
+    console.log('- Protocol:', window.location.protocol);
 };
 
 // Upload portfolio images to Google Drive
