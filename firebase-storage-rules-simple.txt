@@ -1,0 +1,49 @@
+// ===================================
+// FIREBASE STORAGE SECURITY RULES - SIMPLIFIED FOR TESTING
+// ===================================
+// Copy toàn bộ nội dung này vào Firebase Console → Storage → Rules
+// Sau đó click "Publish" để áp dụng
+
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // SIMPLE RULE FOR PORTFOLIO IMAGES - TESTING ONLY
+    match /portfolio-images/{userId}/{portfolioId}/{allPaths=**} {
+      // Cho phép đọc ảnh nếu user đã đăng nhập
+      allow read: if request.auth != null;
+      
+      // Cho phép upload nếu user đã đăng nhập và là owner
+      allow write: if request.auth != null && 
+        (request.auth.uid == userId || 
+         request.auth.uid == 'FEpPWWT1EaTWQ9FOqBxWN5FeEJk1');
+      
+      // Cho phép xóa nếu user đã đăng nhập và là owner  
+      allow delete: if request.auth != null && 
+        (request.auth.uid == userId ||
+         request.auth.uid == 'FEpPWWT1EaTWQ9FOqBxWN5FeEJk1');
+    }
+    
+    // FALLBACK RULE - DENY ALL OTHER ACCESS
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
+// ===================================
+// HƯỚNG DẪN SỬ DỤNG:
+// ===================================
+// 1. Copy toàn bộ rules trên (từ rules_version = '2'; đến hết)
+// 2. Vào Firebase Console → Storage → Rules
+// 3. XÓA HẾT rules cũ, paste rules mới
+// 4. Click "Publish"
+// 5. Đợi 1-2 phút để rules được áp dụng
+// 6. Test upload ảnh
+
+// ===================================
+// LƯU Ý:
+// ===================================
+// - Đây là rules đơn giản cho testing
+// - Sau khi test thành công, có thể thêm validation phức tạp hơn
+// - Admin UID: 'FEpPWWT1EaTWQ9FOqBxWN5FeEJk1'

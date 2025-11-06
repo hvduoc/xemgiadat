@@ -9,53 +9,22 @@ const firebaseConfig = {
     measurementId: "G-XT932D9N1N"
 };
 
-// --- GOOGLE DRIVE API CONFIGURATION ---
+// Google Drive API Configuration
 const GOOGLE_CONFIG = {
-    apiKey: 'AIzaSyClLHGUQnD062f6KW-SG1R36pNw-7rmdGI',
-    clientId: '851507224167-8l2vievk2lkr2g0d09bgtk74n427qtgv.apps.googleusercontent.com',
+    apiKey: 'AIzaSyClLHGUQnD062f6KW-SG1R36pNw-7rmdGI', // Dán API key bạn vừa tạo vào đây
+    clientId: '851507224167-8l2vievk2lkr2g0d09bgtk74n427qtgv.apps.googleusercontent.com', // Dán OAuth Client ID nếu đã tạo
     discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
     scope: 'https://www.googleapis.com/auth/drive.file'
 };
 
-// Portfolio folder ID và storage preference
+// Portfolio folder ID (sẽ được lưu trong localStorage)
 let PORTFOLIO_FOLDER_ID = localStorage.getItem('portfolioFolderId') || null;
+
+// Storage preference (false = Firebase, true = Google Drive)
 let USE_GOOGLE_DRIVE_STORAGE = localStorage.getItem('useGoogleDriveStorage') === 'true';
+
+// Google Drive API Functions
 let isGoogleDriveInitialized = false;
-
-// --- MAPBOX ACCESS TOKEN ---
-const mapboxAccessToken = "pk.eyJ1IjoiaHZkdW9jIiwiYSI6ImNtZDFwcjVxYTAzOGUybHEzc3ZrNTJmcnIifQ.D5VlPC8c_n1i3kezgqtzwg";
-
-// --- SERVICE INITIALIZATION ---
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
-const storage = firebase.storage();
-const cachedGeojsonByMaXa = {};
-const frequentlyUsedXa = ["20194", "20195", "20197", "20198", "20200", "20203", "20206", "20207"]; 
-// Cập nhật danh sách các xã/phường có sẵn dữ liệu
-// Dựa trên các file .geojson thực tế trong thư mục data/parcels/
-
-
-
-async function getCachedAddress(lat, lng) {
-  const key = `addr:${lat.toFixed(5)},${lng.toFixed(5)}`;
-  const cached = localStorage.getItem(key);
-  if (cached) return cached;
-
-  try {
-    const endpointUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxAccessToken}&language=vi&limit=1`;
-    const response = await fetch(endpointUrl);
-    const data = await response.json();
-    const result = data.features?.[0]?.place_name || 'Không xác định';
-    localStorage.setItem(key, result);
-    return result;
-  } catch (err) {
-    console.error('Lỗi khi lấy địa chỉ:', err);
-    return 'Không xác định';
-  }
-}
-
-// --- GOOGLE DRIVE API FUNCTIONS ---
 
 // Initialize Google Drive API
 async function initializeGoogleDrive() {
@@ -63,12 +32,6 @@ async function initializeGoogleDrive() {
     
     try {
         console.log('🔄 Initializing Google Drive API...');
-        
-        // Check if we're on localhost - Google Drive OAuth doesn't work on localhost
-        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-            console.warn('⚠️ Google Drive API not supported on localhost. Please deploy to a real domain.');
-            throw new Error('Google Drive API requires HTTPS and a real domain');
-        }
         
         await new Promise((resolve) => {
             gapi.load('auth2:client', resolve);
@@ -183,6 +146,39 @@ async function uploadToGoogleDrive(file, filename) {
         console.error('❌ Failed to upload to Google Drive:', error);
         throw error;
     }
+}
+
+// --- MAPBOX ACCESS TOKEN ---
+const mapboxAccessToken = "pk.eyJ1IjoiaHZkdW9jIiwiYSI6ImNtZDFwcjVxYTAzOGUybHEzc3ZrNTJmcnIifQ.D5VlPC8c_n1i3kezgqtzwg";
+
+// --- SERVICE INITIALIZATION ---
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+const storage = firebase.storage();
+const cachedGeojsonByMaXa = {};
+const frequentlyUsedXa = ["20194", "20195", "20197", "20198", "20200", "20203", "20206", "20207"]; 
+// Cập nhật danh sách các xã/phường có sẵn dữ liệu
+// Dựa trên các file .geojson thực tế trong thư mục data/parcels/
+
+
+
+async function getCachedAddress(lat, lng) {
+  const key = `addr:${lat.toFixed(5)},${lng.toFixed(5)}`;
+  const cached = localStorage.getItem(key);
+  if (cached) return cached;
+
+  try {
+    const endpointUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxAccessToken}&language=vi&limit=1`;
+    const response = await fetch(endpointUrl);
+    const data = await response.json();
+    const result = data.features?.[0]?.place_name || 'Không xác định';
+    localStorage.setItem(key, result);
+    return result;
+  } catch (err) {
+    console.error('Lỗi khi lấy địa chỉ:', err);
+    return 'Không xác định';
+  }
 }
 
     function extractLatLngsFromVectorLayer(layer, map) {
@@ -876,14 +872,6 @@ document.addEventListener('DOMContentLoaded', () => {
             showInfoPanel('Thông tin Thửa đất', formattedProps, lat, lng);
 
             // 4. Lấy địa chỉ và cập nhật lại bảng thông tin
-            const finalAddress = await getCachedAddress(lat, lng); // Dùng lại hàm getCachedAddress bạn đã có
-            formattedProps['Địa chỉ'] = finalAddress;
-            showInfoPanel('Thông tin Thửa đất', formattedProps, lat, lng);
-
-        } catch (error) {
-            console.error("Lỗi khi truy vấn thửa đất từ tọa độ:", error);
-            loadingPopup.setContent('Đã xảy ra lỗi. Vui lòng thử lại.');
-            setTimeout(() => window.map.closePopup(loadingPopup), 3000);
         }
     }
     // --- KẾT THÚC CODE MỚI ---
@@ -958,437 +946,437 @@ document.addEventListener('DOMContentLoaded', () => {
         infoPanel.classList.add('is-open');
     }
 
-    function hideInfoPanel() {
-        infoPanel.classList.remove('is-open');
-        actionToolbar.classList.remove('is-raised', 'is-partially-raised');
-        if (highlightedFeature) {
-            parcelLayer.resetFeatureStyle(highlightedFeature);
-            highlightedFeature = null;
-        }
-        dimensionMarkers.clearLayers();
-    }
-
-    function vectorTileFeatureToGeoJSON(layer) {
+    // Quick function to show parcel info from search results
+    async function showParcelFromSearchResult(soThua, soTo, maXa, lat, lng) {
+        // Highlight the parcel on map if it's a vector tile
         try {
-            const latlngs = layer.getLatLngs?.();
-            if (!latlngs || latlngs.length === 0) return null;
-
-            const coords = latlngs[0].map(p => [p.lng, p.lat]);
-            coords.push(coords[0]); // Đảm bảo khép kín vòng
-
-            return {
-                type: 'Feature',
-                geometry: {
-                    type: 'Polygon',
-                    coordinates: [coords]
-                }
-            };
-        } catch (err) {
-            console.warn("⚠ Không thể tạo GeoJSON từ layer:", err);
-            return null;
-        }
-    }
-
-    // Thay thế hàm drawDimensions cũ bằng phiên bản mới này
-    
-    function drawDimensions(feature) {
-        dimensionMarkers.clearLayers();
-
-        if (!feature?.geometry?.coordinates) {
-            console.warn("❌ Không có geometry hợp lệ để vẽ.");
-            return;
-        }
-
-        let coords = feature.geometry.type === 'Polygon'
-            ? feature.geometry.coordinates?.[0]
-            : feature.geometry.coordinates?.[0]?.[0];
-
-        if (!Array.isArray(coords) || coords.length < 2) {
-            console.warn("❌ Không đủ tọa độ để vẽ kích thước.");
-            return;
-        }
-
-        const MIN_DISPLAY_DIST = 2; // m
-
-        let shortGroup = [];
-        let totalShortDist = 0;
-
-        function drawLabel(points, dist) {
-            const flat = points.flat();
-            const midIdx = Math.floor(flat.length / 2);
-            const mid = flat.length % 2 === 0
-                ? [
-                    (flat[midIdx - 1][0] + flat[midIdx][0]) / 2,
-                    (flat[midIdx - 1][1] + flat[midIdx][1]) / 2
-                ]
-                : flat[midIdx];
-            const latlng = L.latLng(mid[1], mid[0]);
-
-            const marker = L.marker(latlng, {
-                icon: L.divIcon({
-                    className: 'dimension-label-container',
-                    html: `<div class="dimension-label">${Math.round(dist)}</div>`
-                })
-            });
-            dimensionMarkers.addLayer(marker);
-        }
-
-        for (let i = 0; i < coords.length - 1; i++) {
-            const p1 = coords[i];
-            const p2 = coords[i + 1];
-            const pt1 = L.latLng(p1[1], p1[0]);
-            const pt2 = L.latLng(p2[1], p2[0]);
-            const dist = pt1.distanceTo(pt2);
-
-            if (dist < MIN_DISPLAY_DIST) {
-                // Gom nhóm các cạnh nhỏ liên tiếp
-                shortGroup.push([p1, p2]);
-                totalShortDist += dist;
-            } else {
-                // Trước khi xử lý cạnh dài, vẽ nhóm ngắn nếu có
-                if (shortGroup.length > 0 && totalShortDist >= MIN_DISPLAY_DIST) {
-                    drawLabel(shortGroup, totalShortDist);
-                }
-                shortGroup = [];
-                totalShortDist = 0;
-
-                // Vẽ cạnh dài
-                drawLabel([[p1, p2]], dist);
-            }
-        }
-
-        // Vẽ nhóm ngắn cuối nếu còn
-        if (shortGroup.length > 0 && totalShortDist >= MIN_DISPLAY_DIST) {
-            drawLabel(shortGroup, totalShortDist);
-        }
-    }
-
-    async function loadUserProfile() {
-        try {
-            const userDoc = await db.collection("users").doc(currentUser.uid).get();
-            if (userDoc.exists) {
-                const profile = userDoc.data();
-                document.getElementById('profile-name').value = profile.displayName || '';
-                document.getElementById('profile-email').value = profile.email || '';
-                document.getElementById('profile-phone').value = profile.phone || '';
-                document.getElementById('profile-zalo').value = profile.zalo || '';
-                document.getElementById('profile-whatsapp').value = profile.whatsapp || '';
-                document.getElementById('profile-facebook').value = profile.contactFacebook || '';
-            }
+            // Try to find and highlight the parcel in vector tiles
+            await queryAndDisplayParcelByLatLng(lat, lng);
         } catch (error) {
-            console.error("Lỗi tải hồ sơ:", error);
+            // If vector tile method fails, show basic info
+            const basicProps = {
+                'Số thửa': soThua,
+                'Số hiệu tờ bản đồ': soTo,
+                'Diện tích': 'Đang tải...',
+                'Ký hiệu mục đích sử dụng': 'Đang tải...',
+                'Địa chỉ': 'Đang tìm địa chỉ...'
+            };
+            showInfoPanel('Thông tin Thửa đất', basicProps, lat, lng);
+            
+            // Load detailed info from GeoJSON
+            fetchAndDrawDimensions(maXa, soTo, soThua);
         }
     }
 
-    // KHẮC PHỤC: Xóa hàm performCadastralQuery vì không còn cần thiết.
+    // --- BẮT ĐẦU CODE MỚI: Thêm hàm này vào file script.js ---
 
-    // --- BẮT ĐẦU THAY ĐỔI: Thay thế toàn bộ hàm handleUrlParameters ---
-    function handleUrlParameters() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const lat = urlParams.get('lat');
-        const lng = urlParams.get('lng');
+    async function queryAndDisplayParcelByLatLng(lat, lng) {
+        console.log('🔍 Starting parcel query:', { lat, lng });
         
-        if (lat && lng) {
-            console.log('🔗 Processing URL parameters:', { lat, lng });
+        // Kiểm tra xem map đã sẵn sàng chưa
+        if (!window.map) {
+            console.error('❌ Map not available for parcel query');
+            return;
+        }
+        
+        // Hiển thị một thông báo cho người dùng biết hệ thống đang xử lý
+        const loadingPopup = L.popup()
+            .setLatLng([lat, lng])
+            .setContent('Đang tìm thông tin thửa đất tại đây...')
+            .openOn(window.map);
+
+        const tilesetId = 'hvduoc.danang_parcels_final'; // Lấy từ code của bạn
+        const queryUrl = `https://api.mapbox.com/v4/${tilesetId}/tilequery/${lng},${lat}.json?limit=1&access_token=${mapboxAccessToken}`;
+        
+        console.log('🌐 Making request to:', queryUrl);
+
+        try {
+            const response = await fetch(queryUrl);
+            const data = await response.json();
             
-            // Đảm bảo map đã được khởi tạo
-            if (!window.map) {
-                console.error('❌ Map not initialized yet, retrying...');
-                setTimeout(() => handleUrlParameters(), 500);
+            console.log('📡 Received response:', data);
+
+            if (!data.features || data.features.length === 0) {
+                console.log('⚠️ No parcel found at coordinates');
+                loadingPopup.setContent('Không tìm thấy thửa đất nào tại vị trí này.');
+                setTimeout(() => window.map.closePopup(loadingPopup), 3000); // Tự đóng sau 3s
                 return;
             }
-            
-            const targetLatLng = L.latLng(parseFloat(lat), parseFloat(lng));
-            console.log('📍 Setting map view to:', targetLatLng);
-            
-            // Phóng to bản đồ tới vị trí
-            window.map.setView(targetLatLng, 19);
 
-            // Đợi một chút để map render xong rồi mới query parcel
-            setTimeout(() => {
-                console.log('🔍 Querying parcel at coordinates...');
-                if (typeof queryAndDisplayParcelByLatLng === 'function') {
-                    queryAndDisplayParcelByLatLng(parseFloat(lat), parseFloat(lng));
-                } else {
-                    console.error('❌ queryAndDisplayParcelByLatLng function not available');
-                }
-            }, 1000);
+            // Đã tìm thấy thửa đất!
+            console.log('✅ Found parcel:', data.features[0]);
+            window.map.closePopup(loadingPopup); // Đóng thông báo loading
+            const feature = data.features[0];
+            const props = feature.properties;
+
+            // 1. Xóa các thông tin cũ và highlight thửa đất mới
+            hideInfoPanel();
+            highlightedFeature = props.OBJECTID;
+            if (parcelLayer && typeof parcelLayer.setFeatureStyle === 'function') {
+                parcelLayer.setFeatureStyle(highlightedFeature, {
+                    color: '#EF4444', weight: 3, fillColor: '#EF4444', fill: true, fillOpacity: 0.3
+                });
+            }
+
+            // 2. Vẽ kích thước thửa đất
+            if (props.MaXa && props.SoHieuToBanDo && props.SoThuTuThua) {
+                fetchAndDrawDimensions(props.MaXa, props.SoHieuToBanDo, props.SoThuTuThua);
+            }
+
+            // 3. Hiển thị bảng thông tin (sao chép logic từ hàm on.click)
+            const formattedProps = {
+                'Số thửa': props.SoThuTuThua,
+                'Số hiệu tờ bản đồ': props.SoHieuToBanDo,
+                'Diện tích': props.DienTich,
+                'Ký hiệu mục đích sử dụng': props.KyHieuMucDichSuDung,
+                'Địa chỉ': '<i class="text-gray-400">Đang tìm địa chỉ...</i>'
+            };
+            showInfoPanel('Thông tin Thửa đất', formattedProps, lat, lng);
+
+            // 4. Lấy địa chỉ và cập nhật lại bảng thông tin
         }
     }
-    // --- KẾT THÚC THAY ĐỔI ---
+    // --- KẾT THÚC CODE MỚI ---
+  
+    async function showListingInfoPanel(item) {
+        const ADMIN_UID = "FEpPWWT1EaTWQ9FOqBxWN5FeEJk1";
+        const currentUser = firebase.auth().currentUser;
+        const isAdmin = currentUser && currentUser.uid === ADMIN_UID;
+        const infoPanel = document.getElementById('info-panel');
+        const panelTitle = document.getElementById('panel-title');
+        const panelContent = document.getElementById('panel-content');
 
-    function enterAddMode() {
-    exitAllModes();
-    isAddMode = true;
-    map.getContainer().classList.add('map-add-mode');
-    addLocationBtn.classList.add('active-tool');
-    const instructionText = document.getElementById('instruction-text');
-    instructionText.textContent = 'Nhấp vào bản đồ để chọn vị trí cần thêm.';
-    instructionBanner.classList.remove('hidden');
-    setTimeout(() => instructionBanner.classList.add('hidden'), 3500);
-    }
-
-    function enterQueryMode() {
-    exitAllModes();
-    isQueryMode = true;
-    map.getContainer().classList.add('map-query-mode');
-    queryBtn.classList.add('active-tool');
-    const instructionText = document.getElementById('instruction-text');
-    instructionText.textContent = 'Nhấp vào một thửa đất trên bản đồ để xem thông tin.';
-    instructionBanner.classList.remove('hidden');
-    setTimeout(() => instructionBanner.classList.add('hidden'), 3500);
-    }
-
-    function exitAllModes() {
-        isAddMode = false;
-        isQueryMode = false;
-        map.getContainer().classList.remove('map-add-mode', 'map-query-mode');
-        addLocationBtn.classList.remove('active-tool');
-        queryBtn.classList.remove('active-tool');
-        instructionBanner.classList.add('hidden');
-        if (tempMarker) {
-            map.removeLayer(tempMarker);
-            tempMarker = null;
-        }
-    // Hiển thị hướng dẫn khi nhấn nút
-    const showGuideBtn = document.getElementById('show-guide-btn');
-    if (showGuideBtn) {
-        showGuideBtn.addEventListener('click', () => {
-            const instructionText = document.getElementById('instruction-text');
-            instructionText.textContent = 'Hướng dẫn: Nhấn vào bản đồ để chọn vị trí hoặc tra cứu thông tin thửa đất. Sử dụng các nút bên dưới để thao tác nhanh.';
-            instructionBanner.classList.remove('hidden');
-            setTimeout(() => instructionBanner.classList.add('hidden'), 5000);
-        });
-    }
-    }
-    
-    async function prefillUserContact() {
-        if (!currentUser) return;
+        let userProfile = {
+            name: item.userName || 'Người dùng ẩn danh',
+            avatar: item.userAvatar || 'https://placehold.co/60x60/e2e8f0/64748b?text=A',
+        };
+        
+        let fetchedAddress = 'Đang tải địa chỉ...';
         try {
-            const userDoc = await db.collection("users").doc(currentUser.uid).get();
-            if (userDoc.exists) {
-                const profile = userDoc.data();
-                document.getElementById('contact-name').value = profile.displayName || '';
-                document.getElementById('email').value = profile.email || '';
-                document.getElementById('phone').value = profile.phone || '';
-                document.getElementById('facebook').value = profile.contactFacebook || '';
-            }
+            fetchedAddress = await getCachedAddress(item.lat, item.lng);
+        } catch (error) { fetchedAddress = 'Lỗi khi tải địa chỉ.'; }
+
+        const price = `${item.priceValue} ${item.priceUnit}`;
+        const area = item.area ? `${item.area} m²` : 'N/A';
+        const notes = item.notes || 'Không có';
+        const lat = item.lat.toFixed(6);
+        const lng = item.lng.toFixed(6);
+
+        let adminDeleteButtonHtml = '';
+        if (isAdmin) {
+            adminDeleteButtonHtml = `<a class="action-button admin-delete-button" onclick="deleteListing('${item.id}')"><i class="fas fa-trash-alt"></i><span>Xóa tin</span></a>`;
+        }
+
+        let contactIconsHtml = '';
+        if (item.contactPhone) {
+            contactIconsHtml += `<a href="tel:${item.contactPhone}" class="contact-button" title="Gọi điện"><i class="fas fa-phone-alt"></i></a>`;
+            contactIconsHtml += `<a href="https://wa.me/${item.contactPhone.replace(/[^0-9]/g, '')}" target="_blank" class="contact-button" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>`;
+            contactIconsHtml += `<a href="https://zalo.me/${item.contactPhone.replace(/[^0-9]/g, '')}" target="_blank" class="contact-button" title="Zalo"><i class="fas fa-comment-dots"></i></a>`;
+        }
+        if (item.contactEmail) {
+            contactIconsHtml += `<a href="mailto:${item.contactEmail}" class="contact-button" title="Email"><i class="fas fa-envelope"></i></a>`;
+        }
+        if (item.contactFacebook) {
+            const fbLink = item.contactFacebook.startsWith('http') ? item.contactFacebook : `https://facebook.com/${item.contactFacebook}`;
+            contactIconsHtml += `<a href="${fbLink}" target="_blank" class="contact-button" title="Xem trang Facebook của người đăng"><i class="fab fa-facebook"></i></a>`;
+        }
+
+        panelTitle.textContent = item.name;
+        panelContent.innerHTML = `
+            <div class="price-highlight">${price}</div>
+            <div class="info-pills">
+                <span class="pill-item"><i class="fas fa-ruler-combined"></i> ${area}</span>
+                <span class="pill-item"><i class="fas fa-pen"></i> ${notes}</span>
+            </div>
+            <div class="address-actions-group">
+                <div class="address-text"><i class="fas fa-map-marker-alt"></i> ${fetchedAddress}</div>
+                <div class="action-buttons-group">
+                    <a class="action-button" onclick="getDirections(${lat}, ${lng})"><i class="fas fa-directions"></i><span>Chỉ đường</span></a>
+                    <a class="action-button" onclick="openStreetView(${lat}, ${lng})"><i class="fas fa-street-view"></i><span>Street View</span></a>
+                    <a class="action-button" onclick="copyLocationLink(${lat}, ${lng})"><i class="fas fa-link"></i><span>Sao chép</span></a>
+                    <a class="action-button" onclick="share('facebook', ${lat}, ${lng}, '${item.name.replace(/'/g,"\\'")}')"><i class="fab fa-facebook"></i><span>Chia sẻ</span></a>
+                    ${adminDeleteButtonHtml}
+                </div>
+            </div>
+            <div class="poster-card">
+                <img src="${userProfile.avatar}" alt="Avatar" class="poster-avatar-small">
+                <div class="poster-name">${userProfile.name}</div>
+                <div class="poster-contact-buttons">${contactIconsHtml}</div>
+            </div>`;
+
+        infoPanel.classList.remove('is-collapsed');
+        infoPanel.classList.add('is-open');
+    }
+
+    // Quick function to show parcel info from search results
+    async function showParcelFromSearchResult(soThua, soTo, maXa, lat, lng) {
+        // Highlight the parcel on map if it's a vector tile
+        try {
+            // Try to find and highlight the parcel in vector tiles
+            await queryAndDisplayParcelByLatLng(lat, lng);
         } catch (error) {
-            console.error("Lỗi khi lấy hồ sơ người dùng:", error);
+            // If vector tile method fails, show basic info
+            const basicProps = {
+                'Số thửa': soThua,
+                'Số hiệu tờ bản đồ': soTo,
+                'Diện tích': 'Đang tải...',
+                'Ký hiệu mục đích sử dụng': 'Đang tải...',
+                'Địa chỉ': 'Đang tìm địa chỉ...'
+            };
+            showInfoPanel('Thông tin Thửa đất', basicProps, lat, lng);
+            
+            // Load detailed info from GeoJSON
+            fetchAndDrawDimensions(maXa, soTo, soThua);
         }
     }
 
-    window.deleteListing = async function(listingId) {
-        if (!listingId) {
-            alert('Không tìm thấy ID của tin đăng.');
-            return;
-        }
-        if (confirm('Bạn có chắc chắn muốn xóa vĩnh viễn tin đăng này không?')) {
-            try {
-                await db.collection('listings').doc(listingId).delete();
-                alert('Đã xóa tin đăng thành công!');
-                hideInfoPanel();
-                // không cần reload, onSnapshot sẽ tự cập nhật
-            } catch (error) {
-                console.error("Lỗi khi xóa tin đăng: ", error);
-                alert('Có lỗi xảy ra khi xóa tin đăng.');
-            }
-        }
-    }
+    // --- BẮT ĐẦU CODE MỚI: Thêm hàm này vào file script.js ---
 
-    window.getDirections = function(toLat, toLng) {
-        if (!navigator.geolocation) return alert('Trình duyệt của bạn không hỗ trợ định vị.');
-        alert('Đang lấy vị trí của bạn để chỉ đường...');
-        navigator.geolocation.getCurrentPosition( (position) => {
-            const fromLat = position.coords.latitude;
-            const fromLng = position.coords.longitude;
-            window.open(`https://maps.google.com/maps?saddr=${fromLat},${fromLng}&daddr=${toLat},${toLng}`, '_blank');
-        }, () => {
-            alert('Không thể lấy được vị trí của bạn. Vui lòng kiểm tra quyền truy cập vị trí của trình duyệt.');
-        });
-    };
-
-    window.copyLocationLink = function(lat, lng) {
-        const url = `${window.location.origin}${window.location.pathname}?lat=${lat}&lng=${lng}`;
-        navigator.clipboard.writeText(url).then(() => {
-            alert('Đã sao chép liên kết vị trí!');
-        }).catch(err => console.error('Lỗi sao chép: ', err));
-    };
-
-    window.toggleShareMenu = function() {
-        document.getElementById('share-submenu').classList.toggle('is-visible');
-    };
-
-    window.share = function(platform, lat, lng, titleOrSoTo, soThua) {
-        const indexUrl = `${window.location.origin}${window.location.pathname}?lat=${lat}&lng=${lng}`;
-        // og.html is a small page that sets Open Graph meta for a specific lat/lng then redirects.
-        const ogUrl = `${window.location.origin}/og.html?lat=${encodeURIComponent(lat)}&lng=${encodeURIComponent(lng)}${titleOrSoTo ? `&soTo=${encodeURIComponent(titleOrSoTo)}` : ''}${soThua ? `&soThua=${encodeURIComponent(soThua)}` : ''}`;
-        // Support two call styles:
-        // share(platform, lat, lng, title)  OR  share(platform, lat, lng, soTo, soThua)
-        let text = 'Khám phá vị trí trên Bản đồ Giá đất Cộng đồng!';
-        if (soThua) {
-            text = `Khám phá thửa đất (Thửa: ${soThua}, Tờ: ${titleOrSoTo}) tại Đà Nẵng trên Bản đồ Giá đất Cộng đồng!`;
-        } else if (titleOrSoTo) {
-            text = `${titleOrSoTo} — Xem chi tiết tại ${window.location.hostname}`;
-        }
-
-        let shareUrl = '';
-        if (platform === 'facebook') {
-            // Use indexUrl so the shared post includes the coordinate link (index page with lat/lng)
-            shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(indexUrl)}&quote=${encodeURIComponent(text)}`;
-        } else if (platform === 'whatsapp') {
-            shareUrl = `https://wa.me/?text=${encodeURIComponent(text + ' ' + indexUrl)}`;
-        }
-        if (shareUrl) window.open(shareUrl, '_blank', 'width=600,height=400');
-        toggleShareMenu();
-    };
-
-    // === ENHANCED SEARCH SYSTEM WITH PARCEL DATA ===
-    
-    // Parse Vietnamese parcel input formats
-    function parseParcelQuery(query) {
-        const patterns = [
-            /(?:thửa|thua)\s*(\d+)[\s,]*(?:tờ|to)\s*(\d+)/i, // "Thửa 123, Tờ 45"
-            /(\d+)\/(\d+)/, // "123/45" format
-            /^(\d+)$/ // Just number - assume parcel number
-        ];
+    async function queryAndDisplayParcelByLatLng(lat, lng) {
+        console.log('🔍 Starting parcel query:', { lat, lng });
         
-        for (const pattern of patterns) {
-            const match = query.match(pattern);
-            if (match) {
-                if (pattern === patterns[2]) { // Just number
-                    return { soThua: match[1], soTo: null };
-                } else {
-                    return { soThua: match[1], soTo: match[2] };
-                }
-            }
-        }
-        return null;
-    }
-    
-    // Search parcels in loaded GeoJSON data - WITH DEBUG
-    async function searchParcelsInCache(soThua, soTo = null) {
-        console.log(`🔍 Tìm kiếm thửa ${soThua}, tờ ${soTo || 'bất kỳ'}`);
-        
-        const results = [];
-        const maxResults = 8;
-        
-        // Updated areas list to match actual available files
-        const availableAreas = ['20194', '20195', '20197', '20198', '20200']; // Start with these
-        
-        for (const maXa of availableAreas) {
-            if (results.length >= maxResults) break;
-            
-            console.log(`🗂️ Đang kiểm tra khu vực ${maXa}...`);
-            
-            if (!cachedGeojsonByMaXa[maXa]) {
-                try {
-                    console.log(`📥 Đang tải ${maXa}.geojson...`);
-                    const response = await fetch(`data/parcels/${maXa}.geojson`);
-                    
-                    if (response.ok) {
-                        const geojson = await response.json();
-                        cachedGeojsonByMaXa[maXa] = geojson;
-                        console.log(`✅ Đã tải ${maXa}.geojson - ${geojson.features?.length || 0} thửa`);
-                    } else {
-                        console.log(`❌ Lỗi tải ${maXa}.geojson: ${response.status}`);
-                        continue;
-                    }
-                } catch (error) {
-                    console.log(`❌ Không thể tải dữ liệu cho khu vực ${maXa}:`, error);
-                    continue;
-                }
-            }
-            
-            const geojson = cachedGeojsonByMaXa[maXa];
-            if (geojson && geojson.features) {
-                console.log(`🔎 Tìm kiếm trong ${geojson.features.length} thửa tại ${maXa}`);
-                
-                const matchedFeatures = geojson.features.filter(feature => {
-                    const props = feature.properties;
-                    const matchThua = props && props.SoThuTuThua == soThua;
-                    const matchTo = !soTo || props.SoHieuToBanDo == soTo;
-                    
-                    if (matchThua && matchTo) {
-                        console.log(`✨ Tìm thấy: Thửa ${props.SoThuTuThua}, Tờ ${props.SoHieuToBanDo}, Xã ${maXa}`);
-                    }
-                    
-                    return matchThua && matchTo;
-                });
-                
-                console.log(`📊 Tìm thấy ${matchedFeatures.length} kết quả tại ${maXa}`);
-                
-                matchedFeatures.slice(0, maxResults - results.length).forEach(feature => {
-                    const props = feature.properties;
-                    
-                    // Handle different coordinate structures
-                    let coords = feature.geometry.coordinates[0];
-                    
-                    // Skip if no valid coordinates
-                    if (!coords || coords.length < 3) {
-                        console.log(`⚠️ Thửa ${props.SoThuTuThua} có tọa độ không hợp lệ`);
-                        return;
-                    }
-                    
-                    // Fast centroid calculation
-                    let centerLng = 0, centerLat = 0;
-                    const validCoords = coords.filter(c => Array.isArray(c) && c.length >= 2);
-                    
-                    for (let i = 0; i < validCoords.length; i++) {
-                        centerLng += validCoords[i][0];
-                        centerLat += validCoords[i][1];
-                    }
-                    centerLng /= validCoords.length;
-                    centerLat /= validCoords.length;
-                    
-                    console.log(`📍 Centroid: ${centerLat.toFixed(6)}, ${centerLng.toFixed(6)}`);
-                    
-                    results.push({
-                        soThua: props.SoThuTuThua,
-                        soTo: props.SoHieuToBanDo,
-                        dienTich: props.DienTich ? Math.round(props.DienTich * 10) / 10 : null,
-                        loaiDat: props.KyHieuMucDichSuDung,
-                        maXa: maXa,
-                        lat: centerLat,
-                        lng: centerLng,
-                        feature: feature
-                    });
-                });
-            }
-            
-            if (results.length >= maxResults) break;
-        }
-        
-        console.log(`🎯 Tổng cộng tìm thấy ${results.length} kết quả`);
-        return results;
-    }
-
-    const performSearch = async (query) => {
-        if (!query) {
-            searchResultsContainer.innerHTML = '';
-            searchResultsContainer.classList.add('hidden');
+        // Kiểm tra xem map đã sẵn sàng chưa
+        if (!window.map) {
+            console.error('❌ Map not available for parcel query');
             return;
         }
         
-        searchResultsContainer.innerHTML = '<div class="p-4 text-center text-gray-500"><i class="fas fa-search animate-spin mr-2"></i>Đang tìm kiếm...</div>';
-        searchResultsContainer.classList.remove('hidden');
+        // Hiển thị một thông báo cho người dùng biết hệ thống đang xử lý
+        const loadingPopup = L.popup()
+            .setLatLng([lat, lng])
+            .setContent('Đang tìm thông tin thửa đất tại đây...')
+            .openOn(window.map);
+
+        const tilesetId = 'hvduoc.danang_parcels_final'; // Lấy từ code của bạn
+        const queryUrl = `https://api.mapbox.com/v4/${tilesetId}/tilequery/${lng},${lat}.json?limit=1&access_token=${mapboxAccessToken}`;
         
-        let html = '';
+        console.log('🌐 Making request to:', queryUrl);
+
+        try {
+            const response = await fetch(queryUrl);
+            const data = await response.json();
+            
+            console.log('📡 Received response:', data);
+
+            if (!data.features || data.features.length === 0) {
+                console.log('⚠️ No parcel found at coordinates');
+                loadingPopup.setContent('Không tìm thấy thửa đất nào tại vị trí này.');
+                setTimeout(() => window.map.closePopup(loadingPopup), 3000); // Tự đóng sau 3s
+                return;
+            }
+
+            // Đã tìm thấy thửa đất!
+            console.log('✅ Found parcel:', data.features[0]);
+            window.map.closePopup(loadingPopup); // Đóng thông báo loading
+            const feature = data.features[0];
+            const props = feature.properties;
+
+            // 1. Xóa các thông tin cũ và highlight thửa đất mới
+            hideInfoPanel();
+            highlightedFeature = props.OBJECTID;
+            if (parcelLayer && typeof parcelLayer.setFeatureStyle === 'function') {
+                parcelLayer.setFeatureStyle(highlightedFeature, {
+                    color: '#EF4444', weight: 3, fillColor: '#EF4444', fill: true, fillOpacity: 0.3
+                });
+            }
+
+            // 2. Vẽ kích thước thửa đất
+            if (props.MaXa && props.SoHieuToBanDo && props.SoThuTuThua) {
+                fetchAndDrawDimensions(props.MaXa, props.SoHieuToBanDo, props.SoThuTuThua);
+            }
+
+            // 3. Hiển thị bảng thông tin (sao chép logic từ hàm on.click)
+            const formattedProps = {
+                'Số thửa': props.SoThuTuThua,
+                'Số hiệu tờ bản đồ': props.SoHieuToBanDo,
+                'Diện tích': props.DienTich,
+                'Ký hiệu mục đích sử dụng': props.KyHieuMucDichSuDung,
+                'Địa chỉ': '<i class="text-gray-400">Đang tìm địa chỉ...</i>'
+            };
+            showInfoPanel('Thông tin Thửa đất', formattedProps, lat, lng);
+
+            // 4. Lấy địa chỉ và cập nhật lại bảng thông tin
+        }
+    }
+    // --- KẾT THÚC CODE MỚI ---
+  
+    async function showListingInfoPanel(item) {
+        const ADMIN_UID = "FEpPWWT1EaTWQ9FOqBxWN5FeEJk1";
+        const currentUser = firebase.auth().currentUser;
+        const isAdmin = currentUser && currentUser.uid === ADMIN_UID;
+        const infoPanel = document.getElementById('info-panel');
+        const panelTitle = document.getElementById('panel-title');
+        const panelContent = document.getElementById('panel-content');
+
+        let userProfile = {
+            name: item.userName || 'Người dùng ẩn danh',
+            avatar: item.userAvatar || 'https://placehold.co/60x60/e2e8f0/64748b?text=A',
+        };
         
-        // 1. TÌM KIẾM THỬA ĐẤT (ưu tiên cao nhất)
-        const parcelQuery = parseParcelQuery(query);
-        if (parcelQuery) {
-            const parcelResults = await searchParcelsInCache(parcelQuery.soThua, parcelQuery.soTo);
-            if (parcelResults.length > 0) {
-                html += '<div class="result-category"><i class="fas fa-map-marked-alt mr-2"></i>Thửa đất</div>';
-                parcelResults.forEach(parcel => {
-                    const displayText = `Thửa ${parcel.soThua}, Tờ ${parcel.soTo}`;
-                    const subText = `${parcel.dienTich ? parcel.dienTich + ' m²' : ''} • ${parcel.loaiDat || 'N/A'}`;
-                    html += `<div class="result-item" data-type="parcel" data-lat="${parcel.lat}" data-lng="${parcel.lng}" 
-                             data-so-thua="${parcel.soThua}" data-so-to="${parcel.soTo}" data-ma-xa="${parcel.maXa}">
-                        <i class="icon fas fa-map-marker-alt text-red-500"></i>
-                        <div>
-                            <strong>${displayText}</strong>
+        let fetchedAddress = 'Đang tải địa chỉ...';
+        try {
+            fetchedAddress = await getCachedAddress(item.lat, item.lng);
+        } catch (error) { fetchedAddress = 'Lỗi khi tải địa chỉ.'; }
+
+        const price = `${item.priceValue} ${item.priceUnit}`;
+        const area = item.area ? `${item.area} m²` : 'N/A';
+        const notes = item.notes || 'Không có';
+        const lat = item.lat.toFixed(6);
+        const lng = item.lng.toFixed(6);
+
+        let adminDeleteButtonHtml = '';
+        if (isAdmin) {
+            adminDeleteButtonHtml = `<a class="action-button admin-delete-button" onclick="deleteListing('${item.id}')"><i class="fas fa-trash-alt"></i><span>Xóa tin</span></a>`;
+        }
+
+        let contactIconsHtml = '';
+        if (item.contactPhone) {
+            contactIconsHtml += `<a href="tel:${item.contactPhone}" class="contact-button" title="Gọi điện"><i class="fas fa-phone-alt"></i></a>`;
+            contactIconsHtml += `<a href="https://wa.me/${item.contactPhone.replace(/[^0-9]/g, '')}" target="_blank" class="contact-button" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>`;
+            contactIconsHtml += `<a href="https://zalo.me/${item.contactPhone.replace(/[^0-9]/g, '')}" target="_blank" class="contact-button" title="Zalo"><i class="fas fa-comment-dots"></i></a>`;
+        }
+        if (item.contactEmail) {
+            contactIconsHtml += `<a href="mailto:${item.contactEmail}" class="contact-button" title="Email"><i class="fas fa-envelope"></i></a>`;
+        }
+        if (item.contactFacebook) {
+            const fbLink = item.contactFacebook.startsWith('http') ? item.contactFacebook : `https://facebook.com/${item.contactFacebook}`;
+            contactIconsHtml += `<a href="${fbLink}" target="_blank" class="contact-button" title="Xem trang Facebook của người đăng"><i class="fab fa-facebook"></i></a>`;
+        }
+
+        panelTitle.textContent = item.name;
+        panelContent.innerHTML = `
+            <div class="price-highlight">${price}</div>
+            <div class="info-pills">
+                <span class="pill-item"><i class="fas fa-ruler-combined"></i> ${area}</span>
+                <span class="pill-item"><i class="fas fa-pen"></i> ${notes}</span>
+            </div>
+            <div class="address-actions-group">
+                <div class="address-text"><i class="fas fa-map-marker-alt"></i> ${fetchedAddress}</div>
+                <div class="action-buttons-group">
+                    <a class="action-button" onclick="getDirections(${lat}, ${lng})"><i class="fas fa-directions"></i><span>Chỉ đường</span></a>
+                    <a class="action-button" onclick="openStreetView(${lat}, ${lng})"><i class="fas fa-street-view"></i><span>Street View</span></a>
+                    <a class="action-button" onclick="copyLocationLink(${lat}, ${lng})"><i class="fas fa-link"></i><span>Sao chép</span></a>
+                    <a class="action-button" onclick="share('facebook', ${lat}, ${lng}, '${item.name.replace(/'/g,"\\'")}')"><i class="fab fa-facebook"></i><span>Chia sẻ</span></a>
+                    ${adminDeleteButtonHtml}
+                </div>
+            </div>
+            <div class="poster-card">
+                <img src="${userProfile.avatar}" alt="Avatar" class="poster-avatar-small">
+                <div class="poster-name">${userProfile.name}</div>
+                <div class="poster-contact-buttons">${contactIconsHtml}</div>
+            </div>`;
+
+        infoPanel.classList.remove('is-collapsed');
+        infoPanel.classList.add('is-open');
+    }
+
+    // Quick function to show parcel info from search results
+    async function showParcelFromSearchResult(soThua, soTo, maXa, lat, lng) {
+        // Highlight the parcel on map if it's a vector tile
+        try {
+            // Try to find and highlight the parcel in vector tiles
+            await queryAndDisplayParcelByLatLng(lat, lng);
+        } catch (error) {
+            // If vector tile method fails, show basic info
+            const basicProps = {
+                'Số thửa': soThua,
+                'Số hiệu tờ bản đồ': soTo,
+                'Diện tích': 'Đang tải...',
+                'Ký hiệu mục đích sử dụng': 'Đang tải...',
+                'Địa chỉ': 'Đang tìm địa chỉ...'
+            };
+            showInfoPanel('Thông tin Thửa đất', basicProps, lat, lng);
+            
+            // Load detailed info from GeoJSON
+            fetchAndDrawDimensions(maXa, soTo, soThua);
+        }
+    }
+
+    // --- BẮT ĐẦU CODE MỚI: Thêm hàm này vào file script.js ---
+
+    async function queryAndDisplayParcelByLatLng(lat, lng) {
+        console.log('🔍 Starting parcel query:', { lat, lng });
+        
+        // Kiểm tra xem map đã sẵn sàng chưa
+        if (!window.map) {
+            console.error('❌ Map not available for parcel query');
+            return;
+        }
+        
+        // Hiển thị một thông báo cho người dùng biết hệ thống đang xử lý
+        const loadingPopup = L.popup()
+            .setLatLng([lat, lng])
+            .setContent('Đang tìm thông tin thửa đất tại đây...')
+            .openOn(window.map);
+
+        const tilesetId = 'hvduoc.danang_parcels_final'; // Lấy từ code của bạn
+        const queryUrl = `https://api.mapbox.com/v4/${tilesetId}/tilequery/${lng},${lat}.json?limit=1&access_token=${mapboxAccessToken}`;
+        
+        console.log('🌐 Making request to:', queryUrl);
+
+        try {
+            const response = await fetch(queryUrl);
+            const data = await response.json();
+            
+            console.log('📡 Received response:', data);
+
+            if (!data.features || data.features.length === 0) {
+                console.log('⚠️ No parcel found at coordinates');
+                loadingPopup.setContent('Không tìm thấy thửa đất nào tại vị trí này.');
+                setTimeout(() => window.map.closePopup(loadingPopup), 3000); // Tự đóng sau 3s
+                return;
+            }
+
+            // Đã tìm thấy thửa đất!
+            console.log('✅ Found parcel:', data.features[0]);
+            window.map.closePopup(loadingPopup); // Đóng thông báo loading
+            const feature = data.features[0];
+            const props = feature.properties;
+
+            // 1. Xóa các thông tin cũ và highlight thửa đất mới
+            hideInfoPanel();
+            highlightedFeature = props.OBJECTID;
+            if (parcelLayer && typeof parcelLayer.setFeatureStyle === 'function') {
+                parcelLayer.setFeatureStyle(highlightedFeature, {
+                    color: '#EF4444', weight: 3, fillColor: '#EF4444', fill: true, fillOpacity: 0.3
+                });
+            }
+
+            // 2. Vẽ kích thước thửa đất
+            if (props.MaXa && props.SoHieuToBanDo && props.SoThuTuThua) {
+                fetchAndDrawDimensions(props.MaXa, props.SoHieuToBanDo, props.SoThuTuThua);
+            }
+
+            // 3. Hiển thị bảng thông tin (sao chép logic từ hàm on.click)
+            const formattedProps = {
+                'Số thửa': props.SoThuTuThua,
+                'Số hiệu tờ bản đồ': props.SoHieuToBanDo,
+                'Diện tích': props.DienTich,
+                'Ký hiệu mục đích sử dụng': props.KyHieuMucDichSuDung,
+                'Địa chỉ': '<i class="text-gray-400">Đang tìm địa chỉ...</i>'
+            };
+            showInfoPanel('Thông tin Thửa đất', formattedProps, lat, lng);
+
+            // 4. Lấy địa chỉ và cập nhật lại bảng thông tin
+        }
+    }
+    // --- KẾT THÚC CODE MỚI ---
+  
+    async function showListingInfoPanel(item) {
+        const ADMIN_UID = "FEpPWWT1EaTWQ9FOqBxWN5FeEJk1";
+        const currentUser = firebase.auth().currentUser;
+        const isAdmin = currentUser && currentUser.uid === ADMIN_UID;
+        const infoPanel = document.getElementById('info-panel');
+        const panelTitle = document.getElementById('panel-title');
+        const panelContent = document.getElementById('panel-content');
+
+        let userProfile = {
+            name: item.userName || 'Người dùng ẩn danh',
+            avatar: item.userAvatar || 'https://placehold.co/60x60/e2e8f0/64748b?text=A',
+        };
+        
+        let fetchedAddress = 'Đang tải địa chỉ...';
+        try {
                             <div class="text-sm text-gray-600">${subText}</div>
                         </div>
                     </div>`;
@@ -4968,54 +4956,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const storageGoogleDrive = document.getElementById('storage-googledrive');
     
     if (storageFirebase && storageGoogleDrive) {
-        // Auto-disable Google Drive on localhost
-        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        
-        if (isLocalhost) {
-            USE_GOOGLE_DRIVE_STORAGE = false;
-            localStorage.setItem('useGoogleDriveStorage', 'false');
-            storageFirebase.checked = true;
-            storageGoogleDrive.disabled = true;
-            
-            // Add disabled note
-            const note = storageGoogleDrive.closest('label').querySelector('span');
-            if (note) {
-                note.innerHTML = '<i class="fa-brands fa-google-drive text-gray-400 mr-1"></i>Google Drive (Chỉ hỗ trợ HTTPS)';
-            }
-            
-            console.log('⚠️ Google Drive disabled on localhost');
+        // Set initial state from localStorage
+        if (USE_GOOGLE_DRIVE_STORAGE) {
+            storageGoogleDrive.checked = true;
         } else {
-            // Set initial state from localStorage for production
-            if (USE_GOOGLE_DRIVE_STORAGE) {
-                storageGoogleDrive.checked = true;
-            } else {
-                storageFirebase.checked = true;
-            }
+            storageFirebase.checked = true;
         }
         
         // Handle storage option change
         function handleStorageChange() {
-            if (isLocalhost && storageGoogleDrive.checked) {
-                // Force back to Firebase on localhost
-                storageFirebase.checked = true;
-                storageGoogleDrive.checked = false;
-                
-                // Show warning
-                const warning = document.createElement('div');
-                warning.className = 'fixed top-4 right-4 bg-orange-500 text-white px-4 py-2 rounded-lg shadow-lg z-[2000]';
-                warning.innerHTML = `
-                    <i class="fa-solid fa-exclamation-triangle mr-2"></i>
-                    Google Drive cần HTTPS domain. Dùng Firebase cho localhost.
-                `;
-                document.body.appendChild(warning);
-                
-                setTimeout(() => {
-                    warning.remove();
-                }, 5000);
-                
-                return;
-            }
-            
             USE_GOOGLE_DRIVE_STORAGE = storageGoogleDrive.checked;
             localStorage.setItem('useGoogleDriveStorage', USE_GOOGLE_DRIVE_STORAGE.toString());
             console.log('🏪 Storage option changed to:', USE_GOOGLE_DRIVE_STORAGE ? 'Google Drive' : 'Firebase');
@@ -5024,7 +4973,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const notification = document.createElement('div');
             notification.className = 'fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg z-[2000]';
             notification.innerHTML = `
-                <i class="fa-solid fa-${USE_GOOGLE_DRIVE_STORAGE ? 'cloud' : 'fire'} mr-2"></i>
+                <i class="fa-solid fa-${USE_GOOGLE_DRIVE_STORAGE ? 'google-drive' : 'fire'} mr-2"></i>
                 Đã chọn: ${USE_GOOGLE_DRIVE_STORAGE ? 'Google Drive' : 'Firebase Storage'}
             `;
             document.body.appendChild(notification);
@@ -6006,10 +5955,10 @@ function hidePreviewGallery() {
     }
 }
 
-// Upload images to Firebase Storage or Google Drive for specific portfolio item
+// Upload images to Firebase Storage for specific portfolio item
 async function uploadPortfolioImages(portfolioId, userId) {
     console.log('📤 Starting image upload for portfolio:', portfolioId);
-    console.log('🏪 Storage option:', USE_GOOGLE_DRIVE_STORAGE ? 'Google Drive' : 'Firebase Storage');
+    console.log('🏪 Storage method:', USE_GOOGLE_DRIVE_STORAGE ? 'Google Drive' : 'Firebase Storage');
     
     if (selectedImages.length === 0) {
         console.log('📷 No images to upload');
@@ -6036,8 +5985,7 @@ async function uploadPortfolioImages(portfolioId, userId) {
                 progressBar.style.width = `${progress}%`;
             }
             if (progressText) {
-                const storageText = USE_GOOGLE_DRIVE_STORAGE ? 'Google Drive' : 'Firebase';
-                progressText.textContent = `Đang tải ảnh ${i + 1}/${selectedImages.length} lên ${storageText}...`;
+                progressText.textContent = `Đang tải ảnh ${i + 1}/${selectedImages.length}...`;
             }
             
             // Create unique filename
@@ -6047,51 +5995,42 @@ async function uploadPortfolioImages(portfolioId, userId) {
             
             let downloadUrl;
             
-            try {
-                if (USE_GOOGLE_DRIVE_STORAGE) {
-                    // Upload to Google Drive
+            if (USE_GOOGLE_DRIVE_STORAGE) {
+                // Use Google Drive
+                try {
                     console.log(`☁️ Uploading to Google Drive: ${filename}`);
                     downloadUrl = await uploadToGoogleDrive(imageData.file, filename);
-                } else {
-                    // Upload to Firebase Storage (default)
+                } catch (driveError) {
+                    console.warn('⚠️ Google Drive upload failed, falling back to Firebase:', driveError);
+                    // Fallback to Firebase Storage
                     const storagePath = `portfolio-images/${userId}/${portfolioId}/${filename}`;
                     const storageRef = storage.ref().child(storagePath);
-                    console.log(`� Uploading to Firebase: ${storagePath}`);
-                    
                     const uploadTask = await storageRef.put(imageData.file);
                     downloadUrl = await uploadTask.ref.getDownloadURL();
                 }
+            } else {
+                // Use Firebase Storage
+                const storagePath = `portfolio-images/${userId}/${portfolioId}/${filename}`;
+                const storageRef = storage.ref().child(storagePath);
                 
-                uploadedUrls.push(downloadUrl);
-                console.log(`✅ Uploaded: ${filename} → ${downloadUrl}`);
+                console.log(`� Uploading to Firebase: ${storagePath}`);
                 
-            } catch (uploadError) {
-                console.error(`❌ Upload failed for ${filename}:`, uploadError);
+                // Upload file
+                const uploadTask = await storageRef.put(imageData.file);
                 
-                // Fallback: if Google Drive fails, try Firebase
-                if (USE_GOOGLE_DRIVE_STORAGE) {
-                    console.log('🔄 Fallback to Firebase Storage...');
-                    try {
-                        const storagePath = `portfolio-images/${userId}/${portfolioId}/${filename}`;
-                        const storageRef = storage.ref().child(storagePath);
-                        
-                        const uploadTask = await storageRef.put(imageData.file);
-                        downloadUrl = await uploadTask.ref.getDownloadURL();
-                        
-                        uploadedUrls.push(downloadUrl);
-                        console.log(`✅ Fallback successful: ${filename} → ${downloadUrl}`);
-                        
-                        if (progressText) {
-                            progressText.textContent = `Đang tải ảnh ${i + 1}/${selectedImages.length} (Fallback Firebase)...`;
-                        }
-                    } catch (fallbackError) {
-                        console.error(`❌ Fallback also failed for ${filename}:`, fallbackError);
-                        throw new Error(`Upload failed: ${uploadError.message}, Fallback failed: ${fallbackError.message}`);
-                    }
-                } else {
-                    throw uploadError;
-                }
+                // Get download URL
+                downloadUrl = await uploadTask.ref.getDownloadURL();
             }
+            
+            uploadedUrls.push({
+                url: downloadUrl,
+                filename: filename,
+                originalName: imageData.file.name,
+                size: imageData.file.size,
+                storageType: USE_GOOGLE_DRIVE_STORAGE ? 'googledrive' : 'firebase'
+            });
+            
+            console.log(`✅ Uploaded: ${filename} → ${downloadUrl}`);
         }
         
         // Final progress
@@ -6099,14 +6038,13 @@ async function uploadPortfolioImages(portfolioId, userId) {
             progressBar.style.width = '100%';
         }
         if (progressText) {
-            const storageText = USE_GOOGLE_DRIVE_STORAGE ? 'Google Drive' : 'Firebase';
-            progressText.textContent = `Hoàn thành tải ảnh lên ${storageText}!`;
+            progressText.textContent = 'Hoàn thành tải ảnh!';
         }
         
         console.log('🎉 All images uploaded successfully:', uploadedUrls);
         
-        // Return array of URLs for Firestore
-        return uploadedUrls;
+        // Return array of URLs only for Firestore
+        return uploadedUrls.map(item => item.url);
         
     } catch (error) {
         console.error('❌ Error uploading images:', error);
