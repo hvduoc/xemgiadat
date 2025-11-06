@@ -5958,12 +5958,8 @@ async function uploadPortfolioImages(portfolioId, userId) {
                 console.log('✅ Base64 fallback successful');
                 return base64Urls;
             }
-                console.log('✅ Base64 fallback successful');
-                return base64Urls;
-            }
         }
     }
-}
 
 // Helper function to compress image to base64
 async function compressImageToBase64(file, quality = 0.6, maxWidth = 800) {
