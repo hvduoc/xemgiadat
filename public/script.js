@@ -12,6 +12,18 @@ const firebaseConfig = {
 // --- MAPBOX ACCESS TOKEN ---
 const mapboxAccessToken = "pk.eyJ1IjoiaHZkdW9jIiwiYSI6ImNtZDFwcjVxYTAzOGUybHEzc3ZrNTJmcnIifQ.D5VlPC8c_n1i3kezgqtzwg";
 
+// --- GOOGLE DRIVE API CONFIGURATION ---
+const GOOGLE_CONFIG = {
+    apiKey: "AIzaSyClLHGUQnD062f6KW-SG1R36pNw-7rmdGI",
+    clientId: "895990431722-7oeoa9vmib64n88g29omn5p6jgv7uqvn.apps.googleusercontent.com",
+    discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"],
+    scope: "https://www.googleapis.com/auth/drive.file"
+};
+
+// Global variables for Google Drive
+let isGoogleDriveReady = false;
+let googleAuthInstance = null;
+
 // --- SERVICE INITIALIZATION ---
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
@@ -5785,7 +5797,7 @@ function hidePreviewGallery() {
     }
 }
 
-// Upload images to Firebase Storage for specific portfolio item
+// Upload images to Google Drive for specific portfolio item
 async function uploadPortfolioImages(portfolioId, userId) {
     console.log('📤 Starting image upload for portfolio:', portfolioId);
     
@@ -5805,94 +5817,82 @@ async function uploadPortfolioImages(portfolioId, userId) {
     }
     
     try {
-        for (let i = 0; i < selectedImages.length; i++) {
-            const imageData = selectedImages[i];
-            const progress = ((i + 1) / selectedImages.length) * 100;
+        // Prepare files array
+        const files = selectedImages.map(imageData => imageData.file);
+        
+        // Update progress for authentication
+        if (progressText) {
+            progressText.textContent = 'Đang kết nối Google Drive...';
+        }
+        
+        // Upload to Google Drive
+        const uploadedFiles = await uploadPortfolioImagesToGoogleDrive(portfolioId, files);
+        
+        // Convert to the expected format
+        for (let i = 0; i < uploadedFiles.length; i++) {
+            const progress = ((i + 1) / uploadedFiles.length) * 100;
             
             // Update progress
             if (progressBar) {
                 progressBar.style.width = `${progress}%`;
             }
             if (progressText) {
-                progressText.textContent = `Đang tải ảnh ${i + 1}/${selectedImages.length}...`;
+                progressText.textContent = `Đã tải ${i + 1}/${uploadedFiles.length} ảnh lên Google Drive`;
             }
             
-            // Create unique filename
-            const timestamp = Date.now();
-            const extension = imageData.file.name.split('.').pop();
-            const filename = `image_${timestamp}_${Math.random().toString(36).substr(2, 9)}.${extension}`;
-            
-            // Define storage path: /portfolio-images/{userId}/{portfolioId}/{filename}
-            const storagePath = `portfolio-images/${userId}/${portfolioId}/${filename}`;
-            const storageRef = storage.ref().child(storagePath);
-            
-            console.log(`📁 Uploading to: ${storagePath}`);
-            
-            // Upload file
-            const uploadTask = await storageRef.put(imageData.file);
-            
-            // Get download URL
-            const downloadUrl = await uploadTask.ref.getDownloadURL();
-            
+            const file = uploadedFiles[i];
             uploadedUrls.push({
-                url: downloadUrl,
-                filename: filename,
-                originalName: imageData.file.name,
-                size: imageData.file.size,
-                storagePath: storagePath
+                url: file.webContentLink, // Direct download link
+                viewUrl: file.webViewLink, // View link
+                name: file.name,
+                id: file.id,
+                storage: 'googledrive' // Mark as Google Drive storage
             });
-            
-            console.log(`✅ Uploaded: ${filename} → ${downloadUrl}`);
         }
         
-        // Final progress
-        if (progressBar) {
-            progressBar.style.width = '100%';
-        }
-        if (progressText) {
-            progressText.textContent = 'Hoàn thành tải ảnh!';
-        }
-        
-        console.log('🎉 All images uploaded successfully:', uploadedUrls);
-        
-        // Return array of URLs only for Firestore
-        return uploadedUrls.map(item => item.url);
+        console.log('✅ All images uploaded to Google Drive successfully');
+        return uploadedUrls;
         
     } catch (error) {
-        console.error('❌ Error uploading images:', error);
+        console.error('❌ Google Drive upload failed:', error);
         
+        // Show user-friendly error
         if (progressText) {
-            progressText.textContent = 'Lỗi khi tải ảnh. Vui lòng thử lại.';
+            progressText.textContent = 'Lỗi khi tải ảnh lên Google Drive';
+            progressText.className += ' text-red-600';
         }
         
-        throw error;
-    } finally {
-        // Hide progress after 2 seconds
+        // Hide progress after delay
         setTimeout(() => {
             if (uploadProgress) {
                 uploadProgress.classList.add('hidden');
             }
-        }, 2000);
-    }
-    function clearAllImages() {
-        selectedImages = [];
-        imagePreview.innerHTML = '';
-        imageUploadText.style.display = 'block';
-        imageProgress.style.display = 'none';
+        }, 3000);
         
-        // Reset image count
-        updateImageCount();
+        throw error;
     }
+}
 
-    function updateImageCount() {
-        const imageCountText = document.querySelector('.image-count-text');
-        if (imageCountText) {
-            if (selectedImages.length > 0) {
-                imageCountText.textContent = `${selectedImages.length} ảnh đã chọn`;
-                imageCountText.style.display = 'block';
-            } else {
-                imageCountText.style.display = 'none';
-            }
+// Clear all selected images
+function clearAllImages() {
+    selectedImages = [];
+    imagePreview.innerHTML = '';
+    imageUploadText.style.display = 'block';
+    imageProgress.style.display = 'none';
+    
+    // Reset image count
+    updateImageCount();
+}
+
+// Update image count display
+function updateImageCount() {
+    const imageCountText = document.querySelector('.image-count-text');
+    if (imageCountText) {
+        if (selectedImages.length > 0) {
+            imageCountText.textContent = `${selectedImages.length} ảnh đã chọn`;
+            imageCountText.style.display = 'block';
+        } else {
+            imageCountText.style.display = 'none';
         }
     }
 }
@@ -5951,6 +5951,182 @@ function compressImage(file, maxWidth = 800, quality = 0.8) {
         
         img.src = URL.createObjectURL(file);
     });
+}
+
+// === GOOGLE DRIVE API FUNCTIONS ===
+
+// Initialize Google Drive API
+async function initializeGoogleDrive() {
+    console.log('🔧 Initializing Google Drive API...');
+    
+    try {
+        // Load Google APIs
+        if (typeof gapi === 'undefined') {
+            console.log('📦 Loading Google API script...');
+            await loadGoogleAPIScript();
+        }
+        
+        await new Promise((resolve, reject) => {
+            gapi.load('auth2:client', resolve);
+        });
+        
+        await gapi.client.init({
+            apiKey: GOOGLE_CONFIG.apiKey,
+            clientId: GOOGLE_CONFIG.clientId,
+            discoveryDocs: GOOGLE_CONFIG.discoveryDocs,
+            scope: GOOGLE_CONFIG.scope
+        });
+        
+        googleAuthInstance = gapi.auth2.getAuthInstance();
+        isGoogleDriveReady = true;
+        
+        console.log('✅ Google Drive API initialized successfully');
+        return true;
+    } catch (error) {
+        console.error('❌ Failed to initialize Google Drive API:', error);
+        isGoogleDriveReady = false;
+        return false;
+    }
+}
+
+// Load Google API script dynamically
+function loadGoogleAPIScript() {
+    return new Promise((resolve, reject) => {
+        if (document.querySelector('script[src*="apis.google.com"]')) {
+            resolve();
+            return;
+        }
+        
+        const script = document.createElement('script');
+        script.src = 'https://apis.google.com/js/api.js';
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+    });
+}
+
+// Authenticate with Google Drive
+async function authenticateGoogleDrive() {
+    console.log('🔐 Authenticating with Google Drive...');
+    
+    if (!isGoogleDriveReady) {
+        const initialized = await initializeGoogleDrive();
+        if (!initialized) {
+            throw new Error('Google Drive API not ready');
+        }
+    }
+    
+    if (!googleAuthInstance.isSignedIn.get()) {
+        await googleAuthInstance.signIn();
+    }
+    
+    console.log('✅ Google Drive authentication successful');
+    return true;
+}
+
+// Create portfolio folder in Google Drive
+async function createPortfolioFolder(portfolioId) {
+    console.log('📁 Creating portfolio folder:', portfolioId);
+    
+    try {
+        const response = await gapi.client.drive.files.create({
+            resource: {
+                name: `Portfolio_${portfolioId}`,
+                mimeType: 'application/vnd.google-apps.folder',
+                parents: ['root'] // Store in root folder
+            }
+        });
+        
+        const folderId = response.result.id;
+        console.log('✅ Portfolio folder created:', folderId);
+        return folderId;
+    } catch (error) {
+        console.error('❌ Failed to create portfolio folder:', error);
+        throw error;
+    }
+}
+
+// Upload file to Google Drive
+async function uploadToGoogleDrive(file, fileName, folderId) {
+    console.log('📤 Uploading to Google Drive:', fileName);
+    
+    const fileMetadata = {
+        name: fileName,
+        parents: [folderId]
+    };
+    
+    const form = new FormData();
+    form.append('metadata', new Blob([JSON.stringify(fileMetadata)], {type: 'application/json'}));
+    form.append('file', file);
+    
+    const accessToken = gapi.auth2.getAuthInstance().currentUser.get().getAuthResponse().access_token;
+    
+    const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${accessToken}`
+        },
+        body: form
+    });
+    
+    if (!response.ok) {
+        throw new Error(`Upload failed: ${response.statusText}`);
+    }
+    
+    const result = await response.json();
+    console.log('✅ File uploaded to Google Drive:', result.id);
+    
+    // Make file publicly viewable
+    await gapi.client.drive.permissions.create({
+        fileId: result.id,
+        resource: {
+            role: 'reader',
+            type: 'anyone'
+        }
+    });
+    
+    return {
+        id: result.id,
+        name: result.name,
+        webViewLink: `https://drive.google.com/file/d/${result.id}/view`,
+        webContentLink: `https://drive.google.com/uc?id=${result.id}`
+    };
+}
+
+// Upload portfolio images to Google Drive
+async function uploadPortfolioImagesToGoogleDrive(portfolioId, files) {
+    console.log('📤 Starting Google Drive upload for portfolio:', portfolioId);
+    
+    try {
+        // Authenticate first
+        await authenticateGoogleDrive();
+        
+        // Create portfolio folder
+        const folderId = await createPortfolioFolder(portfolioId);
+        
+        const uploadedFiles = [];
+        
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const fileName = `image_${Date.now()}_${Math.random().toString(36).substring(7)}.${file.type.split('/')[1]}`;
+            
+            try {
+                const result = await uploadToGoogleDrive(file, fileName, folderId);
+                uploadedFiles.push(result);
+                console.log(`✅ Uploaded ${i + 1}/${files.length}: ${fileName}`);
+            } catch (error) {
+                console.error(`❌ Failed to upload ${fileName}:`, error);
+                throw error;
+            }
+        }
+        
+        console.log('✅ All files uploaded to Google Drive successfully');
+        return uploadedFiles;
+        
+    } catch (error) {
+        console.error('❌ Google Drive upload failed:', error);
+        throw error;
+    }
 }
 
 // Initialize image upload when DOM is ready
