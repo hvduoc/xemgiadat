@@ -5879,19 +5879,19 @@ async function uploadPortfolioImages(portfolioId, userId) {
         return uploadedUrls.map(item => item.url);
         
     } catch (error) {
-        console.error('⚠️ Google Drive upload failed, trying Firebase Storage fallback:', error);
+        console.error('⚠️ Google Drive upload failed, trying Imgur fallback:', error);
         
-        // Show Firebase fallback message
+        // Show Imgur fallback message
         if (progressText) {
-            progressText.textContent = 'Google Drive chưa sẵn sàng, đang thử Firebase Storage...';
+            progressText.textContent = 'Google Drive chưa sẵn sàng, đang chuyển sang Imgur...';
         }
         
         try {
-            // Try Firebase Storage first
+            // Direct fallback to Imgur (skip Firebase Storage due to billing requirements)
             const files = selectedImages.map(imageData => imageData.file);
-            const uploadedFiles = await uploadPortfolioImagesToFirebase(portfolioId, files);
+            const uploadedFiles = await uploadPortfolioImagesToImgur(portfolioId, files);
             
-            const firebaseUrls = [];
+            const imgurUrls = [];
             for (let i = 0; i < uploadedFiles.length; i++) {
                 const progress = ((i + 1) / uploadedFiles.length) * 100;
                 
@@ -5900,51 +5900,12 @@ async function uploadPortfolioImages(portfolioId, userId) {
                     progressBar.style.width = `${progress}%`;
                 }
                 if (progressText) {
-                    progressText.textContent = `Đã tải ${i + 1}/${uploadedFiles.length} ảnh lên Firebase`;
+                    progressText.textContent = `Đã tải ${i + 1}/${uploadedFiles.length} ảnh lên Imgur`;
                 }
                 
                 const file = uploadedFiles[i];
-                firebaseUrls.push(file.webContentLink);
+                imgurUrls.push(file.webContentLink);
             }
-            
-            // Hide progress after delay
-            setTimeout(() => {
-                if (uploadProgress) {
-                    uploadProgress.classList.add('hidden');
-                }
-            }, 2000);
-            
-            console.log('✅ Firebase Storage upload successful');
-            return firebaseUrls;
-            
-        } catch (firebaseError) {
-            console.error('⚠️ Firebase Storage failed, trying Imgur fallback:', firebaseError);
-            
-            // Show Imgur fallback message
-            if (progressText) {
-                progressText.textContent = 'Firebase Storage thất bại, đang thử Imgur...';
-            }
-            
-            try {
-                // Fallback to Imgur
-                const files = selectedImages.map(imageData => imageData.file);
-                const uploadedFiles = await uploadPortfolioImagesToImgur(portfolioId, files);
-                
-                const imgurUrls = [];
-                for (let i = 0; i < uploadedFiles.length; i++) {
-                    const progress = ((i + 1) / uploadedFiles.length) * 100;
-                    
-                    // Update progress
-                    if (progressBar) {
-                        progressBar.style.width = `${progress}%`;
-                    }
-                    if (progressText) {
-                        progressText.textContent = `Đã tải ${i + 1}/${uploadedFiles.length} ảnh lên Imgur`;
-                    }
-                    
-                    const file = uploadedFiles[i];
-                    imgurUrls.push(file.webContentLink);
-                }
                 
                 console.log('✅ Imgur fallback successful!');
                 
@@ -5962,7 +5923,7 @@ async function uploadPortfolioImages(portfolioId, userId) {
                 return imgurUrls;
                 
             } catch (imgurError) {
-                console.error('❌ All storage options failed (Google Drive, Firebase, Imgur):', imgurError);
+                console.error('❌ Google Drive and Imgur failed, using Base64 fallback:', imgurError);
                 
                 // Final fallback: save as base64 in Firestore (not ideal but works)
                 console.log('🔄 Trying final fallback: base64 storage in Firestore');
@@ -6669,49 +6630,8 @@ async function uploadToImgur(file, fileName) {
     });
 }
 
-// Upload portfolio images to Firebase Storage
-async function uploadPortfolioImagesToFirebase(portfolioId, files) {
-    console.log('📤 Starting Firebase Storage upload for portfolio:', portfolioId);
-    
-    try {
-        const uploadedFiles = [];
-        
-        for (let i = 0; i < files.length; i++) {
-            const file = files[i];
-            const timestamp = Date.now();
-            const extension = file.name.split('.').pop() || 'jpg';
-            const fileName = `portfolio_${portfolioId}_${timestamp}_${Math.random().toString(36).substring(7)}.${extension}`;
-            
-            try {
-                // Upload to Firebase Storage
-                const storageRef = storage.ref();
-                const fileRef = storageRef.child(`portfolio/${fileName}`);
-                
-                const snapshot = await fileRef.put(file);
-                const downloadURL = await snapshot.ref.getDownloadURL();
-                
-                uploadedFiles.push({
-                    id: fileName,
-                    name: fileName,
-                    webViewLink: downloadURL,
-                    webContentLink: downloadURL
-                });
-                
-                console.log(`✅ Uploaded ${i + 1}/${files.length}: ${fileName}`);
-            } catch (error) {
-                console.error(`❌ Failed to upload ${fileName} to Firebase:`, error);
-                throw error;
-            }
-        }
-        
-        console.log('✅ All files uploaded to Firebase Storage successfully');
-        return uploadedFiles;
-        
-    } catch (error) {
-        console.error('❌ Firebase Storage upload failed:', error);
-        throw error;
-    }
-}
+// NOTE: Firebase Storage function removed due to billing requirements
+// Fallback system now uses: Google Drive → Imgur (multiple keys) → Base64 compression
 
 // Upload portfolio images to Imgur
 async function uploadPortfolioImagesToImgur(portfolioId, files) {
@@ -6786,7 +6706,7 @@ if (document.readyState === 'loading') {
 
 // Debug function to test image upload services
 window.testImageUploadServices = async function() {
-    console.log('🧪 Testing image upload services...');
+    console.log('🧪 Testing 3-tier upload system (Google Drive → Imgur → Base64)...');
     
     // Create a test image (1x1 pixel red PNG)
     const canvas = document.createElement('canvas');
@@ -6801,7 +6721,7 @@ window.testImageUploadServices = async function() {
         
         console.log('📦 Created test file:', testFile.name, testFile.size, 'bytes');
         
-        // Test Imgur
+        // Test Imgur (primary fallback after Google Drive)
         try {
             console.log('🔄 Testing Imgur upload...');
             const imgurResult = await uploadToImgur(testFile, 'test_imgur_' + Date.now() + '.png');
@@ -6818,6 +6738,15 @@ window.testImageUploadServices = async function() {
             console.log('✅ Google Drive test successful:', driveResult);
         } catch (error) {
             console.error('❌ Google Drive test failed:', error);
+        }
+        
+        // Test Base64 compression (final fallback)
+        try {
+            console.log('🔄 Testing Base64 compression...');
+            const base64Result = await compressImageToBase64(testFile, 0.6, 800);
+            console.log('✅ Base64 compression successful. Size:', Math.round(base64Result.length / 1024), 'KB');
+        } catch (error) {
+            console.error('❌ Base64 test failed:', error);
         }
     }, 'image/png');
 };
