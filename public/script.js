@@ -5851,25 +5851,89 @@ async function uploadPortfolioImages(portfolioId, userId) {
         }
         
         console.log('✅ All images uploaded to Google Drive successfully');
-        return uploadedUrls;
+        
+        // Return array of URLs for Firestore (extract URLs from objects)
+        return uploadedUrls.map(item => item.url);
         
     } catch (error) {
-        console.error('❌ Google Drive upload failed:', error);
+        console.error('⚠️ Google Drive upload failed, trying Firebase Storage fallback:', error);
         
-        // Show user-friendly error
+        // Show fallback message
         if (progressText) {
-            progressText.textContent = 'Lỗi khi tải ảnh lên Google Drive';
-            progressText.className += ' text-red-600';
+            progressText.textContent = 'Google Drive chưa sẵn sàng, đang chuyển sang Firebase...';
         }
         
-        // Hide progress after delay
-        setTimeout(() => {
-            if (uploadProgress) {
-                uploadProgress.classList.add('hidden');
+        try {
+            // Fallback to Firebase Storage
+            const firebaseUrls = [];
+            
+            for (let i = 0; i < selectedImages.length; i++) {
+                const imageData = selectedImages[i];
+                const progress = ((i + 1) / selectedImages.length) * 100;
+                
+                // Update progress
+                if (progressBar) {
+                    progressBar.style.width = `${progress}%`;
+                }
+                if (progressText) {
+                    progressText.textContent = `Đang tải ảnh ${i + 1}/${selectedImages.length} lên Firebase...`;
+                }
+                
+                // Create unique filename
+                const timestamp = Date.now();
+                const extension = imageData.file.name.split('.').pop();
+                const filename = `image_${timestamp}_${Math.random().toString(36).substr(2, 9)}.${extension}`;
+                
+                // Define storage path: /portfolio-images/{userId}/{portfolioId}/{filename}
+                const storagePath = `portfolio-images/${userId}/${portfolioId}/${filename}`;
+                const storageRef = storage.ref().child(storagePath);
+                
+                console.log(`📁 Uploading to Firebase: ${storagePath}`);
+                
+                // Upload file
+                const uploadTask = await storageRef.put(imageData.file);
+                
+                // Get download URL
+                const downloadUrl = await uploadTask.ref.getDownloadURL();
+                
+                firebaseUrls.push(downloadUrl);
+                
+                console.log(`✅ Uploaded to Firebase: ${filename}`);
             }
-        }, 3000);
-        
-        throw error;
+            
+            console.log('✅ Firebase Storage fallback successful!');
+            
+            if (progressText) {
+                progressText.textContent = '✅ Hoàn thành tải ảnh lên Firebase Storage!';
+            }
+            
+            // Hide progress after delay
+            setTimeout(() => {
+                if (uploadProgress) {
+                    uploadProgress.classList.add('hidden');
+                }
+            }, 2000);
+            
+            return firebaseUrls;
+            
+        } catch (firebaseError) {
+            console.error('❌ Both Google Drive and Firebase Storage failed:', firebaseError);
+            
+            // Show user-friendly error
+            if (progressText) {
+                progressText.textContent = '❌ Lỗi khi tải ảnh. Vui lòng thử lại.';
+                progressText.className += ' text-red-600';
+            }
+            
+            // Hide progress after delay
+            setTimeout(() => {
+                if (uploadProgress) {
+                    uploadProgress.classList.add('hidden');
+                }
+            }, 3000);
+            
+            throw firebaseError;
+        }
     }
 }
 
