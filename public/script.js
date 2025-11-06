@@ -6467,19 +6467,41 @@ async function uploadToImgur(file, fileName) {
             try {
                 const base64Data = reader.result.split(',')[1]; // Remove data:image/...;base64,
                 
-                const response = await fetch(IMGUR_CONFIG.apiUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Client-ID ${IMGUR_CONFIG.clientId}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        image: base64Data,
-                        type: 'base64',
-                        title: fileName,
-                        description: 'Uploaded from XemGiaDat Portfolio'
-                    })
-                });
+                let response;
+                try {
+                    // Method 1: Try FormData first (preferred for HTTP/2)
+                    const formData = new FormData();
+                    formData.append('image', base64Data);
+                    formData.append('type', 'base64');
+                    formData.append('title', fileName);
+                    formData.append('description', 'Uploaded from XemGiaDat Portfolio');
+                    
+                    response = await fetch(IMGUR_CONFIG.apiUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Client-ID ${IMGUR_CONFIG.clientId}`
+                            // Don't set Content-Type for FormData - browser will set it automatically
+                        },
+                        body: formData
+                    });
+                } catch (formDataError) {
+                    console.warn('⚠️ FormData method failed, trying JSON fallback:', formDataError.message);
+                    
+                    // Method 2: Fallback to JSON if FormData fails
+                    response = await fetch(IMGUR_CONFIG.apiUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Client-ID ${IMGUR_CONFIG.clientId}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            image: base64Data,
+                            type: 'base64',
+                            title: fileName,
+                            description: 'Uploaded from XemGiaDat Portfolio'
+                        })
+                    });
+                }
                 
                 const result = await response.json();
                 console.log('📡 Imgur API response:', result);
@@ -6586,3 +6608,69 @@ if (document.readyState === 'loading') {
 } else {
     setTimeout(initializeImageUpload, 1000);
 }
+
+// Debug function to test image upload services
+window.testImageUploadServices = async function() {
+    console.log('🧪 Testing image upload services...');
+    
+    // Create a test image (1x1 pixel red PNG)
+    const canvas = document.createElement('canvas');
+    canvas.width = 1;
+    canvas.height = 1;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = 'red';
+    ctx.fillRect(0, 0, 1, 1);
+    
+    canvas.toBlob(async (blob) => {
+        const testFile = new File([blob], 'test_image.png', { type: 'image/png' });
+        
+        console.log('📦 Created test file:', testFile.name, testFile.size, 'bytes');
+        
+        // Test Imgur
+        try {
+            console.log('🔄 Testing Imgur upload...');
+            const imgurResult = await uploadToImgur(testFile, 'test_imgur_' + Date.now() + '.png');
+            console.log('✅ Imgur test successful:', imgurResult);
+        } catch (error) {
+            console.error('❌ Imgur test failed:', error);
+        }
+        
+        // Test Google Drive if available
+        try {
+            console.log('🔄 Testing Google Drive upload...');
+            await authenticateGoogleDrive();
+            const driveResult = await uploadToGoogleDrive(testFile, 'test_drive_' + Date.now() + '.png');
+            console.log('✅ Google Drive test successful:', driveResult);
+        } catch (error) {
+            console.error('❌ Google Drive test failed:', error);
+        }
+    }, 'image/png');
+};
+
+// Enhanced debug function for Google Drive status
+window.debugGoogleDriveStatusEnhanced = function() {
+    console.log('🔍 Google Drive Enhanced Debug Status:');
+    console.log('🌐 Current domain:', window.location.hostname);
+    console.log('🔑 API Key configured:', !!GOOGLE_CONFIG.apiKey);
+    console.log('🆔 Client ID configured:', !!GOOGLE_CONFIG.clientId);
+    console.log('⚡ Google API loaded:', typeof gapi !== 'undefined');
+    console.log('🔐 Google Drive ready:', isGoogleDriveReady);
+    console.log('👤 Auth instance:', !!googleAuthInstance);
+    
+    if (typeof gapi !== 'undefined' && gapi.client) {
+        console.log('📚 GAPI client loaded:', !!gapi.client);
+        console.log('💿 Drive API loaded:', !!gapi.client.drive);
+    }
+    
+    console.log('📋 Current GOOGLE_CONFIG:', GOOGLE_CONFIG);
+    
+    // Test domain authorization
+    if (window.location.hostname === 'xemgiadat.com') {
+        console.log('🌍 Running on production domain - requires Google Console authorization');
+        console.log('🔗 Add this domain to: https://console.cloud.google.com/apis/credentials');
+        console.log('📝 Add to Authorized JavaScript origins: https://xemgiadat.com');
+        console.log('📝 Add to Authorized redirect URIs: https://xemgiadat.com');
+    } else {
+        console.log('🏠 Running on development domain:', window.location.hostname);
+    }
+};
