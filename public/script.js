@@ -20,6 +20,12 @@ const GOOGLE_CONFIG = {
     scope: "https://www.googleapis.com/auth/drive.file"
 };
 
+// --- IMGUR API CONFIGURATION ---
+const IMGUR_CONFIG = {
+    clientId: "546c25a59c58ad7", // Free tier Imgur API
+    apiUrl: "https://api.imgur.com/3/image"
+};
+
 // Global variables for Google Drive
 let isGoogleDriveReady = false;
 let googleAuthInstance = null;
@@ -5917,22 +5923,67 @@ async function uploadPortfolioImages(portfolioId, userId) {
             return firebaseUrls;
             
         } catch (firebaseError) {
-            console.error('❌ Both Google Drive and Firebase Storage failed:', firebaseError);
+            console.error('⚠️ Firebase Storage also failed, trying Imgur fallback:', firebaseError);
             
-            // Show user-friendly error
+            // Show Imgur fallback message
             if (progressText) {
-                progressText.textContent = '❌ Lỗi khi tải ảnh. Vui lòng thử lại.';
-                progressText.className += ' text-red-600';
+                progressText.textContent = 'Firebase cũng lỗi, đang chuyển sang Imgur...';
             }
             
-            // Hide progress after delay
-            setTimeout(() => {
-                if (uploadProgress) {
-                    uploadProgress.classList.add('hidden');
+            try {
+                // Final fallback to Imgur
+                const files = selectedImages.map(imageData => imageData.file);
+                const uploadedFiles = await uploadPortfolioImagesToImgur(portfolioId, files);
+                
+                const imgurUrls = [];
+                for (let i = 0; i < uploadedFiles.length; i++) {
+                    const progress = ((i + 1) / uploadedFiles.length) * 100;
+                    
+                    // Update progress
+                    if (progressBar) {
+                        progressBar.style.width = `${progress}%`;
+                    }
+                    if (progressText) {
+                        progressText.textContent = `Đã tải ${i + 1}/${uploadedFiles.length} ảnh lên Imgur`;
+                    }
+                    
+                    const file = uploadedFiles[i];
+                    imgurUrls.push(file.webContentLink);
                 }
-            }, 3000);
-            
-            throw firebaseError;
+                
+                console.log('✅ Imgur fallback successful!');
+                
+                if (progressText) {
+                    progressText.textContent = '✅ Hoàn thành tải ảnh lên Imgur!';
+                }
+                
+                // Hide progress after delay
+                setTimeout(() => {
+                    if (uploadProgress) {
+                        uploadProgress.classList.add('hidden');
+                    }
+                }, 2000);
+                
+                return imgurUrls;
+                
+            } catch (imgurError) {
+                console.error('❌ All storage options failed (Google Drive, Firebase, Imgur):', imgurError);
+                
+                // Show final error
+                if (progressText) {
+                    progressText.textContent = '❌ Lỗi tải ảnh. Vui lòng thử lại sau.';
+                    progressText.className += ' text-red-600';
+                }
+                
+                // Hide progress after delay
+                setTimeout(() => {
+                    if (uploadProgress) {
+                        uploadProgress.classList.add('hidden');
+                    }
+                }, 3000);
+                
+                throw new Error('All storage options failed');
+            }
         }
     }
 }
@@ -6189,6 +6240,91 @@ async function uploadPortfolioImagesToGoogleDrive(portfolioId, files) {
         
     } catch (error) {
         console.error('❌ Google Drive upload failed:', error);
+        throw error;
+    }
+}
+
+// === IMGUR API FUNCTIONS ===
+
+// Upload single file to Imgur
+async function uploadToImgur(file, fileName) {
+    console.log('📤 Uploading to Imgur:', fileName);
+    
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = async function() {
+            try {
+                const base64Data = reader.result.split(',')[1]; // Remove data:image/...;base64,
+                
+                const formData = new FormData();
+                formData.append('image', base64Data);
+                formData.append('type', 'base64');
+                formData.append('title', fileName);
+                
+                const response = await fetch(IMGUR_CONFIG.apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Client-ID ${IMGUR_CONFIG.clientId}`
+                    },
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Imgur upload failed: ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                
+                if (!result.success) {
+                    throw new Error(`Imgur API error: ${result.data?.error || 'Unknown error'}`);
+                }
+                
+                console.log('✅ File uploaded to Imgur:', result.data.id);
+                
+                resolve({
+                    id: result.data.id,
+                    name: fileName,
+                    webViewLink: result.data.link,
+                    webContentLink: result.data.link, // Same as view link for Imgur
+                    deleteHash: result.data.deletehash // For future deletion if needed
+                });
+                
+            } catch (error) {
+                reject(error);
+            }
+        };
+        
+        reader.onerror = () => reject(new Error('Failed to read file'));
+        reader.readAsDataURL(file);
+    });
+}
+
+// Upload portfolio images to Imgur
+async function uploadPortfolioImagesToImgur(portfolioId, files) {
+    console.log('📤 Starting Imgur upload for portfolio:', portfolioId);
+    
+    try {
+        const uploadedFiles = [];
+        
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const fileName = `portfolio_${portfolioId}_${Date.now()}_${Math.random().toString(36).substring(7)}.${file.type.split('/')[1]}`;
+            
+            try {
+                const result = await uploadToImgur(file, fileName);
+                uploadedFiles.push(result);
+                console.log(`✅ Uploaded ${i + 1}/${files.length} to Imgur: ${fileName}`);
+            } catch (error) {
+                console.error(`❌ Failed to upload ${fileName} to Imgur:`, error);
+                throw error;
+            }
+        }
+        
+        console.log('✅ All files uploaded to Imgur successfully');
+        return uploadedFiles;
+        
+    } catch (error) {
+        console.error('❌ Imgur upload failed:', error);
         throw error;
     }
 }
