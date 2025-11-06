@@ -22,7 +22,7 @@ const GOOGLE_CONFIG = {
 
 // --- IMGUR API CONFIGURATION ---
 const IMGUR_CONFIG = {
-    clientId: "546c25a59c58ad7", // Free tier Imgur API
+    clientId: "c9a6efb3d7932fd", // Alternative free tier Imgur API
     apiUrl: "https://api.imgur.com/3/image"
 };
 
@@ -6203,30 +6203,35 @@ async function uploadToImgur(file, fileName) {
             try {
                 const base64Data = reader.result.split(',')[1]; // Remove data:image/...;base64,
                 
-                const formData = new FormData();
-                formData.append('image', base64Data);
-                formData.append('type', 'base64');
-                formData.append('title', fileName);
-                
                 const response = await fetch(IMGUR_CONFIG.apiUrl, {
                     method: 'POST',
                     headers: {
-                        'Authorization': `Client-ID ${IMGUR_CONFIG.clientId}`
+                        'Authorization': `Client-ID ${IMGUR_CONFIG.clientId}`,
+                        'Content-Type': 'application/json'
                     },
-                    body: formData
+                    body: JSON.stringify({
+                        image: base64Data,
+                        type: 'base64',
+                        title: fileName,
+                        description: 'Uploaded from XemGiaDat Portfolio'
+                    })
                 });
                 
+                const result = await response.json();
+                console.log('📡 Imgur API response:', result);
+                
                 if (!response.ok) {
-                    throw new Error(`Imgur upload failed: ${response.statusText}`);
+                    console.error('❌ Imgur HTTP error:', response.status, response.statusText);
+                    console.error('❌ Imgur error details:', result);
+                    throw new Error(`Imgur upload failed: ${response.status} - ${result.data?.error || response.statusText}`);
                 }
                 
-                const result = await response.json();
-                
                 if (!result.success) {
+                    console.error('❌ Imgur API error:', result.data?.error);
                     throw new Error(`Imgur API error: ${result.data?.error || 'Unknown error'}`);
                 }
                 
-                console.log('✅ File uploaded to Imgur:', result.data.id);
+                console.log('✅ File uploaded to Imgur successfully:', result.data.id);
                 
                 resolve({
                     id: result.data.id,
@@ -6237,6 +6242,7 @@ async function uploadToImgur(file, fileName) {
                 });
                 
             } catch (error) {
+                console.error('❌ Imgur upload error:', error);
                 reject(error);
             }
         };
