@@ -6329,6 +6329,38 @@ async function uploadPortfolioImagesToImgur(portfolioId, files) {
     }
 }
 
+// Upload portfolio images to Imgur
+async function uploadPortfolioImagesToImgur(portfolioId, files) {
+    console.log('📤 Starting Imgur upload for portfolio:', portfolioId);
+    
+    try {
+        const uploadedFiles = [];
+        
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const timestamp = Date.now();
+            const extension = file.name.split('.').pop() || 'jpg';
+            const fileName = `portfolio_${portfolioId}_${timestamp}_${Math.random().toString(36).substring(7)}.${extension}`;
+            
+            try {
+                const result = await uploadToImgur(file, fileName);
+                uploadedFiles.push(result);
+                console.log(`✅ Uploaded ${i + 1}/${files.length}: ${fileName}`);
+            } catch (error) {
+                console.error(`❌ Failed to upload ${fileName}:`, error);
+                throw error;
+            }
+        }
+        
+        console.log('✅ All files uploaded to Imgur successfully');
+        return uploadedFiles;
+        
+    } catch (error) {
+        console.error('❌ Imgur upload failed:', error);
+        throw error;
+    }
+}
+
 // Initialize image upload when DOM is ready
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
