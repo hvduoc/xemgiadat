@@ -17,7 +17,10 @@ const GOOGLE_CONFIG = {
     apiKey: "AIzaSyClLHGUQnD062f6KW-SG1R36pNw-7rmdGI",
     clientId: "895990431722-7oeoa9vmib64n88g29omn5p6jgv7uqvn.apps.googleusercontent.com",
     discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"],
-    scope: "https://www.googleapis.com/auth/drive.file"
+    scope: "https://www.googleapis.com/auth/drive.file",
+    // Add hosted domain and redirect URI for better compatibility
+    hostedDomain: "xemgiadat.com",
+    redirectUri: "https://xemgiadat.com"
 };
 
 // --- IMGUR API CONFIGURATION ---
@@ -6017,73 +6020,167 @@ function compressImage(file, maxWidth = 800, quality = 0.8) {
 
 // === GOOGLE DRIVE API FUNCTIONS ===
 
-// Initialize Google Drive API
+// Initialize Google Drive API with improved error handling
 async function initializeGoogleDrive() {
     console.log('🔧 Initializing Google Drive API...');
     
     try {
-        // Load Google APIs
+        // Check if running on correct domain
+        const currentDomain = window.location.hostname;
+        console.log('🌐 Current domain:', currentDomain);
+        
+        // Load Google APIs with timeout
         if (typeof gapi === 'undefined') {
             console.log('📦 Loading Google API script...');
-            await loadGoogleAPIScript();
+            await Promise.race([
+                loadGoogleAPIScript(),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('Script load timeout')), 10000))
+            ]);
         }
         
+        console.log('📚 Loading Google API components...');
         await new Promise((resolve, reject) => {
-            gapi.load('auth2:client', resolve);
+            const timeout = setTimeout(() => reject(new Error('API load timeout')), 15000);
+            gapi.load('auth2:client', () => {
+                clearTimeout(timeout);
+                resolve();
+            });
         });
         
+        console.log('🔑 Initializing Google client...');
         await gapi.client.init({
             apiKey: GOOGLE_CONFIG.apiKey,
             clientId: GOOGLE_CONFIG.clientId,
             discoveryDocs: GOOGLE_CONFIG.discoveryDocs,
-            scope: GOOGLE_CONFIG.scope
+            scope: GOOGLE_CONFIG.scope,
+            // Add hosted domain if needed
+            plugin_name: "XemGiaDat"
         });
         
         googleAuthInstance = gapi.auth2.getAuthInstance();
-        isGoogleDriveReady = true;
         
+        // Check if user is already signed in
+        if (googleAuthInstance.isSignedIn.get()) {
+            console.log('👤 User already signed in to Google Drive');
+        } else {
+            console.log('👤 User not signed in to Google Drive');
+        }
+        
+        isGoogleDriveReady = true;
         console.log('✅ Google Drive API initialized successfully');
         return true;
+        
     } catch (error) {
         console.error('❌ Failed to initialize Google Drive API:', error);
         isGoogleDriveReady = false;
+        
+        // Detailed error logging
+        if (error.error === 'idpiframe_initialization_failed') {
+            console.error('🚨 Domain authorization issue. Need to add domain to Google Console.');
+            console.error('📋 Current domain needs to be added to authorized domains.');
+        }
+        
         return false;
     }
 }
 
-// Load Google API script dynamically
+// Load Google API script dynamically with better error handling
 function loadGoogleAPIScript() {
     return new Promise((resolve, reject) => {
+        // Check if script already exists
         if (document.querySelector('script[src*="apis.google.com"]')) {
+            console.log('📦 Google API script already loaded');
             resolve();
             return;
         }
         
+        console.log('📦 Creating Google API script element...');
         const script = document.createElement('script');
         script.src = 'https://apis.google.com/js/api.js';
-        script.onload = resolve;
-        script.onerror = reject;
+        script.async = true;
+        script.defer = true;
+        
+        script.onload = () => {
+            console.log('✅ Google API script loaded successfully');
+            resolve();
+        };
+        
+        script.onerror = (error) => {
+            console.error('❌ Failed to load Google API script:', error);
+            reject(new Error('Failed to load Google API script'));
+        };
+        
         document.head.appendChild(script);
+        console.log('📦 Google API script added to document head');
     });
 }
 
-// Authenticate with Google Drive
+// Authenticate with Google Drive with retry mechanism
 async function authenticateGoogleDrive() {
     console.log('🔐 Authenticating with Google Drive...');
     
-    if (!isGoogleDriveReady) {
-        const initialized = await initializeGoogleDrive();
-        if (!initialized) {
-            throw new Error('Google Drive API not ready');
+    try {
+        // Ensure API is initialized
+        if (!isGoogleDriveReady) {
+            console.log('🔧 Google Drive API not ready, initializing...');
+            const initialized = await initializeGoogleDrive();
+            if (!initialized) {
+                throw new Error('Google Drive API initialization failed');
+            }
         }
+        
+        // Check current auth status
+        if (!googleAuthInstance) {
+            throw new Error('Google Auth instance not available');
+        }
+        
+        console.log('📋 Current auth status:', googleAuthInstance.isSignedIn.get());
+        
+        // Sign in if not already signed in
+        if (!googleAuthInstance.isSignedIn.get()) {
+            console.log('🔑 Signing in to Google Drive...');
+            
+            try {
+                const user = await googleAuthInstance.signIn({
+                    prompt: 'select_account' // Always show account picker
+                });
+                console.log('✅ Sign in successful:', user.getBasicProfile().getName());
+            } catch (authError) {
+                console.error('❌ Sign in failed:', authError);
+                
+                // Handle specific auth errors
+                if (authError.error === 'popup_blocked_by_browser') {
+                    throw new Error('Popup blocked. Please allow popups for this site.');
+                } else if (authError.error === 'access_denied') {
+                    throw new Error('Access denied. Please grant permissions to Google Drive.');
+                } else {
+                    throw new Error(`Authentication failed: ${authError.error || authError.message}`);
+                }
+            }
+        } else {
+            console.log('✅ Already signed in to Google Drive');
+        }
+        
+        // Verify we have the necessary scopes
+        const currentUser = googleAuthInstance.currentUser.get();
+        const authResponse = currentUser.getAuthResponse();
+        console.log('🔍 Auth scopes granted:', authResponse.scope);
+        
+        // Check if we have Drive file scope
+        if (!authResponse.scope.includes('drive.file')) {
+            console.warn('⚠️ Drive file scope not granted, requesting additional permissions...');
+            await googleAuthInstance.signIn({
+                scope: GOOGLE_CONFIG.scope
+            });
+        }
+        
+        console.log('✅ Google Drive authentication successful');
+        return true;
+        
+    } catch (error) {
+        console.error('❌ Google Drive authentication failed:', error);
+        throw error;
     }
-    
-    if (!googleAuthInstance.isSignedIn.get()) {
-        await googleAuthInstance.signIn();
-    }
-    
-    console.log('✅ Google Drive authentication successful');
-    return true;
 }
 
 // Create portfolio folder in Google Drive
@@ -6154,6 +6251,89 @@ async function uploadToGoogleDrive(file, fileName, folderId) {
         webContentLink: `https://drive.google.com/uc?id=${result.id}`
     };
 }
+
+// === GOOGLE DRIVE TEST & DEBUG FUNCTIONS ===
+
+// Test Google Drive connectivity
+window.testGoogleDriveConnection = async function() {
+    console.log('🧪 Testing Google Drive connection...');
+    
+    try {
+        // Test 1: API Initialization
+        console.log('📋 Test 1: Initializing Google Drive API...');
+        const initialized = await initializeGoogleDrive();
+        if (!initialized) {
+            throw new Error('Failed to initialize Google Drive API');
+        }
+        console.log('✅ Test 1 passed: API initialized');
+        
+        // Test 2: Authentication
+        console.log('📋 Test 2: Testing authentication...');
+        await authenticateGoogleDrive();
+        console.log('✅ Test 2 passed: Authentication successful');
+        
+        // Test 3: Basic API call
+        console.log('📋 Test 3: Testing basic API call...');
+        const response = await gapi.client.drive.about.get({
+            fields: 'user,storageQuota'
+        });
+        console.log('✅ Test 3 passed: API call successful');
+        console.log('👤 User:', response.result.user.displayName);
+        console.log('💾 Storage:', response.result.storageQuota);
+        
+        alert('✅ Google Drive connection test successful!\nCheck console for details.');
+        return true;
+        
+    } catch (error) {
+        console.error('❌ Google Drive test failed:', error);
+        alert(`❌ Google Drive test failed:\n${error.message}`);
+        return false;
+    }
+};
+
+// Test Google Drive upload with a small test file
+window.testGoogleDriveUpload = async function() {
+    console.log('🧪 Testing Google Drive upload...');
+    
+    try {
+        // Create a small test file
+        const testData = 'Test file created by XemGiaDat';
+        const testFile = new Blob([testData], { type: 'text/plain' });
+        testFile.name = `test_${Date.now()}.txt`;
+        
+        // Test upload
+        const result = await uploadToGoogleDrive(testFile, testFile.name);
+        console.log('✅ Test upload successful:', result);
+        
+        alert(`✅ Test upload successful!\nFile ID: ${result.id}\nView: ${result.webViewLink}`);
+        return result;
+        
+    } catch (error) {
+        console.error('❌ Test upload failed:', error);
+        alert(`❌ Test upload failed:\n${error.message}`);
+        return false;
+    }
+};
+
+// Debug Google Drive status
+window.debugGoogleDriveStatus = function() {
+    console.log('🔍 Google Drive Debug Status:');
+    console.log('- API Ready:', isGoogleDriveReady);
+    console.log('- GAPI Available:', typeof gapi !== 'undefined');
+    console.log('- Auth Instance:', !!googleAuthInstance);
+    
+    if (googleAuthInstance) {
+        console.log('- Signed In:', googleAuthInstance.isSignedIn.get());
+        if (googleAuthInstance.isSignedIn.get()) {
+            const user = googleAuthInstance.currentUser.get();
+            console.log('- User:', user.getBasicProfile().getName());
+            console.log('- Auth Response:', user.getAuthResponse());
+        }
+    }
+    
+    console.log('- Config:', GOOGLE_CONFIG);
+    console.log('- Current Domain:', window.location.hostname);
+};
 
 // Upload portfolio images to Google Drive
 async function uploadPortfolioImagesToGoogleDrive(portfolioId, files) {
