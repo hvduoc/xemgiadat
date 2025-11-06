@@ -5803,9 +5803,10 @@ function hidePreviewGallery() {
     }
 }
 
-// Upload images to Google Drive for specific portfolio item
+// Upload images with Google Drive → Imgur fallback (Firebase Storage temporarily disabled)
 async function uploadPortfolioImages(portfolioId, userId) {
     console.log('📤 Starting image upload for portfolio:', portfolioId);
+    console.log('🔄 Using Google Drive → Imgur fallback (Firebase Storage disabled)');
     
     if (selectedImages.length === 0) {
         console.log('📷 No images to upload');
@@ -5831,7 +5832,7 @@ async function uploadPortfolioImages(portfolioId, userId) {
             progressText.textContent = 'Đang kết nối Google Drive...';
         }
         
-        // Upload to Google Drive
+        // Primary: Upload to Google Drive
         const uploadedFiles = await uploadPortfolioImagesToGoogleDrive(portfolioId, files);
         
         // Convert to the expected format
@@ -5858,59 +5859,50 @@ async function uploadPortfolioImages(portfolioId, userId) {
         
         console.log('✅ All images uploaded to Google Drive successfully');
         
+        // Hide progress after delay
+        setTimeout(() => {
+            if (uploadProgress) {
+                uploadProgress.classList.add('hidden');
+            }
+        }, 2000);
+        
         // Return array of URLs for Firestore (extract URLs from objects)
         return uploadedUrls.map(item => item.url);
         
     } catch (error) {
-        console.error('⚠️ Google Drive upload failed, trying Firebase Storage fallback:', error);
+        console.error('⚠️ Google Drive upload failed, trying Imgur fallback:', error);
+        console.log('🔄 Firebase Storage is temporarily disabled, using Imgur instead');
         
-        // Show fallback message
+        // Show Imgur fallback message
         if (progressText) {
-            progressText.textContent = 'Google Drive chưa sẵn sàng, đang chuyển sang Firebase...';
+            progressText.textContent = 'Google Drive chưa sẵn sàng, đang chuyển sang Imgur...';
         }
         
         try {
-            // Fallback to Firebase Storage
-            const firebaseUrls = [];
+            // Fallback to Imgur (skip Firebase Storage)
+            const files = selectedImages.map(imageData => imageData.file);
+            const uploadedFiles = await uploadPortfolioImagesToImgur(portfolioId, files);
             
-            for (let i = 0; i < selectedImages.length; i++) {
-                const imageData = selectedImages[i];
-                const progress = ((i + 1) / selectedImages.length) * 100;
+            const imgurUrls = [];
+            for (let i = 0; i < uploadedFiles.length; i++) {
+                const progress = ((i + 1) / uploadedFiles.length) * 100;
                 
                 // Update progress
                 if (progressBar) {
                     progressBar.style.width = `${progress}%`;
                 }
                 if (progressText) {
-                    progressText.textContent = `Đang tải ảnh ${i + 1}/${selectedImages.length} lên Firebase...`;
+                    progressText.textContent = `Đã tải ${i + 1}/${uploadedFiles.length} ảnh lên Imgur`;
                 }
                 
-                // Create unique filename
-                const timestamp = Date.now();
-                const extension = imageData.file.name.split('.').pop();
-                const filename = `image_${timestamp}_${Math.random().toString(36).substr(2, 9)}.${extension}`;
-                
-                // Define storage path: /portfolio-images/{userId}/{portfolioId}/{filename}
-                const storagePath = `portfolio-images/${userId}/${portfolioId}/${filename}`;
-                const storageRef = storage.ref().child(storagePath);
-                
-                console.log(`📁 Uploading to Firebase: ${storagePath}`);
-                
-                // Upload file
-                const uploadTask = await storageRef.put(imageData.file);
-                
-                // Get download URL
-                const downloadUrl = await uploadTask.ref.getDownloadURL();
-                
-                firebaseUrls.push(downloadUrl);
-                
-                console.log(`✅ Uploaded to Firebase: ${filename}`);
+                const file = uploadedFiles[i];
+                imgurUrls.push(file.webContentLink);
             }
             
-            console.log('✅ Firebase Storage fallback successful!');
+            console.log('✅ Imgur fallback successful!');
             
             if (progressText) {
-                progressText.textContent = '✅ Hoàn thành tải ảnh lên Firebase Storage!';
+                progressText.textContent = '✅ Hoàn thành tải ảnh lên Imgur!';
             }
             
             // Hide progress after delay
@@ -5920,60 +5912,16 @@ async function uploadPortfolioImages(portfolioId, userId) {
                 }
             }, 2000);
             
-            return firebaseUrls;
+            return imgurUrls;
             
-        } catch (firebaseError) {
-            console.error('⚠️ Firebase Storage also failed, trying Imgur fallback:', firebaseError);
+        } catch (imgurError) {
+            console.error('❌ Both Google Drive and Imgur failed:', imgurError);
             
-            // Show Imgur fallback message
+            // Show final error
             if (progressText) {
-                progressText.textContent = 'Firebase cũng lỗi, đang chuyển sang Imgur...';
+                progressText.textContent = '❌ Lỗi tải ảnh. Vui lòng thử lại sau.';
+                progressText.className += ' text-red-600';
             }
-            
-            try {
-                // Final fallback to Imgur
-                const files = selectedImages.map(imageData => imageData.file);
-                const uploadedFiles = await uploadPortfolioImagesToImgur(portfolioId, files);
-                
-                const imgurUrls = [];
-                for (let i = 0; i < uploadedFiles.length; i++) {
-                    const progress = ((i + 1) / uploadedFiles.length) * 100;
-                    
-                    // Update progress
-                    if (progressBar) {
-                        progressBar.style.width = `${progress}%`;
-                    }
-                    if (progressText) {
-                        progressText.textContent = `Đã tải ${i + 1}/${uploadedFiles.length} ảnh lên Imgur`;
-                    }
-                    
-                    const file = uploadedFiles[i];
-                    imgurUrls.push(file.webContentLink);
-                }
-                
-                console.log('✅ Imgur fallback successful!');
-                
-                if (progressText) {
-                    progressText.textContent = '✅ Hoàn thành tải ảnh lên Imgur!';
-                }
-                
-                // Hide progress after delay
-                setTimeout(() => {
-                    if (uploadProgress) {
-                        uploadProgress.classList.add('hidden');
-                    }
-                }, 2000);
-                
-                return imgurUrls;
-                
-            } catch (imgurError) {
-                console.error('❌ All storage options failed (Google Drive, Firebase, Imgur):', imgurError);
-                
-                // Show final error
-                if (progressText) {
-                    progressText.textContent = '❌ Lỗi tải ảnh. Vui lòng thử lại sau.';
-                    progressText.className += ' text-red-600';
-                }
                 
                 // Hide progress after delay
                 setTimeout(() => {
