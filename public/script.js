@@ -5934,7 +5934,6 @@ async function uploadPortfolioImages(portfolioId, userId) {
             }
         }
     }
-}
 
 // Clear all selected images
 function clearAllImages() {
