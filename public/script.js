@@ -9,19 +9,6 @@ const firebaseConfig = {
     measurementId: "G-XT932D9N1N"
 };
 
-// --- GOOGLE DRIVE API CONFIGURATION ---
-const GOOGLE_CONFIG = {
-    apiKey: 'AIzaSyClLHGUQnD062f6KW-SG1R36pNw-7rmdGI',
-    clientId: '851507224167-8l2vievk2lkr2g0d09bgtk74n427qtgv.apps.googleusercontent.com',
-    discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
-    scope: 'https://www.googleapis.com/auth/drive.file'
-};
-
-// Portfolio folder ID và storage preference
-let PORTFOLIO_FOLDER_ID = localStorage.getItem('portfolioFolderId') || null;
-let USE_GOOGLE_DRIVE_STORAGE = localStorage.getItem('useGoogleDriveStorage') === 'true';
-let isGoogleDriveInitialized = false;
-
 // --- MAPBOX ACCESS TOKEN ---
 const mapboxAccessToken = "pk.eyJ1IjoiaHZkdW9jIiwiYSI6ImNtZDFwcjVxYTAzOGUybHEzc3ZrNTJmcnIifQ.D5VlPC8c_n1i3kezgqtzwg";
 
@@ -53,136 +40,6 @@ async function getCachedAddress(lat, lng) {
     console.error('Lỗi khi lấy địa chỉ:', err);
     return 'Không xác định';
   }
-}
-
-// --- GOOGLE DRIVE API FUNCTIONS ---
-
-// Initialize Google Drive API
-async function initializeGoogleDrive() {
-    if (isGoogleDriveInitialized) return true;
-    
-    try {
-        console.log('🔄 Initializing Google Drive API...');
-        
-        // Check if we're on localhost - Google Drive OAuth doesn't work on localhost
-        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-            console.warn('⚠️ Google Drive API not supported on localhost. Please deploy to a real domain.');
-            throw new Error('Google Drive API requires HTTPS and a real domain');
-        }
-        
-        await new Promise((resolve) => {
-            gapi.load('auth2:client', resolve);
-        });
-        
-        await gapi.client.init({
-            apiKey: GOOGLE_CONFIG.apiKey,
-            clientId: GOOGLE_CONFIG.clientId,
-            discoveryDocs: GOOGLE_CONFIG.discoveryDocs,
-            scope: GOOGLE_CONFIG.scope
-        });
-        
-        isGoogleDriveInitialized = true;
-        console.log('✅ Google Drive API initialized successfully');
-        return true;
-    } catch (error) {
-        console.error('❌ Google Drive API initialization failed:', error);
-        return false;
-    }
-}
-
-// Create portfolio folder in Google Drive
-async function createPortfolioFolder() {
-    try {
-        if (!isGoogleDriveInitialized) {
-            await initializeGoogleDrive();
-        }
-        
-        const authInstance = gapi.auth2.getAuthInstance();
-        if (!authInstance.isSignedIn.get()) {
-            await authInstance.signIn();
-        }
-        
-        const folderMetadata = {
-            name: 'xemgiadat-portfolios',
-            mimeType: 'application/vnd.google-apps.folder'
-        };
-        
-        const response = await gapi.client.drive.files.create({
-            resource: folderMetadata
-        });
-        
-        PORTFOLIO_FOLDER_ID = response.result.id;
-        localStorage.setItem('portfolioFolderId', PORTFOLIO_FOLDER_ID);
-        
-        console.log('✅ Portfolio folder created:', PORTFOLIO_FOLDER_ID);
-        return PORTFOLIO_FOLDER_ID;
-    } catch (error) {
-        console.error('❌ Failed to create portfolio folder:', error);
-        return null;
-    }
-}
-
-// Upload image to Google Drive
-async function uploadToGoogleDrive(file, filename) {
-    try {
-        if (!isGoogleDriveInitialized) {
-            await initializeGoogleDrive();
-        }
-        
-        const authInstance = gapi.auth2.getAuthInstance();
-        if (!authInstance.isSignedIn.get()) {
-            await authInstance.signIn();
-        }
-        
-        // Ensure we have a portfolio folder
-        if (!PORTFOLIO_FOLDER_ID) {
-            PORTFOLIO_FOLDER_ID = await createPortfolioFolder();
-            if (!PORTFOLIO_FOLDER_ID) {
-                throw new Error('Failed to create portfolio folder');
-            }
-        }
-        
-        const metadata = {
-            name: filename,
-            parents: [PORTFOLIO_FOLDER_ID]
-        };
-        
-        const form = new FormData();
-        form.append('metadata', new Blob([JSON.stringify(metadata)], {
-            type: 'application/json'
-        }));
-        form.append('file', file);
-        
-        const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-            method: 'POST',
-            headers: new Headers({
-                'Authorization': `Bearer ${authInstance.currentUser.get().getAuthResponse().access_token}`
-            }),
-            body: form
-        });
-        
-        if (!response.ok) {
-            throw new Error(`Upload failed: ${response.statusText}`);
-        }
-        
-        const fileData = await response.json();
-        
-        // Make file public and get direct link
-        await gapi.client.drive.permissions.create({
-            fileId: fileData.id,
-            resource: {
-                role: 'reader',
-                type: 'anyone'
-            }
-        });
-        
-        const directUrl = `https://drive.google.com/uc?id=${fileData.id}`;
-        console.log('✅ Image uploaded to Google Drive:', directUrl);
-        return directUrl;
-    } catch (error) {
-        console.error('❌ Failed to upload to Google Drive:', error);
-        throw error;
-    }
 }
 
     function extractLatLngsFromVectorLayer(layer, map) {
@@ -4962,84 +4819,6 @@ let portfolioBtn, portfolioModal, closePortfolioModal, addPortfolioModal, closeA
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 Initializing all systems...');
     
-    // Initialize storage toggle handlers
-    console.log('☁️ Initializing storage toggle...');
-    const storageFirebase = document.getElementById('storage-firebase');
-    const storageGoogleDrive = document.getElementById('storage-googledrive');
-    
-    if (storageFirebase && storageGoogleDrive) {
-        // Auto-disable Google Drive on localhost
-        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        
-        if (isLocalhost) {
-            USE_GOOGLE_DRIVE_STORAGE = false;
-            localStorage.setItem('useGoogleDriveStorage', 'false');
-            storageFirebase.checked = true;
-            storageGoogleDrive.disabled = true;
-            
-            // Add disabled note
-            const note = storageGoogleDrive.closest('label').querySelector('span');
-            if (note) {
-                note.innerHTML = '<i class="fa-brands fa-google-drive text-gray-400 mr-1"></i>Google Drive (Chỉ hỗ trợ HTTPS)';
-            }
-            
-            console.log('⚠️ Google Drive disabled on localhost');
-        } else {
-            // Set initial state from localStorage for production
-            if (USE_GOOGLE_DRIVE_STORAGE) {
-                storageGoogleDrive.checked = true;
-            } else {
-                storageFirebase.checked = true;
-            }
-        }
-        
-        // Handle storage option change
-        function handleStorageChange() {
-            if (isLocalhost && storageGoogleDrive.checked) {
-                // Force back to Firebase on localhost
-                storageFirebase.checked = true;
-                storageGoogleDrive.checked = false;
-                
-                // Show warning
-                const warning = document.createElement('div');
-                warning.className = 'fixed top-4 right-4 bg-orange-500 text-white px-4 py-2 rounded-lg shadow-lg z-[2000]';
-                warning.innerHTML = `
-                    <i class="fa-solid fa-exclamation-triangle mr-2"></i>
-                    Google Drive cần HTTPS domain. Dùng Firebase cho localhost.
-                `;
-                document.body.appendChild(warning);
-                
-                setTimeout(() => {
-                    warning.remove();
-                }, 5000);
-                
-                return;
-            }
-            
-            USE_GOOGLE_DRIVE_STORAGE = storageGoogleDrive.checked;
-            localStorage.setItem('useGoogleDriveStorage', USE_GOOGLE_DRIVE_STORAGE.toString());
-            console.log('🏪 Storage option changed to:', USE_GOOGLE_DRIVE_STORAGE ? 'Google Drive' : 'Firebase');
-            
-            // Show notification
-            const notification = document.createElement('div');
-            notification.className = 'fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg z-[2000]';
-            notification.innerHTML = `
-                <i class="fa-solid fa-${USE_GOOGLE_DRIVE_STORAGE ? 'cloud' : 'fire'} mr-2"></i>
-                Đã chọn: ${USE_GOOGLE_DRIVE_STORAGE ? 'Google Drive' : 'Firebase Storage'}
-            `;
-            document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.remove();
-            }, 3000);
-        }
-        
-        storageFirebase.addEventListener('change', handleStorageChange);
-        storageGoogleDrive.addEventListener('change', handleStorageChange);
-        
-        console.log('✅ Storage toggle initialized');
-    }
-    
     // Initialize community contribution system
     console.log('👥 Initializing community contribution system...');
     setTimeout(() => {
@@ -6006,10 +5785,9 @@ function hidePreviewGallery() {
     }
 }
 
-// Upload images to Firebase Storage or Google Drive for specific portfolio item
+// Upload images to Firebase Storage for specific portfolio item
 async function uploadPortfolioImages(portfolioId, userId) {
     console.log('📤 Starting image upload for portfolio:', portfolioId);
-    console.log('🏪 Storage option:', USE_GOOGLE_DRIVE_STORAGE ? 'Google Drive' : 'Firebase Storage');
     
     if (selectedImages.length === 0) {
         console.log('📷 No images to upload');
@@ -6036,62 +5814,35 @@ async function uploadPortfolioImages(portfolioId, userId) {
                 progressBar.style.width = `${progress}%`;
             }
             if (progressText) {
-                const storageText = USE_GOOGLE_DRIVE_STORAGE ? 'Google Drive' : 'Firebase';
-                progressText.textContent = `Đang tải ảnh ${i + 1}/${selectedImages.length} lên ${storageText}...`;
+                progressText.textContent = `Đang tải ảnh ${i + 1}/${selectedImages.length}...`;
             }
             
             // Create unique filename
             const timestamp = Date.now();
             const extension = imageData.file.name.split('.').pop();
-            const filename = `portfolio_${portfolioId}_${timestamp}_${Math.random().toString(36).substr(2, 9)}.${extension}`;
+            const filename = `image_${timestamp}_${Math.random().toString(36).substr(2, 9)}.${extension}`;
             
-            let downloadUrl;
+            // Define storage path: /portfolio-images/{userId}/{portfolioId}/{filename}
+            const storagePath = `portfolio-images/${userId}/${portfolioId}/${filename}`;
+            const storageRef = storage.ref().child(storagePath);
             
-            try {
-                if (USE_GOOGLE_DRIVE_STORAGE) {
-                    // Upload to Google Drive
-                    console.log(`☁️ Uploading to Google Drive: ${filename}`);
-                    downloadUrl = await uploadToGoogleDrive(imageData.file, filename);
-                } else {
-                    // Upload to Firebase Storage (default)
-                    const storagePath = `portfolio-images/${userId}/${portfolioId}/${filename}`;
-                    const storageRef = storage.ref().child(storagePath);
-                    console.log(`� Uploading to Firebase: ${storagePath}`);
-                    
-                    const uploadTask = await storageRef.put(imageData.file);
-                    downloadUrl = await uploadTask.ref.getDownloadURL();
-                }
-                
-                uploadedUrls.push(downloadUrl);
-                console.log(`✅ Uploaded: ${filename} → ${downloadUrl}`);
-                
-            } catch (uploadError) {
-                console.error(`❌ Upload failed for ${filename}:`, uploadError);
-                
-                // Fallback: if Google Drive fails, try Firebase
-                if (USE_GOOGLE_DRIVE_STORAGE) {
-                    console.log('🔄 Fallback to Firebase Storage...');
-                    try {
-                        const storagePath = `portfolio-images/${userId}/${portfolioId}/${filename}`;
-                        const storageRef = storage.ref().child(storagePath);
-                        
-                        const uploadTask = await storageRef.put(imageData.file);
-                        downloadUrl = await uploadTask.ref.getDownloadURL();
-                        
-                        uploadedUrls.push(downloadUrl);
-                        console.log(`✅ Fallback successful: ${filename} → ${downloadUrl}`);
-                        
-                        if (progressText) {
-                            progressText.textContent = `Đang tải ảnh ${i + 1}/${selectedImages.length} (Fallback Firebase)...`;
-                        }
-                    } catch (fallbackError) {
-                        console.error(`❌ Fallback also failed for ${filename}:`, fallbackError);
-                        throw new Error(`Upload failed: ${uploadError.message}, Fallback failed: ${fallbackError.message}`);
-                    }
-                } else {
-                    throw uploadError;
-                }
-            }
+            console.log(`📁 Uploading to: ${storagePath}`);
+            
+            // Upload file
+            const uploadTask = await storageRef.put(imageData.file);
+            
+            // Get download URL
+            const downloadUrl = await uploadTask.ref.getDownloadURL();
+            
+            uploadedUrls.push({
+                url: downloadUrl,
+                filename: filename,
+                originalName: imageData.file.name,
+                size: imageData.file.size,
+                storagePath: storagePath
+            });
+            
+            console.log(`✅ Uploaded: ${filename} → ${downloadUrl}`);
         }
         
         // Final progress
@@ -6099,14 +5850,13 @@ async function uploadPortfolioImages(portfolioId, userId) {
             progressBar.style.width = '100%';
         }
         if (progressText) {
-            const storageText = USE_GOOGLE_DRIVE_STORAGE ? 'Google Drive' : 'Firebase';
-            progressText.textContent = `Hoàn thành tải ảnh lên ${storageText}!`;
+            progressText.textContent = 'Hoàn thành tải ảnh!';
         }
         
         console.log('🎉 All images uploaded successfully:', uploadedUrls);
         
-        // Return array of URLs for Firestore
-        return uploadedUrls;
+        // Return array of URLs only for Firestore
+        return uploadedUrls.map(item => item.url);
         
     } catch (error) {
         console.error('❌ Error uploading images:', error);
