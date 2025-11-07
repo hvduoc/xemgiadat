@@ -121,71 +121,14 @@
     <link rel="dns-prefetch" href="//storage.googleapis.com">
     
     <!-- CSS Stylesheets -->
-    
-    <!-- Critical CSS Inlined for Performance -->
-    <style>
-        /* CRITICAL CSS - Above-the-fold styles only */
-        html, body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-        }
-
-        /* Header & Navigation - Critical */
-        .header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            z-index: 1000;
-            padding: 1rem;
-            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Map Container - Critical */
-        #map {
-            width: 100%;
-            height: 100vh;
-            position: relative;
-            z-index: 1;
-        }
-
-        /* Loading States - Critical */
-        .loading-skeleton {
-            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-            background-size: 200% 100%;
-            animation: skeleton-loading 1.5s infinite;
-        }
-
-        @keyframes skeleton-loading {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-        }
-
-        /* Mobile First - Critical */
-        @media (max-width: 768px) {
-            .header { padding: 0.5rem; }
-            #map { height: calc(100vh - 60px); }
-        }
-
-        /* Leaflet Essential Overrides */
-        .leaflet-container { font-family: inherit; }
-        .leaflet-control { font-size: 13px; }
-    </style>
-
-    <!-- Deferred Non-Critical CSS -->
-    <link rel="preload" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <link rel="preload" href="https://www.gstatic.com/firebasejs/ui/4.8.1/firebase-ui-auth.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <link rel="preload" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <link rel="preload" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <link rel="preload" href="https://unpkg.com/esri-leaflet-geocoder@3.1.4/dist/esri-leaflet-geocoder.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <link rel="preload" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <link rel="preload" href="style.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/4.8.1/firebase-ui-auth.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+    <link rel="stylesheet" href="https://unpkg.com/esri-leaflet-geocoder@3.1.4/dist/esri-leaflet-geocoder.css" crossorigin="">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+    <link rel="stylesheet" href="style.css">
 
     <meta name="description" content="Nền tảng BĐS Đà Nẵng thế hệ mới. Dễ dàng tra cứu thông tin thửa đất, đồng thời đăng tin bán hoặc cho thuê siêu nhẹ chỉ trong vài giây. Hoàn toàn miễn phí.">
     
