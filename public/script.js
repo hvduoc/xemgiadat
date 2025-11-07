@@ -1115,16 +1115,6 @@ document.addEventListener('DOMContentLoaded', () => {
             map.removeLayer(tempMarker);
             tempMarker = null;
         }
-    // Hiển thị hướng dẫn khi nhấn nút
-    const showGuideBtn = document.getElementById('show-guide-btn');
-    if (showGuideBtn) {
-        showGuideBtn.addEventListener('click', () => {
-            const instructionText = document.getElementById('instruction-text');
-            instructionText.textContent = 'Hướng dẫn: Nhấn vào bản đồ để chọn vị trí hoặc tra cứu thông tin thửa đất. Sử dụng các nút bên dưới để thao tác nhanh.';
-            instructionBanner.classList.remove('hidden');
-            setTimeout(() => instructionBanner.classList.add('hidden'), 5000);
-        });
-    }
     }
     
     async function prefillUserContact() {
