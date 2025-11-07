@@ -359,6 +359,39 @@ input[type=range][orient=vertical] {
     background-color: #3b82f6; /* bg-blue-600 */
     color: white;
 }
+
+/* Compact toolbar button for mobile optimization */
+.toolbar-btn-compact {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #374151;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    min-width: 56px;
+    gap: 4px;
+}
+
+.toolbar-btn-compact:hover {
+    background-color: #f3f4f6;
+    transform: translateY(-1px);
+}
+
+.toolbar-btn-compact:active {
+    transform: translateY(0);
+}
+
+.toolbar-btn-compact.active-tool {
+    background-color: #3b82f6;
+    color: white;
+}
 /* Thêm vào để tạo hiệu ứng di chuyển mượt mà */
 /* == THAY THẾ CSS CŨ BẰNG ĐOẠN NÀY == */
 

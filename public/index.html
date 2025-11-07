@@ -357,22 +357,26 @@
     </button>
 
     <div id="map"></div>
-    <div id="action-toolbar" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-[1001] flex items-center space-x-2 bg-white/80 backdrop-blur-sm p-2 rounded-full shadow-lg">
-        <button id="analytics-btn" class="toolbar-btn">
-            <i class="fa-solid fa-chart-bar"></i>
-            <span>Phân tích</span>
+    <div id="action-toolbar" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-[1001] flex items-center space-x-1 bg-white/90 backdrop-blur-sm px-3 py-2 rounded-full shadow-lg border border-gray-200">
+        <button id="analytics-btn" class="toolbar-btn-compact">
+            <i class="fa-solid fa-chart-bar text-sm"></i>
+            <span class="text-xs">Phân tích</span>
         </button>
-        <button id="list-btn" class="toolbar-btn">
-            <i class="fa-solid fa-list"></i>
-            <span>Danh sách</span>
+        <button id="list-btn" class="toolbar-btn-compact">
+            <i class="fa-solid fa-list text-sm"></i>
+            <span class="text-xs">Danh sách</span>
         </button>
-        <button id="add-location-btn" title="Thêm địa điểm" class="toolbar-btn disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-            <i class="fa-solid fa-plus"></i>
-            <span>Thêm</span>
+        <button id="add-location-btn" title="Đăng tin bất động sản" class="toolbar-btn-compact disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+            <i class="fa-solid fa-bullhorn text-sm"></i>
+            <span class="text-xs">Đăng tin</span>
         </button>
-        <button id="query-btn" title="Tra cứu Địa chính" class="toolbar-btn">
-            <i class="fa-solid fa-magnifying-glass-location"></i>
-            <span>Tra cứu</span>
+        <button id="query-btn" title="Tra cứu Địa chính" class="toolbar-btn-compact">
+            <i class="fa-solid fa-search text-sm"></i>
+            <span class="text-xs">Tra cứu</span>
+        </button>
+        <button id="guide-btn" title="Hướng dẫn sử dụng" class="toolbar-btn-compact bg-blue-500 text-white hover:bg-blue-600">
+            <i class="fa-solid fa-question-circle text-sm"></i>
+            <span class="text-xs">Hướng dẫn</span>
         </button>
     </div>
 
