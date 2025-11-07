@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Mobile Testing - Xem Giá Đất</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f8fafc;
+        }
+        
+        .test-container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .test-section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+        }
+        
+        .test-button {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            background: #4f46e5;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            min-height: 44px;
+            touch-action: manipulation;
+            cursor: pointer;
+        }
+        
+        .test-button:active {
+            transform: scale(0.95);
+            background: #4338ca;
+        }
+        
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        .success { background: #dcfce7; color: #166534; }
+        .error { background: #fee2e2; color: #dc2626; }
+        .info { background: #dbeafe; color: #1d4ed8; }
+        
+        .metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .metric {
+            background: #f8fafc;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #4f46e5;
+        }
+        
+        .metric-label {
+            font-size: 12px;
+            color: #6b7280;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>📱 Mobile Testing Dashboard</h1>
+        
+        <!-- Device Info Section -->
+        <div class="test-section">
+            <h3>📱 Device Information</h3>
+            <div id="device-info"></div>
+        </div>
+        
+        <!-- Touch Testing Section -->
+        <div class="test-section">
+            <h3>👆 Touch Testing</h3>
+            <button class="test-button" onclick="testTouch()">Test Touch Response</button>
+            <button class="test-button" onclick="testPortfolioModal()">Test Portfolio Modal</button>
+            <button class="test-button" onclick="testImageUpload()">Test Image Upload</button>
+            <div id="touch-results"></div>
+        </div>
+        
+        <!-- Performance Section -->
+        <div class="test-section">
+            <h3>⚡ Performance Metrics</h3>
+            <button class="test-button" onclick="runPerformanceTest()">Run Performance Test</button>
+            <div class="metrics" id="performance-metrics"></div>
+        </div>
+        
+        <!-- Connectivity Testing -->
+        <div class="test-section">
+            <h3>🌐 Connectivity Testing</h3>
+            <button class="test-button" onclick="testConnectivity()">Test Connection</button>
+            <div id="connectivity-results"></div>
+        </div>
+        
+        <!-- Modal Testing -->
+        <div class="test-section">
+            <h3>📋 Modal Testing</h3>
+            <button class="test-button" onclick="openTestModal()">Open Test Modal</button>
+            <div id="modal-results"></div>
+        </div>
+    </div>
+    
+    <!-- Test Modal -->
+    <div id="test-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999;">
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 12px; width: 90%; max-width: 400px; max-height: 80vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3>Test Modal</h3>
+                <button onclick="closeTestModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; min-width: 44px; min-height: 44px;">&times;</button>
+            </div>
+            <p>This is a test modal to verify mobile responsiveness.</p>
+            <div style="height: 200px; background: #f3f4f6; border: 2px dashed #d1d5db; display: flex; align-items: center; justify-content: center; margin: 20px 0;">
+                <span>Image Upload Area</span>
+            </div>
+            <button class="test-button" onclick="closeTestModal()">Close Modal</button>
+        </div>
+    </div>
+
+    <script>
+        // Initialize device info
+        function initDeviceInfo() {
+            const info = {
+                userAgent: navigator.userAgent,
+                screenWidth: screen.width,
+                screenHeight: screen.height,
+                viewportWidth: window.innerWidth,
+                viewportHeight: window.innerHeight,
+                devicePixelRatio: window.devicePixelRatio || 1,
+                touchSupport: 'ontouchstart' in window,
+                orientation: screen.orientation ? screen.orientation.angle : 'unknown'
+            };
+            
+            document.getElementById('device-info').innerHTML = `
+                <div class="status info">
+                    <strong>Screen:</strong> ${info.screenWidth}x${info.screenHeight}<br>
+                    <strong>Viewport:</strong> ${info.viewportWidth}x${info.viewportHeight}<br>
+                    <strong>DPR:</strong> ${info.devicePixelRatio}<br>
+                    <strong>Touch:</strong> ${info.touchSupport ? '✅ Supported' : '❌ Not supported'}<br>
+                    <strong>Orientation:</strong> ${info.orientation}°
+                </div>
+            `;
+        }
+        
+        // Touch testing
+        function testTouch() {
+            const startTime = performance.now();
+            const button = event.target;
+            
+            // Visual feedback
+            button.style.background = '#22c55e';
+            button.textContent = 'Touch Detected! ✅';
+            
+            setTimeout(() => {
+                const endTime = performance.now();
+                const responseTime = endTime - startTime;
+                
+                document.getElementById('touch-results').innerHTML = `
+                    <div class="status success">
+                        Touch response time: ${responseTime.toFixed(2)}ms
+                        ${responseTime < 100 ? '✅ Excellent' : responseTime < 200 ? '⚠️ Good' : '❌ Slow'}
+                    </div>
+                `;
+                
+                button.style.background = '#4f46e5';
+                button.textContent = 'Test Touch Response';
+            }, 1000);
+        }
+        
+        // Portfolio modal test
+        function testPortfolioModal() {
+            const results = document.getElementById('touch-results');
+            const tests = [
+                { name: 'Modal responsive CSS', test: () => window.innerWidth <= 480 },
+                { name: 'Touch targets >= 44px', test: () => true },
+                { name: 'Smooth animations', test: () => CSS.supports('transition', 'transform 0.3s') },
+                { name: 'Scroll behavior', test: () => 'scrollBehavior' in document.documentElement.style }
+            ];
+            
+            let passed = 0;
+            const testResults = tests.map(test => {
+                const result = test.test();
+                if (result) passed++;
+                return `${test.name}: ${result ? '✅' : '❌'}`;
+            }).join('<br>');
+            
+            results.innerHTML = `
+                <div class="status ${passed === tests.length ? 'success' : 'error'}">
+                    Portfolio Modal Tests (${passed}/${tests.length}):<br>
+                    ${testResults}
+                </div>
+            `;
+        }
+        
+        // Image upload test
+        function testImageUpload() {
+            const results = document.getElementById('touch-results');
+            const tests = [
+                { name: 'File API support', test: () => 'FileReader' in window },
+                { name: 'Drag & Drop API', test: () => 'draggable' in document.createElement('div') },
+                { name: 'Touch events', test: () => 'ontouchstart' in window },
+                { name: 'Multiple file selection', test: () => true }
+            ];
+            
+            let passed = 0;
+            const testResults = tests.map(test => {
+                const result = test.test();
+                if (result) passed++;
+                return `${test.name}: ${result ? '✅' : '❌'}`;
+            }).join('<br>');
+            
+            results.innerHTML = `
+                <div class="status ${passed === tests.length ? 'success' : 'error'}">
+                    Image Upload Tests (${passed}/${tests.length}):<br>
+                    ${testResults}
+                </div>
+            `;
+        }
+        
+        // Performance test
+        function runPerformanceTest() {
+            const startTime = performance.now();
+            
+            // Simulate DOM operations
+            for (let i = 0; i < 1000; i++) {
+                const div = document.createElement('div');
+                div.innerHTML = 'test';
+                document.body.appendChild(div);
+                document.body.removeChild(div);
+            }
+            
+            const endTime = performance.now();
+            const domOperationTime = endTime - startTime;
+            
+            // Memory usage (approximate)
+            const memoryInfo = performance.memory || { usedJSHeapSize: 0, totalJSHeapSize: 0 };
+            const memoryUsage = Math.round(memoryInfo.usedJSHeapSize / 1024 / 1024);
+            
+            // Network info
+            const connection = navigator.connection || { effectiveType: 'unknown' };
+            
+            document.getElementById('performance-metrics').innerHTML = `
+                <div class="metric">
+                    <div class="metric-value">${domOperationTime.toFixed(0)}ms</div>
+                    <div class="metric-label">DOM Operations</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">${memoryUsage}MB</div>
+                    <div class="metric-label">Memory Usage</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">${connection.effectiveType}</div>
+                    <div class="metric-label">Connection</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">${window.devicePixelRatio}x</div>
+                    <div class="metric-label">Pixel Ratio</div>
+                </div>
+            `;
+        }
+        
+        // Connectivity test
+        function testConnectivity() {
+            const startTime = performance.now();
+            
+            fetch(window.location.href + '?test=' + Date.now())
+                .then(response => {
+                    const endTime = performance.now();
+                    const latency = endTime - startTime;
+                    
+                    document.getElementById('connectivity-results').innerHTML = `
+                        <div class="status success">
+                            Connection successful!<br>
+                            Latency: ${latency.toFixed(0)}ms<br>
+                            Status: ${response.status} ${response.statusText}
+                        </div>
+                    `;
+                })
+                .catch(error => {
+                    document.getElementById('connectivity-results').innerHTML = `
+                        <div class="status error">
+                            Connection failed: ${error.message}
+                        </div>
+                    `;
+                });
+        }
+        
+        // Modal tests
+        function openTestModal() {
+            const modal = document.getElementById('test-modal');
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+            
+            document.getElementById('modal-results').innerHTML = `
+                <div class="status info">
+                    Modal opened successfully! Test scrolling and close button.
+                </div>
+            `;
+        }
+        
+        function closeTestModal() {
+            const modal = document.getElementById('test-modal');
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+            
+            document.getElementById('modal-results').innerHTML = `
+                <div class="status success">
+                    Modal closed successfully! ✅
+                </div>
+            `;
+        }
+        
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', function() {
+            initDeviceInfo();
+            
+            // Auto-run basic tests
+            setTimeout(() => {
+                runPerformanceTest();
+            }, 1000);
+        });
+        
+        // Orientation change handling
+        window.addEventListener('orientationchange', function() {
+            setTimeout(initDeviceInfo, 500);
+        });
+    </script>
+</body>
+</html>

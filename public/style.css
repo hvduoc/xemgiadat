@@ -1502,11 +1502,82 @@ button:disabled .loading-text {
         width: calc(100% - 2rem);
         margin: 0 1rem;
         max-width: none;
+        max-height: 90vh;
+        overflow-y: auto;
     }
     
     #portfolio-list {
         grid-template-columns: 1fr;
         gap: 0.75rem;
+    }
+}
+
+/* Critical mobile fixes for small screens */
+@media (max-width: 480px) {
+    /* Full screen modal for tiny devices */
+    #add-portfolio-modal .bg-white {
+        width: 100% !important;
+        height: 100vh !important;
+        border-radius: 0 !important;
+        margin: 0 !important;
+        max-height: 100vh !important;
+        overflow-y: auto !important;
+    }
+    
+    #add-portfolio-modal .flex {
+        min-height: 100vh;
+        align-items: stretch;
+    }
+    
+    /* Ensure close button is always visible */
+    #add-portfolio-modal .border-b {
+        position: sticky;
+        top: 0;
+        background: white;
+        z-index: 10;
+    }
+    
+    /* Image preview container height limit */
+    #image-preview-gallery {
+        max-height: 200px;
+        overflow-y: auto;
+    }
+    
+    .image-preview {
+        max-height: 120px;
+        overflow: hidden;
+    }
+    
+    /* Form spacing optimization */
+    #portfolio-form {
+        padding: 1rem !important;
+    }
+    
+    #portfolio-form .space-y-4 > * {
+        margin-bottom: 1rem;
+    }
+    
+    /* Touch target optimization - minimum 44px */
+    button, .btn, input[type="submit"], input[type="button"] {
+        min-height: 44px !important;
+        min-width: 44px !important;
+        touch-action: manipulation;
+    }
+    
+    /* Portfolio action buttons mobile-friendly */
+    .portfolio-btn {
+        padding: 12px 16px !important;
+        font-size: 14px !important;
+        min-height: 44px !important;
+    }
+    
+    /* Close button always accessible */
+    #close-add-portfolio-modal, #close-portfolio-modal {
+        min-width: 44px !important;
+        min-height: 44px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
     }
 }
 
@@ -1823,6 +1894,35 @@ button:disabled .loading-text {
     .portfolio-btn {
         width: 100%;
     }
+    
+    /* Improved portfolio grid for mobile */
+    #portfolio-list {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+        padding: 0 0.5rem;
+    }
+    
+    .portfolio-card {
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Portfolio modal full screen on mobile */
+    #portfolio-modal .p-6 {
+        padding: 1rem !important;
+    }
+    
+    #portfolio-modal h2 {
+        font-size: 1.25rem !important;
+    }
+    
+    /* Add to portfolio button in toolbar - mobile friendly */
+    #add-to-portfolio-btn {
+        padding: 12px 16px !important;
+        min-height: 44px !important;
+        font-size: 14px !important;
+    }
 }
 
 /*  PHASE 4: IMAGE UPLOAD STYLES */
@@ -1842,6 +1942,36 @@ button:disabled .loading-text {
 
 #image-upload-zone:hover {
     border-color: #6366f1;
+}
+
+/* Mobile-optimized upload zone */
+@media (max-width: 480px) {
+    #image-upload-zone {
+        padding: 1.5rem 1rem !important;
+        min-height: 120px;
+        border-width: 3px; /* Thicker border for easier targeting */
+    }
+    
+    #image-upload-zone.dragover {
+        transform: scale(1.01); /* Smaller scale for mobile */
+        border-color: #4f46e5 !important;
+        background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%) !important;
+    }
+    
+    #select-images-btn {
+        padding: 12px 24px !important;
+        font-size: 16px !important;
+        min-height: 44px !important;
+        background-color: #4f46e5 !important;
+        color: white !important;
+        border-radius: 8px !important;
+        border: none !important;
+        touch-action: manipulation !important;
+    }
+    
+    #select-images-btn:hover {
+        background-color: #4338ca !important;
+    }
 }
 
 /* Image preview styles */

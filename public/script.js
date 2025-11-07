@@ -6774,3 +6774,185 @@ window.debugGoogleDriveStatusEnhanced = function() {
         console.log('🏠 Running on development domain:', window.location.hostname);
     }
 };
+
+// ============================================================================
+// 📱 MOBILE UX ENHANCEMENTS - Phase 1 Implementation
+// ============================================================================
+
+// Mobile-specific optimizations
+function initializeMobileOptimizations() {
+    console.log('📱 Initializing mobile optimizations...');
+    
+    // Check if mobile device
+    const isMobile = window.innerWidth <= 480 || /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+        console.log('📱 Mobile device detected, applying optimizations...');
+        
+        // 1. Enhanced touch handling for portfolio modals
+        enhanceTouchHandling();
+        
+        // 2. Optimize image upload for mobile
+        optimizeImageUploadMobile();
+        
+        // 3. Add mobile-specific event listeners
+        addMobileEventListeners();
+        
+        // 4. Improve modal scroll behavior
+        fixModalScrolling();
+        
+        // 5. Add haptic feedback simulation
+        addHapticFeedback();
+    }
+}
+
+// Enhanced touch handling
+function enhanceTouchHandling() {
+    // Prevent zoom on double tap for buttons
+    document.addEventListener('touchend', function(e) {
+        if (e.target.matches('button, .btn, input[type="submit"], input[type="button"]')) {
+            e.preventDefault();
+            e.target.click();
+        }
+    });
+    
+    // Improve modal close on outside tap
+    document.addEventListener('touchstart', function(e) {
+        const modals = ['#portfolio-modal', '#add-portfolio-modal'];
+        modals.forEach(modalId => {
+            const modal = document.querySelector(modalId);
+            if (modal && !modal.classList.contains('hidden')) {
+                if (e.target === modal) {
+                    modal.classList.add('hidden');
+                    document.body.style.overflow = 'auto';
+                }
+            }
+        });
+    });
+}
+
+// Mobile image upload optimization
+function optimizeImageUploadMobile() {
+    const uploadZone = document.getElementById('image-upload-zone');
+    if (uploadZone) {
+        // Add visual feedback for touch
+        uploadZone.addEventListener('touchstart', function() {
+            this.style.transform = 'scale(0.98)';
+        });
+        
+        uploadZone.addEventListener('touchend', function() {
+            this.style.transform = 'scale(1)';
+        });
+        
+        // Improve file selector for mobile
+        const selectBtn = document.getElementById('select-images-btn');
+        if (selectBtn) {
+            selectBtn.addEventListener('touchstart', function() {
+                this.style.transform = 'scale(0.95)';
+            });
+            
+            selectBtn.addEventListener('touchend', function() {
+                this.style.transform = 'scale(1)';
+            });
+        }
+    }
+}
+
+// Mobile-specific event listeners
+function addMobileEventListeners() {
+    // Orientation change handling
+    window.addEventListener('orientationchange', function() {
+        setTimeout(() => {
+            // Recalculate modal heights after orientation change
+            const modals = document.querySelectorAll('#portfolio-modal, #add-portfolio-modal');
+            modals.forEach(modal => {
+                if (!modal.classList.contains('hidden')) {
+                    modal.style.height = '100vh';
+                }
+            });
+        }, 500);
+    });
+    
+    // Keyboard handling for mobile
+    window.addEventListener('resize', function() {
+        // Detect virtual keyboard open/close
+        const currentHeight = window.innerHeight;
+        const isKeyboardOpen = currentHeight < window.screen.height * 0.75;
+        
+        if (isKeyboardOpen) {
+            document.body.classList.add('keyboard-open');
+        } else {
+            document.body.classList.remove('keyboard-open');
+        }
+    });
+}
+
+// Fix modal scrolling issues on mobile
+function fixModalScrolling() {
+    const modals = document.querySelectorAll('#portfolio-modal, #add-portfolio-modal');
+    
+    modals.forEach(modal => {
+        modal.addEventListener('scroll', function(e) {
+            e.stopPropagation();
+        });
+        
+        // Prevent body scroll when modal is open
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.attributeName === 'class') {
+                    if (modal.classList.contains('hidden')) {
+                        document.body.style.overflow = 'auto';
+                        document.body.style.position = 'static';
+                    } else {
+                        document.body.style.overflow = 'hidden';
+                        document.body.style.position = 'fixed';
+                        document.body.style.width = '100%';
+                    }
+                }
+            });
+        });
+        
+        observer.observe(modal, { attributes: true });
+    });
+}
+
+// Add haptic feedback simulation
+function addHapticFeedback() {
+    // Add CSS for mobile enhancements
+    if (!document.getElementById('mobile-enhancement-styles')) {
+        const style = document.createElement('style');
+        style.id = 'mobile-enhancement-styles';
+        style.textContent = `
+            @keyframes ripple {
+                to {
+                    transform: scale(2);
+                    opacity: 0;
+                }
+            }
+            
+            .keyboard-open {
+                padding-bottom: 0 !important;
+            }
+            
+            body.keyboard-open #add-portfolio-modal .bg-white {
+                height: auto !important;
+                max-height: calc(100vh - 50px) !important;
+            }
+            
+            /* Smooth transitions for touch feedback */
+            button, .btn {
+                transition: transform 0.1s ease;
+            }
+            
+            button:active, .btn:active {
+                transform: scale(0.95);
+            }
+        `;
+        document.head.appendChild(style);
+    }
+}
+
+// Initialize mobile optimizations when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    initializeMobileOptimizations();
+});
