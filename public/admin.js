@@ -850,14 +850,11 @@ function showSection(sectionName) {
             loadFeedbackSection();
             break;
         case 'analytics':
-            if (typeof loadAnalyticsSection === 'function') {
-                loadAnalyticsSection();
-            } else {
-                loadAdvancedAnalytics();
-            }
+            loadAdvancedAnalytics();
             break;
-        case 'performance':
-            loadPerformanceAnalytics();
+        case 'settings':
+            loadSettingsSection();
+            break;
             break;
     }
 }
@@ -1839,5 +1836,43 @@ function exportAnalytics() {
     a.download = `analytics-export-${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
+}
+
+function loadSettingsSection() {
+    console.log('⚙️ Loading settings section...');
+    
+    const content = document.getElementById('content');
+    if (!content) return;
+    
+    // Settings content is already in HTML, just show section
+    console.log('✅ Settings section loaded');
+}
+
+function saveSettings() {
+    console.log('💾 Saving settings...');
+    
+    // Show loading state
+    const button = event.target;
+    const originalHtml = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Đang lưu...';
+    button.disabled = true;
+    
+    // Simulate save operation
+    setTimeout(() => {
+        button.innerHTML = originalHtml;
+        button.disabled = false;
+        
+        // Show success message
+        const message = document.createElement('div');
+        message.className = 'fixed top-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+        message.innerHTML = '<i class="fas fa-check mr-2"></i>Đã lưu cài đặt thành công!';
+        document.body.appendChild(message);
+        
+        setTimeout(() => {
+            if (message.parentElement) {
+                message.remove();
+            }
+        }, 3000);
+    }, 1500);
 }
 console.log('🔧 Admin Dashboard Script Loaded');

@@ -115,10 +115,7 @@
                         <i class="fas fa-comments mr-3"></i>Góp ý & Phản hồi
                     </button>
                     <button onclick="showSection('analytics')" class="sidebar-item w-full text-left px-4 py-3 rounded-lg transition">
-                        <i class="fas fa-chart-bar mr-3"></i>Thống kê & Báo cáo
-                    </button>
-                    <button onclick="showSection('performance')" class="sidebar-item w-full text-left px-4 py-3 rounded-lg transition">
-                        <i class="fas fa-tachometer-alt mr-3"></i>Analytics & Performance
+                        <i class="fas fa-chart-bar mr-3"></i>Analytics & Performance
                     </button>
                     <button onclick="showSection('settings')" class="sidebar-item w-full text-left px-4 py-3 rounded-lg transition">
                         <i class="fas fa-cog mr-3"></i>Cài đặt hệ thống
@@ -568,54 +565,76 @@
                 </div>
             </section>
 
-            <!-- Performance Analytics Section -->
-            <section id="performance-section" class="section hidden">
+            <!-- Settings Section -->
+            <section id="settings-section" class="section hidden">
                 <div class="mb-8">
-                    <h2 class="text-3xl font-bold text-gray-800 mb-2">📊 Analytics & Performance Monitor</h2>
-                    <p class="text-gray-600">Theo dõi hiệu suất website và hành vi người dùng real-time</p>
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">⚙️ Cài đặt hệ thống</h2>
+                    <p class="text-gray-600">Quản lý cấu hình và tùy chỉnh hệ thống</p>
                 </div>
 
-                <!-- Performance Overview Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    <div class="bg-gradient-to-r from-blue-500 to-blue-600 p-6 rounded-xl text-white shadow-lg">
-                        <div class="flex items-center justify-between">
+                <!-- System Configuration -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- General Settings -->
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">🔧 Cài đặt chung</h3>
+                        <div class="space-y-4">
                             <div>
-                                <p class="text-sm opacity-80">Core Web Vitals</p>
-                                <p id="performance-score" class="text-3xl font-bold">--</p>
-                                <p class="text-sm opacity-70">Điểm hiệu suất tổng thể</p>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Tên website</label>
+                                <input type="text" value="Xem Giá Đất Đà Nẵng" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
                             </div>
-                            <i class="fas fa-gauge-high text-4xl opacity-60"></i>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Mô tả SEO</label>
+                                <textarea rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">Bản đồ giá đất Đà Nẵng chính xác nhất 2025</textarea>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <input type="checkbox" id="maintenance-mode" class="rounded">
+                                <label for="maintenance-mode" class="text-sm text-gray-700">Chế độ bảo trì</label>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="bg-gradient-to-r from-green-500 to-green-600 p-6 rounded-xl text-white shadow-lg">
-                        <div class="flex items-center justify-between">
+                    <!-- Analytics Settings -->
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">📊 Cài đặt Analytics</h3>
+                        <div class="space-y-4">
                             <div>
-                                <p class="text-sm opacity-80">Engagement Score</p>
-                                <p id="engagement-score" class="text-3xl font-bold">--</p>
-                                <p class="text-sm opacity-70">Mức độ tương tác người dùng</p>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Google Analytics ID</label>
+                                <input type="text" value="G-XT932D9N1N" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
                             </div>
-                            <i class="fas fa-heart text-4xl opacity-60"></i>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Data retention</label>
+                                <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option>14 tháng</option>
+                                    <option>26 tháng</option>
+                                    <option>38 tháng</option>
+                                    <option>50 tháng</option>
+                                </select>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <input type="checkbox" id="enhanced-ecommerce" class="rounded" checked>
+                                <label for="enhanced-ecommerce" class="text-sm text-gray-700">Enhanced Ecommerce</label>
+                            </div>
                         </div>
                     </div>
+                </div>
 
-                    <div class="bg-gradient-to-r from-purple-500 to-purple-600 p-6 rounded-xl text-white shadow-lg">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-sm opacity-80">Sessions Hôm nay</p>
-                                <p id="today-sessions" class="text-3xl font-bold">--</p>
-                                <p class="text-sm opacity-70">Phiên hoạt động</p>
-                            </div>
-                            <i class="fas fa-users text-4xl opacity-60"></i>
-                        </div>
-                    </div>
+                <!-- Save Button -->
+                <div class="mt-8">
+                    <button onclick="saveSettings()" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">
+                        <i class="fas fa-save mr-2"></i>Lưu cài đặt
+                    </button>
+                </div>
+            </section>
+        </div>
+    </div>
 
-                    <div class="bg-gradient-to-r from-orange-500 to-orange-600 p-6 rounded-xl text-white shadow-lg">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-sm opacity-80">Tìm kiếm (1h)</p>
-                                <p id="search-count" class="text-3xl font-bold">--</p>
-                                <p class="text-sm opacity-70">Lượt tìm kiếm</p>
+    <!-- Chart.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Admin Dashboard Script -->
+    <script src="admin.js"></script>
+</body>
+</html>
                             </div>
                             <i class="fas fa-search text-4xl opacity-60"></i>
                         </div>

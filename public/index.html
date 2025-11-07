@@ -423,26 +423,32 @@
         updateNetworkStatus();
     </script>
     
+    <!-- Error Tracking -->
+    <script>
         // Error Tracking
         window.trackError = function(error, context = '') {
-            gtag('event', 'error_occurred', {
-                event_category: 'Error',
-                event_label: error.message || error,
-                error_type: error.name || 'Unknown',
-                error_context: context,
-                error_stack: error.stack || ''
-            });
+            if (window.gtag) {
+                gtag('event', 'error_occurred', {
+                    event_category: 'Error',
+                    event_label: error.message || error,
+                    error_type: error.name || 'Unknown',
+                    error_context: context,
+                    error_stack: error.stack || ''
+                });
+            }
         };
         
         // Conversion Events
         window.trackConversion = function(action, value = 0) {
-            gtag('event', 'conversion', {
-                event_category: 'Conversion',
-                event_label: action,
-                value: value,
-                currency: 'VND',
-                conversion_type: action
-            });
+            if (window.gtag) {
+                gtag('event', 'conversion', {
+                    event_category: 'Conversion',
+                    event_label: action,
+                    value: value,
+                    currency: 'VND',
+                    conversion_type: action
+                });
+            }
         };
     </script>
 </head>
