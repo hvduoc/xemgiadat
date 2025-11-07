@@ -1,3 +1,78 @@
+// =============================================================================
+// PERFORMANCE OPTIMIZATION & LAZY LOADING SYSTEM
+// Enhanced loading strategies for better user experience
+// =============================================================================
+
+// Image lazy loading with Intersection Observer
+const initLazyLoading = () => {
+    const imageObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const img = entry.target;
+                img.src = img.dataset.src;
+                img.classList.remove('loading-skeleton');
+                img.setAttribute('data-loaded', 'true');
+                observer.unobserve(img);
+            }
+        });
+    }, {
+        threshold: 0.1,
+        rootMargin: '50px'
+    });
+
+    // Observe all images with data-src
+    document.querySelectorAll('img[data-src]').forEach(img => {
+        imageObserver.observe(img);
+    });
+};
+
+// Performance monitoring
+const performanceMonitor = {
+    marks: new Map(),
+    
+    mark(name) {
+        const mark = performance.now();
+        this.marks.set(name, mark);
+        return mark;
+    },
+    
+    measure(name, startMark) {
+        const start = this.marks.get(startMark);
+        const end = performance.now();
+        const duration = end - start;
+        
+        console.log(`⏱️ ${name}: ${duration.toFixed(2)}ms`);
+        
+        // Send to analytics if available
+        if (window.gtag) {
+            gtag('event', 'performance_timing', {
+                event_category: 'Performance',
+                event_label: name,
+                value: Math.round(duration),
+                custom_parameter_duration: duration
+            });
+        }
+        
+        return duration;
+    }
+};
+
+// Initialize performance optimizations
+const initPerformanceOptimizations = () => {
+    performanceMonitor.mark('init-start');
+    
+    // Initialize lazy loading
+    if ('IntersectionObserver' in window) {
+        initLazyLoading();
+    }
+    
+    performanceMonitor.measure('Performance optimization complete', 'init-start');
+};
+
+// =============================================================================
+// FIREBASE CONFIGURATION & CORE FUNCTIONALITY
+// =============================================================================
+
 // --- FIREBASE CONFIGURATION ---
 const firebaseConfig = {
     apiKey: "AIzaSyDu9tYpJdMPT7Hvk2_Ug8XHwxRQXoakRfs",
@@ -99,6 +174,12 @@ async function getCachedAddress(lat, lng) {
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log('🚀 DOM Content Loaded - Initializing app...');
+    
+    // Initialize performance monitoring
+    performanceMonitor.mark('app-init-start');
+    
+    // Initialize performance optimizations
+    initPerformanceOptimizations();
 
     // --- MAP AND LAYERS INITIALIZATION ---
     window.map = L.map('map', { center: [16.054456, 108.202167], zoom: 13, zoomControl: false });
