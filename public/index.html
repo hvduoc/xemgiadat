@@ -247,7 +247,182 @@
                 metric_value: value
             });
         };
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- PWA Theme Colors -->
+    <meta name="theme-color" content="#3b82f6">
+    <meta name="msapplication-TileColor" content="#3b82f6">
+    <meta name="msapplication-navbutton-color" content="#3b82f6">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    
+    <!-- PWA Icons -->
+    <link rel="apple-touch-icon" sizes="72x72" href="/images/icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="96x96" href="/images/icon-96x96.png">
+    <link rel="apple-touch-icon" sizes="128x128" href="/images/icon-128x128.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="/images/icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/images/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="/images/icon-192x192.png">
+    <link rel="apple-touch-icon" sizes="384x384" href="/images/icon-384x384.png">
+    <link rel="apple-touch-icon" sizes="512x512" href="/images/icon-512x512.png">
+    
+    <!-- Microsoft Tiles -->
+    <meta name="msapplication-TileImage" content="/images/icon-144x144.png">
+    <meta name="msapplication-square70x70logo" content="/images/icon-72x72.png">
+    <meta name="msapplication-square150x150logo" content="/images/icon-152x152.png">
+    <meta name="msapplication-wide310x150logo" content="/images/icon-310x150.png">
+    <meta name="msapplication-square310x310logo" content="/images/icon-310x310.png">
+    
+    <!-- Service Worker Registration & PWA Features -->
+    <script>
+        // PWA Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', async () => {
+                try {
+                    const registration = await navigator.serviceWorker.register('/sw.js');
+                    console.log('✅ Service Worker registered successfully:', registration.scope);
+                    
+                    // Update available notification
+                    registration.addEventListener('updatefound', () => {
+                        const newWorker = registration.installing;
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                showUpdateNotification();
+                            }
+                        });
+                    });
+                } catch (error) {
+                    console.error('❌ Service Worker registration failed:', error);
+                }
+            });
+        }
         
+        // PWA Install Prompt
+        let deferredPrompt;
+        let installButton;
+        
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            showInstallButton();
+        });
+        
+        function showInstallButton() {
+            if (!installButton) {
+                installButton = document.createElement('button');
+                installButton.id = 'pwa-install-btn';
+                installButton.innerHTML = `
+                    <i class="fas fa-download mr-2"></i>
+                    Cài đặt ứng dụng
+                `;
+                installButton.className = 'fixed bottom-20 right-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-lg transition-all duration-300 z-50 text-sm font-medium';
+                installButton.addEventListener('click', installPWA);
+                document.body.appendChild(installButton);
+                
+                // Hide after 10 seconds
+                setTimeout(() => {
+                    if (installButton) {
+                        installButton.style.opacity = '0';
+                        setTimeout(() => {
+                            installButton.remove();
+                            installButton = null;
+                        }, 300);
+                    }
+                }, 10000);
+            }
+        }
+        
+        async function installPWA() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log('PWA install outcome:', outcome);
+                
+                if (outcome === 'accepted') {
+                    trackEvent('pwa_install', 'accepted');
+                } else {
+                    trackEvent('pwa_install', 'dismissed');
+                }
+                
+                deferredPrompt = null;
+                if (installButton) {
+                    installButton.remove();
+                    installButton = null;
+                }
+            }
+        }
+        
+        // Update notification
+        function showUpdateNotification() {
+            const notification = document.createElement('div');
+            notification.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center space-x-3';
+            notification.innerHTML = `
+                <i class="fas fa-sync-alt"></i>
+                <span>Có phiên bản mới!</span>
+                <button onclick="window.location.reload()" class="bg-white text-green-600 px-3 py-1 rounded text-sm font-medium hover:bg-gray-100">
+                    Cập nhật
+                </button>
+                <button onclick="this.parentElement.remove()" class="text-white hover:text-gray-200">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.remove();
+                }
+            }, 10000);
+        }
+        
+        // PWA-specific event tracking
+        window.addEventListener('appinstalled', () => {
+            console.log('✅ PWA installed successfully');
+            trackEvent('pwa_installed', 'success');
+        });
+        
+        // Standalone mode detection
+        if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+            document.documentElement.classList.add('pwa-mode');
+            trackEvent('pwa_launch', 'standalone');
+        }
+        
+        // Network status monitoring
+        function updateNetworkStatus() {
+            const isOnline = navigator.onLine;
+            document.documentElement.classList.toggle('offline', !isOnline);
+            
+            if (!isOnline) {
+                showOfflineNotification();
+            }
+        }
+        
+        function showOfflineNotification() {
+            const notification = document.createElement('div');
+            notification.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 bg-orange-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center space-x-3';
+            notification.innerHTML = `
+                <i class="fas fa-wifi-slash"></i>
+                <span>Bạn đang offline - Một số tính năng có thể không hoạt động</span>
+            `;
+            document.body.appendChild(notification);
+            
+            const removeNotification = () => {
+                if (notification.parentElement) {
+                    notification.remove();
+                }
+            };
+            
+            window.addEventListener('online', removeNotification, { once: true });
+            setTimeout(removeNotification, 5000);
+        }
+        
+        window.addEventListener('online', updateNetworkStatus);
+        window.addEventListener('offline', updateNetworkStatus);
+        updateNetworkStatus();
+    </script>
+    
         // Error Tracking
         window.trackError = function(error, context = '') {
             gtag('event', 'error_occurred', {
@@ -1488,7 +1663,7 @@
     <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
     <script src="https://unpkg.com/leaflet.vectorgrid@1.3.0/dist/Leaflet.VectorGrid.bundled.js"></script>
     <script src="script.js"></script>
-   
+    <script src="pwa-enhancements.js"></script>
 
 
 </body>
