@@ -8497,3 +8497,152 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+// =============================================================================
+// 🚀 BETA SIGNUP FUNCTIONALITY - REAL IMPLEMENTATION
+// =============================================================================
+
+// Beta signup form management
+const initBetaSignup = () => {
+    const betaBtn = document.getElementById('beta-signup-btn');
+    const betaModal = document.getElementById('beta-signup-modal');
+    const betaClose = document.getElementById('beta-signup-close');
+    const betaForm = document.getElementById('beta-signup-form');
+    const submitBtn = document.getElementById('beta-submit-btn');
+    const successMessage = document.getElementById('beta-success-message');
+
+    // Open modal
+    betaBtn?.addEventListener('click', () => {
+        betaModal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        
+        // Analytics tracking
+        if (typeof gtag !== 'undefined') {
+            gtag('event', 'beta_signup_modal_open', {
+                event_category: 'beta_engagement',
+                event_label: 'modal_opened'
+            });
+        }
+    });
+
+    // Close modal
+    const closeModal = () => {
+        betaModal.classList.add('hidden');
+        document.body.style.overflow = '';
+        betaForm.reset();
+        successMessage.classList.add('hidden');
+        betaForm.classList.remove('hidden');
+    };
+
+    betaClose?.addEventListener('click', closeModal);
+    betaModal?.addEventListener('click', (e) => {
+        if (e.target === betaModal) closeModal();
+    });
+
+    // Handle form submission
+    betaForm?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const formData = {
+            name: document.getElementById('beta-name').value,
+            email: document.getElementById('beta-email').value,
+            phone: document.getElementById('beta-phone').value,
+            userType: document.getElementById('beta-type').value,
+            expectations: document.getElementById('beta-expectations').value,
+            timestamp: new Date().toISOString(),
+            source: 'website_modal'
+        };
+
+        // Validate required fields
+        if (!formData.name || !formData.email || !formData.userType) {
+            alert('Vui lòng điền đầy đủ thông tin bắt buộc!');
+            return;
+        }
+
+        // Show loading state
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Đang xử lý...';
+
+        try {
+            // Save to Firebase Firestore
+            if (typeof db !== 'undefined') {
+                await db.collection('betaSignups').add(formData);
+                
+                // Analytics tracking
+                if (typeof gtag !== 'undefined') {
+                    gtag('event', 'beta_signup_success', {
+                        event_category: 'beta_engagement',
+                        event_label: formData.userType,
+                        value: 1
+                    });
+                }
+
+                // Show success message
+                betaForm.classList.add('hidden');
+                successMessage.classList.remove('hidden');
+                
+                // Auto close after 3 seconds
+                setTimeout(() => {
+                    closeModal();
+                }, 3000);
+
+                console.log('✅ Beta signup saved successfully');
+            } else {
+                // Fallback: Save to localStorage for testing
+                const existingSignups = JSON.parse(localStorage.getItem('betaSignups') || '[]');
+                existingSignups.push(formData);
+                localStorage.setItem('betaSignups', JSON.stringify(existingSignups));
+                
+                console.log('📝 Beta signup saved to localStorage (Firebase not available)');
+                
+                // Show success message
+                betaForm.classList.add('hidden');
+                successMessage.classList.remove('hidden');
+                
+                setTimeout(() => {
+                    closeModal();
+                }, 3000);
+            }
+        } catch (error) {
+            console.error('❌ Beta signup error:', error);
+            alert('Có lỗi xảy ra. Vui lòng thử lại sau!');
+        } finally {
+            // Reset button state
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-rocket mr-2"></i>Đăng ký Beta Testing';
+        }
+    });
+};
+
+// Admin function to view beta signups
+const viewBetaSignups = async () => {
+    try {
+        if (typeof db !== 'undefined') {
+            const snapshot = await db.collection('betaSignups').orderBy('timestamp', 'desc').get();
+            const signups = [];
+            snapshot.forEach(doc => {
+                signups.push({ id: doc.id, ...doc.data() });
+            });
+            console.table(signups);
+            return signups;
+        } else {
+            // Fallback: Read from localStorage
+            const signups = JSON.parse(localStorage.getItem('betaSignups') || '[]');
+            console.table(signups);
+            return signups;
+        }
+    } catch (error) {
+        console.error('❌ Error fetching beta signups:', error);
+        return [];
+    }
+};
+
+// Initialize beta signup when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initBetaSignup);
+} else {
+    initBetaSignup();
+}
+
+// Export for admin access
+window.viewBetaSignups = viewBetaSignups;

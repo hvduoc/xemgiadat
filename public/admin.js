@@ -840,6 +840,9 @@ function showSection(sectionName) {
     
     // Load section-specific data
     switch(sectionName) {
+        case 'beta-signups':
+            loadBetaSignups();
+            break;
         case 'users':
             loadUsersSection();
             break;
@@ -854,7 +857,6 @@ function showSection(sectionName) {
             break;
         case 'settings':
             loadSettingsSection();
-            break;
             break;
     }
 }
@@ -1875,4 +1877,337 @@ function saveSettings() {
         }, 3000);
     }, 1500);
 }
-console.log('🔧 Admin Dashboard Script Loaded');
+
+// =============================================================================
+// 🚀 BETA SIGNUPS MANAGEMENT - REAL IMPLEMENTATION
+// =============================================================================
+
+let betaSignups = [];
+let filteredBetaSignups = [];
+let currentBetaPage = 1;
+const betaPageSize = 10;
+
+// Load beta signups data
+async function loadBetaSignups() {
+    try {
+        console.log('� Loading beta signups...');
+        
+        if (db) {
+            // Load from Firestore
+            const snapshot = await db.collection('betaSignups')
+                .orderBy('timestamp', 'desc')
+                .get();
+            
+            betaSignups = [];
+            snapshot.forEach(doc => {
+                betaSignups.push({ id: doc.id, ...doc.data() });
+            });
+        } else {
+            // Fallback: Load from localStorage
+            betaSignups = JSON.parse(localStorage.getItem('betaSignups') || '[]');
+        }
+        
+        filteredBetaSignups = [...betaSignups];
+        updateBetaStats();
+        renderBetaSignups();
+        
+        console.log(`✅ Loaded ${betaSignups.length} beta signups`);
+    } catch (error) {
+        console.error('❌ Error loading beta signups:', error);
+        // Show error message
+        document.getElementById('beta-signups-table').innerHTML = `
+            <tr>
+                <td colspan="6" class="px-6 py-12 text-center text-red-500">
+                    <i class="fas fa-exclamation-triangle text-2xl mb-2"></i>
+                    <p>Lỗi tải dữ liệu: ${error.message}</p>
+                </td>
+            </tr>
+        `;
+    }
+}
+
+// Update beta statistics
+function updateBetaStats() {
+    const total = betaSignups.length;
+    const today = new Date().toDateString();
+    const todayCount = betaSignups.filter(signup => 
+        new Date(signup.timestamp).toDateString() === today
+    ).length;
+    
+    const investorsCount = betaSignups.filter(signup => 
+        signup.userType === 'investor'
+    ).length;
+    
+    // Mock conversion rate calculation
+    const conversionRate = total > 0 ? Math.round((todayCount / total) * 100) : 0;
+    
+    // Update UI
+    document.getElementById('beta-total-count').textContent = total;
+    document.getElementById('beta-today-count').textContent = todayCount;
+    document.getElementById('beta-investors-count').textContent = investorsCount;
+    document.getElementById('beta-conversion-rate').textContent = `${conversionRate}%`;
+    document.getElementById('beta-count').textContent = total;
+}
+
+// Render beta signups table
+function renderBetaSignups() {
+    const startIndex = (currentBetaPage - 1) * betaPageSize;
+    const endIndex = startIndex + betaPageSize;
+    const pageSignups = filteredBetaSignups.slice(startIndex, endIndex);
+    
+    const tableBody = document.getElementById('beta-signups-table');
+    
+    if (pageSignups.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="6" class="px-6 py-12 text-center text-gray-500">
+                    <i class="fas fa-inbox text-2xl mb-2"></i>
+                    <p>Chưa có dữ liệu beta signups</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tableBody.innerHTML = pageSignups.map(signup => `
+        <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 h-10 w-10">
+                        <div class="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold">
+                            ${signup.name ? signup.name.charAt(0).toUpperCase() : '?'}
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <div class="text-sm font-medium text-gray-900">${signup.name || 'Unknown'}</div>
+                        <div class="text-sm text-gray-500">${signup.email || ''}</div>
+                        ${signup.phone ? `<div class="text-xs text-gray-400">${signup.phone}</div>` : ''}
+                    </div>
+                </div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getBadgeClass(signup.userType)}">
+                    ${getUserTypeLabel(signup.userType)}
+                </span>
+            </td>
+            <td class="px-6 py-4">
+                <div class="text-sm text-gray-900 max-w-xs truncate" title="${signup.expectations || ''}">
+                    ${signup.expectations || 'Không có'}
+                </div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                ${formatDate(signup.timestamp)}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                    Chờ liên hệ
+                </span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <button onclick="contactBetaUser('${signup.id}')" class="text-blue-600 hover:text-blue-900 mr-3">
+                    <i class="fas fa-envelope"></i>
+                </button>
+                <button onclick="viewBetaDetails('${signup.id}')" class="text-gray-600 hover:text-gray-900 mr-3">
+                    <i class="fas fa-eye"></i>
+                </button>
+                <button onclick="deleteBetaSignup('${signup.id}')" class="text-red-600 hover:text-red-900">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        </tr>
+    `).join('');
+    
+    updateBetaPagination();
+}
+
+// Helper functions
+function getBadgeClass(userType) {
+    const classes = {
+        'investor': 'bg-blue-100 text-blue-800',
+        'agent': 'bg-purple-100 text-purple-800',
+        'buyer': 'bg-green-100 text-green-800',
+        'researcher': 'bg-yellow-100 text-yellow-800',
+        'other': 'bg-gray-100 text-gray-800'
+    };
+    return classes[userType] || 'bg-gray-100 text-gray-800';
+}
+
+function getUserTypeLabel(userType) {
+    const labels = {
+        'investor': 'Nhà đầu tư',
+        'agent': 'Môi giới',
+        'buyer': 'Mua/bán',
+        'researcher': 'Nghiên cứu',
+        'other': 'Khác'
+    };
+    return labels[userType] || 'Không xác định';
+}
+
+function formatDate(timestamp) {
+    if (!timestamp) return 'Unknown';
+    const date = new Date(timestamp);
+    return date.toLocaleDateString('vi-VN') + ' ' + date.toLocaleTimeString('vi-VN', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+    });
+}
+
+// Update pagination
+function updateBetaPagination() {
+    const totalPages = Math.ceil(filteredBetaSignups.length / betaPageSize);
+    const startIndex = (currentBetaPage - 1) * betaPageSize;
+    const endIndex = Math.min(startIndex + betaPageSize, filteredBetaSignups.length);
+    
+    document.getElementById('beta-showing-start').textContent = filteredBetaSignups.length > 0 ? startIndex + 1 : 0;
+    document.getElementById('beta-showing-end').textContent = endIndex;
+    document.getElementById('beta-total-records').textContent = filteredBetaSignups.length;
+    document.getElementById('beta-current-page').textContent = currentBetaPage;
+    document.getElementById('beta-total-pages').textContent = totalPages;
+    
+    document.getElementById('beta-prev-page').disabled = currentBetaPage === 1;
+    document.getElementById('beta-next-page').disabled = currentBetaPage === totalPages || totalPages === 0;
+}
+
+// Filter functions
+function filterBetaSignups() {
+    const searchTerm = document.getElementById('beta-search').value.toLowerCase();
+    const typeFilter = document.getElementById('beta-type-filter').value;
+    const dateFilter = document.getElementById('beta-date-filter').value;
+    
+    filteredBetaSignups = betaSignups.filter(signup => {
+        // Search filter
+        const matchesSearch = !searchTerm || 
+            (signup.name && signup.name.toLowerCase().includes(searchTerm)) ||
+            (signup.email && signup.email.toLowerCase().includes(searchTerm));
+        
+        // Type filter
+        const matchesType = !typeFilter || signup.userType === typeFilter;
+        
+        // Date filter
+        let matchesDate = true;
+        if (dateFilter && signup.timestamp) {
+            const signupDate = new Date(signup.timestamp);
+            const today = new Date();
+            
+            switch (dateFilter) {
+                case 'today':
+                    matchesDate = signupDate.toDateString() === today.toDateString();
+                    break;
+                case 'yesterday':
+                    const yesterday = new Date(today);
+                    yesterday.setDate(yesterday.getDate() - 1);
+                    matchesDate = signupDate.toDateString() === yesterday.toDateString();
+                    break;
+                case 'week':
+                    const weekAgo = new Date(today);
+                    weekAgo.setDate(weekAgo.getDate() - 7);
+                    matchesDate = signupDate >= weekAgo;
+                    break;
+                case 'month':
+                    const monthAgo = new Date(today);
+                    monthAgo.setMonth(monthAgo.getMonth() - 1);
+                    matchesDate = signupDate >= monthAgo;
+                    break;
+            }
+        }
+        
+        return matchesSearch && matchesType && matchesDate;
+    });
+    
+    currentBetaPage = 1;
+    renderBetaSignups();
+}
+
+// Action functions
+function refreshBetaSignups() {
+    loadBetaSignups();
+}
+
+function exportBetaSignups() {
+    console.log('📥 Exporting beta signups...');
+    // Create CSV content
+    const headers = ['Họ tên', 'Email', 'Số điện thoại', 'Loại người dùng', 'Kỳ vọng', 'Thời gian đăng ký'];
+    const csvContent = [
+        headers.join(','),
+        ...betaSignups.map(signup => [
+            `"${signup.name || ''}"`,
+            `"${signup.email || ''}"`,
+            `"${signup.phone || ''}"`,
+            `"${getUserTypeLabel(signup.userType)}"`,
+            `"${(signup.expectations || '').replace(/"/g, '""')}"`,
+            `"${formatDate(signup.timestamp)}"`
+        ].join(','))
+    ].join('\n');
+    
+    // Download file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `beta-signups-${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+}
+
+function contactBetaUser(id) {
+    const signup = betaSignups.find(s => s.id === id);
+    if (signup && signup.email) {
+        const subject = encodeURIComponent('Xem Giá Đất - Mời tham gia Beta Testing');
+        const body = encodeURIComponent(`Xin chào ${signup.name},\n\nCảm ơn bạn đã đăng ký tham gia beta testing cho nền tảng Xem Giá Đất.\n\nChúng tôi rất vui được mời bạn trải nghiệm...\n\nTrân trọng,\nTeam Xem Giá Đất`);
+        window.open(`mailto:${signup.email}?subject=${subject}&body=${body}`);
+    }
+}
+
+function viewBetaDetails(id) {
+    const signup = betaSignups.find(s => s.id === id);
+    if (signup) {
+        alert(`Chi tiết Beta Signup:\n\nTên: ${signup.name}\nEmail: ${signup.email}\nPhone: ${signup.phone || 'N/A'}\nLoại: ${getUserTypeLabel(signup.userType)}\nKỳ vọng: ${signup.expectations || 'N/A'}\nNguồn: ${signup.source || 'website'}\nThời gian: ${formatDate(signup.timestamp)}`);
+    }
+}
+
+async function deleteBetaSignup(id) {
+    if (!confirm('Bạn có chắc chắn muốn xóa beta signup này?')) return;
+    
+    try {
+        if (db) {
+            await db.collection('betaSignups').doc(id).delete();
+        } else {
+            // Remove from localStorage
+            const signups = JSON.parse(localStorage.getItem('betaSignups') || '[]');
+            const updatedSignups = signups.filter(s => s.id !== id);
+            localStorage.setItem('betaSignups', JSON.stringify(updatedSignups));
+        }
+        
+        // Reload data
+        await loadBetaSignups();
+        console.log('✅ Beta signup deleted successfully');
+    } catch (error) {
+        console.error('❌ Error deleting beta signup:', error);
+        alert('Có lỗi khi xóa beta signup!');
+    }
+}
+
+// Event listeners for beta management
+document.addEventListener('DOMContentLoaded', function() {
+    // Add event listeners for beta filters
+    document.getElementById('beta-search')?.addEventListener('input', filterBetaSignups);
+    document.getElementById('beta-type-filter')?.addEventListener('change', filterBetaSignups);
+    document.getElementById('beta-date-filter')?.addEventListener('change', filterBetaSignups);
+    
+    // Pagination event listeners
+    document.getElementById('beta-prev-page')?.addEventListener('click', () => {
+        if (currentBetaPage > 1) {
+            currentBetaPage--;
+            renderBetaSignups();
+        }
+    });
+    
+    document.getElementById('beta-next-page')?.addEventListener('click', () => {
+        const totalPages = Math.ceil(filteredBetaSignups.length / betaPageSize);
+        if (currentBetaPage < totalPages) {
+            currentBetaPage++;
+            renderBetaSignups();
+        }
+    });
+});
+
+console.log('�🔧 Admin Dashboard Script Loaded');
+console.log('🚀 Beta Management System Ready');

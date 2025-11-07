@@ -748,6 +748,11 @@
             <!-- Management Section -->
             <div class="nav-section">
                 <div class="nav-section-title">Quản lý</div>
+                <div class="nav-item" onclick="showSection('beta-signups')">
+                    <i class="fas fa-rocket"></i>
+                    <span>Beta Signups</span>
+                    <span class="nav-badge" id="beta-count">0</span>
+                </div>
                 <div class="nav-item" onclick="showSection('users')">
                     <i class="fas fa-users"></i>
                     <span>Người dùng</span>
@@ -1102,7 +1107,152 @@
                 </div>
             </div>
 
-            <!-- 👥 Users Management Section -->
+            <!-- � Beta Signups Management Section -->
+            <div id="beta-signups-section" class="section">
+                <div class="card p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <h3 class="text-xl font-semibold flex items-center">
+                                <i class="fas fa-rocket mr-2 text-blue-600"></i>
+                                Beta Signups Management
+                            </h3>
+                            <p class="text-sm text-gray-600 mt-1">Quản lý danh sách đăng ký beta testing và theo dõi engagement</p>
+                        </div>
+                        <div class="flex gap-3">
+                            <button class="btn btn-success btn-sm" onclick="exportBetaSignups()">
+                                <i class="fas fa-download"></i>
+                                Xuất Excel
+                            </button>
+                            <button class="btn btn-primary btn-sm" onclick="refreshBetaSignups()">
+                                <i class="fas fa-sync-alt"></i>
+                                Làm mới
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Beta Stats Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                        <div class="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg p-4 text-white">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-blue-100 text-sm">Total Signups</p>
+                                    <p class="text-2xl font-bold" id="beta-total-count">0</p>
+                                </div>
+                                <i class="fas fa-users text-3xl text-blue-200"></i>
+                            </div>
+                        </div>
+                        <div class="bg-gradient-to-r from-green-500 to-green-600 rounded-lg p-4 text-white">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-green-100 text-sm">Today</p>
+                                    <p class="text-2xl font-bold" id="beta-today-count">0</p>
+                                </div>
+                                <i class="fas fa-calendar-day text-3xl text-green-200"></i>
+                            </div>
+                        </div>
+                        <div class="bg-gradient-to-r from-orange-500 to-red-500 rounded-lg p-4 text-white">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-orange-100 text-sm">Investors</p>
+                                    <p class="text-2xl font-bold" id="beta-investors-count">0</p>
+                                </div>
+                                <i class="fas fa-chart-line text-3xl text-orange-200"></i>
+                            </div>
+                        </div>
+                        <div class="bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg p-4 text-white">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-purple-100 text-sm">Conversion Rate</p>
+                                    <p class="text-2xl font-bold" id="beta-conversion-rate">0%</p>
+                                </div>
+                                <i class="fas fa-percentage text-3xl text-purple-200"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filter and Search -->
+                    <div class="flex flex-wrap gap-4 mb-4">
+                        <div class="flex-1 min-w-64">
+                            <input type="text" id="beta-search" 
+                                   placeholder="Tìm kiếm theo tên, email..."
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <select id="beta-type-filter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="">Tất cả loại người dùng</option>
+                            <option value="investor">Nhà đầu tư BĐS</option>
+                            <option value="agent">Môi giới BĐS</option>
+                            <option value="buyer">Người mua/bán đất</option>
+                            <option value="researcher">Nghiên cứu thị trường</option>
+                            <option value="other">Khác</option>
+                        </select>
+                        <select id="beta-date-filter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="">Tất cả thời gian</option>
+                            <option value="today">Hôm nay</option>
+                            <option value="yesterday">Hôm qua</option>
+                            <option value="week">Tuần này</option>
+                            <option value="month">Tháng này</option>
+                        </select>
+                    </div>
+
+                    <!-- Beta Signups Table -->
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full bg-white">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Người dùng
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Loại
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Kỳ vọng
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Thời gian
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Trạng thái
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Hành động
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="beta-signups-table" class="bg-white divide-y divide-gray-200">
+                                <!-- Dynamic content will be loaded here -->
+                                <tr>
+                                    <td colspan="6" class="px-6 py-12 text-center text-gray-500">
+                                        <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                                        <p>Đang tải dữ liệu beta signups...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="flex items-center justify-between mt-6">
+                        <div class="text-sm text-gray-700">
+                            Hiển thị <span id="beta-showing-start">0</span> đến <span id="beta-showing-end">0</span> 
+                            trong tổng số <span id="beta-total-records">0</span> bản ghi
+                        </div>
+                        <div class="flex gap-2">
+                            <button id="beta-prev-page" class="px-3 py-2 text-sm border rounded-lg hover:bg-gray-50 disabled:opacity-50" disabled>
+                                <i class="fas fa-chevron-left"></i> Trước
+                            </button>
+                            <span class="px-3 py-2 text-sm">
+                                Trang <span id="beta-current-page">1</span> / <span id="beta-total-pages">1</span>
+                            </span>
+                            <button id="beta-next-page" class="px-3 py-2 text-sm border rounded-lg hover:bg-gray-50 disabled:opacity-50" disabled>
+                                Sau <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- �👥 Users Management Section -->
             <div id="users-section" class="section">
                 <div class="card p-6">
                     <div class="flex justify-between items-center mb-6">

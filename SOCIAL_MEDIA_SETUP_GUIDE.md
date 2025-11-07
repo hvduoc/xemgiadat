@@ -9,7 +9,7 @@ Hướng dẫn chi tiết thiết lập hệ thống social media cho nền tả
 - **Tên Page**: Xem Giá Đất Đà Nẵng
 - **Username**: @xemgiadatdanang
 - **Category**: Real Estate Service
-- **Địa chỉ**: 123 Nguyễn Văn Linh, Hải Châu, Đà Nẵng
+- **Địa chỉ**: 
 
 ### 🎨 Branding Assets
 - **Avatar**: Logo chính với icon bản đồ
@@ -28,7 +28,7 @@ Hướng dẫn chi tiết thiết lập hệ thống social media cho nền tả
 
 📞 Hotline: 0236.xxx.xxxx
 🌐 Website: xemgiadat.com
-📧 Email: info@xemgiadat.com
+📧 Email: hotro.xemgiadat@gmail.com
 
 #BatDongSanDaNang #GiaDat #DauTuBDS
 ```
