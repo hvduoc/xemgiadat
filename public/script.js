@@ -2062,17 +2062,133 @@ document.addEventListener('DOMContentLoaded', () => {
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const submitBtn = document.getElementById('submit-form-btn');
-        if (!currentUser) return alert("Vui lòng đăng nhập.");
+        
+        // 🔧 ENHANCED DEBUGGING SYSTEM
+        console.log('🔍 ĐĂNG TIN DEBUG - Starting submission process...');
+        console.log('📊 Current State:', {
+            currentUser: currentUser ? {
+                uid: currentUser.uid,
+                email: currentUser.email,
+                displayName: currentUser.displayName
+            } : null,
+            authUser: auth.currentUser ? {
+                uid: auth.currentUser.uid,
+                email: auth.currentUser.email
+            } : null,
+            selectedCoords: selectedCoords,
+            dbConnection: !!db,
+            formElement: !!form
+        });
+        
+        // Check authentication
+        if (!currentUser) {
+            console.error('❌ ĐĂNG TIN ERROR: User not logged in');
+            return alert("⚠️ Vui lòng đăng nhập trước khi đăng tin!\n\nClick nút 'Đăng nhập' ở góc phải màn hình.");
+        }
+        
+        if (!auth.currentUser) {
+            console.error('❌ ĐĂNG TIN ERROR: Auth user missing');
+            return alert("⚠️ Phiên đăng nhập hết hạn!\n\nVui lòng đăng nhập lại.");
+        }
+        
         const formData = new FormData(form);
         const data = Object.fromEntries(formData.entries());
-        if (!selectedCoords || !data.name || !data.priceValue) return alert('Vui lòng điền các trường bắt buộc.');
-        submitBtn.textContent = 'Đang gửi...'; submitBtn.disabled = true;
+        
+        console.log('📝 Form Data:', data);
+        console.log('📍 Selected Coordinates:', selectedCoords);
+        
+        // Enhanced validation with specific error messages  
+        if (!selectedCoords) {
+            console.error('❌ ĐĂNG TIN ERROR: No coordinates selected');
+            return alert("⚠️ Vui lòng click vào bản đồ để chọn vị trí!\n\nBước 1: Click vào vị trí trên bản đồ\nBước 2: Điền thông tin form\nBước 3: Nhấn 'Gửi Dữ Liệu'");
+        }
+        
+        if (!data.name || data.name.trim() === '') {
+            console.error('❌ ĐĂNG TIN ERROR: Missing property name');
+            return alert("⚠️ Vui lòng nhập tên bất động sản!\n\nVí dụ: 'Nhà mặt tiền đường Lê Duẩn' hoặc 'Đất nền khu vực Hải Châu'");
+        }
+        
+        // Enhanced price validation with negotiation support
+        const isNegotiable = document.getElementById('price-negotiable')?.checked || false;
+        if (!isNegotiable && (!data.priceValue || data.priceValue.trim() === '')) {
+            console.error('❌ ĐĂNG TIN ERROR: Missing price value');
+            return alert("⚠️ Vui lòng nhập giá bất động sản hoặc chọn 'Thương lượng'!\n\nVí dụ: 5000000 (cho 5 triệu VNĐ)");
+        }
+        
+        console.log('✅ All validations passed, proceeding with submission...');
+        
+        submitBtn.textContent = 'Đang gửi...'; 
+        submitBtn.disabled = true;
+        
         try {
-            const docData = { userId: currentUser.uid, userName: currentUser.displayName, userAvatar: currentUser.photoURL, lat: selectedCoords.lat, lng: selectedCoords.lng, priceValue: parseFloat(data.priceValue), area: data.area ? parseFloat(data.area) : null, status: 'approved', createdAt: firebase.firestore.FieldValue.serverTimestamp(), updatedAt: firebase.firestore.FieldValue.serverTimestamp(), name: data.name, priceUnit: data.priceUnit, notes: data.notes || '', contactName: data.contactName || '', contactEmail: data.contactEmail || '', contactPhone: data.contactPhone || '', contactFacebook: data.contactFacebook || '' };
-            await db.collection("listings").add(docData);
-            alert('Gửi dữ liệu thành công, cảm ơn bạn đã đóng góp!');
-            modal.classList.add('hidden'); form.reset(); exitAllModes();
-        } catch (error) { console.error("Lỗi khi thêm dữ liệu: ", error); alert("Đã xảy ra lỗi khi gửi dữ liệu."); } finally { submitBtn.textContent = 'Gửi Dữ Liệu'; submitBtn.disabled = false; }
+            const docData = { 
+                userId: currentUser.uid, // CRITICAL: Add userId for Firestore rules
+                userName: currentUser.displayName || 'Người dùng', 
+                userAvatar: currentUser.photoURL || '', 
+                lat: selectedCoords.lat, 
+                lng: selectedCoords.lng, 
+                priceValue: isNegotiable ? null : parseFloat(data.priceValue), 
+                priceUnit: isNegotiable ? 'thương lượng' : (data.priceUnit || 'VNĐ'),
+                isNegotiable: isNegotiable,
+                area: data.area ? parseFloat(data.area) : null, 
+                status: 'approved', 
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(), 
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp(), 
+                name: data.name.trim(), 
+                notes: data.notes || '', 
+                contactName: data.contactName || '', 
+                contactEmail: data.contactEmail || '', 
+                contactPhone: data.contactPhone || '', 
+                contactFacebook: data.contactFacebook || '' 
+            };
+            
+            console.log('📤 Sending data to Firebase:', docData);
+            
+            // Use v8 syntax for Firebase
+            const docRef = await db.collection("listings").add(docData);
+            console.log('✅ ĐĂNG TIN SUCCESS: Document written with ID:', docRef.id);
+            
+            alert('🎉 Gửi dữ liệu thành công!\n\nTin đăng của bạn đã được lưu và sẽ hiển thị trên bản đồ.\nCảm ơn bạn đã đóng góp!');
+            modal.classList.add('hidden'); 
+            form.reset(); 
+            exitAllModes();
+            
+            // Track success event
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'listing_submitted', {
+                    event_category: 'user_engagement',
+                    event_label: 'property_listing',
+                    value: 1
+                });
+            }
+            
+        } catch (error) { 
+            console.error("❌ ĐĂNG TIN DETAILED ERROR:", {
+                code: error.code,
+                message: error.message,
+                stack: error.stack,
+                fullError: error
+            }); 
+            
+            let errorMessage = "Đã xảy ra lỗi khi gửi dữ liệu:\n\n";
+            
+            if (error.code === 'permission-denied') {
+                errorMessage += "🔒 Lỗi quyền truy cập: Tài khoản chưa được cấp quyền đăng tin.\n\nVui lòng liên hệ admin để được hỗ trợ.";
+            } else if (error.code === 'network-request-failed') {
+                errorMessage += "🌐 Lỗi kết nối mạng: Vui lòng kiểm tra internet và thử lại.";
+            } else if (error.code === 'unavailable') {
+                errorMessage += "🔧 Hệ thống đang bảo trì: Vui lòng thử lại sau ít phút.";
+            } else {
+                errorMessage += `⚠️ Mã lỗi: ${error.code || 'unknown'}\n💬 Chi tiết: ${error.message || 'Lỗi không xác định'}`;
+            }
+            
+            errorMessage += "\n\n📞 Nếu vấn đề vẫn tiếp tục, vui lòng chụp màn hình Console (F12) và gửi cho admin.";
+            
+            alert(errorMessage);
+        } finally { 
+            submitBtn.textContent = 'Gửi Dữ Liệu'; 
+            submitBtn.disabled = false; 
+        }
     });
 
     auth.onAuthStateChanged(async (user) => {
@@ -8646,3 +8762,154 @@ if (document.readyState === 'loading') {
 
 // Export for admin access
 window.viewBetaSignups = viewBetaSignups;
+
+// =============================================================================
+// 🔧 DEBUGGING HELPER FUNCTIONS FOR ĐĂNG TIN
+// =============================================================================
+
+// Debug function for checking đăng tin system
+window.debugDangTin = function() {
+    console.log('🔍 ĐĂNG TIN SYSTEM DEBUG REPORT:');
+    console.log('=====================================');
+    
+    console.log('🔐 AUTHENTICATION STATUS:');
+    console.log('├── currentUser:', currentUser ? {
+        uid: currentUser.uid,
+        email: currentUser.email,
+        displayName: currentUser.displayName,
+        photoURL: currentUser.photoURL
+    } : '❌ NULL');
+    console.log('├── auth.currentUser:', auth.currentUser ? {
+        uid: auth.currentUser.uid,
+        email: auth.currentUser.email
+    } : '❌ NULL');
+    console.log('└── Login status:', currentUser && auth.currentUser ? '✅ LOGGED IN' : '❌ NOT LOGGED IN');
+    
+    console.log('\n🔥 FIREBASE CONNECTION:');
+    console.log('├── Firebase app:', !!firebase.app() ? '✅ Connected' : '❌ Not connected');
+    console.log('├── Firestore db:', !!db ? '✅ Available' : '❌ Not available');
+    console.log('├── Auth service:', !!auth ? '✅ Available' : '❌ Not available');
+    console.log('└── Firebase config:', !!firebase.app().options ? '✅ Configured' : '❌ Not configured');
+    
+    console.log('\n📝 FORM ELEMENTS:');
+    const form = document.getElementById('location-form');
+    const submitBtn = document.getElementById('submit-form-btn');
+    const addLocationBtn = document.getElementById('add-location-btn');
+    console.log('├── location-form:', !!form ? '✅ Found' : '❌ Missing');
+    console.log('├── submit-form-btn:', !!submitBtn ? '✅ Found' : '❌ Missing');
+    console.log('├── add-location-btn:', !!addLocationBtn ? '✅ Found' : '❌ Missing');
+    console.log('└── selectedCoords:', selectedCoords || '❌ No coordinates selected');
+    
+    console.log('\n🌐 NETWORK & PERMISSIONS:');
+    console.log('├── Online status:', navigator.onLine ? '✅ Online' : '❌ Offline');
+    console.log('├── Local storage:', typeof Storage !== 'undefined' ? '✅ Available' : '❌ Not available');
+    console.log('└── Console errors:', 'Check above for any red error messages');
+    
+    console.log('\n🧪 TESTING WRITE PERMISSION:');
+    if (db && currentUser) {
+        db.collection('test').add({
+            testMessage: 'Debug test from debugDangTin()',
+            timestamp: new Date(),
+            userId: currentUser.uid
+        }).then(docRef => {
+            console.log('✅ Write permission test SUCCESS! Doc ID:', docRef.id);
+            // Clean up test document
+            docRef.delete();
+        }).catch(error => {
+            console.error('❌ Write permission test FAILED:', error);
+        });
+    } else {
+        console.log('❌ Cannot test write permission - missing db or user');
+    }
+    
+    console.log('\n📋 RECOMMENDATIONS:');
+    if (!currentUser) {
+        console.log('🔴 CRITICAL: Please login first!');
+        console.log('   → Click "Đăng nhập" button in top-right corner');
+    }
+    if (!selectedCoords) {
+        console.log('🟡 WARNING: No map location selected');
+        console.log('   → Click on the map to select a location first');
+    }
+    if (currentUser && db) {
+        console.log('🟢 READY: All systems operational for posting!');
+    }
+    
+    console.log('\n=====================================');
+    return {
+        authenticated: !!currentUser && !!auth.currentUser,
+        firebase: !!db && !!auth,
+        formReady: !!form && !!submitBtn,
+        locationSelected: !!selectedCoords,
+        overall: !!currentUser && !!db && !!form && !!selectedCoords
+    };
+};
+
+// Quick test function for posting
+window.testDangTin = function() {
+    console.log('🧪 TESTING ĐĂNG TIN FUNCTIONALITY...');
+    
+    if (!currentUser) {
+        console.error('❌ Cannot test - please login first!');
+        return false;
+    }
+    
+    if (!db) {
+        console.error('❌ Cannot test - Firebase not connected!');
+        return false;
+    }
+    
+    const testData = {
+        userId: currentUser.uid,
+        userName: currentUser.displayName || 'Test User',
+        userAvatar: currentUser.photoURL || '',
+        lat: 16.047079,
+        lng: 108.206230,
+        priceValue: 1000000,
+        area: 100,
+        status: 'approved',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        name: 'TEST PROPERTY - ' + new Date().toLocaleTimeString(),
+        priceUnit: 'VNĐ',
+        notes: 'Test listing created by debugger',
+        contactName: 'Test Contact',
+        contactEmail: 'test@example.com',
+        contactPhone: '0123456789',
+        contactFacebook: ''
+    };
+    
+    console.log('📤 Attempting to post test listing...');
+    
+    return db.collection("listings").add(testData)
+        .then(docRef => {
+            console.log('✅ TEST SUCCESS! Document written with ID:', docRef.id);
+            console.log('🎉 Đăng tin functionality is working properly!');
+            
+            // Clean up test document after 5 seconds
+            setTimeout(() => {
+                docRef.delete().then(() => {
+                    console.log('🧹 Test document cleaned up');
+                });
+            }, 5000);
+            
+            return true;
+        })
+        .catch(error => {
+            console.error('❌ TEST FAILED:', error);
+            console.error('💡 Error details:', {
+                code: error.code,
+                message: error.message
+            });
+            return false;
+        });
+};
+
+// Console helper instructions
+console.log('🔧 ĐĂNG TIN DEBUG HELPERS LOADED!');
+console.log('📋 Available commands:');
+console.log('├── debugDangTin() - Full system diagnostic');
+console.log('├── testDangTin() - Test posting functionality');
+console.log('└── viewBetaSignups() - View beta signup data');
+console.log('');
+console.log('💡 Usage: Open Console (F12) and type: debugDangTin()');

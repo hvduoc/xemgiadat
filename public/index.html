@@ -630,15 +630,22 @@
                 <form id="location-form" class="space-y-3 text-left text-sm">
                     <input type="text" name="name" placeholder="📌 VD: Lô B2.14" required class="px-3 py-2 w-full border rounded bg-white text-gray-700" />
                     <input type="text" id="address-input" name="address" placeholder="📍 Địa chỉ sẽ tự động điền..." class="px-3 py-2 w-full border rounded bg-gray-100 text-gray-700" readonly />    
-                    <div class="flex space-x-2">
-                        <input type="number" name="priceValue" step="any" placeholder="💰 VD: 5.9" required class="px-3 py-2 w-full border rounded bg-white text-gray-700" />
-                        <select name="priceUnit" class="px-2 py-2 border rounded bg-white text-gray-700 text-sm">
-                            <option value="tỷ VNĐ">tỷ VNĐ</option>
-                            <option value="triệu/m²">triệu/m²</option>
-                            <option value="triệu VNĐ">triệu VNĐ</option>
-                        </select>
+                    <div class="space-y-2">
+                        <div class="flex space-x-2">
+                            <input type="number" name="priceValue" step="any" placeholder="💰 VD: 5.9" class="px-3 py-2 w-full border rounded bg-white text-gray-700" />
+                            <select name="priceUnit" class="px-2 py-2 border rounded bg-white text-gray-700 text-sm">
+                                <option value="tỷ VNĐ">tỷ VNĐ</option>
+                                <option value="triệu/m²">triệu/m²</option>
+                                <option value="triệu VNĐ">triệu VNĐ</option>
+                                <option value="thương lượng">💬 Thương lượng</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <input type="checkbox" id="price-negotiable" class="text-green-500" />
+                            <label for="price-negotiable" class="text-sm text-gray-600">💬 Giá có thể thương lượng</label>
+                        </div>
                     </div>
-                    <input type="number" name="area" placeholder="📐 Diện tích (m²) VD: 100" class="px-3 py-2 w-full border rounded bg-white text-gray-700" />
+                    <input type="number" name="area" step="0.1" placeholder="📐 Diện tích (m²) VD: 100.5" class="px-3 py-2 w-full border rounded bg-white text-gray-700" />
                     <textarea name="notes" rows="2" placeholder="🗒 Ghi chú: Hướng Tây Bắc, mặt tiền 7m..." class="px-3 py-2 w-full border rounded bg-white text-gray-700"></textarea>
                     <div class="pt-2 border-t">
                         <p class="text-sm font-medium text-gray-700 mb-2">📞 Thông tin liên hệ (tuỳ chọn)</p>
