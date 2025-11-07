@@ -1,0 +1,75 @@
+# Robots.txt for xemgiadat.com
+# Bản đồ giá đất Đà Nẵng chính xác nhất 2025
+
+User-agent: *
+Allow: /
+
+# Allow important pages
+Allow: /index.html
+Allow: /guide.html
+Allow: /chinh-sach.html
+Allow: /search
+Allow: /gia-dat-*
+Allow: /dat-nen
+Allow: /nha-dat
+Allow: /can-ho-chung-cu
+Allow: /mat-bang-thuong-mai
+Allow: /bao-cao-thi-truong
+Allow: /xu-huong-gia-dat
+Allow: /tin-tuc-bat-dong-san
+Allow: /huong-dan-mua-ban-dat
+Allow: /lien-he
+Allow: /gioi-thieu
+
+# Disallow admin and sensitive areas
+Disallow: /admin.html
+Disallow: /admin.js
+Disallow: /analytics-dashboard.html
+Disallow: /mobile-test.html
+Disallow: /debug_login.html
+Disallow: /og.html
+Disallow: /test-map.html
+
+# Disallow directories with sensitive data
+Disallow: /data/
+Disallow: /tiles/
+Disallow: /netlify/
+
+# Disallow files
+Disallow: /*.js$
+Disallow: /*.json$
+Disallow: /*.md$
+Disallow: /*.txt$
+Disallow: /.*
+
+# Allow CSS and images for proper indexing
+Allow: /*.css$
+Allow: /*.png$
+Allow: /*.jpg$
+Allow: /*.jpeg$
+Allow: /*.gif$
+Allow: /*.webp$
+Allow: /*.svg$
+Allow: /*.ico$
+
+# Special rules for search engines
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 2
+
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+# Sitemap location
+Sitemap: https://xemgiadat.com/sitemap.xml
+
+# Additional sitemaps
+Sitemap: https://xemgiadat.com/sitemap-news.xml
+Sitemap: https://xemgiadat.com/sitemap-images.xml

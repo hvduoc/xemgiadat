@@ -8336,4 +8336,93 @@ document.addEventListener('DOMContentLoaded', function() {
     window.getBehaviorSummary = () => userBehaviorTracker.getBehaviorSummary();
     window.getHeatmapData = () => userBehaviorTracker.getHeatmapData();
     window.getEngagementScore = () => userBehaviorTracker.getEngagementScore();
+    
+    // Newsletter form functionality
+    const newsletterForm = document.getElementById('newsletterForm');
+    if (newsletterForm) {
+        newsletterForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const emailInput = document.getElementById('emailInput');
+            const email = emailInput.value.trim();
+            
+            if (email) {
+                // Store newsletter subscription
+                let newsletters = JSON.parse(localStorage.getItem('newsletters') || '[]');
+                
+                if (!newsletters.includes(email)) {
+                    newsletters.push(email);
+                    localStorage.setItem('newsletters', JSON.stringify(newsletters));
+                    
+                    // Show success message
+                    const button = this.querySelector('button[type="submit"]');
+                    const originalText = button.innerHTML;
+                    
+                    button.innerHTML = '<i class="fas fa-check mr-2"></i>Đã Đăng Ký!';
+                    button.style.backgroundColor = '#10b981';
+                    
+                    setTimeout(() => {
+                        button.innerHTML = originalText;
+                        button.style.backgroundColor = '';
+                        emailInput.value = '';
+                    }, 3000);
+                    
+                    // Track newsletter signup
+                    if (userBehaviorTracker) {
+                        userBehaviorTracker.trackInteraction('newsletter_signup', 'lead_generation', {
+                            email: email.substring(0, 3) + '***', // Privacy-safe logging
+                            location: 'homepage'
+                        });
+                    }
+                    
+                    // Analytics event
+                    if (typeof gtag !== 'undefined') {
+                        gtag('event', 'newsletter_signup', {
+                            event_category: 'engagement',
+                            event_label: 'homepage'
+                        });
+                    }
+                    
+                    // Show additional thank you message
+                    const thankYouDiv = document.createElement('div');
+                    thankYouDiv.className = 'mt-4 p-3 bg-green-100 border border-green-300 rounded-lg text-green-800 text-sm';
+                    thankYouDiv.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Cảm ơn bạn! Chúng tôi sẽ gửi báo cáo thị trường mới nhất trong vòng 24h.';
+                    this.appendChild(thankYouDiv);
+                    
+                    setTimeout(() => {
+                        if (thankYouDiv.parentNode) {
+                            thankYouDiv.parentNode.removeChild(thankYouDiv);
+                        }
+                    }, 5000);
+                    
+                } else {
+                    alert('Email này đã được đăng ký trước đó!');
+                }
+            }
+        });
+    }
+    
+    // Track CTA button clicks
+    const ctaButtons = document.querySelectorAll('a[href^="tel:"], a[href^="mailto:"], a[href*="chat"], a[href*="zalo"]');
+    ctaButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            const href = this.getAttribute('href');
+            let actionType = 'cta_click';
+            
+            if (href.startsWith('tel:')) {
+                actionType = 'phone_call';
+            } else if (href.startsWith('mailto:')) {
+                actionType = 'email_click';
+            } else if (href.includes('chat') || href.includes('zalo')) {
+                actionType = 'chat_click';
+            }
+            
+            if (userBehaviorTracker) {
+                userBehaviorTracker.trackInteraction(actionType, 'lead_generation', {
+                    button_text: this.textContent.trim(),
+                    href: href
+                });
+            }
+        });
+    });
 });

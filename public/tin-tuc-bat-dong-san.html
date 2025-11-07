@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tin Tức Bất Động Sản Đà Nẵng | Thông Tin Thị Trường BDS Mới Nhất</title>
+    <meta name="description" content="Cập nhật tin tức bất động sản Đà Nẵng mới nhất. Phân tích thị trường, xu hướng giá đất, dự án mới và chính sách BDS tại Đà Nẵng.">
+    <meta name="keywords" content="tin tức bất động sản Đà Nẵng, thị trường BDS, giá đất Đà Nẵng, dự án BDS, chính sách BDS">
+    <link rel="canonical" href="https://xemgiadat.com/tin-tuc-bat-dong-san">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="Tin Tức Bất Động Sản Đà Nẵng">
+    <meta property="og:description" content="Cập nhật tin tức BDS Đà Nẵng mới nhất, phân tích thị trường chính xác">
+    <meta property="og:url" content="https://xemgiadat.com/tin-tuc-bat-dong-san">
+    <meta property="og:type" content="website">
+    
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .hero-news {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 0 80px 0;
+            margin-top: 64px;
+        }
+        .news-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        .featured-article {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        .featured-article:hover {
+            transform: translateY(-5px);
+        }
+        .article-image {
+            width: 100%;
+            height: 300px;
+            background: linear-gradient(45deg, #f3f4f6, #e5e7eb);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6b7280;
+        }
+        .article-content {
+            padding: 30px;
+        }
+        .article-meta {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            color: #6b7280;
+        }
+        .category-tag {
+            background: #3b82f6;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        .article-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .article-item {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        .article-item:hover {
+            transform: translateY(-2px);
+        }
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        .sidebar-widget {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        .trending-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .trending-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 8px;
+            transition: background 0.3s ease;
+        }
+        .trending-item:hover {
+            background: #f1f5f9;
+        }
+        .trending-number {
+            background: #3b82f6;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        .market-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #3b82f6;
+        }
+        .newsletter-form {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .newsletter-input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+        .newsletter-btn {
+            background: #3b82f6;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 40px;
+        }
+        .page-btn {
+            padding: 10px 15px;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            text-decoration: none;
+            color: #374151;
+            transition: all 0.3s ease;
+        }
+        .page-btn:hover, .page-btn.active {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+        @media (max-width: 768px) {
+            .news-grid {
+                grid-template-columns: 1fr;
+                gap: 30px;
+                padding: 20px 15px;
+            }
+            .market-stats {
+                grid-template-columns: 1fr;
+            }
+            .newsletter-form {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md fixed w-full top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <a href="/" class="text-xl font-bold text-blue-600">
+                        <i class="fas fa-map-marked-alt mr-2"></i>Xem Giá Đất
+                    </a>
+                </div>
+                <div class="hidden md:flex space-x-6">
+                    <a href="/" class="text-gray-700 hover:text-blue-600">Trang chủ</a>
+                    <a href="/bao-cao-thi-truong" class="text-gray-700 hover:text-blue-600">Báo cáo</a>
+                    <a href="/tin-tuc-bat-dong-san" class="text-blue-600 font-medium">Tin tức</a>
+                    <a href="/gioi-thieu" class="text-gray-700 hover:text-blue-600">Giới thiệu</a>
+                    <a href="/lien-he" class="text-gray-700 hover:text-blue-600">Liên hệ</a>
+                </div>
+                <div class="md:hidden">
+                    <button class="text-gray-700">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-news">
+        <div class="max-w-4xl mx-auto px-4 text-center">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4">
+                Tin Tức Bất Động Sản
+            </h1>
+            <p class="text-xl opacity-90 mb-6">
+                Cập nhật thông tin thị trường BDS Đà Nẵng mới nhất và chính xác nhất
+            </p>
+            <div class="flex flex-wrap justify-center gap-4 text-sm">
+                <span class="bg-white bg-opacity-20 px-4 py-2 rounded-full">
+                    <i class="fas fa-clock mr-2"></i>Cập nhật hàng ngày
+                </span>
+                <span class="bg-white bg-opacity-20 px-4 py-2 rounded-full">
+                    <i class="fas fa-chart-line mr-2"></i>Phân tích chuyên sâu
+                </span>
+                <span class="bg-white bg-opacity-20 px-4 py-2 rounded-full">
+                    <i class="fas fa-shield-alt mr-2"></i>Thông tin đáng tin cậy
+                </span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <div class="news-grid">
+        <!-- Main Articles -->
+        <div class="main-content">
+            <!-- Featured Article -->
+            <article class="featured-article">
+                <div class="article-image">
+                    <i class="fas fa-image text-4xl"></i>
+                </div>
+                <div class="article-content">
+                    <div class="article-meta">
+                        <span class="category-tag">Thị trường</span>
+                        <span><i class="fas fa-calendar mr-1"></i>15/01/2025</span>
+                        <span><i class="fas fa-user mr-1"></i>Nguyễn Văn An</span>
+                        <span><i class="fas fa-eye mr-1"></i>2,543 lượt xem</span>
+                    </div>
+                    <h2 class="text-2xl font-bold mb-3 text-gray-800">
+                        Giá Đất Đà Nẵng Tăng 15% Trong Quý 4/2024: Phân Tích Chi Tiết Các Quận Trung Tâm
+                    </h2>
+                    <p class="text-gray-600 mb-4">
+                        Thị trường bất động sản Đà Nẵng ghi nhận mức tăng trưởng ấn tượng 15% về giá đất 
+                        trong quý 4/2024, với các quận trung tâm như Hải Châu, Thanh Khê dẫn đầu xu hướng. 
+                        Báo cáo chi tiết về các yếu tố thúc đẩy và dự báo xu hướng 2025...
+                    </p>
+                    <a href="#" class="text-blue-600 font-medium hover:text-blue-800">
+                        Đọc tiếp <i class="fas fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
+            </article>
+
+            <!-- Article List -->
+            <div class="article-list">
+                <article class="article-item">
+                    <div class="article-meta mb-3">
+                        <span class="category-tag">Dự án</span>
+                        <span><i class="fas fa-calendar mr-1"></i>14/01/2025</span>
+                        <span><i class="fas fa-eye mr-1"></i>1,856 lượt xem</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2 text-gray-800">
+                        <a href="#" class="hover:text-blue-600">
+                            Khu Đô Thị Marina Complex Đà Nẵng: Tiến Độ Thi Công Và Giá Bán Mới Nhất
+                        </a>
+                    </h3>
+                    <p class="text-gray-600 mb-3">
+                        Dự án Marina Complex với tổng vốn đầu tư 2.5 tỷ USD tiếp tục triển khai giai đoạn 2, 
+                        mang đến 1,200 căn hộ cao cấp với view biển. Giá bán từ 3.2 tỷ/căn...
+                    </p>
+                    <a href="#" class="text-blue-600 text-sm font-medium">Xem chi tiết</a>
+                </article>
+
+                <article class="article-item">
+                    <div class="article-meta mb-3">
+                        <span class="category-tag">Chính sách</span>
+                        <span><i class="fas fa-calendar mr-1"></i>13/01/2025</span>
+                        <span><i class="fas fa-eye mr-1"></i>3,241 lượt xem</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2 text-gray-800">
+                        <a href="#" class="hover:text-blue-600">
+                            UBND Đà Nẵng Công Bố Bảng Giá Đất Mới 2025: Tăng 12-18% So Với Năm 2024
+                        </a>
+                    </h3>
+                    <p class="text-gray-600 mb-3">
+                        Bảng giá đất mới áp dụng từ 1/2/2025 với mức tăng trung bình 12-18% tại các khu vực 
+                        trung tâm. Quận Hải Châu có mức tăng cao nhất 18%, Liên Chiểu tăng 12%...
+                    </p>
+                    <a href="#" class="text-blue-600 text-sm font-medium">Xem chi tiết</a>
+                </article>
+
+                <article class="article-item">
+                    <div class="article-meta mb-3">
+                        <span class="category-tag">Xu hướng</span>
+                        <span><i class="fas fa-calendar mr-1"></i>12/01/2025</span>
+                        <span><i class="fas fa-eye mr-1"></i>1,967 lượt xem</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2 text-gray-800">
+                        <a href="#" class="hover:text-blue-600">
+                            Xu Hướng Đầu Tư BDS Đà Nẵng 2025: Đất Nền Vùng Ven Và Condotel Hồi Phục
+                        </a>
+                    </h3>
+                    <p class="text-gray-600 mb-3">
+                        Phân tích 5 xu hướng đầu tư BDS nổi bật tại Đà Nẵng năm 2025: đất nền vùng ven 
+                        tăng giá 20%, condotel có dấu hiệu hồi phục, shophouse trung tâm khan hiếm...
+                    </p>
+                    <a href="#" class="text-blue-600 text-sm font-medium">Xem chi tiết</a>
+                </article>
+
+                <article class="article-item">
+                    <div class="article-meta mb-3">
+                        <span class="category-tag">Phân tích</span>
+                        <span><i class="fas fa-calendar mr-1"></i>11/01/2025</span>
+                        <span><i class="fas fa-eye mr-1"></i>2,134 lượt xem</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2 text-gray-800">
+                        <a href="#" class="hover:text-blue-600">
+                            So Sánh Giá Đất 6 Quận Đà Nẵng: Hải Châu Dẫn Đầu, Cẩm Lệ Tăng Trưởng Mạnh
+                        </a>
+                    </h3>
+                    <p class="text-gray-600 mb-3">
+                        Báo cáo so sánh chi tiết giá đất trung bình tại 6 quận Đà Nẵng cuối năm 2024. 
+                        Hải Châu 85 triệu/m², Cẩm Lệ tăng trưởng 22%, Hòa Vang tiềm năng lớn...
+                    </p>
+                    <a href="#" class="text-blue-600 text-sm font-medium">Xem chi tiết</a>
+                </article>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination">
+                <a href="#" class="page-btn">&laquo;</a>
+                <a href="#" class="page-btn active">1</a>
+                <a href="#" class="page-btn">2</a>
+                <a href="#" class="page-btn">3</a>
+                <a href="#" class="page-btn">4</a>
+                <a href="#" class="page-btn">5</a>
+                <a href="#" class="page-btn">&raquo;</a>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <!-- Trending Articles -->
+            <div class="sidebar-widget">
+                <h3 class="text-xl font-bold mb-4 text-gray-800">
+                    <i class="fas fa-fire text-red-500 mr-2"></i>Tin Hot Nhất
+                </h3>
+                <div class="trending-list">
+                    <div class="trending-item">
+                        <div class="trending-number">1</div>
+                        <div>
+                            <h4 class="font-medium text-gray-800 text-sm">
+                                Giá đất Hải Châu tăng kỷ lục 18% năm 2024
+                            </h4>
+                            <p class="text-xs text-gray-500 mt-1">3,567 lượt xem</p>
+                        </div>
+                    </div>
+                    <div class="trending-item">
+                        <div class="trending-number">2</div>
+                        <div>
+                            <h4 class="font-medium text-gray-800 text-sm">
+                                Dự án Marina Complex chính thức mở bán
+                            </h4>
+                            <p class="text-xs text-gray-500 mt-1">2,834 lượt xem</p>
+                        </div>
+                    </div>
+                    <div class="trending-item">
+                        <div class="trending-number">3</div>
+                        <div>
+                            <h4 class="font-medium text-gray-800 text-sm">
+                                Quy hoạch khu công nghệ cao Đà Nẵng 2025
+                            </h4>
+                            <p class="text-xs text-gray-500 mt-1">2,156 lượt xem</p>
+                        </div>
+                    </div>
+                    <div class="trending-item">
+                        <div class="trending-number">4</div>
+                        <div>
+                            <h4 class="font-medium text-gray-800 text-sm">
+                                Cẩm Lệ - khu vực đầu tư tiềm năng 2025
+                            </h4>
+                            <p class="text-xs text-gray-500 mt-1">1,943 lượt xem</p>
+                        </div>
+                    </div>
+                    <div class="trending-item">
+                        <div class="trending-number">5</div>
+                        <div>
+                            <h4 class="font-medium text-gray-800 text-sm">
+                                Chính sách hỗ trợ mua nhà 2025
+                            </h4>
+                            <p class="text-xs text-gray-500 mt-1">1,782 lượt xem</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Market Statistics -->
+            <div class="sidebar-widget">
+                <h3 class="text-xl font-bold mb-4 text-gray-800">
+                    <i class="fas fa-chart-bar text-blue-500 mr-2"></i>Thống Kê Thị Trường
+                </h3>
+                <div class="market-stats">
+                    <div class="stat-item">
+                        <div class="stat-value">+15%</div>
+                        <div class="text-xs text-gray-600">Tăng trưởng Q4/2024</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">2,543</div>
+                        <div class="text-xs text-gray-600">Giao dịch/tháng</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">85tr</div>
+                        <div class="text-xs text-gray-600">Giá TB/m² Hải Châu</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">24tr</div>
+                        <div class="text-xs text-gray-600">Giá TB/m² Cẩm Lệ</div>
+                    </div>
+                </div>
+                <div class="mt-4 p-3 bg-blue-50 rounded-lg">
+                    <p class="text-sm text-blue-800">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Dữ liệu cập nhật hàng tuần từ các nguồn chính thức
+                    </p>
+                </div>
+            </div>
+
+            <!-- Newsletter Signup -->
+            <div class="sidebar-widget">
+                <h3 class="text-xl font-bold mb-4 text-gray-800">
+                    <i class="fas fa-envelope text-green-500 mr-2"></i>Newsletter
+                </h3>
+                <p class="text-gray-600 text-sm mb-3">
+                    Đăng ký nhận báo cáo thị trường BDS Đà Nẵng hàng tuần
+                </p>
+                <form class="newsletter-form">
+                    <input type="email" placeholder="Email của bạn..." class="newsletter-input">
+                    <button type="submit" class="newsletter-btn">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+                <p class="text-xs text-gray-500 mt-2">
+                    Chúng tôi cam kết không spam và bảo mật thông tin cá nhân.
+                </p>
+            </div>
+
+            <!-- Quick Links -->
+            <div class="sidebar-widget">
+                <h3 class="text-xl font-bold mb-4 text-gray-800">
+                    <i class="fas fa-link text-purple-500 mr-2"></i>Liên Kết Nhanh
+                </h3>
+                <div class="space-y-3">
+                    <a href="/bao-cao-thi-truong" class="block text-sm text-gray-600 hover:text-blue-600 p-2 hover:bg-gray-50 rounded">
+                        <i class="fas fa-chart-line mr-2"></i>Báo cáo thị trường
+                    </a>
+                    <a href="/gia-dat-hai-chau" class="block text-sm text-gray-600 hover:text-blue-600 p-2 hover:bg-gray-50 rounded">
+                        <i class="fas fa-map-marker-alt mr-2"></i>Giá đất Hải Châu
+                    </a>
+                    <a href="/gia-dat-thanh-khe" class="block text-sm text-gray-600 hover:text-blue-600 p-2 hover:bg-gray-50 rounded">
+                        <i class="fas fa-map-marker-alt mr-2"></i>Giá đất Thanh Khê
+                    </a>
+                    <a href="/du-an-bat-dong-san" class="block text-sm text-gray-600 hover:text-blue-600 p-2 hover:bg-gray-50 rounded">
+                        <i class="fas fa-building mr-2"></i>Dự án BDS mới
+                    </a>
+                    <a href="/guide.html" class="block text-sm text-gray-600 hover:text-blue-600 p-2 hover:bg-gray-50 rounded">
+                        <i class="fas fa-question-circle mr-2"></i>Hướng dẫn sử dụng
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-12 mt-16">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold mb-4">
+                        <i class="fas fa-map-marked-alt mr-2"></i>Xem Giá Đất
+                    </h3>
+                    <p class="text-gray-400">
+                        Nền tảng thông tin bất động sản Đà Nẵng chính xác và minh bạch nhất.
+                    </p>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-4">Tin tức</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white">Thị trường BDS</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Dự án mới</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Chính sách</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Xu hướng đầu tư</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-4">Công cụ</h4>
+                    <ul class="space-y-2">
+                        <li><a href="/" class="text-gray-400 hover:text-white">Bản đồ giá đất</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Tìm kiếm BDS</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">So sánh giá</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Tính lãi suất</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-4">Liên hệ</h4>
+                    <ul class="space-y-2">
+                        <li class="text-gray-400"><i class="fas fa-phone mr-2"></i>0236.xxx.xxxx</li>
+                        <li class="text-gray-400"><i class="fas fa-envelope mr-2"></i>info@xemgiadat.com</li>
+                        <li class="text-gray-400"><i class="fas fa-map-marker-alt mr-2"></i>Đà Nẵng, Việt Nam</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2025 Xem Giá Đất. Tất cả quyền được bảo lưu.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Newsletter form submission
+            const newsletterForm = document.querySelector('.newsletter-form');
+            newsletterForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const email = this.querySelector('input[type="email"]').value;
+                if (email) {
+                    alert('Cảm ơn bạn đã đăng ký newsletter! Chúng tôi sẽ gửi báo cáo thị trường hàng tuần.');
+                    this.querySelector('input[type="email"]').value = '';
+                }
+            });
+
+            // Add reading progress indicator
+            const articles = document.querySelectorAll('.article-item, .featured-article');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            articles.forEach(article => {
+                article.style.opacity = '0';
+                article.style.transform = 'translateY(20px)';
+                article.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                observer.observe(article);
+            });
+        });
+    </script>
+</body>
+</html>

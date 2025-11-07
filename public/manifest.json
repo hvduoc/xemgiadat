@@ -1,0 +1,193 @@
+{
+  "name": "Xem Giá Đất Đà Nẵng - Bản Đồ Giá Đất Chính Xác",
+  "short_name": "Xem Giá Đất",
+  "description": "Bản đồ giá đất Đà Nẵng chính xác nhất 2025. Tra cứu thông tin BDS, giao dịch minh bạch.",
+  "theme_color": "#3b82f6",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "scope": "/",
+  "start_url": "/",
+  "orientation": "portrait-primary",
+  "lang": "vi",
+  "dir": "ltr",
+  
+  "icons": [
+    {
+      "src": "/images/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/images/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/images/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/images/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/images/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/images/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/images/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/images/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  
+  "screenshots": [
+    {
+      "src": "/images/screenshot-desktop.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Giao diện desktop của Xem Giá Đất"
+    },
+    {
+      "src": "/images/screenshot-mobile.png", 
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Giao diện mobile của Xem Giá Đất"
+    }
+  ],
+  
+  "categories": [
+    "business",
+    "finance",
+    "productivity",
+    "utilities"
+  ],
+  
+  "iarc_rating_id": "e84b072d-71b3-4d3e-86ae-31a8ce4e53b7",
+  
+  "related_applications": [
+    {
+      "platform": "play",
+      "url": "https://play.google.com/store/apps/details?id=com.xemgiadat.app",
+      "id": "com.xemgiadat.app"
+    }
+  ],
+  
+  "prefer_related_applications": false,
+  
+  "shortcuts": [
+    {
+      "name": "Xem bản đồ",
+      "short_name": "Bản đồ",
+      "description": "Xem bản đồ giá đất Đà Nẵng",
+      "url": "/#map",
+      "icons": [
+        {
+          "src": "/images/shortcut-map.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Tìm kiếm",
+      "short_name": "Tìm kiếm",
+      "description": "Tìm kiếm thông tin giá đất",
+      "url": "/search",
+      "icons": [
+        {
+          "src": "/images/shortcut-search.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Đăng tin",
+      "short_name": "Đăng tin",
+      "description": "Đăng tin bán/cho thuê BDS",
+      "url": "/#add-portfolio",
+      "icons": [
+        {
+          "src": "/images/shortcut-add.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Báo cáo thị trường",
+      "short_name": "Báo cáo",
+      "description": "Xem báo cáo thị trường BDS",
+      "url": "/bao-cao-thi-truong",
+      "icons": [
+        {
+          "src": "/images/shortcut-report.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  
+  "file_handlers": [
+    {
+      "action": "/import",
+      "accept": {
+        "application/json": [".json"],
+        "text/csv": [".csv"]
+      }
+    }
+  ],
+  
+  "protocol_handlers": [
+    {
+      "protocol": "web+xemgiadat",
+      "url": "/share?data=%s"
+    }
+  ],
+  
+  "share_target": {
+    "action": "/share",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url",
+      "files": [
+        {
+          "name": "images",
+          "accept": ["image/*"]
+        }
+      ]
+    }
+  },
+  
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  }
+}

@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog - Kiến Thức Bất Động Sản Đà Nẵng | Xem Giá Đất</title>
+    <meta name="description" content="Blog chia sẻ kiến thức bất động sản Đà Nẵng: hướng dẫn đầu tư, phân tích thị trường, chính sách BDS và xu hướng phát triển.">
+    <meta name="keywords" content="blog bất động sản Đà Nẵng, kiến thức BDS, hướng dẫn đầu tư, phân tích thị trường">
+    <link rel="canonical" href="https://xemgiadat.com/blog">
+    
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .hero-blog {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 0 80px 0;
+            margin-top: 64px;
+        }
+        .blog-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .blog-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 40px;
+        }
+        .category-nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        .category-btn {
+            padding: 10px 20px;
+            background: #f8fafc;
+            border: 1px solid #e5e7eb;
+            border-radius: 25px;
+            text-decoration: none;
+            color: #6b7280;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+        .category-btn:hover, .category-btn.active {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+            transform: translateY(-2px);
+        }
+        .featured-post {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            transition: transform 0.3s ease;
+        }
+        .featured-post:hover {
+            transform: translateY(-5px);
+        }
+        .post-image {
+            width: 100%;
+            height: 300px;
+            background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6b7280;
+            font-size: 3rem;
+        }
+        .post-content {
+            padding: 30px;
+        }
+        .post-meta {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            color: #6b7280;
+        }
+        .post-category {
+            background: #3b82f6;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        .post-list {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+        .post-item {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        .post-item:hover {
+            transform: translateY(-3px);
+        }
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        .sidebar-widget {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        .popular-posts {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .popular-item {
+            display: flex;
+            gap: 15px;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 8px;
+            transition: background 0.3s ease;
+        }
+        .popular-item:hover {
+            background: #f1f5f9;
+        }
+        .popular-thumb {
+            width: 80px;
+            height: 60px;
+            background: #e5e7eb;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #9ca3af;
+            flex-shrink: 0;
+        }
+        .popular-content {
+            flex: 1;
+        }
+        .tags-cloud {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .tag-item {
+            padding: 6px 12px;
+            background: #f3f4f6;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            color: #6b7280;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        .tag-item:hover {
+            background: #3b82f6;
+            color: white;
+        }
+        .newsletter-signup {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        .newsletter-form {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .newsletter-input {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+        .newsletter-btn {
+            background: white;
+            color: #3b82f6;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 40px;
+        }
+        .page-btn {
+            padding: 10px 15px;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            text-decoration: none;
+            color: #374151;
+            transition: all 0.3s ease;
+        }
+        .page-btn:hover, .page-btn.active {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+        @media (max-width: 768px) {
+            .blog-grid {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+            .category-nav {
+                padding: 15px;
+            }
+            .category-btn {
+                font-size: 0.8rem;
+                padding: 8px 16px;
+            }
+            .newsletter-form {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md fixed w-full top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <a href="/" class="text-xl font-bold text-blue-600">
+                        <i class="fas fa-map-marked-alt mr-2"></i>Xem Giá Đất
+                    </a>
+                </div>
+                <div class="hidden md:flex space-x-6">
+                    <a href="/" class="text-gray-700 hover:text-blue-600">Trang chủ</a>
+                    <a href="/bao-cao-thi-truong" class="text-gray-700 hover:text-blue-600">Báo cáo</a>
+                    <a href="/tin-tuc-bat-dong-san" class="text-gray-700 hover:text-blue-600">Tin tức</a>
+                    <a href="/blog" class="text-blue-600 font-medium">Blog</a>
+                    <a href="/gioi-thieu" class="text-gray-700 hover:text-blue-600">Giới thiệu</a>
+                    <a href="/lien-he" class="text-gray-700 hover:text-blue-600">Liên hệ</a>
+                </div>
+                <div class="md:hidden">
+                    <button class="text-gray-700">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-blog">
+        <div class="max-w-4xl mx-auto px-4 text-center">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4">
+                Blog Kiến Thức BDS
+            </h1>
+            <p class="text-xl opacity-90 mb-6">
+                Chia sẻ kiến thức chuyên sâu về đầu tư và phát triển bất động sản Đà Nẵng
+            </p>
+            <div class="flex flex-wrap justify-center gap-4 text-sm">
+                <span class="bg-white bg-opacity-20 px-4 py-2 rounded-full">
+                    <i class="fas fa-lightbulb mr-2"></i>Kiến thức thực tiễn
+                </span>
+                <span class="bg-white bg-opacity-20 px-4 py-2 rounded-full">
+                    <i class="fas fa-chart-line mr-2"></i>Phân tích chuyên sâu
+                </span>
+                <span class="bg-white bg-opacity-20 px-4 py-2 rounded-full">
+                    <i class="fas fa-graduation-cap mr-2"></i>Từ chuyên gia
+                </span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Blog Content -->
+    <div class="blog-container">
+        <!-- Category Navigation -->
+        <div class="category-nav">
+            <a href="/blog" class="category-btn active">
+                <i class="fas fa-home mr-2"></i>Tất cả
+            </a>
+            <a href="/blog/thi-truong" class="category-btn">
+                <i class="fas fa-chart-line mr-2"></i>Thị Trường
+            </a>
+            <a href="/blog/du-an" class="category-btn">
+                <i class="fas fa-building mr-2"></i>Dự Án Mới
+            </a>
+            <a href="/blog/chinh-sach" class="category-btn">
+                <i class="fas fa-gavel mr-2"></i>Chính Sách
+            </a>
+            <a href="/blog/dau-tu" class="category-btn">
+                <i class="fas fa-coins mr-2"></i>Đầu Tư
+            </a>
+            <a href="/blog/huong-dan" class="category-btn">
+                <i class="fas fa-book mr-2"></i>Hướng Dẫn
+            </a>
+            <a href="/blog/xu-huong" class="category-btn">
+                <i class="fas fa-trending-up mr-2"></i>Xu Hướng
+            </a>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="blog-grid">
+            <!-- Main Posts -->
+            <div class="main-content">
+                <!-- Featured Post -->
+                <article class="featured-post">
+                    <div class="post-image">
+                        <i class="fas fa-image"></i>
+                    </div>
+                    <div class="post-content">
+                        <div class="post-meta">
+                            <span class="post-category">Thị trường</span>
+                            <span><i class="fas fa-calendar mr-1"></i>15/01/2025</span>
+                            <span><i class="fas fa-user mr-1"></i>Nguyễn Văn An</span>
+                            <span><i class="fas fa-eye mr-1"></i>4,567 lượt xem</span>
+                        </div>
+                        <h2 class="text-2xl font-bold mb-3 text-gray-800">
+                            <a href="/blog/5-bi-quyet-dau-tu-dat-nen-da-nang-hieu-qua" class="hover:text-blue-600">
+                                5 Bí Quyết Đầu Tư Đất Nền Đà Nẵng Hiệu Quả Năm 2025
+                            </a>
+                        </h2>
+                        <p class="text-gray-600 mb-4">
+                            Khám phá 5 chiến lược đầu tư đất nền thông minh tại Đà Nẵng với tỷ suất sinh lời cao. 
+                            Từ việc chọn vị trí, thời điểm mua bán đến kỹ thuật đàm phán giá cả hiệu quả. 
+                            Hướng dẫn chi tiết cho cả nhà đầu tư mới và có kinh nghiệm...
+                        </p>
+                        <a href="/blog/5-bi-quyet-dau-tu-dat-nen-da-nang-hieu-qua" class="text-blue-600 font-medium hover:text-blue-800">
+                            Đọc tiếp <i class="fas fa-arrow-right ml-1"></i>
+                        </a>
+                    </div>
+                </article>
+
+                <!-- Post List -->
+                <div class="post-list">
+                    <article class="post-item">
+                        <div class="post-meta mb-3">
+                            <span class="post-category">Dự án</span>
+                            <span><i class="fas fa-calendar mr-1"></i>14/01/2025</span>
+                            <span><i class="fas fa-user mr-1"></i>Trần Thị Bình</span>
+                            <span><i class="fas fa-eye mr-1"></i>2,891 lượt xem</span>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2 text-gray-800">
+                            <a href="/blog/review-du-an-khu-do-thi-ven-song-han" class="hover:text-blue-600">
+                                Review Dự Án Khu Đô Thị Ven Sông Hàn: Tiềm Năng và Thách Thức
+                            </a>
+                        </h3>
+                        <p class="text-gray-600 mb-3">
+                            Phân tích chi tiết dự án khu đô thị ven sông Hàn với quy mô 500ha, tiềm năng phát triển 
+                            và những thách thức về hạ tầng. Đánh giá mức độ phù hợp cho từng nhóm nhà đầu tư...
+                        </p>
+                        <a href="/blog/review-du-an-khu-do-thi-ven-song-han" class="text-blue-600 text-sm font-medium">Đọc tiếp</a>
+                    </article>
+
+                    <article class="post-item">
+                        <div class="post-meta mb-3">
+                            <span class="post-category">Chính sách</span>
+                            <span><i class="fas fa-calendar mr-1"></i>13/01/2025</span>
+                            <span><i class="fas fa-user mr-1"></i>Lê Văn Cường</span>
+                            <span><i class="fas fa-eye mr-1"></i>3,456 lượt xem</span>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2 text-gray-800">
+                            <a href="/blog/thay-doi-chinh-sach-thue-dat-2025" class="hover:text-blue-600">
+                                Thay Đổi Chính Sách Thuế Đất 2025: Ảnh Hưởng Đến Nhà Đầu Tư BDS
+                            </a>
+                        </h3>
+                        <p class="text-gray-600 mb-3">
+                            Luật Đất đai 2024 có hiệu lực với nhiều thay đổi quan trọng về thuế và phí. 
+                            Phân tích tác động đến chi phí đầu tư và chiến lược thích ứng cho nhà đầu tư...
+                        </p>
+                        <a href="/blog/thay-doi-chinh-sach-thue-dat-2025" class="text-blue-600 text-sm font-medium">Đọc tiếp</a>
+                    </article>
+
+                    <article class="post-item">
+                        <div class="post-meta mb-3">
+                            <span class="post-category">Đầu tư</span>
+                            <span><i class="fas fa-calendar mr-1"></i>12/01/2025</span>
+                            <span><i class="fas fa-user mr-1"></i>Nguyễn Văn An</span>
+                            <span><i class="fas fa-eye mr-1"></i>2,134 lượt xem</span>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2 text-gray-800">
+                            <a href="/blog/so-sanh-loi-nhuan-dau-tu-bds-cac-quan" class="hover:text-blue-600">
+                                So Sánh Lợi Nhuận Đầu Tư BDS Các Quận Đà Nẵng 2024
+                            </a>
+                        </h3>
+                        <p class="text-gray-600 mb-3">
+                            Báo cáo chi tiết về tỷ suất sinh lời đầu tư BDS tại 6 quận Đà Nẵng. Hải Châu dẫn đầu 
+                            với 18% ROI, Cẩm Lệ tiềm năng tăng trưởng 25% trong 2 năm tới...
+                        </p>
+                        <a href="/blog/so-sanh-loi-nhuan-dau-tu-bds-cac-quan" class="text-blue-600 text-sm font-medium">Đọc tiếp</a>
+                    </article>
+
+                    <article class="post-item">
+                        <div class="post-meta mb-3">
+                            <span class="post-category">Hướng dẫn</span>
+                            <span><i class="fas fa-calendar mr-1"></i>11/01/2025</span>
+                            <span><i class="fas fa-user mr-1"></i>Trần Thị Bình</span>
+                            <span><i class="fas fa-eye mr-1"></i>1,876 lượt xem</span>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2 text-gray-800">
+                            <a href="/blog/huong-dan-kiem-tra-phap-ly-bat-dong-san" class="hover:text-blue-600">
+                                Hướng Dẫn Kiểm Tra Pháp Lý Bất Động Sản Đầy Đủ Và Chi Tiết
+                            </a>
+                        </h3>
+                        <p class="text-gray-600 mb-3">
+                            Checklist 15 bước kiểm tra pháp lý BDS an toàn trước khi mua. Từ sổ đỏ, giấy phép xây dựng 
+                            đến kiểm tra nợ thuế và tranh chấp. Tránh rủi ro pháp lý cho nhà đầu tư...
+                        </p>
+                        <a href="/blog/huong-dan-kiem-tra-phap-ly-bat-dong-san" class="text-blue-600 text-sm font-medium">Đọc tiếp</a>
+                    </article>
+
+                    <article class="post-item">
+                        <div class="post-meta mb-3">
+                            <span class="post-category">Xu hướng</span>
+                            <span><i class="fas fa-calendar mr-1"></i>10/01/2025</span>
+                            <span><i class="fas fa-user mr-1"></i>Lê Văn Cường</span>
+                            <span><i class="fas fa-eye mr-1"></i>2,567 lượt xem</span>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2 text-gray-800">
+                            <a href="/blog/smart-city-da-nang-co-hoi-dau-tu-2025" class="hover:text-blue-600">
+                                Smart City Đà Nẵng: Cơ Hội Đầu Tư BDS Công Nghệ Cao 2025-2030
+                            </a>
+                        </h3>
+                        <p class="text-gray-600 mb-3">
+                            Đà Nẵng trở thành thành phố thông minh với kế hoạch đầu tư 5 tỷ USD. Phân tích cơ hội 
+                            đầu tư BDS tại các khu vực công nghệ cao và ảnh hưởng đến giá đất...
+                        </p>
+                        <a href="/blog/smart-city-da-nang-co-hoi-dau-tu-2025" class="text-blue-600 text-sm font-medium">Đọc tiếp</a>
+                    </article>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination">
+                    <a href="#" class="page-btn">&laquo;</a>
+                    <a href="#" class="page-btn active">1</a>
+                    <a href="#" class="page-btn">2</a>
+                    <a href="#" class="page-btn">3</a>
+                    <a href="#" class="page-btn">4</a>
+                    <a href="#" class="page-btn">5</a>
+                    <a href="#" class="page-btn">&raquo;</a>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <!-- Popular Posts -->
+                <div class="sidebar-widget">
+                    <h3 class="text-xl font-bold mb-4 text-gray-800">
+                        <i class="fas fa-fire text-red-500 mr-2"></i>Bài Viết Phổ Biến
+                    </h3>
+                    <div class="popular-posts">
+                        <div class="popular-item">
+                            <div class="popular-thumb">
+                                <i class="fas fa-image text-lg"></i>
+                            </div>
+                            <div class="popular-content">
+                                <h4 class="font-medium text-gray-800 text-sm mb-1">
+                                    <a href="#" class="hover:text-blue-600">
+                                        Top 10 khu vực đầu tư BDS tiềm năng Đà Nẵng
+                                    </a>
+                                </h4>
+                                <p class="text-xs text-gray-500">8,234 lượt xem</p>
+                            </div>
+                        </div>
+                        
+                        <div class="popular-item">
+                            <div class="popular-thumb">
+                                <i class="fas fa-image text-lg"></i>
+                            </div>
+                            <div class="popular-content">
+                                <h4 class="font-medium text-gray-800 text-sm mb-1">
+                                    <a href="#" class="hover:text-blue-600">
+                                        Cách tính lãi suất vay mua nhà hiệu quả
+                                    </a>
+                                </h4>
+                                <p class="text-xs text-gray-500">6,789 lượt xem</p>
+                            </div>
+                        </div>
+                        
+                        <div class="popular-item">
+                            <div class="popular-thumb">
+                                <i class="fas fa-image text-lg"></i>
+                            </div>
+                            <div class="popular-content">
+                                <h4 class="font-medium text-gray-800 text-sm mb-1">
+                                    <a href="#" class="hover:text-blue-600">
+                                        Quy trình mua bán nhà đất an toàn 2025
+                                    </a>
+                                </h4>
+                                <p class="text-xs text-gray-500">5,567 lượt xem</p>
+                            </div>
+                        </div>
+                        
+                        <div class="popular-item">
+                            <div class="popular-thumb">
+                                <i class="fas fa-image text-lg"></i>
+                            </div>
+                            <div class="popular-content">
+                                <h4 class="font-medium text-gray-800 text-sm mb-1">
+                                    <a href="#" class="hover:text-blue-600">
+                                        Đầu tư condotel Đà Nẵng: Cơ hội hay rủi ro?
+                                    </a>
+                                </h4>
+                                <p class="text-xs text-gray-500">4,321 lượt xem</p>
+                            </div>
+                        </div>
+                        
+                        <div class="popular-item">
+                            <div class="popular-thumb">
+                                <i class="fas fa-image text-lg"></i>
+                            </div>
+                            <div class="popular-content">
+                                <h4 class="font-medium text-gray-800 text-sm mb-1">
+                                    <a href="#" class="hover:text-blue-600">
+                                        Phong thủy chọn hướng nhà theo tuổi
+                                    </a>
+                                </h4>
+                                <p class="text-xs text-gray-500">3,456 lượt xem</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tags Cloud -->
+                <div class="sidebar-widget">
+                    <h3 class="text-xl font-bold mb-4 text-gray-800">
+                        <i class="fas fa-tags text-green-500 mr-2"></i>Từ Khóa Phổ Biến
+                    </h3>
+                    <div class="tags-cloud">
+                        <a href="/blog/tag/dau-tu-dat-nen" class="tag-item">Đầu tư đất nền</a>
+                        <a href="/blog/tag/gia-dat-hai-chau" class="tag-item">Giá đất Hải Châu</a>
+                        <a href="/blog/tag/du-an-moi" class="tag-item">Dự án mới</a>
+                        <a href="/blog/tag/chinh-sach-bds" class="tag-item">Chính sách BDS</a>
+                        <a href="/blog/tag/condotel" class="tag-item">Condotel</a>
+                        <a href="/blog/tag/nha-pho" class="tag-item">Nhà phố</a>
+                        <a href="/blog/tag/can-ho" class="tag-item">Căn hộ</a>
+                        <a href="/blog/tag/shophouse" class="tag-item">Shophouse</a>
+                        <a href="/blog/tag/biet-thu" class="tag-item">Biệt thự</a>
+                        <a href="/blog/tag/resort" class="tag-item">Resort</a>
+                        <a href="/blog/tag/khach-san" class="tag-item">Khách sạn</a>
+                        <a href="/blog/tag/phap-ly" class="tag-item">Pháp lý</a>
+                        <a href="/blog/tag/feng-shui" class="tag-item">Phong thủy</a>
+                        <a href="/blog/tag/vay-ngan-hang" class="tag-item">Vay ngân hàng</a>
+                    </div>
+                </div>
+
+                <!-- Newsletter -->
+                <div class="newsletter-signup">
+                    <h3 class="text-xl font-bold mb-3">
+                        <i class="fas fa-envelope mr-2"></i>Newsletter
+                    </h3>
+                    <p class="text-sm opacity-90 mb-3">
+                        Nhận bài viết mới và insight thị trường BDS hàng tuần
+                    </p>
+                    <form class="newsletter-form">
+                        <input type="email" placeholder="Email của bạn..." class="newsletter-input">
+                        <button type="submit" class="newsletter-btn">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </form>
+                    <p class="text-xs opacity-75 mt-2">
+                        Miễn phí và có thể hủy đăng ký bất cứ lúc nào
+                    </p>
+                </div>
+
+                <!-- Categories -->
+                <div class="sidebar-widget">
+                    <h3 class="text-xl font-bold mb-4 text-gray-800">
+                        <i class="fas fa-folder text-blue-500 mr-2"></i>Danh Mục
+                    </h3>
+                    <div class="space-y-3">
+                        <a href="/blog/thi-truong" class="block text-gray-600 hover:text-blue-600 p-2 hover:bg-gray-50 rounded text-sm">
+                            <i class="fas fa-chart-line mr-2"></i>Thị Trường (24)
+                        </a>
+                        <a href="/blog/dau-tu" class="block text-gray-600 hover:text-blue-600 p-2 hover:bg-gray-50 rounded text-sm">
+                            <i class="fas fa-coins mr-2"></i>Đầu Tư (18)
+                        </a>
+                        <a href="/blog/du-an" class="block text-gray-600 hover:text-blue-600 p-2 hover:bg-gray-50 rounded text-sm">
+                            <i class="fas fa-building mr-2"></i>Dự Án Mới (15)
+                        </a>
+                        <a href="/blog/huong-dan" class="block text-gray-600 hover:text-blue-600 p-2 hover:bg-gray-50 rounded text-sm">
+                            <i class="fas fa-book mr-2"></i>Hướng Dẫn (12)
+                        </a>
+                        <a href="/blog/chinh-sach" class="block text-gray-600 hover:text-blue-600 p-2 hover:bg-gray-50 rounded text-sm">
+                            <i class="fas fa-gavel mr-2"></i>Chính Sách (9)
+                        </a>
+                        <a href="/blog/xu-huong" class="block text-gray-600 hover:text-blue-600 p-2 hover:bg-gray-50 rounded text-sm">
+                            <i class="fas fa-trending-up mr-2"></i>Xu Hướng (7)
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-12 mt-16">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold mb-4">
+                        <i class="fas fa-map-marked-alt mr-2"></i>Xem Giá Đất
+                    </h3>
+                    <p class="text-gray-400">
+                        Nền tảng thông tin bất động sản Đà Nẵng chính xác và minh bạch nhất.
+                    </p>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-4">Blog</h4>
+                    <ul class="space-y-2">
+                        <li><a href="/blog/thi-truong" class="text-gray-400 hover:text-white">Thị trường</a></li>
+                        <li><a href="/blog/dau-tu" class="text-gray-400 hover:text-white">Đầu tư</a></li>
+                        <li><a href="/blog/huong-dan" class="text-gray-400 hover:text-white">Hướng dẫn</a></li>
+                        <li><a href="/blog/xu-huong" class="text-gray-400 hover:text-white">Xu hướng</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-4">Công cụ</h4>
+                    <ul class="space-y-2">
+                        <li><a href="/" class="text-gray-400 hover:text-white">Bản đồ giá đất</a></li>
+                        <li><a href="/bao-cao-thi-truong" class="text-gray-400 hover:text-white">Báo cáo thị trường</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Tính lãi suất</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">So sánh dự án</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-4">Liên hệ</h4>
+                    <ul class="space-y-2">
+                        <li class="text-gray-400"><i class="fas fa-phone mr-2"></i>0236.xxx.xxxx</li>
+                        <li class="text-gray-400"><i class="fas fa-envelope mr-2"></i>blog@xemgiadat.com</li>
+                        <li><a href="/lien-he" class="text-gray-400 hover:text-white">Góp ý bài viết</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2025 Xem Giá Đất. Tất cả quyền được bảo lưu.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Category filter functionality
+            const categoryBtns = document.querySelectorAll('.category-btn');
+            categoryBtns.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    // Remove active class from all buttons
+                    categoryBtns.forEach(b => b.classList.remove('active'));
+                    // Add active class to clicked button
+                    this.classList.add('active');
+                    
+                    // Filter posts based on category (implementation would filter actual content)
+                    const category = this.textContent.trim();
+                    console.log('Filtering by category:', category);
+                });
+            });
+
+            // Newsletter form submission
+            const newsletterForm = document.querySelector('.newsletter-form');
+            newsletterForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const email = this.querySelector('input[type="email"]').value;
+                if (email) {
+                    alert('Cảm ơn bạn đã đăng ký! Chúng tôi sẽ gửi bài viết mới qua email.');
+                    this.querySelector('input[type="email"]').value = '';
+                }
+            });
+
+            // Smooth scroll to top when clicking pagination
+            const pageLinks = document.querySelectorAll('.page-btn');
+            pageLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+            });
+
+            // Add reading progress for posts
+            const posts = document.querySelectorAll('.post-item, .featured-post');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            posts.forEach(post => {
+                post.style.opacity = '0';
+                post.style.transform = 'translateY(20px)';
+                post.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                observer.observe(post);
+            });
+        });
+    </script>
+</body>
+</html>
