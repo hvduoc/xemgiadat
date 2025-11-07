@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - Xem GiÃ¡ Äáº¥t</title>
+    <title>Admin Dashboard - Xem Giá Đất</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -230,7 +230,7 @@
                     </div>
                     <div>
                         <h1 class="text-xl font-bold text-gray-800">Admin Dashboard</h1>
-                        <p class="text-xs text-gray-500 hidden sm:block">Quáº£n lÃ½ há»‡ thá»‘ng BDS</p>
+                        <p class="text-xs text-gray-500 hidden sm:block">Quản lý hệ thống BDS</p>
                     </div>
                 </div>
             </div>
@@ -246,7 +246,7 @@
                 <!-- Real-time Status Indicator -->
                 <div class="flex items-center space-x-2">
                     <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                    <span class="text-sm text-gray-600 hidden sm:block">Hoáº¡t Ä‘á»™ng</span>
+                    <span class="text-sm text-gray-600 hidden sm:block">Hoạt động</span>
                 </div>
                 
                 <!-- Notifications -->
@@ -259,12 +259,12 @@
                     <!-- Notification Dropdown -->
                     <div id="notification-dropdown" class="hidden absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border z-50">
                         <div class="p-4 border-b">
-                            <h3 class="font-semibold text-gray-800">ThÃ´ng bÃ¡o má»›i</h3>
+                            <h3 class="font-semibold text-gray-800">Thông báo mới</h3>
                         </div>
                         <div class="max-h-64 overflow-y-auto">
                             <div class="p-4 text-center text-gray-500">
                                 <i class="fas fa-bell-slash text-2xl mb-2"></i>
-                                <p>KhÃ´ng cÃ³ thÃ´ng bÃ¡o má»›i</p>
+                                <p>Không có thông báo mới</p>
                             </div>
                         </div>
                     </div>
@@ -278,7 +278,7 @@
                     </div>
                     <div class="hidden sm:block">
                         <span id="admin-name" class="text-gray-700 font-medium block">Admin</span>
-                        <span class="text-xs text-gray-500">Quáº£n trá»‹ viÃªn</span>
+                        <span class="text-xs text-gray-500">Quản trị viên</span>
                     </div>
                     <i class="fas fa-chevron-down text-gray-400 text-sm hidden sm:block"></i>
                 </div>
@@ -286,7 +286,7 @@
                 <!-- Back to Site Button -->
                 <a href="index.html" class="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-lg hover:from-blue-600 hover:to-purple-700 transition flex items-center space-x-2 shadow-lg">
                     <i class="fas fa-home"></i>
-                    <span class="hidden sm:inline">Vá» trang chÃ­nh</span>
+                    <span class="hidden sm:inline">Về trang chính</span>
                 </a>
             </div>
         </div>
@@ -306,7 +306,7 @@
                     </div>
                     <div class="sidebar-text">
                         <h2 class="font-bold text-lg">Control Panel</h2>
-                        <p class="text-sm text-gray-300">Quáº£n lÃ½ há»‡ thá»‘ng</p>
+                        <p class="text-sm text-gray-300">Quản lý hệ thống</p>
                     </div>
                 </div>
             </div>
@@ -324,7 +324,7 @@
                     
                     <button onclick="showSection('users')" class="sidebar-item w-full text-left px-4 py-3 rounded-lg transition flex items-center space-x-3">
                         <i class="fas fa-users text-lg w-5"></i>
-                        <span class="sidebar-text">Quáº£n lÃ½ ngÆ°á»i dÃ¹ng</span>
+                        <span class="sidebar-text">Quản lý người dùng</span>
                         <div class="sidebar-text ml-auto">
                             <span id="users-count" class="bg-gray-600 text-xs px-2 py-1 rounded-full">0</span>
                         </div>
@@ -332,7 +332,7 @@
                     
                     <button onclick="showSection('listings')" class="sidebar-item w-full text-left px-4 py-3 rounded-lg transition flex items-center space-x-3">
                         <i class="fas fa-building text-lg w-5"></i>
-                        <span class="sidebar-text">Tin Ä‘Äƒng BDS</span>
+                        <span class="sidebar-text">Tin đăng BDS</span>
                         <div class="sidebar-text ml-auto">
                             <span id="listings-count" class="bg-gray-600 text-xs px-2 py-1 rounded-full">0</span>
                         </div>
@@ -340,7 +340,7 @@
                     
                     <button onclick="showSection('feedback')" class="sidebar-item w-full text-left px-4 py-3 rounded-lg transition flex items-center space-x-3">
                         <i class="fas fa-comments text-lg w-5"></i>
-                        <span class="sidebar-text">GÃ³p Ã½ & Pháº£n há»“i</span>
+                        <span class="sidebar-text">Góp ý & Phản hồi</span>
                         <div class="sidebar-text ml-auto">
                             <span id="feedback-count" class="bg-yellow-500 text-xs px-2 py-1 rounded-full">0</span>
                         </div>
@@ -356,7 +356,7 @@
                     
                     <button onclick="showSection('settings')" class="sidebar-item w-full text-left px-4 py-3 rounded-lg transition flex items-center space-x-3">
                         <i class="fas fa-cog text-lg w-5"></i>
-                        <span class="sidebar-text">CÃ i Ä‘áº·t há»‡ thá»‘ng</span>
+                        <span class="sidebar-text">Cài đặt hệ thống</span>
                     </button>
                 </nav>
             </div>
@@ -364,34 +364,34 @@
             <!-- Enhanced Quick Stats in Sidebar -->
             <div class="p-6 border-t border-gray-600 mt-auto">
                 <h3 class="text-sm font-semibold text-gray-300 mb-4 sidebar-text">
-                    <i class="fas fa-chart-pie mr-2"></i>Hoáº¡t Ä‘á»™ng hÃ´m nay
+                    <i class="fas fa-chart-pie mr-2"></i>Hoạt động hôm nay
                 </h3>
                 <div class="space-y-3 text-sm sidebar-text">
                     <div class="flex justify-between items-center bg-gray-700 bg-opacity-50 rounded-lg p-2">
                         <span class="flex items-center">
                             <i class="fas fa-user-plus mr-2 text-green-400"></i>
-                            NgÆ°á»i dÃ¹ng má»›i:
+                            Người dùng mới:
                         </span>
                         <span id="today-users" class="text-green-400 font-bold">0</span>
                     </div>
                     <div class="flex justify-between items-center bg-gray-700 bg-opacity-50 rounded-lg p-2">
                         <span class="flex items-center">
                             <i class="fas fa-home mr-2 text-blue-400"></i>
-                            Tin Ä‘Äƒng má»›i:
+                            Tin đăng mới:
                         </span>
                         <span id="today-listings" class="text-blue-400 font-bold">0</span>
                     </div>
                     <div class="flex justify-between items-center bg-gray-700 bg-opacity-50 rounded-lg p-2">
                         <span class="flex items-center">
                             <i class="fas fa-heart mr-2 text-pink-400"></i>
-                            GÃ³p Ã½ má»›i:
+                            Góp ý mới:
                         </span>
                         <span id="today-feedback" class="text-pink-400 font-bold">0</span>
                     </div>
                     <div class="flex justify-between items-center bg-gray-700 bg-opacity-50 rounded-lg p-2">
                         <span class="flex items-center">
                             <i class="fas fa-eye mr-2 text-purple-400"></i>
-                            LÆ°á»£t xem:
+                            Lượt xem:
                         </span>
                         <span id="today-views" class="text-purple-400 font-bold">0</span>
                     </div>
@@ -400,10 +400,10 @@
                 <!-- System Status -->
                 <div class="sidebar-text mt-4 p-3 bg-gray-700 bg-opacity-30 rounded-lg">
                     <div class="flex items-center justify-between">
-                        <span class="text-xs text-gray-300">Há»‡ thá»‘ng:</span>
+                        <span class="text-xs text-gray-300">Hệ thống:</span>
                         <div class="flex items-center space-x-1">
                             <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                            <span class="text-xs text-green-400">Hoáº¡t Ä‘á»™ng tá»‘t</span>
+                            <span class="text-xs text-green-400">Hoạt động tốt</span>
                         </div>
                     </div>
                 </div>
@@ -417,13 +417,13 @@
                 <div class="bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl p-6 text-white shadow-xl">
                     <div class="flex items-center justify-between">
                         <div>
-                            <h2 class="text-2xl font-bold mb-2">ChÃ o má»«ng trá»Ÿ láº¡i, Admin! ðŸ‘‹</h2>
-                            <p class="text-blue-100">HÃ´m nay lÃ  <span id="current-date"></span></p>
+                            <h2 class="text-2xl font-bold mb-2">Chào mừng trở lại, Admin! 👋</h2>
+                            <p class="text-blue-100">Hôm nay là <span id="current-date"></span></p>
                         </div>
                         <div class="hidden md:flex items-center space-x-4">
                             <div class="text-center">
                                 <div class="text-2xl font-bold" id="current-time"></div>
-                                <div class="text-sm text-blue-200">Thá»i gian hiá»‡n táº¡i</div>
+                                <div class="text-sm text-blue-200">Thời gian hiện tại</div>
                             </div>
                         </div>
                     </div>
@@ -432,8 +432,8 @@
             <!-- Dashboard Section -->
             <section id="dashboard-section" class="section">
                 <div class="mb-8">
-                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Dashboard Tá»•ng quan</h2>
-                    <p class="text-gray-600">Thá»‘ng kÃª vÃ  quáº£n lÃ½ hoáº¡t Ä‘á»™ng cá»§a website</p>
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Dashboard Tổng quan</h2>
+                    <p class="text-gray-600">Thống kê và quản lý hoạt động của website</p>
                 </div>
 
                 <!-- Stats Cards -->
@@ -441,9 +441,9 @@
                     <div class="stat-card users p-6 rounded-xl text-white shadow-lg">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm opacity-80">Tá»•ng ngÆ°á»i dÃ¹ng</p>
+                                <p class="text-sm opacity-80">Tổng người dùng</p>
                                 <p id="total-users" class="text-3xl font-bold">0</p>
-                                <p class="text-sm opacity-70">â†— +<span id="users-growth">0</span> tuáº§n nÃ y</p>
+                                <p class="text-sm opacity-70">↗ +<span id="users-growth">0</span> tuần này</p>
                             </div>
                             <i class="fas fa-users text-4xl opacity-60"></i>
                         </div>
@@ -452,9 +452,9 @@
                     <div class="stat-card listings p-6 rounded-xl text-white shadow-lg">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm opacity-80">Tin Ä‘Äƒng BDS</p>
+                                <p class="text-sm opacity-80">Tin đăng BDS</p>
                                 <p id="total-listings" class="text-3xl font-bold">0</p>
-                                <p class="text-sm opacity-70">â†— +<span id="listings-growth">0</span> tuáº§n nÃ y</p>
+                                <p class="text-sm opacity-70">↗ +<span id="listings-growth">0</span> tuần này</p>
                             </div>
                             <i class="fas fa-building text-4xl opacity-60"></i>
                         </div>
@@ -463,9 +463,9 @@
                     <div class="stat-card feedback p-6 rounded-xl text-white shadow-lg">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm opacity-80">GÃ³p Ã½ & Pháº£n há»“i</p>
+                                <p class="text-sm opacity-80">Góp ý & Phản hồi</p>
                                 <p id="total-feedback" class="text-3xl font-bold">0</p>
-                                <p class="text-sm opacity-70">ðŸŒŸ <span id="avg-rating">0</span> sao TB</p>
+                                <p class="text-sm opacity-70">🌟 <span id="avg-rating">0</span> sao TB</p>
                             </div>
                             <i class="fas fa-comments text-4xl opacity-60"></i>
                         </div>
@@ -474,9 +474,9 @@
                     <div class="stat-card visits p-6 rounded-xl text-white shadow-lg">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm opacity-80">LÆ°á»£t truy cáº­p</p>
+                                <p class="text-sm opacity-80">Lượt truy cập</p>
                                 <p id="total-visits" class="text-3xl font-bold">0</p>
-                                <p class="text-sm opacity-70">ðŸ“Š Æ¯á»›c tÃ­nh</p>
+                                <p class="text-sm opacity-70">📊 Ước tính</p>
                             </div>
                             <i class="fas fa-chart-line text-4xl opacity-60"></i>
                         </div>
@@ -486,11 +486,11 @@
                 <!-- Charts Row -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                     <div class="bg-white p-6 rounded-xl shadow-lg">
-                        <h3 class="text-lg font-bold text-gray-800 mb-4">TÄƒng trÆ°á»Ÿng ngÆ°á»i dÃ¹ng (7 ngÃ y qua)</h3>
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">Tăng trưởng người dùng (7 ngày qua)</h3>
                         <canvas id="userGrowthChart" width="400" height="200"></canvas>
                     </div>
                     <div class="bg-white p-6 rounded-xl shadow-lg">
-                        <h3 class="text-lg font-bold text-gray-800 mb-4">PhÃ¢n bá»‘ Ä‘Ã¡nh giÃ¡</h3>
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">Phân bố đánh giá</h3>
                         <canvas id="ratingChart" width="400" height="200"></canvas>
                     </div>
                 </div>
@@ -498,13 +498,13 @@
                 <!-- Recent Activity -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div class="bg-white p-6 rounded-xl shadow-lg">
-                        <h3 class="text-lg font-bold text-gray-800 mb-4">Hoáº¡t Ä‘á»™ng gáº§n Ä‘Ã¢y</h3>
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">Hoạt động gần đây</h3>
                         <div id="recent-activities" class="space-y-3">
                             <!-- Activities will be populated by JS -->
                         </div>
                     </div>
                     <div class="bg-white p-6 rounded-xl shadow-lg">
-                        <h3 class="text-lg font-bold text-gray-800 mb-4">Tin Ä‘Äƒng cáº§n duyá»‡t</h3>
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">Tin đăng cần duyệt</h3>
                         <div id="pending-listings" class="space-y-3">
                             <!-- Pending listings will be populated by JS -->
                         </div>
@@ -515,8 +515,8 @@
             <!-- Users Management Section -->
             <section id="users-section" class="section hidden">
                 <div class="mb-8">
-                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Quáº£n lÃ½ ngÆ°á»i dÃ¹ng</h2>
-                    <p class="text-gray-600">Xem vÃ  quáº£n lÃ½ tÃ i khoáº£n ngÆ°á»i dÃ¹ng</p>
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Quản lý người dùng</h2>
+                    <p class="text-gray-600">Xem và quản lý tài khoản người dùng</p>
                 </div>
 
                 <!-- User Stats & Actions -->
@@ -525,7 +525,7 @@
                         <div class="flex space-x-6">
                             <div class="text-center">
                                 <div class="text-2xl font-bold text-blue-600" id="users-active">0</div>
-                                <div class="text-sm text-gray-600">Hoáº¡t Ä‘á»™ng</div>
+                                <div class="text-sm text-gray-600">Hoạt động</div>
                             </div>
                             <div class="text-center">
                                 <div class="text-2xl font-bold text-green-600" id="users-premium">0</div>
@@ -533,14 +533,14 @@
                             </div>
                             <div class="text-center">
                                 <div class="text-2xl font-bold text-yellow-600" id="users-banned">0</div>
-                                <div class="text-sm text-gray-600">Bá»‹ khÃ³a</div>
+                                <div class="text-sm text-gray-600">Bị khóa</div>
                             </div>
                         </div>
                         <div class="flex space-x-2">
-                            <input type="text" id="search-users" placeholder="TÃ¬m kiáº¿m ngÆ°á»i dÃ¹ng..." 
+                            <input type="text" id="search-users" placeholder="Tìm kiếm người dùng..." 
                                    class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
                             <button onclick="exportUsers()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
-                                <i class="fas fa-download mr-2"></i>Xuáº¥t Excel
+                                <i class="fas fa-download mr-2"></i>Xuất Excel
                             </button>
                         </div>
                     </div>
@@ -552,12 +552,12 @@
                         <table class="w-full">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">NgÆ°á»i dÃ¹ng</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Người dùng</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ÄÄƒng kÃ½</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tin Ä‘Äƒng</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tráº¡ng thÃ¡i</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">HÃ nh Ä‘á»™ng</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Đăng ký</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tin đăng</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Trạng thái</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Hành động</th>
                                 </tr>
                             </thead>
                             <tbody id="users-table-body" class="divide-y divide-gray-200">
@@ -571,8 +571,8 @@
             <!-- Listings Management Section -->
             <section id="listings-section" class="section hidden">
                 <div class="mb-8">
-                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Quáº£n lÃ½ tin Ä‘Äƒng BDS</h2>
-                    <p class="text-gray-600">Kiá»ƒm duyá»‡t vÃ  quáº£n lÃ½ tin Ä‘Äƒng báº¥t Ä‘á»™ng sáº£n</p>
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Quản lý tin đăng BDS</h2>
+                    <p class="text-gray-600">Kiểm duyệt và quản lý tin đăng bất động sản</p>
                 </div>
 
                 <!-- Listing Filters -->
@@ -580,20 +580,20 @@
                     <div class="flex flex-wrap justify-between items-center gap-4">
                         <div class="flex space-x-4">
                             <select id="filter-status" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                                <option value="">Táº¥t cáº£ tráº¡ng thÃ¡i</option>
-                                <option value="pending">Chá» duyá»‡t</option>
-                                <option value="approved">ÄÃ£ duyá»‡t</option>
-                                <option value="rejected">Tá»« chá»‘i</option>
+                                <option value="">Tất cả trạng thái</option>
+                                <option value="pending">Chờ duyệt</option>
+                                <option value="approved">Đã duyệt</option>
+                                <option value="rejected">Từ chối</option>
                             </select>
-                            <input type="text" id="search-listings" placeholder="TÃ¬m kiáº¿m tin Ä‘Äƒng..." 
+                            <input type="text" id="search-listings" placeholder="Tìm kiếm tin đăng..." 
                                    class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
                         </div>
                         <div class="flex space-x-2">
                             <button onclick="bulkApproveListings()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
-                                <i class="fas fa-check mr-2"></i>Duyá»‡t hÃ ng loáº¡t
+                                <i class="fas fa-check mr-2"></i>Duyệt hàng loạt
                             </button>
                             <button onclick="exportListings()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
-                                <i class="fas fa-download mr-2"></i>Xuáº¥t dá»¯ liá»‡u
+                                <i class="fas fa-download mr-2"></i>Xuất dữ liệu
                             </button>
                         </div>
                     </div>
@@ -608,12 +608,12 @@
                                     <th class="px-6 py-3 text-left">
                                         <input type="checkbox" id="select-all-listings" class="rounded">
                                     </th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tin Ä‘Äƒng</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">NgÆ°á»i Ä‘Äƒng</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">GiÃ¡</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">NgÃ y Ä‘Äƒng</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tráº¡ng thÃ¡i</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">HÃ nh Ä‘á»™ng</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tin đăng</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Người đăng</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Giá</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ngày đăng</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Trạng thái</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Hành động</th>
                                 </tr>
                             </thead>
                             <tbody id="listings-table-body" class="divide-y divide-gray-200">
@@ -627,8 +627,8 @@
             <!-- Feedback Management Section -->
             <section id="feedback-section" class="section hidden">
                 <div class="mb-8">
-                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Quáº£n lÃ½ gÃ³p Ã½ & pháº£n há»“i</h2>
-                    <p class="text-gray-600">Xem vÃ  pháº£n há»“i Ã½ kiáº¿n tá»« ngÆ°á»i dÃ¹ng</p>
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Quản lý góp ý & phản hồi</h2>
+                    <p class="text-gray-600">Xem và phản hồi ý kiến từ người dùng</p>
                 </div>
 
                 <!-- Feedback Stats -->
@@ -636,7 +636,7 @@
                     <div class="bg-white p-6 rounded-xl shadow-lg">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm text-gray-600">GÃ³p Ã½ chÆ°a Ä‘á»c</p>
+                                <p class="text-sm text-gray-600">Góp ý chưa đọc</p>
                                 <p id="feedback-unread" class="text-2xl font-bold text-red-600">0</p>
                             </div>
                             <i class="fas fa-exclamation-circle text-3xl text-red-600"></i>
@@ -645,7 +645,7 @@
                     <div class="bg-white p-6 rounded-xl shadow-lg">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm text-gray-600">ÄÃ£ pháº£n há»“i</p>
+                                <p class="text-sm text-gray-600">Đã phản hồi</p>
                                 <p id="feedback-replied" class="text-2xl font-bold text-green-600">0</p>
                             </div>
                             <i class="fas fa-reply text-3xl text-green-600"></i>
@@ -654,7 +654,7 @@
                     <div class="bg-white p-6 rounded-xl shadow-lg">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm text-gray-600">ÄÃ¡nh giÃ¡ trung bÃ¬nh</p>
+                                <p class="text-sm text-gray-600">Đánh giá trung bình</p>
                                 <p id="feedback-avg-rating" class="text-2xl font-bold text-yellow-600">0.0</p>
                             </div>
                             <i class="fas fa-star text-3xl text-yellow-600"></i>
@@ -667,22 +667,22 @@
                     <div class="flex flex-wrap justify-between items-center gap-4">
                         <div class="flex space-x-4">
                             <select id="filter-feedback-type" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                                <option value="">Táº¥t cáº£ loáº¡i</option>
-                                <option value="suggestion">Äá» xuáº¥t</option>
-                                <option value="bug">BÃ¡o lá»—i</option>
-                                <option value="improvement">Cáº£i thiá»‡n</option>
-                                <option value="ui">Giao diá»‡n</option>
-                                <option value="data">Dá»¯ liá»‡u</option>
+                                <option value="">Tất cả loại</option>
+                                <option value="suggestion">Đề xuất</option>
+                                <option value="bug">Báo lỗi</option>
+                                <option value="improvement">Cải thiện</option>
+                                <option value="ui">Giao diện</option>
+                                <option value="data">Dữ liệu</option>
                                 <option value="general">Chung</option>
                             </select>
                             <select id="filter-feedback-priority" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                                <option value="">Táº¥t cáº£ má»©c Ä‘á»™</option>
+                                <option value="">Tất cả mức độ</option>
                                 <option value="high">Cao</option>
-                                <option value="medium">Trung bÃ¬nh</option>
-                                <option value="low">Tháº¥p</option>
+                                <option value="medium">Trung bình</option>
+                                <option value="low">Thấp</option>
                             </select>
                             <select id="filter-feedback-rating" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                                <option value="">Táº¥t cáº£ Ä‘Ã¡nh giÃ¡</option>
+                                <option value="">Tất cả đánh giá</option>
                                 <option value="5">5 sao</option>
                                 <option value="4">4 sao</option>
                                 <option value="3">3 sao</option>
@@ -691,7 +691,7 @@
                             </select>
                         </div>
                         <button onclick="exportFeedback()" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">
-                            <i class="fas fa-download mr-2"></i>Xuáº¥t bÃ¡o cÃ¡o
+                            <i class="fas fa-download mr-2"></i>Xuất báo cáo
                         </button>
                     </div>
                 </div>
@@ -705,8 +705,8 @@
             <!-- Analytics Section -->
             <section id="analytics-section" class="section hidden">
                 <div class="mb-6">
-                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Thá»‘ng kÃª & BÃ¡o cÃ¡o</h2>
-                    <p class="text-gray-600">PhÃ¢n tÃ­ch dá»¯ liá»‡u vÃ  xu hÆ°á»›ng sá»­ dá»¥ng</p>
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Thống kê & Báo cáo</h2>
+                    <p class="text-gray-600">Phân tích dữ liệu và xu hướng sử dụng</p>
                 </div>
 
                 <!-- Content will be loaded dynamically by loadAdvancedAnalytics() -->
@@ -714,7 +714,7 @@
                     <div class="flex items-center justify-center h-64">
                         <div class="text-center">
                             <i class="fas fa-spinner fa-spin text-4xl text-blue-600 mb-4"></i>
-                            <p class="text-gray-600">Äang táº£i analytics dashboard...</p>
+                            <p class="text-gray-600">Đang tải analytics dashboard...</p>
                         </div>
                     </div>
                 </div>
@@ -732,11 +732,11 @@
 
                 <!-- Legacy Analytics Charts (keep existing) -->
                     <div class="bg-white p-6 rounded-xl shadow-lg">
-                        <h3 class="text-lg font-bold text-gray-800 mb-4">Xu hÆ°á»›ng tÄƒng trÆ°á»Ÿng</h3>
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">Xu hướng tăng trưởng</h3>
                         <canvas id="growthTrendChart" width="400" height="200"></canvas>
                     </div>
                     <div class="bg-white p-6 rounded-xl shadow-lg">
-                        <h3 class="text-lg font-bold text-gray-800 mb-4">PhÃ¢n loáº¡i gÃ³p Ã½</h3>
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">Phân loại góp ý</h3>
                         <canvas id="feedbackTypeChart" width="400" height="200"></canvas>
                     </div>
                 </div>
@@ -747,13 +747,13 @@
                         <h3 class="text-xl font-bold text-gray-800">Market Intelligence Dashboard</h3>
                         <div class="flex space-x-2">
                             <select id="market-timeframe" class="px-3 py-2 border border-gray-300 rounded-lg text-sm">
-                                <option value="7d">7 ngÃ y</option>
-                                <option value="30d">30 ngÃ y</option>
-                                <option value="3m">3 thÃ¡ng</option>
-                                <option value="1y">1 nÄƒm</option>
+                                <option value="7d">7 ngày</option>
+                                <option value="30d">30 ngày</option>
+                                <option value="3m">3 tháng</option>
+                                <option value="1y">1 năm</option>
                             </select>
                             <button onclick="refreshMarketData()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 text-sm">
-                                <i class="fas fa-sync-alt mr-1"></i>Cáº­p nháº­t
+                                <i class="fas fa-sync-alt mr-1"></i>Cập nhật
                             </button>
                         </div>
                     </div>
@@ -763,9 +763,9 @@
                         <div class="bg-gradient-to-br from-blue-500 to-blue-600 text-white p-4 rounded-lg">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <p class="text-blue-100 text-sm">GiÃ¡ TB/mÂ²</p>
+                                    <p class="text-blue-100 text-sm">Giá TB/m²</p>
                                     <p class="text-2xl font-bold">89.2M</p>
-                                    <p class="text-blue-200 text-xs">+5.2% thÃ¡ng nÃ y</p>
+                                    <p class="text-blue-200 text-xs">+5.2% tháng này</p>
                                 </div>
                                 <div class="text-3xl opacity-80">
                                     <i class="fas fa-chart-line"></i>
@@ -776,9 +776,9 @@
                         <div class="bg-gradient-to-br from-green-500 to-green-600 text-white p-4 rounded-lg">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <p class="text-green-100 text-sm">Giao dá»‹ch</p>
+                                    <p class="text-green-100 text-sm">Giao dịch</p>
                                     <p class="text-2xl font-bold">1,234</p>
-                                    <p class="text-green-200 text-xs">+12.8% thÃ¡ng nÃ y</p>
+                                    <p class="text-green-200 text-xs">+12.8% tháng này</p>
                                 </div>
                                 <div class="text-3xl opacity-80">
                                     <i class="fas fa-handshake"></i>
@@ -791,7 +791,7 @@
                                 <div>
                                     <p class="text-purple-100 text-sm">Hot Zones</p>
                                     <p class="text-2xl font-bold">23</p>
-                                    <p class="text-purple-200 text-xs">+3 khu vá»±c má»›i</p>
+                                    <p class="text-purple-200 text-xs">+3 khu vực mới</p>
                                 </div>
                                 <div class="text-3xl opacity-80">
                                     <i class="fas fa-fire"></i>
@@ -804,7 +804,7 @@
                                 <div>
                                     <p class="text-orange-100 text-sm">ROI TB</p>
                                     <p class="text-2xl font-bold">15.4%</p>
-                                    <p class="text-orange-200 text-xs">+2.1% nÄƒm nÃ y</p>
+                                    <p class="text-orange-200 text-xs">+2.1% năm này</p>
                                 </div>
                                 <div class="text-3xl opacity-80">
                                     <i class="fas fa-percentage"></i>
@@ -815,15 +815,15 @@
 
                 <!-- Market Intelligence Section -->
                 <div class="bg-white p-6 rounded-xl shadow-lg">
-                    <h3 class="text-lg font-bold text-gray-800 mb-6">ðŸ“ˆ Market Intelligence Dashboard</h3>
+                    <h3 class="text-lg font-bold text-gray-800 mb-6">📈 Market Intelligence Dashboard</h3>
                     
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                         <div class="bg-gray-50 p-4 rounded-lg">
-                            <h4 class="font-semibold text-gray-800 mb-3">Xu hÆ°á»›ng giÃ¡ theo quáº­n</h4>
+                            <h4 class="font-semibold text-gray-800 mb-3">Xu hướng giá theo quận</h4>
                             <canvas id="districtPriceTrendChart" width="400" height="250"></canvas>
                         </div>
                         <div class="bg-gray-50 p-4 rounded-lg">
-                            <h4 class="font-semibold text-gray-800 mb-3">Volume giao dá»‹ch</h4>
+                            <h4 class="font-semibold text-gray-800 mb-3">Volume giao dịch</h4>
                             <canvas id="transactionVolumeChart" width="400" height="250"></canvas>
                         </div>
                     </div>
@@ -841,7 +841,7 @@
             </section>
                     </div>
                     <div class="bg-white p-6 rounded-xl shadow-lg">
-                        <h3 class="text-lg font-bold text-gray-800 mb-4">Tin Ä‘Äƒng phá»• biáº¿n</h3>
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">Tin đăng phổ biến</h3>
                         <div id="popular-listings" class="space-y-3">
                             <!-- Popular listings will be populated by JS -->
                         </div>
@@ -852,34 +852,34 @@
             <!-- Settings Section -->
             <section id="settings-section" class="section hidden">
                 <div class="mb-8">
-                    <h2 class="text-3xl font-bold text-gray-800 mb-2">âš™ï¸ CÃ i Ä‘áº·t há»‡ thá»‘ng</h2>
-                    <p class="text-gray-600">Quáº£n lÃ½ cáº¥u hÃ¬nh vÃ  tÃ¹y chá»‰nh há»‡ thá»‘ng</p>
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">⚙️ Cài đặt hệ thống</h2>
+                    <p class="text-gray-600">Quản lý cấu hình và tùy chỉnh hệ thống</p>
                 </div>
 
                 <!-- System Configuration -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     <!-- General Settings -->
                     <div class="bg-white p-6 rounded-xl shadow-lg">
-                        <h3 class="text-lg font-bold text-gray-800 mb-4">ðŸ”§ CÃ i Ä‘áº·t chung</h3>
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">🔧 Cài đặt chung</h3>
                         <div class="space-y-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">TÃªn website</label>
-                                <input type="text" value="Xem GiÃ¡ Äáº¥t ÄÃ  Náºµng" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Tên website</label>
+                                <input type="text" value="Xem Giá Đất Đà Nẵng" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">MÃ´ táº£ SEO</label>
-                                <textarea rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">Báº£n Ä‘á»“ giÃ¡ Ä‘áº¥t ÄÃ  Náºµng chÃ­nh xÃ¡c nháº¥t 2025</textarea>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Mô tả SEO</label>
+                                <textarea rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">Bản đồ giá đất Đà Nẵng chính xác nhất 2025</textarea>
                             </div>
                             <div class="flex items-center space-x-3">
                                 <input type="checkbox" id="maintenance-mode" class="rounded">
-                                <label for="maintenance-mode" class="text-sm text-gray-700">Cháº¿ Ä‘á»™ báº£o trÃ¬</label>
+                                <label for="maintenance-mode" class="text-sm text-gray-700">Chế độ bảo trì</label>
                             </div>
                         </div>
                     </div>
 
                     <!-- Analytics Settings -->
                     <div class="bg-white p-6 rounded-xl shadow-lg">
-                        <h3 class="text-lg font-bold text-gray-800 mb-4">ðŸ“Š CÃ i Ä‘áº·t Analytics</h3>
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">📊 Cài đặt Analytics</h3>
                         <div class="space-y-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Google Analytics ID</label>
@@ -888,10 +888,10 @@
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Data retention</label>
                                 <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                                    <option>14 thÃ¡ng</option>
-                                    <option>26 thÃ¡ng</option>
-                                    <option>38 thÃ¡ng</option>
-                                    <option>50 thÃ¡ng</option>
+                                    <option>14 tháng</option>
+                                    <option>26 tháng</option>
+                                    <option>38 tháng</option>
+                                    <option>50 tháng</option>
                                 </select>
                             </div>
                             <div class="flex items-center space-x-3">
@@ -905,7 +905,7 @@
                 <!-- Save Button -->
                 <div class="mt-8">
                     <button onclick="saveSettings()" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">
-                        <i class="fas fa-save mr-2"></i>LÆ°u cÃ i Ä‘áº·t
+                        <i class="fas fa-save mr-2"></i>Lưu cài đặt
                     </button>
                 </div>
             </section>
@@ -924,7 +924,7 @@
                     </div>
 
                     <div class="bg-white p-6 rounded-xl shadow-lg">
-                        <h3 class="text-lg font-bold text-gray-800 mb-4">ðŸš¨ Theo DÃµi Lá»—i</h3>
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">🚨 Theo Dõi Lỗi</h3>
                         <div id="error-tracking" class="space-y-3">
                             <!-- Error tracking will be populated by JS -->
                         </div>
@@ -933,7 +933,7 @@
 
                 <!-- System Status -->
                 <div class="bg-white p-6 rounded-xl shadow-lg mb-6">
-                    <h3 class="text-lg font-bold text-gray-800 mb-4">ðŸ–¥ï¸ Tráº¡ng ThÃ¡i Há»‡ Thá»‘ng</h3>
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">🖥️ Trạng Thái Hệ Thống</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         <div class="text-center p-4 bg-gray-50 rounded-lg">
                             <div class="text-2xl font-bold text-green-600" id="system-uptime">100%</div>
@@ -956,12 +956,12 @@
 
                 <!-- Performance History Chart -->
                 <div class="bg-white p-6 rounded-xl shadow-lg">
-                    <h3 class="text-lg font-bold text-gray-800 mb-4">ðŸ“Š Lá»‹ch Sá»­ Hiá»‡u Suáº¥t (24h)</h3>
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">📊 Lịch Sử Hiệu Suất (24h)</h3>
                     <div class="h-64 bg-gray-50 rounded-lg flex items-center justify-center">
                         <div class="text-center text-gray-500">
                             <i class="fas fa-chart-line text-4xl mb-4"></i>
-                            <p>Biá»ƒu Ä‘á»“ hiá»‡u suáº¥t theo thá»i gian</p>
-                            <p class="text-sm">Dá»¯ liá»‡u sáº½ Ä‘Æ°á»£c cáº­p nháº­t real-time</p>
+                            <p>Biểu đồ hiệu suất theo thời gian</p>
+                            <p class="text-sm">Dữ liệu sẽ được cập nhật real-time</p>
                         </div>
                     </div>
                 </div>
@@ -969,13 +969,13 @@
                 <!-- Action Buttons -->
                 <div class="flex justify-end space-x-4 mt-6">
                     <button onclick="exportPerformanceReport()" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700">
-                        <i class="fas fa-download mr-2"></i>Xuáº¥t BÃ¡o CÃ¡o
+                        <i class="fas fa-download mr-2"></i>Xuất Báo Cáo
                     </button>
                     <button onclick="clearPerformanceData()" class="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700">
-                        <i class="fas fa-trash mr-2"></i>XÃ³a Dá»¯ Liá»‡u CÅ©
+                        <i class="fas fa-trash mr-2"></i>Xóa Dữ Liệu Cũ
                     </button>
                     <a href="analytics-dashboard.html" target="_blank" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
-                        <i class="fas fa-external-link-alt mr-2"></i>Má»Ÿ Dashboard RiÃªng
+                        <i class="fas fa-external-link-alt mr-2"></i>Mở Dashboard Riêng
                     </a>
                 </div>
             </section>
@@ -986,6 +986,228 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <!-- Admin Dashboard Script -->
+    <script src="admin.js"></script>
+</body>
+</html>
+
+ 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            };
+            const timeOptions = { 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit' 
+            };
+            
+            const dateElement = document.getElementById('current-date');
+            if (dateElement) {
+                dateElement.textContent = now.toLocaleDateString('vi-VN', dateOptions);
+            }
+            
+            const timeElement = document.getElementById('current-time');
+            if (timeElement) {
+                timeElement.textContent = now.toLocaleTimeString('vi-VN', timeOptions);
+            }
+        }
+        
+        // Setup mobile menu
+        function setupMobileMenu() {
+            const mobileToggle = document.getElementById('mobile-menu-toggle');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('mobile-overlay');
+            
+            if (mobileToggle && sidebar && overlay) {
+                mobileToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('mobile-open');
+                    overlay.classList.toggle('hidden');
+                });
+                
+                overlay.addEventListener('click', function() {
+                    sidebar.classList.remove('mobile-open');
+                    overlay.classList.add('hidden');
+                });
+            }
+        }
+        
+        // Setup sidebar toggle for desktop
+        function setupSidebarToggle() {
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('main-content');
+            
+            if (sidebarToggle && sidebar && mainContent) {
+                sidebarToggle.addEventListener('click', function() {
+                    sidebarCollapsed = !sidebarCollapsed;
+                    
+                    if (sidebarCollapsed) {
+                        sidebar.classList.add('collapsed');
+                        mainContent.classList.add('expanded');
+                    } else {
+                        sidebar.classList.remove('collapsed');
+                        mainContent.classList.remove('expanded');
+                    }
+                });
+            }
+        }
+        
+        // Setup notifications
+        function setupNotifications() {
+            const notificationBtn = document.getElementById('notification-btn');
+            const notificationDropdown = document.getElementById('notification-dropdown');
+            
+            if (notificationBtn && notificationDropdown) {
+                notificationBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    notificationDropdown.classList.toggle('hidden');
+                });
+                
+                document.addEventListener('click', function() {
+                    notificationDropdown.classList.add('hidden');
+                });
+            }
+        }
+        
+        // Enhanced showSection function
+        function showSection(sectionName) {
+            currentSection = sectionName;
+            
+            // Hide all sections
+            const sections = document.querySelectorAll('.section');
+            sections.forEach(section => section.classList.add('hidden'));
+            
+            // Show selected section
+            const targetSection = document.getElementById(sectionName + '-section');
+            if (targetSection) {
+                targetSection.classList.remove('hidden');
+            }
+            
+            // Update sidebar active state
+            const sidebarItems = document.querySelectorAll('.sidebar-item');
+            sidebarItems.forEach(item => item.classList.remove('active'));
+            
+            const activeItem = document.querySelector(`[onclick="showSection('${sectionName}')"]`);
+            if (activeItem) {
+                activeItem.classList.add('active');
+            }
+            
+            // Update breadcrumb
+            const breadcrumb = document.getElementById('current-section');
+            if (breadcrumb) {
+                const sectionNames = {
+                    'dashboard': 'Dashboard',
+                    'users': 'Quản lý người dùng',
+                    'listings': 'Tin đăng BDS',
+                    'feedback': 'Góp ý & Phản hồi',
+                    'analytics': 'Analytics & Performance',
+                    'settings': 'Cài đặt hệ thống'
+                };
+                breadcrumb.textContent = sectionNames[sectionName] || 'Dashboard';
+            }
+            
+            // Load section-specific data
+            loadSectionData(sectionName);
+        }
+        
+        // Load initial data
+        function loadInitialData() {
+            // Simulate loading data
+            setTimeout(() => {
+                updateStatsCards();
+                updateSidebarCounts();
+            }, 1000);
+        }
+        
+        // Update stats cards
+        function updateStatsCards() {
+            const stats = {
+                users: Math.floor(Math.random() * 1000) + 500,
+                listings: Math.floor(Math.random() * 500) + 200,
+                feedback: Math.floor(Math.random() * 100) + 50,
+                visits: Math.floor(Math.random() * 5000) + 2000
+            };
+            
+            const totalUsersEl = document.getElementById('total-users');
+            const totalListingsEl = document.getElementById('total-listings');
+            const totalFeedbackEl = document.getElementById('total-feedback');
+            const totalVisitsEl = document.getElementById('total-visits');
+            
+            if (totalUsersEl) totalUsersEl.textContent = stats.users.toLocaleString();
+            if (totalListingsEl) totalListingsEl.textContent = stats.listings.toLocaleString();
+            if (totalFeedbackEl) totalFeedbackEl.textContent = stats.feedback.toLocaleString();
+            if (totalVisitsEl) totalVisitsEl.textContent = stats.visits.toLocaleString();
+            
+            // Update today's stats
+            const todayUsersEl = document.getElementById('today-users');
+            const todayListingsEl = document.getElementById('today-listings');
+            const todayFeedbackEl = document.getElementById('today-feedback');
+            const todayViewsEl = document.getElementById('today-views');
+            
+            if (todayUsersEl) todayUsersEl.textContent = Math.floor(Math.random() * 20) + 5;
+            if (todayListingsEl) todayListingsEl.textContent = Math.floor(Math.random() * 10) + 2;
+            if (todayFeedbackEl) todayFeedbackEl.textContent = Math.floor(Math.random() * 5) + 1;
+            if (todayViewsEl) todayViewsEl.textContent = Math.floor(Math.random() * 500) + 100;
+        }
+        
+        // Update sidebar counts
+        function updateSidebarCounts() {
+            const usersCountEl = document.getElementById('users-count');
+            const listingsCountEl = document.getElementById('listings-count');
+            const feedbackCountEl = document.getElementById('feedback-count');
+            
+            if (usersCountEl) usersCountEl.textContent = Math.floor(Math.random() * 50) + 10;
+            if (listingsCountEl) listingsCountEl.textContent = Math.floor(Math.random() * 25) + 5;
+            if (feedbackCountEl) feedbackCountEl.textContent = Math.floor(Math.random() * 10) + 1;
+        }
+        
+        // Load section-specific data
+        function loadSectionData(sectionName) {
+            switch(sectionName) {
+                case 'analytics':
+                    if (typeof loadAdvancedAnalytics === 'function') {
+                        loadAdvancedAnalytics();
+                    }
+                    break;
+                case 'users':
+                    if (typeof loadUsersData === 'function') {
+                        loadUsersData();
+                    }
+                    break;
+                case 'listings':
+                    if (typeof loadListingsData === 'function') {
+                        loadListingsData();
+                    }
+                    break;
+                case 'feedback':
+                    if (typeof loadFeedbackData === 'function') {
+                        loadFeedbackData();
+                    }
+                    break;
+            }
+        }
+        
+        // Add smooth scroll behavior
+        document.documentElement.style.scrollBehavior = 'smooth';
+        
+        // Add loading indicators
+        function showLoading(elementId) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.innerHTML = '<div class="flex items-center justify-center p-8"><i class="fas fa-spinner loading-spinner text-2xl text-blue-500"></i><span class="ml-2">Đang tải...</span></div>';
+            }
+        }
+        
+        // Hide loading indicators
+        function hideLoading(elementId, content) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.innerHTML = content;
+            }
+        }
+    </script>
+
     <script src="admin.js"></script>
 </body>
 </html>
