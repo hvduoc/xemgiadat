@@ -1288,4 +1288,386 @@ function saveSecuritySettings() {
 }
 
 // Initialize when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    // Original initialization
+    updateStats();
+    renderFeedbackList();
+    
+    // Initialize advanced analytics
+    initializeAdvancedAnalytics();
+    startRealtimeUpdates();
+});
+
+// =============================================================================
+// ADVANCED ANALYTICS SYSTEM
+// =============================================================================
+
+let realtimeChart, searchTrendChart, geoChart, conversionFunnelChart, performanceChart;
+let districtPriceTrendChart, transactionVolumeChart;
+
+function initializeAdvancedAnalytics() {
+    initializeRealtimeCharts();
+    initializeMarketIntelligenceCharts();
+    updateRealTimeMetrics();
+}
+
+// Real-time Analytics Charts
+function initializeRealtimeCharts() {
+    // Real-time Users Chart
+    const realtimeCtx = document.getElementById('realtimeChart');
+    if (realtimeCtx) {
+        realtimeChart = new Chart(realtimeCtx.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: Array.from({length: 20}, (_, i) => `${i}s`),
+                datasets: [{
+                    label: 'Online Users',
+                    data: generateRealtimeData(20),
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    pointRadius: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { display: false },
+                    y: { 
+                        beginAtZero: true,
+                        display: false
+                    }
+                },
+                animation: { duration: 0 }
+            }
+        });
+    }
+
+    // Search Trend Chart
+    const searchCtx = document.getElementById('searchTrendChart');
+    if (searchCtx) {
+        searchTrendChart = new Chart(searchCtx.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: ['Hải Châu', 'Ngũ Hành Sơn', 'Sơn Trà', 'Thanh Khê', 'Liên Chiểu'],
+                datasets: [{
+                    label: 'Searches',
+                    data: [245, 189, 167, 143, 98],
+                    backgroundColor: [
+                        'rgba(59, 130, 246, 0.8)',
+                        'rgba(16, 185, 129, 0.8)',
+                        'rgba(245, 158, 11, 0.8)',
+                        'rgba(139, 92, 246, 0.8)',
+                        'rgba(239, 68, 68, 0.8)'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { display: false },
+                    y: { display: false }
+                }
+            }
+        });
+    }
+
+    // Geographic Chart
+    const geoCtx = document.getElementById('geoChart');
+    if (geoCtx) {
+        geoChart = new Chart(geoCtx.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Đà Nẵng', 'TP.HCM', 'Hà Nội', 'Khác'],
+                datasets: [{
+                    data: [68, 15, 12, 5],
+                    backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { 
+                    legend: { display: false }
+                }
+            }
+        });
+    }
+
+    // Conversion Funnel Chart
+    const funnelCtx = document.getElementById('conversionFunnelChart');
+    if (funnelCtx) {
+        conversionFunnelChart = new Chart(funnelCtx.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: ['Landing', 'Map View', 'Property Click', 'Contact Form', 'Lead'],
+                datasets: [{
+                    label: 'Users',
+                    data: [2300, 1800, 1200, 892, 324],
+                    backgroundColor: [
+                        'rgba(239, 68, 68, 0.8)',
+                        'rgba(245, 158, 11, 0.8)',
+                        'rgba(59, 130, 246, 0.8)',
+                        'rgba(16, 185, 129, 0.8)',
+                        'rgba(139, 92, 246, 0.8)'
+                    ]
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+
+    // Performance Chart
+    const perfCtx = document.getElementById('performanceChart');
+    if (perfCtx) {
+        performanceChart = new Chart(perfCtx.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
+                datasets: [
+                    {
+                        label: 'Avg Session (min)',
+                        data: [3.2, 2.8, 4.1, 5.2, 4.8, 3.9],
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Bounce Rate (%)',
+                        data: [28, 32, 22, 18, 21, 26],
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { 
+                        type: 'linear',
+                        display: true,
+                        position: 'left'
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        grid: { drawOnChartArea: false }
+                    }
+                }
+            }
+        });
+    }
+}
+
+// Market Intelligence Charts
+function initializeMarketIntelligenceCharts() {
+    // District Price Trend Chart
+    const districtCtx = document.getElementById('districtPriceTrendChart');
+    if (districtCtx) {
+        districtPriceTrendChart = new Chart(districtCtx.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6'],
+                datasets: [
+                    {
+                        label: 'Hải Châu',
+                        data: [110, 115, 118, 122, 125, 125.5],
+                        borderColor: '#ef4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)'
+                    },
+                    {
+                        label: 'Ngũ Hành Sơn',
+                        data: [85, 88, 92, 95, 97, 98.3],
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)'
+                    },
+                    {
+                        label: 'Sơn Trà',
+                        data: [140, 145, 148, 152, 155, 156.8],
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Giá đất theo tháng (triệu/m²)'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        title: {
+                            display: true,
+                            text: 'Triệu VNĐ/m²'
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Transaction Volume Chart
+    const volumeCtx = document.getElementById('transactionVolumeChart');
+    if (volumeCtx) {
+        transactionVolumeChart = new Chart(volumeCtx.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6'],
+                datasets: [{
+                    label: 'Số giao dịch',
+                    data: [890, 920, 1050, 1180, 1220, 1234],
+                    backgroundColor: 'rgba(139, 92, 246, 0.8)',
+                    borderColor: '#8b5cf6',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Volume giao dịch theo tháng'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Số giao dịch'
+                        }
+                    }
+                }
+            }
+        });
+    }
+}
+
+// Real-time Updates
+function startRealtimeUpdates() {
+    // Update every 5 seconds
+    setInterval(() => {
+        updateRealTimeMetrics();
+        updateRealtimeChart();
+    }, 5000);
+
+    // Update market data every 30 seconds
+    setInterval(() => {
+        updateMarketData();
+    }, 30000);
+}
+
+function updateRealTimeMetrics() {
+    // Simulate real-time user count
+    const currentUsers = Math.floor(Math.random() * 50) + 20;
+    const element = document.getElementById('realtime-users');
+    if (element) {
+        element.textContent = currentUsers;
+    }
+
+    // Update performance metrics with animation
+    updateMetricWithAnimation('avg-session', generateSessionTime());
+    updateMetricWithAnimation('bounce-rate', (Math.random() * 10 + 20).toFixed(1) + '%');
+    updateMetricWithAnimation('page-views', (Math.random() * 3 + 6).toFixed(1));
+    updateMetricWithAnimation('conversion-rate', (Math.random() * 5 + 10).toFixed(1) + '%');
+}
+
+function updateRealtimeChart() {
+    if (realtimeChart) {
+        // Add new data point
+        realtimeChart.data.datasets[0].data.push(Math.floor(Math.random() * 50) + 20);
+        realtimeChart.data.datasets[0].data.shift();
+        realtimeChart.update('none');
+    }
+}
+
+function updateMarketData() {
+    // Simulate market data updates
+    console.log('Updating market intelligence data...');
+    // In real implementation, this would fetch from Firebase
+}
+
+// Utility Functions
+function generateRealtimeData(length) {
+    return Array.from({length}, () => Math.floor(Math.random() * 50) + 20);
+}
+
+function generateSessionTime() {
+    const minutes = Math.floor(Math.random() * 3) + 3;
+    const seconds = Math.floor(Math.random() * 60);
+    return `${minutes}m ${seconds}s`;
+}
+
+function updateMetricWithAnimation(elementId, value) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.style.transform = 'scale(1.1)';
+        element.textContent = value;
+        setTimeout(() => {
+            element.style.transform = 'scale(1)';
+        }, 200);
+    }
+}
+
+// Action Functions
+function refreshHeatmap() {
+    console.log('Refreshing user journey heatmap...');
+    // Animate refresh
+    const heatmap = document.getElementById('journey-heatmap');
+    if (heatmap) {
+        heatmap.style.opacity = '0.5';
+        setTimeout(() => {
+            heatmap.style.opacity = '1';
+        }, 1000);
+    }
+}
+
+function refreshMarketData() {
+    console.log('Refreshing market intelligence data...');
+    // Show loading state
+    const button = event.target;
+    const originalHtml = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Đang tải...';
+    button.disabled = true;
+    
+    setTimeout(() => {
+        button.innerHTML = originalHtml;
+        button.disabled = false;
+        // Update charts with new data
+        updateMarketCharts();
+    }, 2000);
+}
+
+function updateMarketCharts() {
+    // Update district price trend
+    if (districtPriceTrendChart) {
+        districtPriceTrendChart.data.datasets.forEach(dataset => {
+            dataset.data = dataset.data.map(value => 
+                value + (Math.random() - 0.5) * 2
+            );
+        });
+        districtPriceTrendChart.update();
+    }
+
+    // Update transaction volume
+    if (transactionVolumeChart) {
+        transactionVolumeChart.data.datasets[0].data = 
+            transactionVolumeChart.data.datasets[0].data.map(value => 
+                Math.floor(value + (Math.random() - 0.5) * 100)
+            );
+        transactionVolumeChart.update();
+    }
+}
 console.log('🔧 Admin Dashboard Script Loaded');

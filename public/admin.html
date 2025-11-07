@@ -449,7 +449,135 @@
                 </div>
 
                 <!-- Analytics Charts -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    <!-- Real-time Users -->
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-bold text-gray-800">Người dùng trực tuyến</h3>
+                            <div class="flex items-center">
+                                <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse mr-2"></div>
+                                <span class="text-sm text-gray-600">Live</span>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <div id="realtime-users" class="text-4xl font-bold text-green-600 mb-2">--</div>
+                            <p class="text-sm text-gray-500">đang online</p>
+                            <canvas id="realtimeChart" width="200" height="100" class="mt-4"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Search Analytics -->
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">Tìm kiếm phổ biến</h3>
+                        <div id="popular-searches" class="space-y-2">
+                            <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
+                                <span class="text-sm">Hải Châu</span>
+                                <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">245</span>
+                            </div>
+                            <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
+                                <span class="text-sm">Ngũ Hành Sơn</span>
+                                <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">189</span>
+                            </div>
+                            <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
+                                <span class="text-sm">Sơn Trà</span>
+                                <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">167</span>
+                            </div>
+                        </div>
+                        <canvas id="searchTrendChart" width="300" height="150" class="mt-4"></canvas>
+                    </div>
+
+                    <!-- Geographic Distribution -->
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">Phân bố địa lý</h3>
+                        <div id="geographic-data" class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <div class="w-4 h-4 bg-blue-500 rounded mr-2"></div>
+                                    <span class="text-sm">Đà Nẵng</span>
+                                </div>
+                                <span class="text-sm font-semibold">68%</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <div class="w-4 h-4 bg-green-500 rounded mr-2"></div>
+                                    <span class="text-sm">TP.HCM</span>
+                                </div>
+                                <span class="text-sm font-semibold">15%</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <div class="w-4 h-4 bg-yellow-500 rounded mr-2"></div>
+                                    <span class="text-sm">Hà Nội</span>
+                                </div>
+                                <span class="text-sm font-semibold">12%</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <div class="w-4 h-4 bg-purple-500 rounded mr-2"></div>
+                                    <span class="text-sm">Khác</span>
+                                </div>
+                                <span class="text-sm font-semibold">5%</span>
+                            </div>
+                        </div>
+                        <canvas id="geoChart" width="300" height="150" class="mt-4"></canvas>
+                    </div>
+                </div>
+
+                <!-- Advanced Analytics Row -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <!-- User Journey Heatmap -->
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-bold text-gray-800">User Journey Heatmap</h3>
+                            <button onclick="refreshHeatmap()" class="text-blue-600 hover:text-blue-800">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+                        <div id="journey-heatmap" class="relative">
+                            <div class="grid grid-cols-3 gap-2 text-center">
+                                <div class="bg-gradient-to-br from-red-400 to-red-600 text-white p-3 rounded-lg">
+                                    <div class="text-2xl font-bold">2.3k</div>
+                                    <div class="text-xs">Landing</div>
+                                </div>
+                                <div class="bg-gradient-to-br from-orange-400 to-orange-600 text-white p-3 rounded-lg">
+                                    <div class="text-2xl font-bold">1.8k</div>
+                                    <div class="text-xs">Map View</div>
+                                </div>
+                                <div class="bg-gradient-to-br from-green-400 to-green-600 text-white p-3 rounded-lg">
+                                    <div class="text-2xl font-bold">892</div>
+                                    <div class="text-xs">Contact</div>
+                                </div>
+                            </div>
+                        </div>
+                        <canvas id="conversionFunnelChart" width="400" height="200" class="mt-4"></canvas>
+                    </div>
+
+                    <!-- Performance Metrics -->
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">Performance Metrics</h3>
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div class="text-center p-3 bg-blue-50 rounded-lg">
+                                <div id="avg-session" class="text-2xl font-bold text-blue-600">4m 32s</div>
+                                <div class="text-xs text-blue-800">Avg Session</div>
+                            </div>
+                            <div class="text-center p-3 bg-green-50 rounded-lg">
+                                <div id="bounce-rate" class="text-2xl font-bold text-green-600">23.4%</div>
+                                <div class="text-xs text-green-800">Bounce Rate</div>
+                            </div>
+                            <div class="text-center p-3 bg-purple-50 rounded-lg">
+                                <div id="page-views" class="text-2xl font-bold text-purple-600">8.2</div>
+                                <div class="text-xs text-purple-800">Pages/Session</div>
+                            </div>
+                            <div class="text-center p-3 bg-orange-50 rounded-lg">
+                                <div id="conversion-rate" class="text-2xl font-bold text-orange-600">12.8%</div>
+                                <div class="text-xs text-orange-800">Conversion</div>
+                            </div>
+                        </div>
+                        <canvas id="performanceChart" width="400" height="150"></canvas>
+                    </div>
+                </div>
+
+                <!-- Legacy Analytics Charts (keep existing) -->
                     <div class="bg-white p-6 rounded-xl shadow-lg">
                         <h3 class="text-lg font-bold text-gray-800 mb-4">Xu hướng tăng trưởng</h3>
                         <canvas id="growthTrendChart" width="400" height="200"></canvas>
@@ -457,6 +585,159 @@
                     <div class="bg-white p-6 rounded-xl shadow-lg">
                         <h3 class="text-lg font-bold text-gray-800 mb-4">Phân loại góp ý</h3>
                         <canvas id="feedbackTypeChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+
+                <!-- Market Intelligence Dashboard -->
+                <div class="bg-white p-6 rounded-xl shadow-lg mb-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-xl font-bold text-gray-800">Market Intelligence Dashboard</h3>
+                        <div class="flex space-x-2">
+                            <select id="market-timeframe" class="px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                                <option value="7d">7 ngày</option>
+                                <option value="30d">30 ngày</option>
+                                <option value="3m">3 tháng</option>
+                                <option value="1y">1 năm</option>
+                            </select>
+                            <button onclick="refreshMarketData()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 text-sm">
+                                <i class="fas fa-sync-alt mr-1"></i>Cập nhật
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Market Overview Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                        <div class="bg-gradient-to-br from-blue-500 to-blue-600 text-white p-4 rounded-lg">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-blue-100 text-sm">Giá TB/m²</p>
+                                    <p class="text-2xl font-bold">89.2M</p>
+                                    <p class="text-blue-200 text-xs">+5.2% tháng này</p>
+                                </div>
+                                <div class="text-3xl opacity-80">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gradient-to-br from-green-500 to-green-600 text-white p-4 rounded-lg">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-green-100 text-sm">Giao dịch</p>
+                                    <p class="text-2xl font-bold">1,234</p>
+                                    <p class="text-green-200 text-xs">+12.8% tháng này</p>
+                                </div>
+                                <div class="text-3xl opacity-80">
+                                    <i class="fas fa-handshake"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gradient-to-br from-purple-500 to-purple-600 text-white p-4 rounded-lg">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-purple-100 text-sm">Hot Zones</p>
+                                    <p class="text-2xl font-bold">23</p>
+                                    <p class="text-purple-200 text-xs">+3 khu vực mới</p>
+                                </div>
+                                <div class="text-3xl opacity-80">
+                                    <i class="fas fa-fire"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gradient-to-br from-orange-500 to-orange-600 text-white p-4 rounded-lg">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-orange-100 text-sm">ROI TB</p>
+                                    <p class="text-2xl font-bold">15.4%</p>
+                                    <p class="text-orange-200 text-xs">+2.1% năm này</p>
+                                </div>
+                                <div class="text-3xl opacity-80">
+                                    <i class="fas fa-percentage"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Price Trend Analysis -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h4 class="font-semibold text-gray-800 mb-3">Xu hướng giá theo quận</h4>
+                            <canvas id="districtPriceTrendChart" width="400" height="250"></canvas>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h4 class="font-semibold text-gray-800 mb-3">Volume giao dịch</h4>
+                            <canvas id="transactionVolumeChart" width="400" height="250"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Hot Zones Table -->
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h4 class="font-semibold text-gray-800 mb-3">Top Hot Zones - Cơ hội đầu tư</h4>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="bg-white">
+                                        <th class="px-4 py-2 text-left">Khu vực</th>
+                                        <th class="px-4 py-2 text-left">Giá TB (triệu/m²)</th>
+                                        <th class="px-4 py-2 text-left">Tăng trưởng</th>
+                                        <th class="px-4 py-2 text-left">Demand Score</th>
+                                        <th class="px-4 py-2 text-left">Investment Grade</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="hot-zones-table">
+                                    <tr class="border-t">
+                                        <td class="px-4 py-2 font-medium">Hải Châu - Trần Phú</td>
+                                        <td class="px-4 py-2">125.5</td>
+                                        <td class="px-4 py-2 text-green-600">+18.2%</td>
+                                        <td class="px-4 py-2">
+                                            <div class="flex items-center">
+                                                <div class="w-12 bg-gray-200 rounded-full h-2 mr-2">
+                                                    <div class="bg-red-500 h-2 rounded-full" style="width: 89%"></div>
+                                                </div>
+                                                <span class="text-xs">89</span>
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-2">
+                                            <span class="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs">A+</span>
+                                        </td>
+                                    </tr>
+                                    <tr class="border-t">
+                                        <td class="px-4 py-2 font-medium">Ngũ Hành Sơn - Mỹ An</td>
+                                        <td class="px-4 py-2">98.3</td>
+                                        <td class="px-4 py-2 text-green-600">+15.7%</td>
+                                        <td class="px-4 py-2">
+                                            <div class="flex items-center">
+                                                <div class="w-12 bg-gray-200 rounded-full h-2 mr-2">
+                                                    <div class="bg-orange-500 h-2 rounded-full" style="width: 76%"></div>
+                                                </div>
+                                                <span class="text-xs">76</span>
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-2">
+                                            <span class="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs">A</span>
+                                        </td>
+                                    </tr>
+                                    <tr class="border-t">
+                                        <td class="px-4 py-2 font-medium">Sơn Trà - Phước Mỹ</td>
+                                        <td class="px-4 py-2">156.8</td>
+                                        <td class="px-4 py-2 text-green-600">+12.4%</td>
+                                        <td class="px-4 py-2">
+                                            <div class="flex items-center">
+                                                <div class="w-12 bg-gray-200 rounded-full h-2 mr-2">
+                                                    <div class="bg-green-500 h-2 rounded-full" style="width: 68%"></div>
+                                                </div>
+                                                <span class="text-xs">68</span>
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-2">
+                                            <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">B+</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
