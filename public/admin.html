@@ -117,6 +117,9 @@
                     <button onclick="showSection('analytics')" class="sidebar-item w-full text-left px-4 py-3 rounded-lg transition">
                         <i class="fas fa-chart-bar mr-3"></i>Thống kê & Báo cáo
                     </button>
+                    <button onclick="showSection('performance')" class="sidebar-item w-full text-left px-4 py-3 rounded-lg transition">
+                        <i class="fas fa-tachometer-alt mr-3"></i>Analytics & Performance
+                    </button>
                     <button onclick="showSection('settings')" class="sidebar-item w-full text-left px-4 py-3 rounded-lg transition">
                         <i class="fas fa-cog mr-3"></i>Cài đặt hệ thống
                     </button>
@@ -479,6 +482,148 @@
                             <!-- Popular listings will be populated by JS -->
                         </div>
                     </div>
+                </div>
+            </section>
+
+            <!-- Performance Analytics Section -->
+            <section id="performance-section" class="section hidden">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">📊 Analytics & Performance Monitor</h2>
+                    <p class="text-gray-600">Theo dõi hiệu suất website và hành vi người dùng real-time</p>
+                </div>
+
+                <!-- Performance Overview Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-gradient-to-r from-blue-500 to-blue-600 p-6 rounded-xl text-white shadow-lg">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm opacity-80">Core Web Vitals</p>
+                                <p id="performance-score" class="text-3xl font-bold">--</p>
+                                <p class="text-sm opacity-70">Điểm hiệu suất tổng thể</p>
+                            </div>
+                            <i class="fas fa-gauge-high text-4xl opacity-60"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-gradient-to-r from-green-500 to-green-600 p-6 rounded-xl text-white shadow-lg">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm opacity-80">Engagement Score</p>
+                                <p id="engagement-score" class="text-3xl font-bold">--</p>
+                                <p class="text-sm opacity-70">Mức độ tương tác người dùng</p>
+                            </div>
+                            <i class="fas fa-heart text-4xl opacity-60"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-gradient-to-r from-purple-500 to-purple-600 p-6 rounded-xl text-white shadow-lg">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm opacity-80">Sessions Hôm nay</p>
+                                <p id="today-sessions" class="text-3xl font-bold">--</p>
+                                <p class="text-sm opacity-70">Phiên hoạt động</p>
+                            </div>
+                            <i class="fas fa-users text-4xl opacity-60"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-gradient-to-r from-orange-500 to-orange-600 p-6 rounded-xl text-white shadow-lg">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm opacity-80">Tìm kiếm (1h)</p>
+                                <p id="search-count" class="text-3xl font-bold">--</p>
+                                <p class="text-sm opacity-70">Lượt tìm kiếm</p>
+                            </div>
+                            <i class="fas fa-search text-4xl opacity-60"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Real-time Performance Metrics -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-bold text-gray-800">📈 Core Web Vitals</h3>
+                            <button onclick="refreshPerformanceData()" class="bg-blue-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-blue-700">
+                                <i class="fas fa-sync-alt mr-1"></i>Làm mới
+                            </button>
+                        </div>
+                        <div id="performance-metrics" class="space-y-4">
+                            <!-- Performance metrics will be populated by JS -->
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">👤 Hành Vi Người Dùng</h3>
+                        <div id="behavior-metrics" class="space-y-4">
+                            <!-- Behavior metrics will be populated by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search Analytics -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">🔍 Phân Tích Tìm Kiếm</h3>
+                        <div id="search-analytics" class="space-y-4">
+                            <!-- Search analytics will be populated by JS -->
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">🚨 Theo Dõi Lỗi</h3>
+                        <div id="error-tracking" class="space-y-3">
+                            <!-- Error tracking will be populated by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Status -->
+                <div class="bg-white p-6 rounded-xl shadow-lg mb-6">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">🖥️ Trạng Thái Hệ Thống</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="text-center p-4 bg-gray-50 rounded-lg">
+                            <div class="text-2xl font-bold text-green-600" id="system-uptime">100%</div>
+                            <div class="text-sm text-gray-600">Uptime</div>
+                        </div>
+                        <div class="text-center p-4 bg-gray-50 rounded-lg">
+                            <div class="text-2xl font-bold text-blue-600" id="memory-usage">--</div>
+                            <div class="text-sm text-gray-600">Memory Usage</div>
+                        </div>
+                        <div class="text-center p-4 bg-gray-50 rounded-lg">
+                            <div class="text-2xl font-bold text-purple-600" id="connection-type">--</div>
+                            <div class="text-sm text-gray-600">Connection</div>
+                        </div>
+                        <div class="text-center p-4 bg-gray-50 rounded-lg">
+                            <div class="text-2xl font-bold text-orange-600" id="viewport-size">--</div>
+                            <div class="text-sm text-gray-600">Viewport</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Performance History Chart -->
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">📊 Lịch Sử Hiệu Suất (24h)</h3>
+                    <div class="h-64 bg-gray-50 rounded-lg flex items-center justify-center">
+                        <div class="text-center text-gray-500">
+                            <i class="fas fa-chart-line text-4xl mb-4"></i>
+                            <p>Biểu đồ hiệu suất theo thời gian</p>
+                            <p class="text-sm">Dữ liệu sẽ được cập nhật real-time</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex justify-end space-x-4 mt-6">
+                    <button onclick="exportPerformanceReport()" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700">
+                        <i class="fas fa-download mr-2"></i>Xuất Báo Cáo
+                    </button>
+                    <button onclick="clearPerformanceData()" class="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700">
+                        <i class="fas fa-trash mr-2"></i>Xóa Dữ Liệu Cũ
+                    </button>
+                    <a href="analytics-dashboard.html" target="_blank" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
+                        <i class="fas fa-external-link-alt mr-2"></i>Mở Dashboard Riêng
+                    </a>
                 </div>
             </section>
 

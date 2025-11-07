@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analytics Dashboard - Xem Giá Đất</title>
+    <title>📊 Dashboard Analytics - Xem Giá Đất</title>
     <style>
         * {
             margin: 0;
@@ -86,7 +86,7 @@
         
         .metric-list li {
             display: flex;
-            justify-content: between;
+            justify-content: space-between;
             padding: 8px 0;
             border-bottom: 1px solid #e2e8f0;
         }
@@ -190,69 +190,69 @@
 <body>
     <div class="dashboard">
         <div class="header">
-            <h1>📊 Analytics Dashboard</h1>
-            <p>Real-time performance và user behavior monitoring cho Xem Giá Đất</p>
+            <h1>📊 Dashboard Analytics</h1>
+            <p>Theo dõi hiệu suất và hành vi người dùng real-time cho Xem Giá Đất</p>
         </div>
         
-        <button class="refresh-btn" onclick="refreshData()">🔄 Refresh Data</button>
+        <button class="refresh-btn" onclick="refreshData()">🔄 Làm mới dữ liệu</button>
         
         <div class="metrics-grid">
             <!-- Performance Metrics -->
             <div class="metric-card">
-                <h3>⚡ Performance Metrics</h3>
+                <h3>⚡ Thông số hiệu suất</h3>
                 <div id="performance-metrics">
-                    <div class="metric-value">Loading...</div>
+                    <div class="metric-value">Đang tải...</div>
                 </div>
             </div>
             
             <!-- User Behavior -->
             <div class="metric-card">
-                <h3>👤 User Behavior</h3>
+                <h3>👤 Hành vi người dùng</h3>
                 <div id="behavior-metrics">
-                    <div class="metric-value">Loading...</div>
+                    <div class="metric-value">Đang tải...</div>
                 </div>
             </div>
             
             <!-- Search Analytics -->
             <div class="metric-card">
-                <h3>🔍 Search Analytics</h3>
+                <h3>🔍 Phân tích tìm kiếm</h3>
                 <div id="search-metrics">
-                    <div class="metric-value">Loading...</div>
+                    <div class="metric-value">Đang tải...</div>
                 </div>
             </div>
             
             <!-- Engagement Score -->
             <div class="metric-card">
-                <h3>💯 Engagement Score</h3>
+                <h3>💯 Điểm tương tác</h3>
                 <div class="engagement-score" id="engagement-score">
                     <div class="score-circle">
                         <span id="score-value">--</span>
                     </div>
-                    <div class="metric-description">Real-time user engagement</div>
+                    <div class="metric-description">Mức độ tương tác real-time</div>
                 </div>
             </div>
             
             <!-- Error Tracking -->
             <div class="metric-card">
-                <h3>🚨 Error Log</h3>
+                <h3>🚨 Nhật ký lỗi</h3>
                 <div id="error-metrics">
                     <div class="error-log">
-                        <div>Loading error data...</div>
+                        <div>Đang tải dữ liệu lỗi...</div>
                     </div>
                 </div>
             </div>
             
             <!-- System Status -->
             <div class="metric-card">
-                <h3>🖥️ System Status</h3>
+                <h3>🖥️ Trạng thái hệ thống</h3>
                 <div id="system-metrics">
-                    <div class="metric-value">Loading...</div>
+                    <div class="metric-value">Đang tải...</div>
                 </div>
             </div>
         </div>
         
         <div class="timestamp" id="last-updated">
-            Last updated: --
+            Cập nhật lần cuối: --
         </div>
     </div>
 
@@ -261,11 +261,11 @@
         let refreshInterval;
         
         function refreshData() {
-            console.log('🔄 Refreshing dashboard data...');
+            console.log('🔄 Đang làm mới dữ liệu dashboard...');
             
             // Update timestamp
             document.getElementById('last-updated').textContent = 
-                `Last updated: ${new Date().toLocaleString('vi-VN')}`;
+                `Cập nhật lần cuối: ${new Date().toLocaleString('vi-VN')}`;
             
             // Load performance metrics
             loadPerformanceMetrics();
@@ -293,6 +293,16 @@
                     const metrics = JSON.parse(stored);
                     let html = '<ul class="metric-list">';
                     
+                    const metricNames = {
+                        'LCP': 'Largest Contentful Paint',
+                        'FID': 'First Input Delay',
+                        'CLS': 'Cumulative Layout Shift',
+                        'TTFB': 'Time to First Byte',
+                        'FCP': 'First Contentful Paint',
+                        'Long_Task': 'Tác vụ dài',
+                        'App_Load_Time': 'Thời gian tải app'
+                    };
+                    
                     for (const [name, values] of Object.entries(metrics)) {
                         if (values.length > 0) {
                             const latest = values[values.length - 1].value;
@@ -306,9 +316,9 @@
                             
                             html += `
                                 <li>
-                                    <span class="metric-name">${name}</span>
+                                    <span class="metric-name">${metricNames[name] || name}</span>
                                     <span class="metric-stat ${status}">
-                                        ${Math.round(latest)}ms (avg: ${Math.round(avg)}ms)
+                                        ${Math.round(latest)}ms (TB: ${Math.round(avg)}ms)
                                     </span>
                                 </li>
                             `;
@@ -319,12 +329,12 @@
                     document.getElementById('performance-metrics').innerHTML = html;
                 } else {
                     document.getElementById('performance-metrics').innerHTML = 
-                        '<div class="metric-description">No performance data available</div>';
+                        '<div class="metric-description">Chưa có dữ liệu hiệu suất</div>';
                 }
             } catch (error) {
-                console.error('Error loading performance metrics:', error);
+                console.error('Lỗi khi tải thông số hiệu suất:', error);
                 document.getElementById('performance-metrics').innerHTML = 
-                    '<div class="metric-description">Error loading data</div>';
+                    '<div class="metric-description">Lỗi khi tải dữ liệu</div>';
             }
         }
         
@@ -350,15 +360,15 @@
                     const html = `
                         <ul class="metric-list">
                             <li>
-                                <span class="metric-name">Sessions (1h)</span>
+                                <span class="metric-name">Phiên (1h qua)</span>
                                 <span class="metric-stat">${uniqueSessions}</span>
                             </li>
                             <li>
-                                <span class="metric-name">Interactions (1h)</span>
+                                <span class="metric-name">Tương tác (1h qua)</span>
                                 <span class="metric-stat">${totalInteractions}</span>
                             </li>
                             <li>
-                                <span class="metric-name">Avg per Session</span>
+                                <span class="metric-name">TB mỗi phiên</span>
                                 <span class="metric-stat">${Math.round(avgInteractionsPerSession)}</span>
                             </li>
                         </ul>
@@ -367,10 +377,10 @@
                     document.getElementById('behavior-metrics').innerHTML = html;
                 } else {
                     document.getElementById('behavior-metrics').innerHTML = 
-                        '<div class="metric-description">No behavior data available</div>';
+                        '<div class="metric-description">Chưa có dữ liệu hành vi</div>';
                 }
             } catch (error) {
-                console.error('Error loading behavior metrics:', error);
+                console.error('Lỗi khi tải thông số hành vi:', error);
             }
         }
         
@@ -388,16 +398,16 @@
                     const html = `
                         <ul class="metric-list">
                             <li>
-                                <span class="metric-name">Searches (1h)</span>
+                                <span class="metric-name">Tìm kiếm (1h qua)</span>
                                 <span class="metric-stat">${totalSearches}</span>
                             </li>
                             <li>
-                                <span class="metric-name">Unique Queries</span>
+                                <span class="metric-name">Từ khóa duy nhất</span>
                                 <span class="metric-stat">${uniqueQueries}</span>
                             </li>
                             <li>
-                                <span class="metric-name">Avg Query Length</span>
-                                <span class="metric-stat">${Math.round(avgQueryLength)} chars</span>
+                                <span class="metric-name">TB độ dài từ khóa</span>
+                                <span class="metric-stat">${Math.round(avgQueryLength)} ký tự</span>
                             </li>
                         </ul>
                     `;
@@ -405,10 +415,10 @@
                     document.getElementById('search-metrics').innerHTML = html;
                 } else {
                     document.getElementById('search-metrics').innerHTML = 
-                        '<div class="metric-description">No search data available</div>';
+                        '<div class="metric-description">Chưa có dữ liệu tìm kiếm</div>';
                 }
             } catch (error) {
-                console.error('Error loading search metrics:', error);
+                console.error('Lỗi khi tải thông số tìm kiếm:', error);
             }
         }
         
@@ -459,7 +469,7 @@
                 else circleElement.classList.add('score-poor');
                 
             } catch (error) {
-                console.error('Error calculating engagement score:', error);
+                console.error('Lỗi khi tính điểm tương tác:', error);
                 document.getElementById('score-value').textContent = '--';
             }
         }
@@ -474,21 +484,21 @@
                     let html = '';
                     recent.forEach(error => {
                         const time = new Date(error.timestamp).toLocaleTimeString('vi-VN');
-                        html += `<div>[${time}] ${error.message || error.type || 'Unknown error'}</div>`;
+                        html += `<div>[${time}] ${error.message || error.type || 'Lỗi không xác định'}</div>`;
                     });
                     
                     if (html === '') {
-                        html = '<div style="color: #059669;">✅ No recent errors</div>';
+                        html = '<div style="color: #059669;">✅ Không có lỗi gần đây</div>';
                     }
                     
                     document.getElementById('error-metrics').innerHTML = 
                         `<div class="error-log">${html}</div>`;
                 } else {
                     document.getElementById('error-metrics').innerHTML = 
-                        '<div class="error-log"><div style="color: #059669;">✅ No errors logged</div></div>';
+                        '<div class="error-log"><div style="color: #059669;">✅ Chưa ghi nhận lỗi nào</div></div>';
                 }
             } catch (error) {
-                console.error('Error loading error data:', error);
+                console.error('Lỗi khi tải dữ liệu lỗi:', error);
             }
         }
         
@@ -509,11 +519,11 @@
             
             html += `
                 <li>
-                    <span class="metric-name">Browser</span>
+                    <span class="metric-name">Trình duyệt</span>
                     <span class="metric-stat">${navigator.userAgent.split(' ').pop()}</span>
                 </li>
                 <li>
-                    <span class="metric-name">Viewport</span>
+                    <span class="metric-name">Khung nhìn</span>
                     <span class="metric-stat">${window.innerWidth}x${window.innerHeight}</span>
                 </li>
             `;
@@ -521,7 +531,7 @@
             if (memoryInfo) {
                 html += `
                     <li>
-                        <span class="metric-name">Memory</span>
+                        <span class="metric-name">Bộ nhớ</span>
                         <span class="metric-stat">${memoryInfo.used}MB / ${memoryInfo.total}MB</span>
                     </li>
                 `;
@@ -530,7 +540,7 @@
             if (connectionInfo) {
                 html += `
                     <li>
-                        <span class="metric-name">Connection</span>
+                        <span class="metric-name">Kết nối</span>
                         <span class="metric-stat">${connectionInfo.type} (${connectionInfo.downlink}Mbps)</span>
                     </li>
                 `;

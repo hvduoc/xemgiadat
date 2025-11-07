@@ -77,6 +77,466 @@ async function initializeAdminDashboard() {
     }
 }
 
+// ============================================================================
+// 📊 PERFORMANCE ANALYTICS INTEGRATION - Admin Section
+// ============================================================================
+
+// Load Performance Analytics Data
+function loadPerformanceAnalytics() {
+    console.log('📊 Loading performance analytics...');
+    
+    try {
+        // Load performance metrics from localStorage
+        const performanceMetrics = getPerformanceData();
+        const behaviorData = getBehaviorData();
+        const searchData = getSearchData();
+        const errorData = getErrorData();
+        
+        // Update overview cards
+        updatePerformanceOverview(performanceMetrics, behaviorData, searchData);
+        
+        // Update detailed metrics
+        updatePerformanceMetrics(performanceMetrics);
+        updateBehaviorMetrics(behaviorData);
+        updateSearchAnalytics(searchData);
+        updateErrorTracking(errorData);
+        updateSystemStatus();
+        
+        console.log('✅ Performance analytics loaded');
+    } catch (error) {
+        console.error('❌ Error loading performance analytics:', error);
+    }
+}
+
+// Get Performance Data from localStorage
+function getPerformanceData() {
+    try {
+        const stored = localStorage.getItem('xemgiadat_performance_metrics');
+        return stored ? JSON.parse(stored) : {};
+    } catch (error) {
+        console.error('Error getting performance data:', error);
+        return {};
+    }
+}
+
+// Get Behavior Data from localStorage
+function getBehaviorData() {
+    try {
+        const stored = localStorage.getItem('xemgiadat_user_behavior');
+        return stored ? JSON.parse(stored) : [];
+    } catch (error) {
+        console.error('Error getting behavior data:', error);
+        return [];
+    }
+}
+
+// Get Search Data from localStorage
+function getSearchData() {
+    try {
+        const stored = localStorage.getItem('xemgiadat_search_history');
+        return stored ? JSON.parse(stored) : [];
+    } catch (error) {
+        console.error('Error getting search data:', error);
+        return [];
+    }
+}
+
+// Get Error Data from localStorage
+function getErrorData() {
+    try {
+        const stored = localStorage.getItem('xemgiadat_error_log');
+        return stored ? JSON.parse(stored) : [];
+    } catch (error) {
+        console.error('Error getting error data:', error);
+        return [];
+    }
+}
+
+// Update Performance Overview Cards
+function updatePerformanceOverview(performanceMetrics, behaviorData, searchData) {
+    // Calculate performance score
+    let performanceScore = 75; // Base score
+    
+    if (performanceMetrics.LCP) {
+        const latestLCP = performanceMetrics.LCP[performanceMetrics.LCP.length - 1]?.value || 0;
+        if (latestLCP < 2500) performanceScore += 10;
+        else if (latestLCP > 4000) performanceScore -= 20;
+    }
+    
+    if (performanceMetrics.FID) {
+        const latestFID = performanceMetrics.FID[performanceMetrics.FID.length - 1]?.value || 0;
+        if (latestFID < 100) performanceScore += 10;
+        else if (latestFID > 300) performanceScore -= 15;
+    }
+    
+    performanceScore = Math.max(0, Math.min(100, performanceScore));
+    document.getElementById('performance-score').textContent = performanceScore;
+    
+    // Calculate engagement score
+    const engagementScore = calculateEngagementScore(behaviorData);
+    document.getElementById('engagement-score').textContent = engagementScore;
+    
+    // Count today's sessions
+    const today = new Date().toDateString();
+    const todaySessions = behaviorData.filter(b => 
+        new Date(b.timestamp).toDateString() === today
+    ).length;
+    document.getElementById('today-sessions').textContent = todaySessions;
+    
+    // Count recent searches
+    const oneHourAgo = Date.now() - 3600000;
+    const recentSearches = searchData.filter(s => s.timestamp > oneHourAgo).length;
+    document.getElementById('search-count').textContent = recentSearches;
+}
+
+// Calculate Engagement Score
+function calculateEngagementScore(behaviorData) {
+    if (behaviorData.length === 0) return 0;
+    
+    const recent = behaviorData.filter(b => Date.now() - b.timestamp < 1800000); // Last 30 min
+    
+    let score = 50; // Base score
+    
+    // Increase score based on interactions
+    score += Math.min(recent.length * 2, 30);
+    
+    // Unique interaction types
+    const types = new Set(recent.map(b => b.type)).size;
+    score += types * 3;
+    
+    return Math.max(0, Math.min(100, Math.round(score)));
+}
+
+// Update Performance Metrics Display
+function updatePerformanceMetrics(metrics) {
+    const container = document.getElementById('performance-metrics');
+    if (!container) return;
+    
+    let html = '';
+    
+    const metricNames = {
+        'LCP': 'Largest Contentful Paint',
+        'FID': 'First Input Delay', 
+        'CLS': 'Cumulative Layout Shift',
+        'TTFB': 'Time to First Byte',
+        'FCP': 'First Contentful Paint'
+    };
+    
+    for (const [key, values] of Object.entries(metrics)) {
+        if (values && values.length > 0) {
+            const latest = values[values.length - 1].value;
+            const avg = values.reduce((sum, item) => sum + item.value, 0) / values.length;
+            
+            let status = 'good';
+            let statusColor = 'text-green-600';
+            
+            if (key === 'LCP') {
+                if (latest > 4000) { status = 'poor'; statusColor = 'text-red-600'; }
+                else if (latest > 2500) { status = 'needs improvement'; statusColor = 'text-yellow-600'; }
+            } else if (key === 'FID') {
+                if (latest > 300) { status = 'poor'; statusColor = 'text-red-600'; }
+                else if (latest > 100) { status = 'needs improvement'; statusColor = 'text-yellow-600'; }
+            }
+            
+            html += `
+                <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                    <div>
+                        <div class="font-medium text-gray-800">${metricNames[key] || key}</div>
+                        <div class="text-sm text-gray-600">Trạng thái: <span class="${statusColor}">${status}</span></div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-lg font-bold text-gray-800">${Math.round(latest)}ms</div>
+                        <div class="text-xs text-gray-500">TB: ${Math.round(avg)}ms</div>
+                    </div>
+                </div>
+            `;
+        }
+    }
+    
+    if (html === '') {
+        html = '<div class="text-center text-gray-500 py-8">Chưa có dữ liệu hiệu suất</div>';
+    }
+    
+    container.innerHTML = html;
+}
+
+// Update Behavior Metrics Display
+function updateBehaviorMetrics(behaviorData) {
+    const container = document.getElementById('behavior-metrics');
+    if (!container) return;
+    
+    const recent = behaviorData.filter(b => Date.now() - b.timestamp < 3600000); // Last hour
+    
+    const sessionData = behaviorData.reduce((acc, behavior) => {
+        if (!acc[behavior.sessionId]) {
+            acc[behavior.sessionId] = [];
+        }
+        acc[behavior.sessionId].push(behavior);
+        return acc;
+    }, {});
+    
+    const uniqueSessions = Object.keys(sessionData).length;
+    const totalInteractions = recent.length;
+    const avgInteractionsPerSession = totalInteractions / Math.max(uniqueSessions, 1);
+    
+    // Group interactions by type
+    const interactionTypes = recent.reduce((acc, behavior) => {
+        acc[behavior.type] = (acc[behavior.type] || 0) + 1;
+        return acc;
+    }, {});
+    
+    const topInteractions = Object.entries(interactionTypes)
+        .sort(([,a], [,b]) => b - a)
+        .slice(0, 5);
+    
+    let html = `
+        <div class="grid grid-cols-3 gap-4 mb-4">
+            <div class="text-center p-3 bg-blue-50 rounded-lg">
+                <div class="text-xl font-bold text-blue-600">${uniqueSessions}</div>
+                <div class="text-xs text-gray-600">Sessions (1h)</div>
+            </div>
+            <div class="text-center p-3 bg-green-50 rounded-lg">
+                <div class="text-xl font-bold text-green-600">${totalInteractions}</div>
+                <div class="text-xs text-gray-600">Tương tác</div>
+            </div>
+            <div class="text-center p-3 bg-purple-50 rounded-lg">
+                <div class="text-xl font-bold text-purple-600">${Math.round(avgInteractionsPerSession)}</div>
+                <div class="text-xs text-gray-600">TB/Session</div>
+            </div>
+        </div>
+        <div class="space-y-2">
+            <h4 class="font-medium text-gray-700">Top tương tác (1h):</h4>
+    `;
+    
+    topInteractions.forEach(([type, count]) => {
+        const typeNames = {
+            'click': 'Nhấp chuột',
+            'scroll_milestone': 'Cuộn trang',
+            'search_query': 'Tìm kiếm',
+            'portfolio_interaction': 'Xem portfolio',
+            'map_interaction': 'Tương tác bản đồ'
+        };
+        
+        html += `
+            <div class="flex justify-between items-center text-sm">
+                <span class="text-gray-600">${typeNames[type] || type}</span>
+                <span class="font-medium text-gray-800">${count}</span>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    
+    if (recent.length === 0) {
+        html = '<div class="text-center text-gray-500 py-8">Chưa có hoạt động trong 1h qua</div>';
+    }
+    
+    container.innerHTML = html;
+}
+
+// Update Search Analytics Display
+function updateSearchAnalytics(searchData) {
+    const container = document.getElementById('search-analytics');
+    if (!container) return;
+    
+    const recent = searchData.filter(s => Date.now() - s.timestamp < 3600000); // Last hour
+    
+    const totalSearches = recent.length;
+    const uniqueQueries = new Set(recent.map(s => s.query.toLowerCase())).size;
+    const avgQueryLength = recent.reduce((sum, s) => sum + s.query.length, 0) / Math.max(recent.length, 1);
+    
+    // Top search queries
+    const queryCount = recent.reduce((acc, search) => {
+        const query = search.query.toLowerCase().trim();
+        acc[query] = (acc[query] || 0) + 1;
+        return acc;
+    }, {});
+    
+    const topQueries = Object.entries(queryCount)
+        .sort(([,a], [,b]) => b - a)
+        .slice(0, 5);
+    
+    let html = `
+        <div class="grid grid-cols-3 gap-4 mb-4">
+            <div class="text-center p-3 bg-blue-50 rounded-lg">
+                <div class="text-xl font-bold text-blue-600">${totalSearches}</div>
+                <div class="text-xs text-gray-600">Tìm kiếm (1h)</div>
+            </div>
+            <div class="text-center p-3 bg-green-50 rounded-lg">
+                <div class="text-xl font-bold text-green-600">${uniqueQueries}</div>
+                <div class="text-xs text-gray-600">Từ khóa duy nhất</div>
+            </div>
+            <div class="text-center p-3 bg-purple-50 rounded-lg">
+                <div class="text-xl font-bold text-purple-600">${Math.round(avgQueryLength)}</div>
+                <div class="text-xs text-gray-600">TB ký tự</div>
+            </div>
+        </div>
+    `;
+    
+    if (topQueries.length > 0) {
+        html += '<div class="space-y-2"><h4 class="font-medium text-gray-700">Từ khóa phổ biến:</h4>';
+        
+        topQueries.forEach(([query, count]) => {
+            html += `
+                <div class="flex justify-between items-center text-sm">
+                    <span class="text-gray-600 truncate">"${query}"</span>
+                    <span class="font-medium text-gray-800">${count}</span>
+                </div>
+            `;
+        });
+        
+        html += '</div>';
+    }
+    
+    if (recent.length === 0) {
+        html += '<div class="text-center text-gray-500 py-4">Chưa có tìm kiếm trong 1h qua</div>';
+    }
+    
+    container.innerHTML = html;
+}
+
+// Update Error Tracking Display
+function updateErrorTracking(errorData) {
+    const container = document.getElementById('error-tracking');
+    if (!container) return;
+    
+    const recent = errorData.slice(-5); // Last 5 errors
+    const totalErrors = errorData.length;
+    
+    let html = `
+        <div class="mb-4 p-3 bg-gray-50 rounded-lg">
+            <div class="text-center">
+                <div class="text-xl font-bold ${totalErrors > 0 ? 'text-red-600' : 'text-green-600'}">
+                    ${totalErrors}
+                </div>
+                <div class="text-xs text-gray-600">Tổng lỗi ghi nhận</div>
+            </div>
+        </div>
+    `;
+    
+    if (recent.length > 0) {
+        html += '<div class="space-y-2">';
+        
+        recent.forEach(error => {
+            const time = new Date(error.timestamp).toLocaleTimeString('vi-VN');
+            const message = error.message || error.type || 'Lỗi không xác định';
+            
+            html += `
+                <div class="p-2 bg-red-50 border border-red-200 rounded text-xs">
+                    <div class="font-mono text-red-800">[${time}] ${message}</div>
+                </div>
+            `;
+        });
+        
+        html += '</div>';
+    } else {
+        html += '<div class="text-center text-green-600 py-4">✅ Không có lỗi gần đây</div>';
+    }
+    
+    container.innerHTML = html;
+}
+
+// Update System Status
+function updateSystemStatus() {
+    // Memory usage
+    if (performance.memory) {
+        const used = Math.round(performance.memory.usedJSHeapSize / 1024 / 1024);
+        const total = Math.round(performance.memory.totalJSHeapSize / 1024 / 1024);
+        document.getElementById('memory-usage').textContent = `${used}/${total}MB`;
+    }
+    
+    // Connection info
+    if (navigator.connection) {
+        document.getElementById('connection-type').textContent = 
+            navigator.connection.effectiveType || 'Unknown';
+    } else {
+        document.getElementById('connection-type').textContent = 'N/A';
+    }
+    
+    // Viewport size
+    document.getElementById('viewport-size').textContent = 
+        `${window.innerWidth}x${window.innerHeight}`;
+}
+
+// Refresh Performance Data
+function refreshPerformanceData() {
+    console.log('🔄 Refreshing performance data...');
+    loadPerformanceAnalytics();
+    
+    // Show success message
+    const button = event.target;
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-check mr-1"></i>Đã làm mới';
+    button.disabled = true;
+    
+    setTimeout(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+    }, 2000);
+}
+
+// Export Performance Report
+function exportPerformanceReport() {
+    try {
+        const performanceData = getPerformanceData();
+        const behaviorData = getBehaviorData();
+        const searchData = getSearchData();
+        const errorData = getErrorData();
+        
+        const report = {
+            timestamp: new Date().toISOString(),
+            performance: performanceData,
+            behavior: behaviorData.slice(-100), // Last 100 interactions
+            search: searchData.slice(-50), // Last 50 searches
+            errors: errorData.slice(-20), // Last 20 errors
+            summary: {
+                totalInteractions: behaviorData.length,
+                totalSearches: searchData.length,
+                totalErrors: errorData.length,
+                performanceScore: document.getElementById('performance-score').textContent,
+                engagementScore: document.getElementById('engagement-score').textContent
+            }
+        };
+        
+        const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `performance-report-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        console.log('✅ Performance report exported');
+    } catch (error) {
+        console.error('❌ Error exporting performance report:', error);
+        alert('Lỗi khi xuất báo cáo: ' + error.message);
+    }
+}
+
+// Clear Performance Data
+function clearPerformanceData() {
+    if (confirm('Bạn có chắc chắn muốn xóa tất cả dữ liệu hiệu suất? Hành động này không thể hoàn tác.')) {
+        try {
+            localStorage.removeItem('xemgiadat_performance_metrics');
+            localStorage.removeItem('xemgiadat_user_behavior');
+            localStorage.removeItem('xemgiadat_search_history');
+            localStorage.removeItem('xemgiadat_error_log');
+            
+            // Refresh display
+            loadPerformanceAnalytics();
+            
+            console.log('✅ Performance data cleared');
+            alert('Đã xóa dữ liệu hiệu suất thành công!');
+        } catch (error) {
+            console.error('❌ Error clearing performance data:', error);
+            alert('Lỗi khi xóa dữ liệu: ' + error.message);
+        }
+    }
+}
+
 // Update Admin Profile in Header
 function updateAdminProfile() {
     if (currentUser) {
@@ -387,6 +847,9 @@ function showSection(sectionName) {
             break;
         case 'analytics':
             loadAnalyticsSection();
+            break;
+        case 'performance':
+            loadPerformanceAnalytics();
             break;
     }
 }
