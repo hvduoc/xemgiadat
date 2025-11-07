@@ -1,723 +1,1456 @@
-﻿<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - Xem GiÃ¡ Äáº¥t</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        /* Enhanced Admin Styles for Better UX */
-        .admin-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            backdrop-filter: blur(10px);
-        }
-        .admin-card:hover {
-            transform: translateY(-4px) scale(1.02);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-        }
-        
-        /* Beautiful Gradient Cards */
-        .stat-card {
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(45deg, rgba(255,255,255,0.1), transparent);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        .stat-card:hover::before {
-            opacity: 1;
-        }
-        .stat-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
-        }
-        
-        .stat-card.users {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-        .stat-card.listings {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        }
-        .stat-card.feedback {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        }
-        .stat-card.visits {
-            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-        }
-        
-        /* Responsive Sidebar */
-        .sidebar {
-            background: linear-gradient(180deg, #1a202c 0%, #2d3748 100%);
-            transition: all 0.3s ease;
-            box-shadow: 4px 0 15px rgba(0,0,0,0.1);
-        }
-        .sidebar.collapsed {
-            width: 4rem;
-        }
-        .sidebar.collapsed .sidebar-text {
-            display: none;
-        }
-        
-        .sidebar-item {
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        .sidebar-item:hover {
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 12px;
-            transform: translateX(4px);
-        }
-        .sidebar-item.active {
-            background: rgba(59, 130, 246, 0.2);
-            border-left: 4px solid #3b82f6;
-        }
-        
-        /* Enhanced Content Area */
-        .content-area {
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-            min-height: calc(100vh - 4rem);
-            transition: margin-left 0.3s ease;
-        }
-        .content-area.expanded {
-            margin-left: 4rem;
-        }
-        
-        /* Beautiful Tables */
-        .table-row {
-            transition: all 0.2s ease;
-            border-radius: 8px;
-            margin: 2px 0;
-        }
-        .table-row:hover {
-            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-            transform: translateX(4px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-        
-        /* Status Badges */
-        .status-pending {
-            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-            color: #92400e;
-            border-radius: 20px;
-            padding: 4px 12px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-        .status-approved {
-            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-            color: #065f46;
-            border-radius: 20px;
-            padding: 4px 12px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-        .status-rejected {
-            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-            color: #991b1b;
-            border-radius: 20px;
-            padding: 4px 12px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-        
-        /* Priority Indicators */
-        .priority-high {
-            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-            color: #dc2626;
-            border-radius: 20px;
-            padding: 4px 12px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-        .priority-medium {
-            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-            color: #d97706;
-            border-radius: 20px;
-            padding: 4px 12px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-        .priority-low {
-            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-            color: #059669;
-            border-radius: 20px;
-            padding: 4px 12px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-        
-        /* Mobile Responsive */
-        @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-100%);
-                position: fixed;
-                z-index: 40;
-                height: 100vh;
-            }
-            .sidebar.mobile-open {
-                transform: translateX(0);
-            }
+﻿<!DOCTYPE html><!DOCTYPE html>
+
+<html lang="vi"><html lang="vi">
+
+<head><head>
+
+    <meta charset="UTF-8">    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Admin Dashboard - Xem Giá Đất</title>    <title>Admin Dashboard - Xem Giá Đất</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>    <style>
+
+        /* Enhanced Admin Styles for Better UX */        /* Enhanced Admin Styles for Better UX */
+
+        .section {        .section {
+
+            display: block;            display: block;
+
+        }        }
+
+        .section.hidden {        .section.hidden {
+
+            display: none !important;            display: none !important;
+
+        }        }
+
+                
+
+        .admin-card {        .admin-card {
+
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+            backdrop-filter: blur(10px);            backdrop-filter: blur(10px);
+
+        }        }
+
+        .admin-card:hover {        .admin-card:hover {
+
+            transform: translateY(-4px) scale(1.02);            transform: translateY(-4px) scale(1.02);
+
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+
+        }        }
+
+                
+
+        /* Beautiful Gradient Cards */        /* Beautiful Gradient Cards */
+
+        .stat-card {        .stat-card {
+
+            transition: all 0.3s ease;            transition: all 0.3s ease;
+
+            position: relative;            position: relative;
+
+            overflow: hidden;            overflow: hidden;
+
+        }        }
+
+        .stat-card::before {        .stat-card::before {
+
+            content: '';            content: '';
+
+            position: absolute;            position: absolute;
+
+            top: 0;            top: 0;
+
+            left: 0;            left: 0;
+
+            right: 0;            right: 0;
+
+            bottom: 0;            bottom: 0;
+
+            background: linear-gradient(45deg, rgba(255,255,255,0.1), transparent);            background: linear-gradient(45deg, rgba(255,255,255,0.1), transparent);
+
+            opacity: 0;            opacity: 0;
+
+            transition: opacity 0.3s ease;            transition: opacity 0.3s ease;
+
+        }        }
+
+        .stat-card:hover::before {        .stat-card:hover::before {
+
+            opacity: 1;            opacity: 1;
+
+        }        }
+
+        .stat-card:hover {        .stat-card:hover {
+
+            transform: translateY(-3px);            transform: translateY(-3px);
+
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+
+        }        }
+
+                
+
+        .stat-card.users {        .stat-card.users {
+
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+        }        }
+
+        .stat-card.listings {        .stat-card.listings {
+
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+
+        }        }
+
+        .stat-card.feedback {        .stat-card.feedback {
+
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+
+        }        }
+
+        .stat-card.visits {        .stat-card.visits {
+
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+
+        }        }
+
+                
+
+        /* Responsive Sidebar */        /* Responsive Sidebar */
+
+        .sidebar {        .sidebar {
+
+            background: linear-gradient(180deg, #1a202c 0%, #2d3748 100%);            background: linear-gradient(180deg, #1a202c 0%, #2d3748 100%);
+
+            transition: all 0.3s ease;            transition: all 0.3s ease;
+
+            box-shadow: 4px 0 15px rgba(0,0,0,0.1);            box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+
+        }        }
+
+        .sidebar.collapsed {        .sidebar.collapsed {
+
+            width: 4rem;            width: 4rem;
+
+        }        }
+
+        .sidebar.collapsed .sidebar-text {        .sidebar.collapsed .sidebar-text {
+
+            display: none;            display: none;
+
+        }        }
+
+                
+
+        .sidebar-item {        .sidebar-item {
+
+            transition: all 0.3s ease;            transition: all 0.3s ease;
+
+            position: relative;            position: relative;
+
+            overflow: hidden;            overflow: hidden;
+
+        }        }
+
+        .sidebar-item:hover {        .sidebar-item:hover {
+
+            background: rgba(255, 255, 255, 0.15);            background: rgba(255, 255, 255, 0.15);
+
+            border-radius: 12px;            border-radius: 12px;
+
+            transform: translateX(4px);            transform: translateX(4px);
+
+        }        }
+
+        .sidebar-item.active {        .sidebar-item.active {
+
+            background: rgba(59, 130, 246, 0.2);            background: rgba(59, 130, 246, 0.2);
+
+            border-left: 4px solid #3b82f6;            border-left: 4px solid #3b82f6;
+
+        }        }
+
+                
+
+        /* Enhanced Content Area */        /* Enhanced Content Area */
+
+        .content-area {        .content-area {
+
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+
+            min-height: calc(100vh - 4rem);            min-height: calc(100vh - 4rem);
+
+            transition: margin-left 0.3s ease;            transition: margin-left 0.3s ease;
+
+        }        }
+
+        .content-area.expanded {        .content-area.expanded {
+
+            margin-left: 4rem;            margin-left: 4rem;
+
+        }        }
+
+                
+
+        /* Mobile Responsive */        /* Beautiful Tables */
+
+        @media (max-width: 768px) {        .table-row {
+
+            .sidebar {            transition: all 0.2s ease;
+
+                transform: translateX(-100%);            border-radius: 8px;
+
+                position: fixed;            margin: 2px 0;
+
+                z-index: 40;        }
+
+                height: 100vh;        .table-row:hover {
+
+            }            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+
+            .sidebar.mobile-open {            transform: translateX(4px);
+
+                transform: translateX(0);            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+
+            }        }
+
+            .content-area {        
+
+                margin-left: 0;        /* Status Badges */
+
+            }        .status-pending {
+
+        }            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+
+                    color: #92400e;
+
+        /* Loading Animation */            border-radius: 20px;
+
+        .loading-spinner {            padding: 4px 12px;
+
+            animation: spin 1s linear infinite;            font-size: 12px;
+
+        }            font-weight: 600;
+
+        @keyframes spin {        }
+
+            from { transform: rotate(0deg); }        .status-approved {
+
+            to { transform: rotate(360deg); }            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+
+        }            color: #065f46;
+
+                    border-radius: 20px;
+
+        /* Custom Scrollbar */            padding: 4px 12px;
+
+        ::-webkit-scrollbar {            font-size: 12px;
+
+            width: 8px;            font-weight: 600;
+
+        }        }
+
+        ::-webkit-scrollbar-track {        .status-rejected {
+
+            background: #f1f1f1;            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+
+            border-radius: 4px;            color: #991b1b;
+
+        }            border-radius: 20px;
+
+        ::-webkit-scrollbar-thumb {            padding: 4px 12px;
+
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);            font-size: 12px;
+
+            border-radius: 4px;            font-weight: 600;
+
+        }        }
+
+        ::-webkit-scrollbar-thumb:hover {        
+
+            background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);        /* Priority Indicators */
+
+        }        .priority-high {
+
+    </style>            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+
+</head>            color: #dc2626;
+
+<body class="bg-gray-100 font-sans">            border-radius: 20px;
+
+    <!-- Enhanced Top Navigation -->            padding: 4px 12px;
+
+    <nav class="bg-white shadow-lg border-b-2 border-blue-500 h-16 fixed w-full top-0 z-50">            font-size: 12px;
+
+        <div class="flex items-center justify-between h-full px-6">            font-weight: 600;
+
+            <div class="flex items-center space-x-4">        }
+
+                <!-- Mobile Menu Toggle -->        .priority-medium {
+
+                <button id="mobile-menu-toggle" class="lg:hidden p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition">            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+
+                    <i class="fas fa-bars text-xl"></i>            color: #d97706;
+
+                </button>            border-radius: 20px;
+
+                            padding: 4px 12px;
+
+                <!-- Sidebar Toggle for Desktop -->            font-size: 12px;
+
+                <button id="sidebar-toggle" class="hidden lg:block p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition">            font-weight: 600;
+
+                    <i class="fas fa-bars text-xl"></i>        }
+
+                </button>        .priority-low {
+
+                            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+
+                <div class="flex items-center space-x-3">            color: #059669;
+
+                    <div class="bg-gradient-to-r from-blue-500 to-purple-600 p-2 rounded-lg">            border-radius: 20px;
+
+                        <i class="fas fa-tachometer-alt text-xl text-white"></i>            padding: 4px 12px;
+
+                    </div>            font-size: 12px;
+
+                    <div>            font-weight: 600;
+
+                        <h1 class="text-xl font-bold text-gray-800">Admin Dashboard</h1>        }
+
+                        <p class="text-xs text-gray-500 hidden sm:block">Quản lý hệ thống BDS</p>        
+
+                    </div>        /* Mobile Responsive */
+
+                </div>        @media (max-width: 768px) {
+
+            </div>            .sidebar {
+
+                            transform: translateX(-100%);
+
+            <!-- Breadcrumb Navigation -->                position: fixed;
+
+            <div class="hidden md:flex items-center space-x-2 text-sm text-gray-500">                z-index: 40;
+
+                <i class="fas fa-home"></i>                height: 100vh;
+
+                <span>Admin</span>            }
+
+                <i class="fas fa-chevron-right text-xs"></i>            .sidebar.mobile-open {
+
+                <span id="current-section" class="text-blue-600 font-medium">Dashboard</span>                transform: translateX(0);
+
+            </div>            }
+
             .content-area {
-                margin-left: 0;
-            }
-            .stat-card {
-                margin-bottom: 1rem;
-            }
+
+            <div class="flex items-center space-x-4">                margin-left: 0;
+
+                <!-- Real-time Status Indicator -->            }
+
+                <div class="flex items-center space-x-2">            .stat-card {
+
+                    <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>                margin-bottom: 1rem;
+
+                    <span class="text-sm text-gray-600 hidden sm:block">Hoạt động</span>            }
+
+                </div>        }
+
+                        
+
+                <!-- Admin Profile -->        /* Loading Animation */
+
+                <div id="admin-profile" class="flex items-center space-x-3 cursor-pointer hover:bg-gray-100 rounded-lg p-2 transition">        .loading-spinner {
+
+                    <div class="relative">            animation: spin 1s linear infinite;
+
+                        <img id="admin-avatar" class="w-10 h-10 rounded-full border-2 border-blue-500" src="https://placehold.co/40x40/3b82f6/white?text=A" alt="Admin">        }
+
+                        <div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>        @keyframes spin {
+
+                    </div>            from { transform: rotate(0deg); }
+
+                    <div class="hidden sm:block">            to { transform: rotate(360deg); }
+
+                        <span id="admin-name" class="text-gray-700 font-medium block">Admin</span>        }
+
+                        <span class="text-xs text-gray-500">Quản trị viên</span>        
+
+                    </div>        /* Smooth Transitions */
+
+                    <i class="fas fa-chevron-down text-gray-400 text-sm hidden sm:block"></i>        * {
+
+                </div>            scroll-behavior: smooth;
+
+                        }
+
+                <!-- Back to Site Button -->        
+
+                <a href="index.html" class="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-lg hover:from-blue-600 hover:to-purple-700 transition flex items-center space-x-2 shadow-lg">        /* Custom Scrollbar */
+
+                    <i class="fas fa-home"></i>        ::-webkit-scrollbar {
+
+                    <span class="hidden sm:inline">Về trang chính</span>            width: 8px;
+
+                </a>        }
+
+            </div>        ::-webkit-scrollbar-track {
+
+        </div>            background: #f1f1f1;
+
+    </nav>            border-radius: 4px;
+
         }
-        
-        /* Loading Animation */
-        .loading-spinner {
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-        
-        /* Smooth Transitions */
-        * {
-            scroll-behavior: smooth;
-        }
-        
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
+
+    <!-- Mobile Overlay -->        ::-webkit-scrollbar-thumb {
+
+    <div id="mobile-overlay" class="hidden fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"></div>            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
             border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
-        }
-    </style>
-</head>
-<body class="bg-gray-100 font-sans">
-    <!-- Enhanced Top Navigation -->
-    <nav class="bg-white shadow-lg border-b-2 border-blue-500 h-16 fixed w-full top-0 z-50">
-        <div class="flex items-center justify-between h-full px-6">
-            <div class="flex items-center space-x-4">
-                <!-- Mobile Menu Toggle -->
-                <button id="mobile-menu-toggle" class="lg:hidden p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition">
-                    <i class="fas fa-bars text-xl"></i>
-                </button>
-                
-                <!-- Sidebar Toggle for Desktop -->
-                <button id="sidebar-toggle" class="hidden lg:block p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition">
-                    <i class="fas fa-bars text-xl"></i>
-                </button>
-                
-                <div class="flex items-center space-x-3">
-                    <div class="bg-gradient-to-r from-blue-500 to-purple-600 p-2 rounded-lg">
-                        <i class="fas fa-tachometer-alt text-xl text-white"></i>
-                    </div>
-                    <div>
-                        <h1 class="text-xl font-bold text-gray-800">Admin Dashboard</h1>
-                        <p class="text-xs text-gray-500 hidden sm:block">Quáº£n lÃ½ há»‡ thá»‘ng BDS</p>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Breadcrumb Navigation -->
-            <div class="hidden md:flex items-center space-x-2 text-sm text-gray-500">
-                <i class="fas fa-home"></i>
-                <span>Admin</span>
-                <i class="fas fa-chevron-right text-xs"></i>
-                <span id="current-section" class="text-blue-600 font-medium">Dashboard</span>
-            </div>
-            <div class="flex items-center space-x-4">
-                <!-- Real-time Status Indicator -->
-                <div class="flex items-center space-x-2">
-                    <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                    <span class="text-sm text-gray-600 hidden sm:block">Hoáº¡t Ä‘á»™ng</span>
-                </div>
-                
-                <!-- Notifications -->
-                <div class="relative">
-                    <button id="notification-btn" class="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition relative">
-                        <i class="fas fa-bell text-xl"></i>
-                        <span id="notification-badge" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center hidden animate-bounce">0</span>
-                    </button>
-                    
-                    <!-- Notification Dropdown -->
-                    <div id="notification-dropdown" class="hidden absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border z-50">
-                        <div class="p-4 border-b">
-                            <h3 class="font-semibold text-gray-800">ThÃ´ng bÃ¡o má»›i</h3>
-                        </div>
-                        <div class="max-h-64 overflow-y-auto">
-                            <div class="p-4 text-center text-gray-500">
-                                <i class="fas fa-bell-slash text-2xl mb-2"></i>
-                                <p>KhÃ´ng cÃ³ thÃ´ng bÃ¡o má»›i</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Admin Profile -->
-                <div id="admin-profile" class="flex items-center space-x-3 cursor-pointer hover:bg-gray-100 rounded-lg p-2 transition">
-                    <div class="relative">
-                        <img id="admin-avatar" class="w-10 h-10 rounded-full border-2 border-blue-500" src="https://placehold.co/40x40/3b82f6/white?text=A" alt="Admin">
-                        <div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
-                    </div>
-                    <div class="hidden sm:block">
-                        <span id="admin-name" class="text-gray-700 font-medium block">Admin</span>
-                        <span class="text-xs text-gray-500">Quáº£n trá»‹ viÃªn</span>
-                    </div>
-                    <i class="fas fa-chevron-down text-gray-400 text-sm hidden sm:block"></i>
-                </div>
-                
-                <!-- Back to Site Button -->
-                <a href="index.html" class="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-lg hover:from-blue-600 hover:to-purple-700 transition flex items-center space-x-2 shadow-lg">
-                    <i class="fas fa-home"></i>
-                    <span class="hidden sm:inline">Vá» trang chÃ­nh</span>
-                </a>
-            </div>
-        </div>
-    </nav>
 
-    <!-- Mobile Overlay -->
-    <div id="mobile-overlay" class="hidden fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"></div>
+    <div class="flex pt-16">        }
 
-    <div class="flex pt-16">
-        <!-- Enhanced Responsive Sidebar -->
-        <aside id="sidebar" class="sidebar w-64 h-screen fixed left-0 text-white z-40">
-            <!-- Sidebar Header -->
-            <div class="p-6 border-b border-gray-600">
-                <div class="flex items-center space-x-3">
-                    <div class="bg-gradient-to-r from-blue-500 to-purple-600 p-2 rounded-lg">
-                        <i class="fas fa-chart-pie text-white"></i>
-                    </div>
-                    <div class="sidebar-text">
-                        <h2 class="font-bold text-lg">Control Panel</h2>
-                        <p class="text-sm text-gray-300">Quáº£n lÃ½ há»‡ thá»‘ng</p>
-                    </div>
+        <!-- Enhanced Responsive Sidebar -->        ::-webkit-scrollbar-thumb:hover {
+
+        <aside id="sidebar" class="sidebar w-64 h-screen fixed left-0 text-white z-40">            background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+
+            <!-- Sidebar Header -->        }
+
+            <div class="p-6 border-b border-gray-600">    </style>
+
+                <div class="flex items-center space-x-3"></head>
+
+                    <div class="bg-gradient-to-r from-blue-500 to-purple-600 p-2 rounded-lg"><body class="bg-gray-100 font-sans">
+
+                        <i class="fas fa-chart-pie text-white"></i>    <!-- Enhanced Top Navigation -->
+
+                    </div>    <nav class="bg-white shadow-lg border-b-2 border-blue-500 h-16 fixed w-full top-0 z-50">
+
+                    <div class="sidebar-text">        <div class="flex items-center justify-between h-full px-6">
+
+                        <h2 class="font-bold text-lg">Control Panel</h2>            <div class="flex items-center space-x-4">
+
+                        <p class="text-sm text-gray-300">Quản lý hệ thống</p>                <!-- Mobile Menu Toggle -->
+
+                    </div>                <button id="mobile-menu-toggle" class="lg:hidden p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition">
+
+                </div>                    <i class="fas fa-bars text-xl"></i>
+
+            </div>                </button>
+
+                            
+
+            <!-- Navigation Menu -->                <!-- Sidebar Toggle for Desktop -->
+
+            <div class="p-6">                <button id="sidebar-toggle" class="hidden lg:block p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition">
+
+                <nav class="space-y-2">                    <i class="fas fa-bars text-xl"></i>
+
+                    <button onclick="showSection('dashboard')" class="sidebar-item active w-full text-left px-4 py-3 rounded-lg transition flex items-center space-x-3">                </button>
+
+                        <i class="fas fa-chart-line text-lg w-5"></i>                
+
+                        <span class="sidebar-text">Dashboard</span>                <div class="flex items-center space-x-3">
+
+                        <div class="sidebar-text ml-auto">                    <div class="bg-gradient-to-r from-blue-500 to-purple-600 p-2 rounded-lg">
+
+                            <span class="bg-blue-500 text-xs px-2 py-1 rounded-full">Live</span>                        <i class="fas fa-tachometer-alt text-xl text-white"></i>
+
+                        </div>                    </div>
+
+                    </button>                    <div>
+
+                                            <h1 class="text-xl font-bold text-gray-800">Admin Dashboard</h1>
+
+                    <button onclick="showSection('users')" class="sidebar-item w-full text-left px-4 py-3 rounded-lg transition flex items-center space-x-3">                        <p class="text-xs text-gray-500 hidden sm:block">Quáº£n lÃ½ há»‡ thá»‘ng BDS</p>
+
+                        <i class="fas fa-users text-lg w-5"></i>                    </div>
+
+                        <span class="sidebar-text">Quản lý người dùng</span>                </div>
+
+                        <div class="sidebar-text ml-auto">            </div>
+
+                            <span id="users-count" class="bg-gray-600 text-xs px-2 py-1 rounded-full">0</span>            
+
+                        </div>            <!-- Breadcrumb Navigation -->
+
+                    </button>            <div class="hidden md:flex items-center space-x-2 text-sm text-gray-500">
+
+                                    <i class="fas fa-home"></i>
+
+                    <button onclick="showSection('listings')" class="sidebar-item w-full text-left px-4 py-3 rounded-lg transition flex items-center space-x-3">                <span>Admin</span>
+
+                        <i class="fas fa-building text-lg w-5"></i>                <i class="fas fa-chevron-right text-xs"></i>
+
+                        <span class="sidebar-text">Tin đăng BDS</span>                <span id="current-section" class="text-blue-600 font-medium">Dashboard</span>
+
+                        <div class="sidebar-text ml-auto">            </div>
+
+                            <span id="listings-count" class="bg-gray-600 text-xs px-2 py-1 rounded-full">0</span>            <div class="flex items-center space-x-4">
+
+                        </div>                <!-- Real-time Status Indicator -->
+
+                    </button>                <div class="flex items-center space-x-2">
+
+                                        <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+
+                    <button onclick="showSection('feedback')" class="sidebar-item w-full text-left px-4 py-3 rounded-lg transition flex items-center space-x-3">                    <span class="text-sm text-gray-600 hidden sm:block">Hoáº¡t Ä‘á»™ng</span>
+
+                        <i class="fas fa-comments text-lg w-5"></i>                </div>
+
+                        <span class="sidebar-text">Góp ý & Phản hồi</span>                
+
+                        <div class="sidebar-text ml-auto">                <!-- Notifications -->
+
+                            <span id="feedback-count" class="bg-yellow-500 text-xs px-2 py-1 rounded-full">0</span>                <div class="relative">
+
+                        </div>                    <button id="notification-btn" class="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition relative">
+
+                    </button>                        <i class="fas fa-bell text-xl"></i>
+
+                                            <span id="notification-badge" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center hidden animate-bounce">0</span>
+
+                    <button onclick="showSection('analytics')" class="sidebar-item w-full text-left px-4 py-3 rounded-lg transition flex items-center space-x-3">                    </button>
+
+                        <i class="fas fa-chart-bar text-lg w-5"></i>                    
+
+                        <span class="sidebar-text">Analytics & Performance</span>                    <!-- Notification Dropdown -->
+
+                        <div class="sidebar-text ml-auto">                    <div id="notification-dropdown" class="hidden absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border z-50">
+
+                            <i class="fas fa-arrow-up text-green-400 text-xs"></i>                        <div class="p-4 border-b">
+
+                        </div>                            <h3 class="font-semibold text-gray-800">ThÃ´ng bÃ¡o má»›i</h3>
+
+                    </button>                        </div>
+
+                                            <div class="max-h-64 overflow-y-auto">
+
+                    <button onclick="showSection('settings')" class="sidebar-item w-full text-left px-4 py-3 rounded-lg transition flex items-center space-x-3">                            <div class="p-4 text-center text-gray-500">
+
+                        <i class="fas fa-cog text-lg w-5"></i>                                <i class="fas fa-bell-slash text-2xl mb-2"></i>
+
+                        <span class="sidebar-text">Cài đặt hệ thống</span>                                <p>KhÃ´ng cÃ³ thÃ´ng bÃ¡o má»›i</p>
+
+                    </button>                            </div>
+
+                </nav>                        </div>
+
+            </div>                    </div>
+
                 </div>
-            </div>
-            
-            <!-- Navigation Menu -->
-            <div class="p-6">
-                <nav class="space-y-2">
-                    <button onclick="showSection('dashboard')" class="sidebar-item active w-full text-left px-4 py-3 rounded-lg transition flex items-center space-x-3">
-                        <i class="fas fa-chart-line text-lg w-5"></i>
-                        <span class="sidebar-text">Dashboard</span>
-                        <div class="sidebar-text ml-auto">
-                            <span class="bg-blue-500 text-xs px-2 py-1 rounded-full">Live</span>
-                        </div>
-                    </button>
-                    
-                    <button onclick="showSection('users')" class="sidebar-item w-full text-left px-4 py-3 rounded-lg transition flex items-center space-x-3">
-                        <i class="fas fa-users text-lg w-5"></i>
-                        <span class="sidebar-text">Quáº£n lÃ½ ngÆ°á»i dÃ¹ng</span>
-                        <div class="sidebar-text ml-auto">
-                            <span id="users-count" class="bg-gray-600 text-xs px-2 py-1 rounded-full">0</span>
-                        </div>
-                    </button>
-                    
-                    <button onclick="showSection('listings')" class="sidebar-item w-full text-left px-4 py-3 rounded-lg transition flex items-center space-x-3">
-                        <i class="fas fa-building text-lg w-5"></i>
-                        <span class="sidebar-text">Tin Ä‘Äƒng BDS</span>
-                        <div class="sidebar-text ml-auto">
-                            <span id="listings-count" class="bg-gray-600 text-xs px-2 py-1 rounded-full">0</span>
-                        </div>
-                    </button>
-                    
-                    <button onclick="showSection('feedback')" class="sidebar-item w-full text-left px-4 py-3 rounded-lg transition flex items-center space-x-3">
-                        <i class="fas fa-comments text-lg w-5"></i>
-                        <span class="sidebar-text">GÃ³p Ã½ & Pháº£n há»“i</span>
-                        <div class="sidebar-text ml-auto">
-                            <span id="feedback-count" class="bg-yellow-500 text-xs px-2 py-1 rounded-full">0</span>
-                        </div>
-                    </button>
-                    
-                    <button onclick="showSection('analytics')" class="sidebar-item w-full text-left px-4 py-3 rounded-lg transition flex items-center space-x-3">
-                        <i class="fas fa-chart-bar text-lg w-5"></i>
-                        <span class="sidebar-text">Analytics & Performance</span>
-                        <div class="sidebar-text ml-auto">
-                            <i class="fas fa-arrow-up text-green-400 text-xs"></i>
-                        </div>
-                    </button>
-                    
-                    <button onclick="showSection('settings')" class="sidebar-item w-full text-left px-4 py-3 rounded-lg transition flex items-center space-x-3">
-                        <i class="fas fa-cog text-lg w-5"></i>
-                        <span class="sidebar-text">CÃ i Ä‘áº·t há»‡ thá»‘ng</span>
-                    </button>
-                </nav>
-            </div>
 
-            <!-- Enhanced Quick Stats in Sidebar -->
-            <div class="p-6 border-t border-gray-600 mt-auto">
-                <h3 class="text-sm font-semibold text-gray-300 mb-4 sidebar-text">
-                    <i class="fas fa-chart-pie mr-2"></i>Hoáº¡t Ä‘á»™ng hÃ´m nay
-                </h3>
-                <div class="space-y-3 text-sm sidebar-text">
-                    <div class="flex justify-between items-center bg-gray-700 bg-opacity-50 rounded-lg p-2">
-                        <span class="flex items-center">
-                            <i class="fas fa-user-plus mr-2 text-green-400"></i>
-                            NgÆ°á»i dÃ¹ng má»›i:
-                        </span>
-                        <span id="today-users" class="text-green-400 font-bold">0</span>
-                    </div>
-                    <div class="flex justify-between items-center bg-gray-700 bg-opacity-50 rounded-lg p-2">
-                        <span class="flex items-center">
-                            <i class="fas fa-home mr-2 text-blue-400"></i>
-                            Tin Ä‘Äƒng má»›i:
-                        </span>
-                        <span id="today-listings" class="text-blue-400 font-bold">0</span>
-                    </div>
-                    <div class="flex justify-between items-center bg-gray-700 bg-opacity-50 rounded-lg p-2">
-                        <span class="flex items-center">
+            <!-- Enhanced Quick Stats in Sidebar -->                
+
+            <div class="p-6 border-t border-gray-600 mt-auto">                <!-- Admin Profile -->
+
+                <h3 class="text-sm font-semibold text-gray-300 mb-4 sidebar-text">                <div id="admin-profile" class="flex items-center space-x-3 cursor-pointer hover:bg-gray-100 rounded-lg p-2 transition">
+
+                    <i class="fas fa-chart-pie mr-2"></i>Hoạt động hôm nay                    <div class="relative">
+
+                </h3>                        <img id="admin-avatar" class="w-10 h-10 rounded-full border-2 border-blue-500" src="https://placehold.co/40x40/3b82f6/white?text=A" alt="Admin">
+
+                <div class="space-y-3 text-sm sidebar-text">                        <div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
+
+                    <div class="flex justify-between items-center bg-gray-700 bg-opacity-50 rounded-lg p-2">                    </div>
+
+                        <span class="flex items-center">                    <div class="hidden sm:block">
+
+                            <i class="fas fa-user-plus mr-2 text-green-400"></i>                        <span id="admin-name" class="text-gray-700 font-medium block">Admin</span>
+
+                            Người dùng mới:                        <span class="text-xs text-gray-500">Quáº£n trá»‹ viÃªn</span>
+
+                        </span>                    </div>
+
+                        <span id="today-users" class="text-green-400 font-bold">0</span>                    <i class="fas fa-chevron-down text-gray-400 text-sm hidden sm:block"></i>
+
+                    </div>                </div>
+
+                    <div class="flex justify-between items-center bg-gray-700 bg-opacity-50 rounded-lg p-2">                
+
+                        <span class="flex items-center">                <!-- Back to Site Button -->
+
+                            <i class="fas fa-home mr-2 text-blue-400"></i>                <a href="index.html" class="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-lg hover:from-blue-600 hover:to-purple-700 transition flex items-center space-x-2 shadow-lg">
+
+                            Tin đăng mới:                    <i class="fas fa-home"></i>
+
+                        </span>                    <span class="hidden sm:inline">Vá» trang chÃ­nh</span>
+
+                        <span id="today-listings" class="text-blue-400 font-bold">0</span>                </a>
+
+                    </div>            </div>
+
+                    <div class="flex justify-between items-center bg-gray-700 bg-opacity-50 rounded-lg p-2">        </div>
+
+                        <span class="flex items-center">    </nav>
+
                             <i class="fas fa-heart mr-2 text-pink-400"></i>
-                            GÃ³p Ã½ má»›i:
-                        </span>
+
+                            Góp ý mới:    <!-- Mobile Overlay -->
+
+                        </span>    <div id="mobile-overlay" class="hidden fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"></div>
+
                         <span id="today-feedback" class="text-pink-400 font-bold">0</span>
-                    </div>
-                    <div class="flex justify-between items-center bg-gray-700 bg-opacity-50 rounded-lg p-2">
+
+                    </div>    <div class="flex pt-16">
+
+                    <div class="flex justify-between items-center bg-gray-700 bg-opacity-50 rounded-lg p-2">        <!-- Enhanced Responsive Sidebar -->
+
+                        <span class="flex items-center">        <aside id="sidebar" class="sidebar w-64 h-screen fixed left-0 text-white z-40">
+
+                            <i class="fas fa-eye mr-2 text-purple-400"></i>            <!-- Sidebar Header -->
+
+                            Lượt xem:            <div class="p-6 border-b border-gray-600">
+
+                        </span>                <div class="flex items-center space-x-3">
+
+                        <span id="today-views" class="text-purple-400 font-bold">0</span>                    <div class="bg-gradient-to-r from-blue-500 to-purple-600 p-2 rounded-lg">
+
+                    </div>                        <i class="fas fa-chart-pie text-white"></i>
+
+                </div>                    </div>
+
+                                    <div class="sidebar-text">
+
+                <!-- System Status -->                        <h2 class="font-bold text-lg">Control Panel</h2>
+
+                <div class="sidebar-text mt-4 p-3 bg-gray-700 bg-opacity-30 rounded-lg">                        <p class="text-sm text-gray-300">Quáº£n lÃ½ há»‡ thá»‘ng</p>
+
+                    <div class="flex items-center justify-between">                    </div>
+
+                        <span class="text-xs text-gray-300">Hệ thống:</span>                </div>
+
+                        <div class="flex items-center space-x-1">            </div>
+
+                            <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>            
+
+                            <span class="text-xs text-green-400">Hoạt động tốt</span>            <!-- Navigation Menu -->
+
+                        </div>            <div class="p-6">
+
+                    </div>                <nav class="space-y-2">
+
+                </div>                    <button onclick="showSection('dashboard')" class="sidebar-item active w-full text-left px-4 py-3 rounded-lg transition flex items-center space-x-3">
+
+            </div>                        <i class="fas fa-chart-line text-lg w-5"></i>
+
+        </aside>                        <span class="sidebar-text">Dashboard</span>
+
+                        <div class="sidebar-text ml-auto">
+
+        <!-- Enhanced Main Content -->                            <span class="bg-blue-500 text-xs px-2 py-1 rounded-full">Live</span>
+
+        <main id="main-content" class="content-area ml-64 flex-1 p-6 transition-all duration-300">                        </div>
+
+            <!-- Welcome Header -->                    </button>
+
+            <div class="mb-8">                    
+
+                <div class="bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl p-6 text-white shadow-xl">                    <button onclick="showSection('users')" class="sidebar-item w-full text-left px-4 py-3 rounded-lg transition flex items-center space-x-3">
+
+                    <div class="flex items-center justify-between">                        <i class="fas fa-users text-lg w-5"></i>
+
+                        <div>                        <span class="sidebar-text">Quáº£n lÃ½ ngÆ°á»i dÃ¹ng</span>
+
+                            <h2 class="text-2xl font-bold mb-2">Chào mừng trở lại, Admin! 👋</h2>                        <div class="sidebar-text ml-auto">
+
+                            <p class="text-blue-100">Hôm nay là <span id="current-date"></span></p>                            <span id="users-count" class="bg-gray-600 text-xs px-2 py-1 rounded-full">0</span>
+
+                        </div>                        </div>
+
+                        <div class="hidden md:flex items-center space-x-4">                    </button>
+
+                            <div class="text-center">                    
+
+                                <div class="text-2xl font-bold" id="current-time"></div>                    <button onclick="showSection('listings')" class="sidebar-item w-full text-left px-4 py-3 rounded-lg transition flex items-center space-x-3">
+
+                                <div class="text-sm text-blue-200">Thời gian hiện tại</div>                        <i class="fas fa-building text-lg w-5"></i>
+
+                            </div>                        <span class="sidebar-text">Tin Ä‘Äƒng BDS</span>
+
+                        </div>                        <div class="sidebar-text ml-auto">
+
+                    </div>                            <span id="listings-count" class="bg-gray-600 text-xs px-2 py-1 rounded-full">0</span>
+
+                </div>                        </div>
+
+            </div>                    </button>
+
+                    
+
+            <!-- Dashboard Section -->                    <button onclick="showSection('feedback')" class="sidebar-item w-full text-left px-4 py-3 rounded-lg transition flex items-center space-x-3">
+
+            <section id="dashboard-section" class="section">                        <i class="fas fa-comments text-lg w-5"></i>
+
+                <div class="mb-8">                        <span class="sidebar-text">GÃ³p Ã½ & Pháº£n há»“i</span>
+
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Dashboard Tổng quan</h2>                        <div class="sidebar-text ml-auto">
+
+                    <p class="text-gray-600">Thống kê và quản lý hoạt động của website</p>                            <span id="feedback-count" class="bg-yellow-500 text-xs px-2 py-1 rounded-full">0</span>
+
+                </div>                        </div>
+
+                    </button>
+
+                <!-- Stats Cards -->                    
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">                    <button onclick="showSection('analytics')" class="sidebar-item w-full text-left px-4 py-3 rounded-lg transition flex items-center space-x-3">
+
+                    <div class="stat-card users p-6 rounded-xl text-white shadow-lg">                        <i class="fas fa-chart-bar text-lg w-5"></i>
+
+                        <div class="flex items-center justify-between">                        <span class="sidebar-text">Analytics & Performance</span>
+
+                            <div>                        <div class="sidebar-text ml-auto">
+
+                                <p class="text-sm opacity-80">Tổng người dùng</p>                            <i class="fas fa-arrow-up text-green-400 text-xs"></i>
+
+                                <p id="total-users" class="text-3xl font-bold">0</p>                        </div>
+
+                                <p class="text-sm opacity-70">↗ +<span id="users-growth">0</span> tuần này</p>                    </button>
+
+                            </div>                    
+
+                            <i class="fas fa-users text-4xl opacity-60"></i>                    <button onclick="showSection('settings')" class="sidebar-item w-full text-left px-4 py-3 rounded-lg transition flex items-center space-x-3">
+
+                        </div>                        <i class="fas fa-cog text-lg w-5"></i>
+
+                    </div>                        <span class="sidebar-text">CÃ i Ä‘áº·t há»‡ thá»‘ng</span>
+
+                    </button>
+
+                    <div class="stat-card listings p-6 rounded-xl text-white shadow-lg">                </nav>
+
+                        <div class="flex items-center justify-between">            </div>
+
+                            <div>
+
+                                <p class="text-sm opacity-80">Tin đăng BDS</p>            <!-- Enhanced Quick Stats in Sidebar -->
+
+                                <p id="total-listings" class="text-3xl font-bold">0</p>            <div class="p-6 border-t border-gray-600 mt-auto">
+
+                                <p class="text-sm opacity-70">↗ +<span id="listings-growth">0</span> tuần này</p>                <h3 class="text-sm font-semibold text-gray-300 mb-4 sidebar-text">
+
+                            </div>                    <i class="fas fa-chart-pie mr-2"></i>Hoáº¡t Ä‘á»™ng hÃ´m nay
+
+                            <i class="fas fa-building text-4xl opacity-60"></i>                </h3>
+
+                        </div>                <div class="space-y-3 text-sm sidebar-text">
+
+                    </div>                    <div class="flex justify-between items-center bg-gray-700 bg-opacity-50 rounded-lg p-2">
+
                         <span class="flex items-center">
-                            <i class="fas fa-eye mr-2 text-purple-400"></i>
+
+                    <div class="stat-card feedback p-6 rounded-xl text-white shadow-lg">                            <i class="fas fa-user-plus mr-2 text-green-400"></i>
+
+                        <div class="flex items-center justify-between">                            NgÆ°á»i dÃ¹ng má»›i:
+
+                            <div>                        </span>
+
+                                <p class="text-sm opacity-80">Góp ý & Phản hồi</p>                        <span id="today-users" class="text-green-400 font-bold">0</span>
+
+                                <p id="total-feedback" class="text-3xl font-bold">0</p>                    </div>
+
+                                <p class="text-sm opacity-70">🌟 <span id="avg-rating">0</span> sao TB</p>                    <div class="flex justify-between items-center bg-gray-700 bg-opacity-50 rounded-lg p-2">
+
+                            </div>                        <span class="flex items-center">
+
+                            <i class="fas fa-comments text-4xl opacity-60"></i>                            <i class="fas fa-home mr-2 text-blue-400"></i>
+
+                        </div>                            Tin Ä‘Äƒng má»›i:
+
+                    </div>                        </span>
+
+                        <span id="today-listings" class="text-blue-400 font-bold">0</span>
+
+                    <div class="stat-card visits p-6 rounded-xl text-white shadow-lg">                    </div>
+
+                        <div class="flex items-center justify-between">                    <div class="flex justify-between items-center bg-gray-700 bg-opacity-50 rounded-lg p-2">
+
+                            <div>                        <span class="flex items-center">
+
+                                <p class="text-sm opacity-80">Lượt truy cập</p>                            <i class="fas fa-heart mr-2 text-pink-400"></i>
+
+                                <p id="total-visits" class="text-3xl font-bold">0</p>                            GÃ³p Ã½ má»›i:
+
+                                <p class="text-sm opacity-70">📊 Ước tính</p>                        </span>
+
+                            </div>                        <span id="today-feedback" class="text-pink-400 font-bold">0</span>
+
+                            <i class="fas fa-chart-line text-4xl opacity-60"></i>                    </div>
+
+                        </div>                    <div class="flex justify-between items-center bg-gray-700 bg-opacity-50 rounded-lg p-2">
+
+                    </div>                        <span class="flex items-center">
+
+                </div>                            <i class="fas fa-eye mr-2 text-purple-400"></i>
+
                             LÆ°á»£t xem:
-                        </span>
-                        <span id="today-views" class="text-purple-400 font-bold">0</span>
-                    </div>
-                </div>
-                
-                <!-- System Status -->
-                <div class="sidebar-text mt-4 p-3 bg-gray-700 bg-opacity-30 rounded-lg">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs text-gray-300">Há»‡ thá»‘ng:</span>
-                        <div class="flex items-center space-x-1">
-                            <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+
+                <!-- Charts Section -->                        </span>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">                        <span id="today-views" class="text-purple-400 font-bold">0</span>
+
+                    <div class="bg-white p-6 rounded-xl shadow-lg">                    </div>
+
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">📈 Tăng trưởng người dùng (7 ngày qua)</h3>                </div>
+
+                        <div class="h-64 bg-gray-50 rounded-lg flex items-center justify-center">                
+
+                            <div class="text-center text-gray-500">                <!-- System Status -->
+
+                                <i class="fas fa-chart-line text-4xl mb-4"></i>                <div class="sidebar-text mt-4 p-3 bg-gray-700 bg-opacity-30 rounded-lg">
+
+                                <p>Biểu đồ tăng trưởng người dùng</p>                    <div class="flex items-center justify-between">
+
+                            </div>                        <span class="text-xs text-gray-300">Há»‡ thá»‘ng:</span>
+
+                        </div>                        <div class="flex items-center space-x-1">
+
+                    </div>                            <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+
                             <span class="text-xs text-green-400">Hoáº¡t Ä‘á»™ng tá»‘t</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </aside>
 
-        <!-- Enhanced Main Content -->
-        <main id="main-content" class="content-area ml-64 flex-1 p-6 transition-all duration-300">
-            <!-- Welcome Header -->
-            <div class="mb-8">
+                    <div class="bg-white p-6 rounded-xl shadow-lg">                        </div>
+
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">🏠 Thống kê tin đăng theo khu vực</h3>                    </div>
+
+                        <div class="h-64 bg-gray-50 rounded-lg flex items-center justify-center">                </div>
+
+                            <div class="text-center text-gray-500">            </div>
+
+                                <i class="fas fa-map text-4xl mb-4"></i>        </aside>
+
+                                <p>Phân bố tin đăng theo khu vực</p>
+
+                            </div>        <!-- Enhanced Main Content -->
+
+                        </div>        <main id="main-content" class="content-area ml-64 flex-1 p-6 transition-all duration-300">
+
+                    </div>            <!-- Welcome Header -->
+
+                </div>            <div class="mb-8">
+
                 <div class="bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl p-6 text-white shadow-xl">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <h2 class="text-2xl font-bold mb-2">ChÃ o má»«ng trá»Ÿ láº¡i, Admin! ðŸ‘‹</h2>
-                            <p class="text-blue-100">HÃ´m nay lÃ  <span id="current-date"></span></p>
-                        </div>
-                        <div class="hidden md:flex items-center space-x-4">
-                            <div class="text-center">
-                                <div class="text-2xl font-bold" id="current-time"></div>
-                                <div class="text-sm text-blue-200">Thá»i gian hiá»‡n táº¡i</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- Dashboard Section -->
-            <section id="dashboard-section" class="section">
-                <div class="mb-8">
-                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Dashboard Tá»•ng quan</h2>
-                    <p class="text-gray-600">Thá»‘ng kÃª vÃ  quáº£n lÃ½ hoáº¡t Ä‘á»™ng cá»§a website</p>
-                </div>
 
-                <!-- Stats Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <!-- Quick Actions -->                    <div class="flex items-center justify-between">
+
+                <div class="bg-white p-6 rounded-xl shadow-lg">                        <div>
+
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">🚀 Thao tác nhanh</h3>                            <h2 class="text-2xl font-bold mb-2">ChÃ o má»«ng trá»Ÿ láº¡i, Admin! ðŸ‘‹</h2>
+
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">                            <p class="text-blue-100">HÃ´m nay lÃ  <span id="current-date"></span></p>
+
+                        <button class="bg-blue-500 text-white p-4 rounded-lg hover:bg-blue-600 transition">                        </div>
+
+                            <i class="fas fa-plus text-2xl mb-2"></i>                        <div class="hidden md:flex items-center space-x-4">
+
+                            <p class="text-sm">Thêm người dùng</p>                            <div class="text-center">
+
+                        </button>                                <div class="text-2xl font-bold" id="current-time"></div>
+
+                        <button class="bg-green-500 text-white p-4 rounded-lg hover:bg-green-600 transition">                                <div class="text-sm text-blue-200">Thá»i gian hiá»‡n táº¡i</div>
+
+                            <i class="fas fa-home text-2xl mb-2"></i>                            </div>
+
+                            <p class="text-sm">Duyệt tin đăng</p>                        </div>
+
+                        </button>                    </div>
+
+                        <button class="bg-purple-500 text-white p-4 rounded-lg hover:bg-purple-600 transition">                </div>
+
+                            <i class="fas fa-chart-bar text-2xl mb-2"></i>            </div>
+
+                            <p class="text-sm">Xem báo cáo</p>            <!-- Dashboard Section -->
+
+                        </button>            <section id="dashboard-section" class="section">
+
+                        <button class="bg-orange-500 text-white p-4 rounded-lg hover:bg-orange-600 transition">                <div class="mb-8">
+
+                            <i class="fas fa-cog text-2xl mb-2"></i>                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Dashboard Tổng quan</h2>
+
+                            <p class="text-sm">Cài đặt</p>                    <p class="text-gray-600">Thá»‘ng kÃª vÃ  quáº£n lÃ½ hoáº¡t Ä‘á»™ng cá»§a website</p>
+
+                        </button>                </div>
+
+                    </div>
+
+                </div>                <!-- Stats Cards -->
+
+            </section>                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+
                     <div class="stat-card users p-6 rounded-xl text-white shadow-lg">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-sm opacity-80">Tá»•ng ngÆ°á»i dÃ¹ng</p>
-                                <p id="total-users" class="text-3xl font-bold">0</p>
-                                <p class="text-sm opacity-70">â†— +<span id="users-growth">0</span> tuáº§n nÃ y</p>
-                            </div>
-                            <i class="fas fa-users text-4xl opacity-60"></i>
-                        </div>
-                    </div>
 
-                    <div class="stat-card listings p-6 rounded-xl text-white shadow-lg">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-sm opacity-80">Tin Ä‘Äƒng BDS</p>
-                                <p id="total-listings" class="text-3xl font-bold">0</p>
+            <!-- Users Section -->                        <div class="flex items-center justify-between">
+
+            <section id="users-section" class="section hidden">                            <div>
+
+                <div class="mb-8">                                <p class="text-sm opacity-80">Tá»•ng ngÆ°á»i dÃ¹ng</p>
+
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">👥 Quản lý người dùng</h2>                                <p id="total-users" class="text-3xl font-bold">0</p>
+
+                    <p class="text-gray-600">Xem và quản lý tài khoản người dùng</p>                                <p class="text-sm opacity-70">â†— +<span id="users-growth">0</span> tuáº§n nÃ y</p>
+
+                </div>                            </div>
+
+                                            <i class="fas fa-users text-4xl opacity-60"></i>
+
+                <div class="bg-white p-6 rounded-xl shadow-lg">                        </div>
+
+                    <div class="text-center text-gray-500 py-12">                    </div>
+
+                        <i class="fas fa-users text-6xl mb-4"></i>
+
+                        <h3 class="text-xl font-semibold mb-2">Quản lý người dùng</h3>                    <div class="stat-card listings p-6 rounded-xl text-white shadow-lg">
+
+                        <p>Tính năng quản lý người dùng sẽ được triển khai sớm</p>                        <div class="flex items-center justify-between">
+
+                    </div>                            <div>
+
+                </div>                                <p class="text-sm opacity-80">Tin Ä‘Äƒng BDS</p>
+
+            </section>                                <p id="total-listings" class="text-3xl font-bold">0</p>
+
                                 <p class="text-sm opacity-70">â†— +<span id="listings-growth">0</span> tuáº§n nÃ y</p>
-                            </div>
-                            <i class="fas fa-building text-4xl opacity-60"></i>
-                        </div>
-                    </div>
 
-                    <div class="stat-card feedback p-6 rounded-xl text-white shadow-lg">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-sm opacity-80">GÃ³p Ã½ & Pháº£n há»“i</p>
-                                <p id="total-feedback" class="text-3xl font-bold">0</p>
-                                <p class="text-sm opacity-70">ðŸŒŸ <span id="avg-rating">0</span> sao TB</p>
-                            </div>
-                            <i class="fas fa-comments text-4xl opacity-60"></i>
-                        </div>
-                    </div>
+            <!-- Listings Section -->                            </div>
 
-                    <div class="stat-card visits p-6 rounded-xl text-white shadow-lg">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-sm opacity-80">LÆ°á»£t truy cáº­p</p>
-                                <p id="total-visits" class="text-3xl font-bold">0</p>
-                                <p class="text-sm opacity-70">ðŸ“Š Æ¯á»›c tÃ­nh</p>
-                            </div>
-                            <i class="fas fa-chart-line text-4xl opacity-60"></i>
-                        </div>
-                    </div>
-                </div>
+            <section id="listings-section" class="section hidden">                            <i class="fas fa-building text-4xl opacity-60"></i>
 
-                <!-- Charts Row -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                <div class="mb-8">                        </div>
+
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">🏠 Quản lý tin đăng BDS</h2>                    </div>
+
+                    <p class="text-gray-600">Duyệt và quản lý tin đăng bất động sản</p>
+
+                </div>                    <div class="stat-card feedback p-6 rounded-xl text-white shadow-lg">
+
+                                        <div class="flex items-center justify-between">
+
+                <div class="bg-white p-6 rounded-xl shadow-lg">                            <div>
+
+                    <div class="text-center text-gray-500 py-12">                                <p class="text-sm opacity-80">GÃ³p Ã½ & Pháº£n há»“i</p>
+
+                        <i class="fas fa-building text-6xl mb-4"></i>                                <p id="total-feedback" class="text-3xl font-bold">0</p>
+
+                        <h3 class="text-xl font-semibold mb-2">Quản lý tin đăng</h3>                                <p class="text-sm opacity-70">ðŸŒŸ <span id="avg-rating">0</span> sao TB</p>
+
+                        <p>Tính năng quản lý tin đăng sẽ được triển khai sớm</p>                            </div>
+
+                    </div>                            <i class="fas fa-comments text-4xl opacity-60"></i>
+
+                </div>                        </div>
+
+            </section>                    </div>
+
+
+
+            <!-- Feedback Section -->                    <div class="stat-card visits p-6 rounded-xl text-white shadow-lg">
+
+            <section id="feedback-section" class="section hidden">                        <div class="flex items-center justify-between">
+
+                <div class="mb-8">                            <div>
+
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">💬 Góp ý & Phản hồi</h2>                                <p class="text-sm opacity-80">LÆ°á»£t truy cáº­p</p>
+
+                    <p class="text-gray-600">Xem và trả lời góp ý từ người dùng</p>                                <p id="total-visits" class="text-3xl font-bold">0</p>
+
+                </div>                                <p class="text-sm opacity-70">ðŸ“Š Æ¯á»›c tÃ­nh</p>
+
+                                            </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-lg">                            <i class="fas fa-chart-line text-4xl opacity-60"></i>
+
+                    <div class="text-center text-gray-500 py-12">                        </div>
+
+                        <i class="fas fa-comments text-6xl mb-4"></i>                    </div>
+
+                        <h3 class="text-xl font-semibold mb-2">Góp ý & Phản hồi</h3>                </div>
+
+                        <p>Tính năng quản lý góp ý sẽ được triển khai sớm</p>
+
+                    </div>                <!-- Charts Row -->
+
+                </div>                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+
+            </section>                    <div class="bg-white p-6 rounded-xl shadow-lg">
+
                         <h3 class="text-lg font-bold text-gray-800 mb-4">TÄƒng trÆ°á»Ÿng ngÆ°á»i dÃ¹ng (7 ngÃ y qua)</h3>
-                        <canvas id="userGrowthChart" width="400" height="200"></canvas>
-                    </div>
-                    <div class="bg-white p-6 rounded-xl shadow-lg">
-                        <h3 class="text-lg font-bold text-gray-800 mb-4">PhÃ¢n bá»‘ Ä‘Ã¡nh giÃ¡</h3>
-                        <canvas id="ratingChart" width="400" height="200"></canvas>
-                    </div>
-                </div>
 
-                <!-- Recent Activity -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="bg-white p-6 rounded-xl shadow-lg">
-                        <h3 class="text-lg font-bold text-gray-800 mb-4">Hoáº¡t Ä‘á»™ng gáº§n Ä‘Ã¢y</h3>
-                        <div id="recent-activities" class="space-y-3">
-                            <!-- Activities will be populated by JS -->
-                        </div>
-                    </div>
-                    <div class="bg-white p-6 rounded-xl shadow-lg">
-                        <h3 class="text-lg font-bold text-gray-800 mb-4">Tin Ä‘Äƒng cáº§n duyá»‡t</h3>
-                        <div id="pending-listings" class="space-y-3">
-                            <!-- Pending listings will be populated by JS -->
-                        </div>
-                    </div>
-                </div>
-            </section>
+            <!-- Analytics Section -->                        <canvas id="userGrowthChart" width="400" height="200"></canvas>
 
-            <!-- Users Management Section -->
-            <section id="users-section" class="section hidden">
-                <div class="mb-8">
-                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Quáº£n lÃ½ ngÆ°á»i dÃ¹ng</h2>
-                    <p class="text-gray-600">Xem vÃ  quáº£n lÃ½ tÃ i khoáº£n ngÆ°á»i dÃ¹ng</p>
-                </div>
+            <section id="analytics-section" class="section hidden">                    </div>
 
-                <!-- User Stats & Actions -->
+                <div class="mb-8">                    <div class="bg-white p-6 rounded-xl shadow-lg">
+
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">📊 Analytics & Performance</h2>                        <h3 class="text-lg font-bold text-gray-800 mb-4">PhÃ¢n bá»‘ Ä‘Ã¡nh giÃ¡</h3>
+
+                    <p class="text-gray-600">Phân tích hiệu suất và thống kê chi tiết</p>                        <canvas id="ratingChart" width="400" height="200"></canvas>
+
+                </div>                    </div>
+
+                                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+
+                    <div class="text-center text-gray-500 py-12">                <!-- Recent Activity -->
+
+                        <i class="fas fa-chart-bar text-6xl mb-4"></i>                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                        <h3 class="text-xl font-semibold mb-2">Analytics Dashboard</h3>                    <div class="bg-white p-6 rounded-xl shadow-lg">
+
+                        <p>Tính năng analytics chi tiết sẽ được triển khai sớm</p>                        <h3 class="text-lg font-bold text-gray-800 mb-4">Hoáº¡t Ä‘á»™ng gáº§n Ä‘Ã¢y</h3>
+
+                    </div>                        <div id="recent-activities" class="space-y-3">
+
+                </div>                            <!-- Activities will be populated by JS -->
+
+            </section>                        </div>
+
+                    </div>
+
+            <!-- Settings Section -->                    <div class="bg-white p-6 rounded-xl shadow-lg">
+
+            <section id="settings-section" class="section hidden">                        <h3 class="text-lg font-bold text-gray-800 mb-4">Tin Ä‘Äƒng cáº§n duyá»‡t</h3>
+
+                <div class="mb-8">                        <div id="pending-listings" class="space-y-3">
+
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">⚙️ Cài đặt hệ thống</h2>                            <!-- Pending listings will be populated by JS -->
+
+                    <p class="text-gray-600">Quản lý cấu hình và tùy chỉnh hệ thống</p>                        </div>
+
+                </div>                    </div>
+
+                                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-lg">            </section>
+
+                    <div class="text-center text-gray-500 py-12">
+
+                        <i class="fas fa-cog text-6xl mb-4"></i>            <!-- Users Management Section -->
+
+                        <h3 class="text-xl font-semibold mb-2">Cài đặt hệ thống</h3>            <section id="users-section" class="section hidden">
+
+                        <p>Tính năng cài đặt sẽ được triển khai sớm</p>                <div class="mb-8">
+
+                    </div>                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Quáº£n lÃ½ ngÆ°á»i dÃ¹ng</h2>
+
+                </div>                    <p class="text-gray-600">Xem vÃ  quáº£n lÃ½ tÃ i khoáº£n ngÆ°á»i dÃ¹ng</p>
+
+            </section>                </div>
+
+        </main>
+
+    </div>                <!-- User Stats & Actions -->
+
                 <div class="bg-white p-6 rounded-xl shadow-lg mb-6">
-                    <div class="flex flex-wrap justify-between items-center gap-4">
-                        <div class="flex space-x-6">
-                            <div class="text-center">
-                                <div class="text-2xl font-bold text-blue-600" id="users-active">0</div>
-                                <div class="text-sm text-gray-600">Hoáº¡t Ä‘á»™ng</div>
-                            </div>
-                            <div class="text-center">
-                                <div class="text-2xl font-bold text-green-600" id="users-premium">0</div>
-                                <div class="text-sm text-gray-600">Premium</div>
-                            </div>
-                            <div class="text-center">
-                                <div class="text-2xl font-bold text-yellow-600" id="users-banned">0</div>
-                                <div class="text-sm text-gray-600">Bá»‹ khÃ³a</div>
-                            </div>
-                        </div>
-                        <div class="flex space-x-2">
-                            <input type="text" id="search-users" placeholder="TÃ¬m kiáº¿m ngÆ°á»i dÃ¹ng..." 
-                                   class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                            <button onclick="exportUsers()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
-                                <i class="fas fa-download mr-2"></i>Xuáº¥t Excel
-                            </button>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Users Table -->
-                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">NgÆ°á»i dÃ¹ng</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ÄÄƒng kÃ½</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tin Ä‘Äƒng</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tráº¡ng thÃ¡i</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">HÃ nh Ä‘á»™ng</th>
-                                </tr>
-                            </thead>
-                            <tbody id="users-table-body" class="divide-y divide-gray-200">
-                                <!-- Users will be populated by JS -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
+    <!-- Chart.js Library -->                    <div class="flex flex-wrap justify-between items-center gap-4">
 
-            <!-- Listings Management Section -->
-            <section id="listings-section" class="section hidden">
-                <div class="mb-8">
-                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Quáº£n lÃ½ tin Ä‘Äƒng BDS</h2>
-                    <p class="text-gray-600">Kiá»ƒm duyá»‡t vÃ  quáº£n lÃ½ tin Ä‘Äƒng báº¥t Ä‘á»™ng sáº£n</p>
-                </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>                        <div class="flex space-x-6">
 
-                <!-- Listing Filters -->
-                <div class="bg-white p-6 rounded-xl shadow-lg mb-6">
-                    <div class="flex flex-wrap justify-between items-center gap-4">
-                        <div class="flex space-x-4">
-                            <select id="filter-status" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                                <option value="">Táº¥t cáº£ tráº¡ng thÃ¡i</option>
-                                <option value="pending">Chá» duyá»‡t</option>
-                                <option value="approved">ÄÃ£ duyá»‡t</option>
-                                <option value="rejected">Tá»« chá»‘i</option>
-                            </select>
-                            <input type="text" id="search-listings" placeholder="TÃ¬m kiáº¿m tin Ä‘Äƒng..." 
-                                   class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                        </div>
-                        <div class="flex space-x-2">
-                            <button onclick="bulkApproveListings()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
-                                <i class="fas fa-check mr-2"></i>Duyá»‡t hÃ ng loáº¡t
-                            </button>
-                            <button onclick="exportListings()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
-                                <i class="fas fa-download mr-2"></i>Xuáº¥t dá»¯ liá»‡u
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                                <div class="text-center">
 
-                <!-- Listings Table -->
-                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-6 py-3 text-left">
-                                        <input type="checkbox" id="select-all-listings" class="rounded">
-                                    </th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tin Ä‘Äƒng</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">NgÆ°á»i Ä‘Äƒng</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">GiÃ¡</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">NgÃ y Ä‘Äƒng</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tráº¡ng thÃ¡i</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">HÃ nh Ä‘á»™ng</th>
-                                </tr>
-                            </thead>
-                            <tbody id="listings-table-body" class="divide-y divide-gray-200">
-                                <!-- Listings will be populated by JS -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
+    <!-- Enhanced Admin Dashboard Script -->                                <div class="text-2xl font-bold text-blue-600" id="users-active">0</div>
 
-            <!-- Feedback Management Section -->
-            <section id="feedback-section" class="section hidden">
-                <div class="mb-8">
-                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Quáº£n lÃ½ gÃ³p Ã½ & pháº£n há»“i</h2>
-                    <p class="text-gray-600">Xem vÃ  pháº£n há»“i Ã½ kiáº¿n tá»« ngÆ°á»i dÃ¹ng</p>
-                </div>
+    <script>                                <div class="text-sm text-gray-600">Hoáº¡t Ä‘á»™ng</div>
 
-                <!-- Feedback Stats -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                    <div class="bg-white p-6 rounded-xl shadow-lg">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-sm text-gray-600">GÃ³p Ã½ chÆ°a Ä‘á»c</p>
-                                <p id="feedback-unread" class="text-2xl font-bold text-red-600">0</p>
-                            </div>
-                            <i class="fas fa-exclamation-circle text-3xl text-red-600"></i>
-                        </div>
-                    </div>
-                    <div class="bg-white p-6 rounded-xl shadow-lg">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-sm text-gray-600">ÄÃ£ pháº£n há»“i</p>
-                                <p id="feedback-replied" class="text-2xl font-bold text-green-600">0</p>
-                            </div>
-                            <i class="fas fa-reply text-3xl text-green-600"></i>
-                        </div>
-                    </div>
-                    <div class="bg-white p-6 rounded-xl shadow-lg">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-sm text-gray-600">ÄÃ¡nh giÃ¡ trung bÃ¬nh</p>
-                                <p id="feedback-avg-rating" class="text-2xl font-bold text-yellow-600">0.0</p>
-                            </div>
-                            <i class="fas fa-star text-3xl text-yellow-600"></i>
-                        </div>
-                    </div>
-                </div>
+        // Enhanced Admin Dashboard JavaScript with fixed section switching                            </div>
 
-                <!-- Feedback Filters -->
-                <div class="bg-white p-6 rounded-xl shadow-lg mb-6">
-                    <div class="flex flex-wrap justify-between items-center gap-4">
-                        <div class="flex space-x-4">
-                            <select id="filter-feedback-type" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                                <option value="">Táº¥t cáº£ loáº¡i</option>
-                                <option value="suggestion">Äá» xuáº¥t</option>
-                                <option value="bug">BÃ¡o lá»—i</option>
-                                <option value="improvement">Cáº£i thiá»‡n</option>
-                                <option value="ui">Giao diá»‡n</option>
-                                <option value="data">Dá»¯ liá»‡u</option>
-                                <option value="general">Chung</option>
-                            </select>
-                            <select id="filter-feedback-priority" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                                <option value="">Táº¥t cáº£ má»©c Ä‘á»™</option>
-                                <option value="high">Cao</option>
-                                <option value="medium">Trung bÃ¬nh</option>
-                                <option value="low">Tháº¥p</option>
-                            </select>
-                            <select id="filter-feedback-rating" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                                <option value="">Táº¥t cáº£ Ä‘Ã¡nh giÃ¡</option>
-                                <option value="5">5 sao</option>
-                                <option value="4">4 sao</option>
-                                <option value="3">3 sao</option>
-                                <option value="2">2 sao</option>
-                                <option value="1">1 sao</option>
-                            </select>
-                        </div>
-                        <button onclick="exportFeedback()" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">
-                            <i class="fas fa-download mr-2"></i>Xuáº¥t bÃ¡o cÃ¡o
-                        </button>
-                    </div>
-                </div>
+                                    <div class="text-center">
 
-                <!-- Feedback List -->
-                <div id="feedback-list" class="space-y-4">
-                    <!-- Feedback items will be populated by JS -->
-                </div>
-            </section>
+        // Global variables                                <div class="text-2xl font-bold text-green-600" id="users-premium">0</div>
 
-            <!-- Analytics Section -->
-            <section id="analytics-section" class="section hidden">
-                <div class="mb-6">
-                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Thá»‘ng kÃª & BÃ¡o cÃ¡o</h2>
-                    <p class="text-gray-600">PhÃ¢n tÃ­ch dá»¯ liá»‡u vÃ  xu hÆ°á»›ng sá»­ dá»¥ng</p>
-                </div>
+        let sidebarCollapsed = false;                                <div class="text-sm text-gray-600">Premium</div>
 
-                <!-- Content will be loaded dynamically by loadAdvancedAnalytics() -->
-                <div id="content" class="min-h-screen">
-                    <div class="flex items-center justify-center h-64">
-                        <div class="text-center">
-                            <i class="fas fa-spinner fa-spin text-4xl text-blue-600 mb-4"></i>
-                            <p class="text-gray-600">Äang táº£i analytics dashboard...</p>
-                        </div>
-                    </div>
-                </div>
+        let currentSection = 'dashboard';                            </div>
+
+                                    <div class="text-center">
+
+        // Initialize dashboard when page loads                                <div class="text-2xl font-bold text-yellow-600" id="users-banned">0</div>
+
+        document.addEventListener('DOMContentLoaded', function() {                                <div class="text-sm text-gray-600">Bá»‹ khÃ³a</div>
+
+            initializeDashboard();                            </div>
+
+            updateDateTime();                        </div>
+
+            setInterval(updateDateTime, 1000); // Update time every second                        <div class="flex space-x-2">
+
+        });                            <input type="text" id="search-users" placeholder="TÃ¬m kiáº¿m ngÆ°á»i dÃ¹ng..." 
+
+                                           class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+
+        // Initialize dashboard functions                            <button onclick="exportUsers()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+
+        function initializeDashboard() {                                <i class="fas fa-download mr-2"></i>Xuáº¥t Excel
+
+            setupMobileMenu();                            </button>
+
+            setupSidebarToggle();                        </div>
+
+            loadInitialData();                    </div>
+
+            showSection('dashboard');                </div>
+
+        }
+
+                        <!-- Users Table -->
+
+        // Enhanced showSection function with better error handling                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+
+        function showSection(sectionName) {                    <div class="overflow-x-auto">
+
+            console.log('Switching to section:', sectionName);                        <table class="w-full">
+
+            currentSection = sectionName;                            <thead class="bg-gray-50">
+
+                                            <tr>
+
+            // Hide all sections first                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">NgÆ°á»i dÃ¹ng</th>
+
+            const sections = document.querySelectorAll('.section');                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+
+            sections.forEach(section => {                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ÄÄƒng kÃ½</th>
+
+                section.classList.add('hidden');                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tin Ä‘Äƒng</th>
+
+                section.style.display = 'none';                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tráº¡ng thÃ¡i</th>
+
+            });                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">HÃ nh Ä‘á»™ng</th>
+
+                                            </tr>
+
+            // Show selected section                            </thead>
+
+            const targetSection = document.getElementById(sectionName + '-section');                            <tbody id="users-table-body" class="divide-y divide-gray-200">
+
+            if (targetSection) {                                <!-- Users will be populated by JS -->
+
+                targetSection.classList.remove('hidden');                            </tbody>
+
+                targetSection.style.display = 'block';                        </table>
+
+                console.log('Showing section:', sectionName);                    </div>
+
+            } else {                </div>
+
+                console.error('Section not found:', sectionName + '-section');            </section>
+
+            }
+
+                        <!-- Listings Management Section -->
+
+            // Update sidebar active state            <section id="listings-section" class="section hidden">
+
+            const sidebarItems = document.querySelectorAll('.sidebar-item');                <div class="mb-8">
+
+            sidebarItems.forEach(item => item.classList.remove('active'));                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Quáº£n lÃ½ tin Ä‘Äƒng BDS</h2>
+
+                                <p class="text-gray-600">Kiá»ƒm duyá»‡t vÃ  quáº£n lÃ½ tin Ä‘Äƒng báº¥t Ä‘á»™ng sáº£n</p>
+
+            const activeItem = document.querySelector(`[onclick="showSection('${sectionName}')"]`);                </div>
+
+            if (activeItem) {
+
+                activeItem.classList.add('active');                <!-- Listing Filters -->
+
+            }                <div class="bg-white p-6 rounded-xl shadow-lg mb-6">
+
+                                <div class="flex flex-wrap justify-between items-center gap-4">
+
+            // Update breadcrumb                        <div class="flex space-x-4">
+
+            const breadcrumb = document.getElementById('current-section');                            <select id="filter-status" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+
+            if (breadcrumb) {                                <option value="">Táº¥t cáº£ tráº¡ng thÃ¡i</option>
+
+                const sectionNames = {                                <option value="pending">Chá» duyá»‡t</option>
+
+                    'dashboard': 'Dashboard',                                <option value="approved">ÄÃ£ duyá»‡t</option>
+
+                    'users': 'Quản lý người dùng',                                <option value="rejected">Tá»« chá»‘i</option>
+
+                    'listings': 'Tin đăng BDS',                            </select>
+
+                    'feedback': 'Góp ý & Phản hồi',                            <input type="text" id="search-listings" placeholder="TÃ¬m kiáº¿m tin Ä‘Äƒng..." 
+
+                    'analytics': 'Analytics & Performance',                                   class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+
+                    'settings': 'Cài đặt hệ thống'                        </div>
+
+                };                        <div class="flex space-x-2">
+
+                breadcrumb.textContent = sectionNames[sectionName] || 'Dashboard';                            <button onclick="bulkApproveListings()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+
+            }                                <i class="fas fa-check mr-2"></i>Duyá»‡t hÃ ng loáº¡t
+
+        }                            </button>
+
+                                    <button onclick="exportListings()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+
+        // Update date and time                                <i class="fas fa-download mr-2"></i>Xuáº¥t dá»¯ liá»‡u
+
+        function updateDateTime() {                            </button>
+
+            const now = new Date();                        </div>
+
+            const dateOptions = {                     </div>
+
+                weekday: 'long',                 </div>
+
+                year: 'numeric', 
+
+                month: 'long',                 <!-- Listings Table -->
+
+                day: 'numeric'                 <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+
+            };                    <div class="overflow-x-auto">
+
+            const timeOptions = {                         <table class="w-full">
+
+                hour: '2-digit',                             <thead class="bg-gray-50">
+
+                minute: '2-digit',                                 <tr>
+
+                second: '2-digit'                                     <th class="px-6 py-3 text-left">
+
+            };                                        <input type="checkbox" id="select-all-listings" class="rounded">
+
+                                                </th>
+
+            const dateElement = document.getElementById('current-date');                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tin Ä‘Äƒng</th>
+
+            if (dateElement) {                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">NgÆ°á»i Ä‘Äƒng</th>
+
+                dateElement.textContent = now.toLocaleDateString('vi-VN', dateOptions);                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">GiÃ¡</th>
+
+            }                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">NgÃ y Ä‘Äƒng</th>
+
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tráº¡ng thÃ¡i</th>
+
+            const timeElement = document.getElementById('current-time');                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">HÃ nh Ä‘á»™ng</th>
+
+            if (timeElement) {                                </tr>
+
+                timeElement.textContent = now.toLocaleTimeString('vi-VN', timeOptions);                            </thead>
+
+            }                            <tbody id="listings-table-body" class="divide-y divide-gray-200">
+
+        }                                <!-- Listings will be populated by JS -->
+
+                                    </tbody>
+
+        // Setup mobile menu                        </table>
+
+        function setupMobileMenu() {                    </div>
+
+            const mobileToggle = document.getElementById('mobile-menu-toggle');                </div>
+
+            const sidebar = document.getElementById('sidebar');            </section>
+
+            const overlay = document.getElementById('mobile-overlay');
+
+                        <!-- Feedback Management Section -->
+
+            if (mobileToggle && sidebar && overlay) {            <section id="feedback-section" class="section hidden">
+
+                mobileToggle.addEventListener('click', function() {                <div class="mb-8">
+
+                    sidebar.classList.toggle('mobile-open');                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Quáº£n lÃ½ gÃ³p Ã½ & pháº£n há»“i</h2>
+
+                    overlay.classList.toggle('hidden');                    <p class="text-gray-600">Xem vÃ  pháº£n há»“i Ã½ kiáº¿n tá»« ngÆ°á»i dÃ¹ng</p>
+
+                });                </div>
+
+                
+
+                overlay.addEventListener('click', function() {                <!-- Feedback Stats -->
+
+                    sidebar.classList.remove('mobile-open');                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+
+                    overlay.classList.add('hidden');                    <div class="bg-white p-6 rounded-xl shadow-lg">
+
+                });                        <div class="flex items-center justify-between">
+
+            }                            <div>
+
+        }                                <p class="text-sm text-gray-600">GÃ³p Ã½ chÆ°a Ä‘á»c</p>
+
+                                        <p id="feedback-unread" class="text-2xl font-bold text-red-600">0</p>
+
+        // Setup sidebar toggle for desktop                            </div>
+
+        function setupSidebarToggle() {                            <i class="fas fa-exclamation-circle text-3xl text-red-600"></i>
+
+            const sidebarToggle = document.getElementById('sidebar-toggle');                        </div>
+
+            const sidebar = document.getElementById('sidebar');                    </div>
+
+            const mainContent = document.getElementById('main-content');                    <div class="bg-white p-6 rounded-xl shadow-lg">
+
+                                    <div class="flex items-center justify-between">
+
+            if (sidebarToggle && sidebar && mainContent) {                            <div>
+
+                sidebarToggle.addEventListener('click', function() {                                <p class="text-sm text-gray-600">ÄÃ£ pháº£n há»“i</p>
+
+                    sidebarCollapsed = !sidebarCollapsed;                                <p id="feedback-replied" class="text-2xl font-bold text-green-600">0</p>
+
+                                                </div>
+
+                    if (sidebarCollapsed) {                            <i class="fas fa-reply text-3xl text-green-600"></i>
+
+                        sidebar.classList.add('collapsed');                        </div>
+
+                        mainContent.classList.add('expanded');                    </div>
+
+                    } else {                    <div class="bg-white p-6 rounded-xl shadow-lg">
+
+                        sidebar.classList.remove('collapsed');                        <div class="flex items-center justify-between">
+
+                        mainContent.classList.remove('expanded');                            <div>
+
+                    }                                <p class="text-sm text-gray-600">ÄÃ¡nh giÃ¡ trung bÃ¬nh</p>
+
+                });                                <p id="feedback-avg-rating" class="text-2xl font-bold text-yellow-600">0.0</p>
+
+            }                            </div>
+
+        }                            <i class="fas fa-star text-3xl text-yellow-600"></i>
+
+                                </div>
+
+        // Load initial data                    </div>
+
+        function loadInitialData() {                </div>
+
+            // Simulate loading data
+
+            setTimeout(() => {                <!-- Feedback Filters -->
+
+                updateStatsCards();                <div class="bg-white p-6 rounded-xl shadow-lg mb-6">
+
+                updateSidebarCounts();                    <div class="flex flex-wrap justify-between items-center gap-4">
+
+            }, 1000);                        <div class="flex space-x-4">
+
+        }                            <select id="filter-feedback-type" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+
+                                        <option value="">Táº¥t cáº£ loáº¡i</option>
+
+        // Update stats cards                                <option value="suggestion">Äá» xuáº¥t</option>
+
+        function updateStatsCards() {                                <option value="bug">BÃ¡o lá»—i</option>
+
+            const stats = {                                <option value="improvement">Cáº£i thiá»‡n</option>
+
+                users: Math.floor(Math.random() * 1000) + 500,                                <option value="ui">Giao diá»‡n</option>
+
+                listings: Math.floor(Math.random() * 500) + 200,                                <option value="data">Dá»¯ liá»‡u</option>
+
+                feedback: Math.floor(Math.random() * 100) + 50,                                <option value="general">Chung</option>
+
+                visits: Math.floor(Math.random() * 5000) + 2000                            </select>
+
+            };                            <select id="filter-feedback-priority" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+
+                                            <option value="">Táº¥t cáº£ má»©c Ä‘á»™</option>
+
+            const totalUsersEl = document.getElementById('total-users');                                <option value="high">Cao</option>
+
+            const totalListingsEl = document.getElementById('total-listings');                                <option value="medium">Trung bÃ¬nh</option>
+
+            const totalFeedbackEl = document.getElementById('total-feedback');                                <option value="low">Tháº¥p</option>
+
+            const totalVisitsEl = document.getElementById('total-visits');                            </select>
+
+                                        <select id="filter-feedback-rating" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+
+            if (totalUsersEl) totalUsersEl.textContent = stats.users.toLocaleString();                                <option value="">Táº¥t cáº£ Ä‘Ã¡nh giÃ¡</option>
+
+            if (totalListingsEl) totalListingsEl.textContent = stats.listings.toLocaleString();                                <option value="5">5 sao</option>
+
+            if (totalFeedbackEl) totalFeedbackEl.textContent = stats.feedback.toLocaleString();                                <option value="4">4 sao</option>
+
+            if (totalVisitsEl) totalVisitsEl.textContent = stats.visits.toLocaleString();                                <option value="3">3 sao</option>
+
+                                            <option value="2">2 sao</option>
+
+            // Update today's stats                                <option value="1">1 sao</option>
+
+            const todayUsersEl = document.getElementById('today-users');                            </select>
+
+            const todayListingsEl = document.getElementById('today-listings');                        </div>
+
+            const todayFeedbackEl = document.getElementById('today-feedback');                        <button onclick="exportFeedback()" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">
+
+            const todayViewsEl = document.getElementById('today-views');                            <i class="fas fa-download mr-2"></i>Xuáº¥t bÃ¡o cÃ¡o
+
+                                    </button>
+
+            if (todayUsersEl) todayUsersEl.textContent = Math.floor(Math.random() * 20) + 5;                    </div>
+
+            if (todayListingsEl) todayListingsEl.textContent = Math.floor(Math.random() * 10) + 2;                </div>
+
+            if (todayFeedbackEl) todayFeedbackEl.textContent = Math.floor(Math.random() * 5) + 1;
+
+            if (todayViewsEl) todayViewsEl.textContent = Math.floor(Math.random() * 500) + 100;                <!-- Feedback List -->
+
+        }                <div id="feedback-list" class="space-y-4">
+
+                            <!-- Feedback items will be populated by JS -->
+
+        // Update sidebar counts                </div>
+
+        function updateSidebarCounts() {            </section>
+
+            const usersCountEl = document.getElementById('users-count');
+
+            const listingsCountEl = document.getElementById('listings-count');            <!-- Analytics Section -->
+
+            const feedbackCountEl = document.getElementById('feedback-count');            <section id="analytics-section" class="section hidden">
+
+                            <div class="mb-6">
+
+            if (usersCountEl) usersCountEl.textContent = Math.floor(Math.random() * 50) + 10;                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Thá»‘ng kÃª & BÃ¡o cÃ¡o</h2>
+
+            if (listingsCountEl) listingsCountEl.textContent = Math.floor(Math.random() * 25) + 5;                    <p class="text-gray-600">PhÃ¢n tÃ­ch dá»¯ liá»‡u vÃ  xu hÆ°á»›ng sá»­ dá»¥ng</p>
+
+            if (feedbackCountEl) feedbackCountEl.textContent = Math.floor(Math.random() * 10) + 1;                </div>
+
+        }
+
+                        <!-- Content will be loaded dynamically by loadAdvancedAnalytics() -->
+
+        // Add smooth scroll behavior                <div id="content" class="min-h-screen">
+
+        document.documentElement.style.scrollBehavior = 'smooth';                    <div class="flex items-center justify-center h-64">
+
+    </script>                        <div class="text-center">
+
+                                <i class="fas fa-spinner fa-spin text-4xl text-blue-600 mb-4"></i>
+
+    <!-- Admin Dashboard Script -->                            <p class="text-gray-600">Đang tải analytics dashboard...</p>
+
+    <script src="admin.js"></script>                        </div>
+
+</body>                    </div>
+
+</html>                </div>
             </section>
 
                             </div>
@@ -815,7 +1548,7 @@
 
                 <!-- Market Intelligence Section -->
                 <div class="bg-white p-6 rounded-xl shadow-lg">
-                    <h3 class="text-lg font-bold text-gray-800 mb-6">ðŸ“ˆ Market Intelligence Dashboard</h3>
+                    <h3 class="text-lg font-bold text-gray-800 mb-6">📈 Market Intelligence Dashboard</h3>
                     
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                         <div class="bg-gray-50 p-4 rounded-lg">
@@ -972,10 +1705,10 @@
                         <i class="fas fa-download mr-2"></i>Xuáº¥t BÃ¡o CÃ¡o
                     </button>
                     <button onclick="clearPerformanceData()" class="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700">
-                        <i class="fas fa-trash mr-2"></i>XÃ³a Dá»¯ Liá»‡u CÅ©
+                        <i class="fas fa-trash mr-2"></i>Xóa Dữ Liệu Cũ
                     </button>
                     <a href="analytics-dashboard.html" target="_blank" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
-                        <i class="fas fa-external-link-alt mr-2"></i>Má»Ÿ Dashboard RiÃªng
+                        <i class="fas fa-external-link-alt mr-2"></i>Mở Dashboard Riêng
                     </a>
                 </div>
             </section>
