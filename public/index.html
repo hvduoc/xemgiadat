@@ -34,6 +34,139 @@
     <link rel="stylesheet" href="style.css">
     
     <meta property="fb:app_id" content="754800037069626" />
+    
+    <!-- Google Analytics 4 - Phase 2 Enhancement -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XT932D9N1N"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        
+        // Enhanced GA4 configuration for real estate tracking
+        gtag('config', 'G-XT932D9N1N', {
+            // Enhanced measurement
+            allow_google_signals: true,
+            allow_ad_personalization_signals: true,
+            
+            // Custom dimensions for real estate
+            custom_map: {
+                'custom_parameter_1': 'property_type',
+                'custom_parameter_2': 'search_type',
+                'custom_parameter_3': 'user_action'
+            },
+            
+            // Performance tracking
+            send_page_view: true,
+            
+            // User engagement tracking
+            engagement_time_msec: 100
+        });
+        
+        // Real Estate Specific Event Tracking
+        window.trackEvent = function(eventName, parameters = {}) {
+            gtag('event', eventName, {
+                event_category: parameters.category || 'Real Estate',
+                event_label: parameters.label || '',
+                value: parameters.value || 0,
+                property_type: parameters.propertyType || '',
+                search_type: parameters.searchType || '',
+                user_action: parameters.userAction || '',
+                custom_parameter_1: parameters.customParam1 || '',
+                custom_parameter_2: parameters.customParam2 || '',
+                custom_parameter_3: parameters.customParam3 || ''
+            });
+            
+            console.log('📊 Analytics Event:', eventName, parameters);
+        };
+        
+        // Portfolio Events
+        window.trackPortfolioEvent = function(action, itemData = {}) {
+            gtag('event', 'portfolio_action', {
+                event_category: 'Portfolio',
+                event_label: action,
+                property_type: itemData.propertyType || 'unknown',
+                value: itemData.price || 0,
+                area: itemData.area || 0,
+                user_action: action
+            });
+        };
+        
+        // Search Events
+        window.trackSearchEvent = function(query, resultsCount, searchTime) {
+            gtag('event', 'search_performed', {
+                event_category: 'Search',
+                event_label: query,
+                value: resultsCount,
+                search_term: query,
+                search_results_count: resultsCount,
+                search_time_ms: searchTime,
+                search_type: detectSearchType(query)
+            });
+        };
+        
+        function detectSearchType(query) {
+            if (/^\d+\/\d+$/.test(query)) return 'parcel_number';
+            if (/^\d+$/.test(query)) return 'number_only';
+            if (/quận|huyện|district/i.test(query)) return 'location';
+            return 'general';
+        }
+        
+        // Map Interaction Events
+        window.trackMapEvent = function(action, data = {}) {
+            gtag('event', 'map_interaction', {
+                event_category: 'Map',
+                event_label: action,
+                zoom_level: data.zoomLevel || 0,
+                map_center_lat: data.lat || 0,
+                map_center_lng: data.lng || 0,
+                interaction_type: action
+            });
+        };
+        
+        // User Journey Events
+        window.trackUserJourney = function(step, data = {}) {
+            gtag('event', 'user_journey', {
+                event_category: 'User Journey',
+                event_label: step,
+                journey_step: step,
+                time_on_step: data.timeOnStep || 0,
+                user_type: data.userType || 'anonymous'
+            });
+        };
+        
+        // Performance Events
+        window.trackPerformance = function(metric, value) {
+            gtag('event', 'performance_metric', {
+                event_category: 'Performance',
+                event_label: metric,
+                value: value,
+                metric_name: metric,
+                metric_value: value
+            });
+        };
+        
+        // Error Tracking
+        window.trackError = function(error, context = '') {
+            gtag('event', 'error_occurred', {
+                event_category: 'Error',
+                event_label: error.message || error,
+                error_type: error.name || 'Unknown',
+                error_context: context,
+                error_stack: error.stack || ''
+            });
+        };
+        
+        // Conversion Events
+        window.trackConversion = function(action, value = 0) {
+            gtag('event', 'conversion', {
+                event_category: 'Conversion',
+                event_label: action,
+                value: value,
+                currency: 'VND',
+                conversion_type: action
+            });
+        };
+    </script>
 </head>
 <body class="relative overflow-hidden">
     

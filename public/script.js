@@ -6956,3 +6956,1384 @@ function addHapticFeedback() {
 document.addEventListener('DOMContentLoaded', function() {
     initializeMobileOptimizations();
 });
+
+// ============================================================================
+// 🚀 PHASE 2: FOUNDATION STRENGTHENING - Core Features Enhancement
+// ============================================================================
+
+// Advanced Search Management
+class AdvancedSearchManager {
+    constructor() {
+        this.searchHistory = this.loadSearchHistory();
+        this.searchSuggestions = [];
+        this.searchCache = new Map();
+        this.debounceTimer = null;
+        this.init();
+    }
+    
+    init() {
+        console.log('🔍 Initializing Advanced Search Manager...');
+        this.setupSearchHistory();
+        this.setupAutoComplete();
+        this.setupSearchAnalytics();
+        this.setupFuzzySearch();
+    }
+    
+    // Search History Management
+    loadSearchHistory() {
+        try {
+            const history = localStorage.getItem('xemgiadat_search_history');
+            return history ? JSON.parse(history) : [];
+        } catch (error) {
+            console.error('Error loading search history:', error);
+            return [];
+        }
+    }
+    
+    saveSearchHistory() {
+        try {
+            // Keep only last 50 searches
+            const recentHistory = this.searchHistory.slice(-50);
+            localStorage.setItem('xemgiadat_search_history', JSON.stringify(recentHistory));
+        } catch (error) {
+            console.error('Error saving search history:', error);
+        }
+    }
+    
+    addToSearchHistory(query, results) {
+        if (!query || query.length < 2) return;
+        
+        const searchEntry = {
+            query: query.trim(),
+            timestamp: Date.now(),
+            resultsCount: results ? results.length : 0,
+            type: this.detectSearchType(query)
+        };
+        
+        // Remove duplicates
+        this.searchHistory = this.searchHistory.filter(item => item.query !== searchEntry.query);
+        this.searchHistory.push(searchEntry);
+        this.saveSearchHistory();
+    }
+    
+    detectSearchType(query) {
+        if (/^\d+\/\d+$/.test(query)) return 'parcel'; // Format: 123/45
+        if (/^\d+$/.test(query)) return 'number';
+        if (/đất|land|property/i.test(query)) return 'category';
+        return 'general';
+    }
+    
+    // Auto-complete functionality
+    setupAutoComplete() {
+        const searchInput = document.getElementById('search-input');
+        if (!searchInput) return;
+        
+        searchInput.addEventListener('input', (e) => {
+            clearTimeout(this.debounceTimer);
+            this.debounceTimer = setTimeout(() => {
+                this.handleSearchInput(e.target.value);
+            }, 300);
+        });
+        
+        searchInput.addEventListener('focus', () => {
+            this.showSearchSuggestions();
+        });
+    }
+    
+    handleSearchInput(query) {
+        if (query.length < 2) {
+            this.hideSearchSuggestions();
+            return;
+        }
+        
+        const suggestions = this.generateSuggestions(query);
+        this.displaySuggestions(suggestions);
+    }
+    
+    generateSuggestions(query) {
+        const suggestions = [];
+        
+        // Add from search history
+        const historySuggestions = this.searchHistory
+            .filter(item => item.query.toLowerCase().includes(query.toLowerCase()))
+            .sort((a, b) => b.timestamp - a.timestamp)
+            .slice(0, 3)
+            .map(item => ({
+                text: item.query,
+                type: 'history',
+                icon: 'fa-history',
+                resultsCount: item.resultsCount
+            }));
+        
+        suggestions.push(...historySuggestions);
+        
+        // Add smart suggestions based on query type
+        if (/^\d+$/.test(query)) {
+            suggestions.push({
+                text: `Thửa ${query}`,
+                type: 'parcel',
+                icon: 'fa-map-marker-alt',
+                action: () => this.searchByParcel(query)
+            });
+        }
+        
+        // Add location suggestions
+        const locationSuggestions = this.getLocationSuggestions(query);
+        suggestions.push(...locationSuggestions);
+        
+        return suggestions.slice(0, 8); // Limit to 8 suggestions
+    }
+    
+    getLocationSuggestions(query) {
+        const locations = [
+            'Hải Châu', 'Thanh Khê', 'Sơn Trà', 'Ngũ Hành Sơn', 
+            'Liên Chiểu', 'Cẩm Lệ', 'Hòa Vang'
+        ];
+        
+        return locations
+            .filter(location => location.toLowerCase().includes(query.toLowerCase()))
+            .map(location => ({
+                text: `Quận/Huyện ${location}`,
+                type: 'location',
+                icon: 'fa-map',
+                action: () => this.searchByLocation(location)
+            }));
+    }
+    
+    displaySuggestions(suggestions) {
+        let suggestionsContainer = document.getElementById('search-suggestions');
+        
+        if (!suggestionsContainer) {
+            suggestionsContainer = document.createElement('div');
+            suggestionsContainer.id = 'search-suggestions';
+            suggestionsContainer.className = 'search-suggestions';
+            
+            const searchContainer = document.getElementById('search-widget-container');
+            if (searchContainer) {
+                searchContainer.appendChild(suggestionsContainer);
+            }
+        }
+        
+        if (suggestions.length === 0) {
+            suggestionsContainer.style.display = 'none';
+            return;
+        }
+        
+        suggestionsContainer.innerHTML = suggestions.map((suggestion, index) => `
+            <div class="suggestion-item" data-index="${index}">
+                <i class="fas ${suggestion.icon} suggestion-icon"></i>
+                <span class="suggestion-text">${suggestion.text}</span>
+                ${suggestion.type === 'history' ? 
+                    `<span class="suggestion-count">${suggestion.resultsCount} kết quả</span>` : 
+                    `<span class="suggestion-type">${suggestion.type}</span>`
+                }
+            </div>
+        `).join('');
+        
+        suggestionsContainer.style.display = 'block';
+        
+        // Add click handlers
+        suggestionsContainer.querySelectorAll('.suggestion-item').forEach((item, index) => {
+            item.addEventListener('click', () => {
+                const suggestion = suggestions[index];
+                if (suggestion.action) {
+                    suggestion.action();
+                } else {
+                    this.performSearch(suggestion.text);
+                }
+                this.hideSearchSuggestions();
+            });
+        });
+    }
+    
+    hideSearchSuggestions() {
+        const suggestionsContainer = document.getElementById('search-suggestions');
+        if (suggestionsContainer) {
+            suggestionsContainer.style.display = 'none';
+        }
+    }
+    
+    showSearchSuggestions() {
+        const searchInput = document.getElementById('search-input');
+        if (searchInput && searchInput.value.length >= 2) {
+            this.handleSearchInput(searchInput.value);
+        }
+    }
+    
+    // Search Analytics
+    setupSearchAnalytics() {
+        this.searchAnalytics = {
+            totalSearches: 0,
+            successfulSearches: 0,
+            topQueries: new Map(),
+            searchTimes: []
+        };
+        
+        this.loadSearchAnalytics();
+    }
+    
+    loadSearchAnalytics() {
+        try {
+            const analytics = localStorage.getItem('xemgiadat_search_analytics');
+            if (analytics) {
+                Object.assign(this.searchAnalytics, JSON.parse(analytics));
+                this.searchAnalytics.topQueries = new Map(this.searchAnalytics.topQueries);
+            }
+        } catch (error) {
+            console.error('Error loading search analytics:', error);
+        }
+    }
+    
+    saveSearchAnalytics() {
+        try {
+            const analyticsToSave = {
+                ...this.searchAnalytics,
+                topQueries: Array.from(this.searchAnalytics.topQueries.entries())
+            };
+            localStorage.setItem('xemgiadat_search_analytics', JSON.stringify(analyticsToSave));
+        } catch (error) {
+            console.error('Error saving search analytics:', error);
+        }
+    }
+    
+    trackSearchPerformance(query, resultsCount, searchTime) {
+        this.searchAnalytics.totalSearches++;
+        
+        if (resultsCount > 0) {
+            this.searchAnalytics.successfulSearches++;
+        }
+        
+        // Track top queries
+        const currentCount = this.searchAnalytics.topQueries.get(query) || 0;
+        this.searchAnalytics.topQueries.set(query, currentCount + 1);
+        
+        // Track search times
+        this.searchAnalytics.searchTimes.push(searchTime);
+        if (this.searchAnalytics.searchTimes.length > 100) {
+            this.searchAnalytics.searchTimes = this.searchAnalytics.searchTimes.slice(-100);
+        }
+        
+        this.saveSearchAnalytics();
+        
+        // Log analytics for monitoring
+        console.log('🔍 Search Analytics:', {
+            query,
+            resultsCount,
+            searchTime,
+            successRate: (this.searchAnalytics.successfulSearches / this.searchAnalytics.totalSearches * 100).toFixed(1) + '%'
+        });
+    }
+    
+    // Fuzzy Search Implementation
+    setupFuzzySearch() {
+        this.fuzzySearchThreshold = 0.7; // Similarity threshold
+    }
+    
+    calculateSimilarity(str1, str2) {
+        const longer = str1.length > str2.length ? str1 : str2;
+        const shorter = str1.length > str2.length ? str2 : str1;
+        
+        if (longer.length === 0) return 1.0;
+        
+        const editDistance = this.levenshteinDistance(longer, shorter);
+        return (longer.length - editDistance) / longer.length;
+    }
+    
+    levenshteinDistance(str1, str2) {
+        const matrix = [];
+        
+        for (let i = 0; i <= str2.length; i++) {
+            matrix[i] = [i];
+        }
+        
+        for (let j = 0; j <= str1.length; j++) {
+            matrix[0][j] = j;
+        }
+        
+        for (let i = 1; i <= str2.length; i++) {
+            for (let j = 1; j <= str1.length; j++) {
+                if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
+                    matrix[i][j] = matrix[i - 1][j - 1];
+                } else {
+                    matrix[i][j] = Math.min(
+                        matrix[i - 1][j - 1] + 1,
+                        matrix[i][j - 1] + 1,
+                        matrix[i - 1][j] + 1
+                    );
+                }
+            }
+        }
+        
+        return matrix[str2.length][str1.length];
+    }
+    
+    // Search execution methods
+    performSearch(query) {
+        const startTime = performance.now();
+        const searchInput = document.getElementById('search-input');
+        
+        if (searchInput) {
+            searchInput.value = query;
+        }
+        
+        // Trigger existing search functionality
+        // This will integrate with existing search implementation
+        if (typeof window.performSearch === 'function') {
+            window.performSearch(query).then(results => {
+                const endTime = performance.now();
+                const searchTime = endTime - startTime;
+                
+                this.addToSearchHistory(query, results);
+                this.trackSearchPerformance(query, results.length, searchTime);
+            });
+        }
+    }
+    
+    searchByParcel(parcelNumber) {
+        this.performSearch(`Thửa ${parcelNumber}`);
+    }
+    
+    searchByLocation(location) {
+        this.performSearch(location);
+    }
+    
+    // Public API
+    getSearchStats() {
+        const successRate = this.searchAnalytics.totalSearches > 0 
+            ? (this.searchAnalytics.successfulSearches / this.searchAnalytics.totalSearches * 100).toFixed(1)
+            : 0;
+            
+        const avgSearchTime = this.searchAnalytics.searchTimes.length > 0
+            ? (this.searchAnalytics.searchTimes.reduce((a, b) => a + b, 0) / this.searchAnalytics.searchTimes.length).toFixed(2)
+            : 0;
+            
+        return {
+            totalSearches: this.searchAnalytics.totalSearches,
+            successRate: successRate + '%',
+            avgSearchTime: avgSearchTime + 'ms',
+            topQueries: Array.from(this.searchAnalytics.topQueries.entries())
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10)
+        };
+    }
+    
+    clearSearchHistory() {
+        this.searchHistory = [];
+        this.saveSearchHistory();
+        console.log('🗑️ Search history cleared');
+    }
+}
+
+// Initialize Advanced Search Manager
+let advancedSearchManager;
+document.addEventListener('DOMContentLoaded', function() {
+    advancedSearchManager = new AdvancedSearchManager();
+    
+    // Make it available globally for debugging
+    window.searchManager = advancedSearchManager;
+});
+
+// Add CSS for search suggestions
+document.addEventListener('DOMContentLoaded', function() {
+    if (!document.getElementById('search-suggestions-styles')) {
+        const style = document.createElement('style');
+        style.id = 'search-suggestions-styles';
+        style.textContent = `
+            .search-suggestions {
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: white;
+                border-radius: 16px;
+                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+                border: 1px solid rgba(0, 0, 0, 0.05);
+                backdrop-filter: blur(10px);
+                margin-top: 8px;
+                z-index: 1001;
+                max-height: 300px;
+                overflow-y: auto;
+            }
+            
+            .suggestion-item {
+                display: flex;
+                align-items: center;
+                padding: 12px 16px;
+                cursor: pointer;
+                border-bottom: 1px solid #f3f4f6;
+                transition: all 0.2s ease;
+            }
+            
+            .suggestion-item:hover {
+                background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+                transform: translateX(4px);
+            }
+            
+            .suggestion-item:last-child {
+                border-bottom: none;
+                border-radius: 0 0 16px 16px;
+            }
+            
+            .suggestion-icon {
+                margin-right: 12px;
+                color: #6366f1;
+                font-size: 16px;
+                width: 20px;
+                text-align: center;
+            }
+            
+            .suggestion-text {
+                flex: 1;
+                font-size: 14px;
+                color: #1f2937;
+                font-weight: 500;
+            }
+            
+            .suggestion-count {
+                font-size: 12px;
+                color: #6b7280;
+                background: #f3f4f6;
+                padding: 2px 8px;
+                border-radius: 12px;
+            }
+            
+            .suggestion-type {
+                font-size: 11px;
+                color: #6366f1;
+                background: #eef2ff;
+                padding: 2px 6px;
+                border-radius: 8px;
+                text-transform: uppercase;
+                font-weight: 600;
+            }
+            
+            @media (max-width: 480px) {
+                .search-suggestions {
+                    margin-top: 6px;
+                    border-radius: 12px;
+                    max-height: 250px;
+                }
+                
+                .suggestion-item {
+                    padding: 10px 14px;
+                }
+                
+                .suggestion-icon {
+                    margin-right: 10px;
+                    font-size: 14px;
+                }
+                
+                .suggestion-text {
+                    font-size: 13px;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+});
+
+// ============================================================================
+// 📊 PERFORMANCE MONITORING & CORE WEB VITALS - Phase 2
+// ============================================================================
+
+class PerformanceMonitor {
+    constructor() {
+        this.metrics = {
+            FCP: null,  // First Contentful Paint
+            LCP: null,  // Largest Contentful Paint
+            FID: null,  // First Input Delay
+            CLS: null,  // Cumulative Layout Shift
+            TTFB: null, // Time to First Byte
+            TTI: null   // Time to Interactive
+        };
+        
+        this.init();
+    }
+    
+    init() {
+        console.log('📊 Initializing Performance Monitor...');
+        this.setupWebVitals();
+        this.setupResourceTiming();
+        this.setupUserTiming();
+        this.setupErrorTracking();
+        this.startPerformanceObserver();
+    }
+    
+    setupWebVitals() {
+        // Web Vitals implementation
+        if ('PerformanceObserver' in window) {
+            // Largest Contentful Paint (LCP)
+            new PerformanceObserver((list) => {
+                for (const entry of list.getEntries()) {
+                    this.metrics.LCP = entry.startTime;
+                    this.reportMetric('LCP', entry.startTime);
+                }
+            }).observe({ type: 'largest-contentful-paint', buffered: true });
+            
+            // First Input Delay (FID)
+            new PerformanceObserver((list) => {
+                for (const entry of list.getEntries()) {
+                    this.metrics.FID = entry.processingStart - entry.startTime;
+                    this.reportMetric('FID', this.metrics.FID);
+                }
+            }).observe({ type: 'first-input', buffered: true });
+            
+            // Cumulative Layout Shift (CLS)
+            let clsValue = 0;
+            new PerformanceObserver((list) => {
+                for (const entry of list.getEntries()) {
+                    if (!entry.hadRecentInput) {
+                        clsValue += entry.value;
+                    }
+                }
+                this.metrics.CLS = clsValue;
+                this.reportMetric('CLS', clsValue);
+            }).observe({ type: 'layout-shift', buffered: true });
+        }
+        
+        // Navigation Timing for additional metrics
+        if ('performance' in window && 'getEntriesByType' in performance) {
+            const navEntries = performance.getEntriesByType('navigation');
+            if (navEntries.length > 0) {
+                const nav = navEntries[0];
+                
+                // Time to First Byte
+                this.metrics.TTFB = nav.responseStart - nav.requestStart;
+                this.reportMetric('TTFB', this.metrics.TTFB);
+                
+                // First Contentful Paint (if available)
+                const paintEntries = performance.getEntriesByType('paint');
+                for (const entry of paintEntries) {
+                    if (entry.name === 'first-contentful-paint') {
+                        this.metrics.FCP = entry.startTime;
+                        this.reportMetric('FCP', entry.startTime);
+                    }
+                }
+            }
+        }
+    }
+    
+    setupResourceTiming() {
+        if ('PerformanceObserver' in window) {
+            new PerformanceObserver((list) => {
+                for (const entry of list.getEntries()) {
+                    // Track slow resources
+                    if (entry.duration > 1000) { // Resources taking more than 1s
+                        console.warn('🐌 Slow resource:', {
+                            name: entry.name,
+                            duration: entry.duration,
+                            size: entry.transferSize || 0
+                        });
+                        
+                        // Report to analytics
+                        if (window.trackPerformance) {
+                            window.trackPerformance('slow_resource', entry.duration);
+                        }
+                    }
+                }
+            }).observe({ type: 'resource', buffered: true });
+        }
+    }
+    
+    setupUserTiming() {
+        // Custom timing marks for app-specific metrics
+        this.markTime('app_start');
+        
+        // Mark when critical features are ready
+        document.addEventListener('DOMContentLoaded', () => {
+            this.markTime('dom_ready');
+        });
+        
+        window.addEventListener('load', () => {
+            this.markTime('page_load_complete');
+            this.calculateCustomMetrics();
+        });
+    }
+    
+    markTime(name) {
+        if ('performance' in window && 'mark' in performance) {
+            performance.mark(name);
+        }
+    }
+    
+    measureTime(measureName, startMark, endMark) {
+        if ('performance' in window && 'measure' in performance) {
+            try {
+                performance.measure(measureName, startMark, endMark);
+                const measures = performance.getEntriesByName(measureName);
+                if (measures.length > 0) {
+                    return measures[measures.length - 1].duration;
+                }
+            } catch (error) {
+                console.warn('Error measuring time:', error);
+            }
+        }
+        return null;
+    }
+    
+    calculateCustomMetrics() {
+        // App loading time
+        const appLoadTime = this.measureTime('app_load_time', 'app_start', 'page_load_complete');
+        if (appLoadTime) {
+            this.reportMetric('App_Load_Time', appLoadTime);
+        }
+        
+        // DOM ready time
+        const domReadyTime = this.measureTime('dom_ready_time', 'app_start', 'dom_ready');
+        if (domReadyTime) {
+            this.reportMetric('DOM_Ready_Time', domReadyTime);
+        }
+    }
+    
+    setupErrorTracking() {
+        // JavaScript errors
+        window.addEventListener('error', (event) => {
+            this.reportError({
+                message: event.message,
+                filename: event.filename,
+                lineno: event.lineno,
+                colno: event.colno,
+                error: event.error
+            });
+        });
+        
+        // Unhandled promise rejections
+        window.addEventListener('unhandledrejection', (event) => {
+            this.reportError({
+                message: 'Unhandled Promise Rejection',
+                reason: event.reason,
+                type: 'promise_rejection'
+            });
+        });
+        
+        // Resource loading errors
+        document.addEventListener('error', (event) => {
+            if (event.target !== window) {
+                this.reportError({
+                    message: 'Resource loading error',
+                    source: event.target.src || event.target.href,
+                    tagName: event.target.tagName,
+                    type: 'resource_error'
+                });
+            }
+        }, true);
+    }
+    
+    startPerformanceObserver() {
+        // Monitor long tasks (> 50ms)
+        if ('PerformanceObserver' in window) {
+            try {
+                new PerformanceObserver((list) => {
+                    for (const entry of list.getEntries()) {
+                        if (entry.duration > 50) {
+                            console.warn('🔥 Long task detected:', {
+                                duration: entry.duration,
+                                startTime: entry.startTime
+                            });
+                            
+                            this.reportMetric('Long_Task', entry.duration);
+                        }
+                    }
+                }).observe({ type: 'longtask', buffered: true });
+            } catch (error) {
+                console.log('Long task observer not supported');
+            }
+        }
+    }
+    
+    reportMetric(name, value) {
+        console.log(`📊 Performance Metric - ${name}:`, value);
+        
+        // Report to Google Analytics
+        if (window.trackPerformance) {
+            window.trackPerformance(name, Math.round(value));
+        }
+        
+        // Store locally for dashboard
+        this.storeMetric(name, value);
+        
+        // Real-time performance alerts
+        this.checkPerformanceThresholds(name, value);
+    }
+    
+    storeMetric(name, value) {
+        try {
+            const stored = localStorage.getItem('xemgiadat_performance_metrics') || '{}';
+            const metrics = JSON.parse(stored);
+            
+            if (!metrics[name]) {
+                metrics[name] = [];
+            }
+            
+            metrics[name].push({
+                value: value,
+                timestamp: Date.now()
+            });
+            
+            // Keep only last 50 measurements per metric
+            if (metrics[name].length > 50) {
+                metrics[name] = metrics[name].slice(-50);
+            }
+            
+            localStorage.setItem('xemgiadat_performance_metrics', JSON.stringify(metrics));
+        } catch (error) {
+            console.error('Error storing metric:', error);
+        }
+    }
+    
+    checkPerformanceThresholds(name, value) {
+        const thresholds = {
+            'LCP': { good: 2500, poor: 4000 },
+            'FID': { good: 100, poor: 300 },
+            'CLS': { good: 0.1, poor: 0.25 },
+            'FCP': { good: 1800, poor: 3000 },
+            'TTFB': { good: 800, poor: 1800 }
+        };
+        
+        const threshold = thresholds[name];
+        if (threshold) {
+            let status = 'good';
+            if (value > threshold.poor) {
+                status = 'poor';
+            } else if (value > threshold.good) {
+                status = 'needs-improvement';
+            }
+            
+            console.log(`📊 ${name} Status:`, status, `(${value})`);
+            
+            // Alert for poor performance
+            if (status === 'poor') {
+                this.showPerformanceAlert(name, value, threshold);
+            }
+        }
+    }
+    
+    showPerformanceAlert(metric, value, threshold) {
+        console.warn(`🚨 Performance Alert: ${metric} is ${value}, exceeding threshold of ${threshold.poor}`);
+        
+        // Could trigger user notification in development
+        if (window.location.hostname === 'localhost') {
+            const alert = document.createElement('div');
+            alert.style.cssText = `
+                position: fixed;
+                top: 10px;
+                right: 10px;
+                background: #fee2e2;
+                color: #dc2626;
+                padding: 10px;
+                border-radius: 8px;
+                font-size: 12px;
+                z-index: 10000;
+                max-width: 300px;
+            `;
+            alert.textContent = `Performance Alert: ${metric} is slow (${Math.round(value)}ms)`;
+            document.body.appendChild(alert);
+            
+            setTimeout(() => alert.remove(), 5000);
+        }
+    }
+    
+    reportError(errorData) {
+        console.error('📛 Error tracked:', errorData);
+        
+        // Report to Google Analytics
+        if (window.trackError) {
+            window.trackError(errorData, 'performance_monitor');
+        }
+        
+        // Store error for analysis
+        try {
+            const stored = localStorage.getItem('xemgiadat_error_log') || '[]';
+            const errors = JSON.parse(stored);
+            
+            errors.push({
+                ...errorData,
+                timestamp: Date.now(),
+                userAgent: navigator.userAgent,
+                url: window.location.href
+            });
+            
+            // Keep only last 100 errors
+            if (errors.length > 100) {
+                errors.splice(0, errors.length - 100);
+            }
+            
+            localStorage.setItem('xemgiadat_error_log', JSON.stringify(errors));
+        } catch (error) {
+            console.error('Error storing error log:', error);
+        }
+    }
+    
+    // Public API for performance dashboard
+    getPerformanceReport() {
+        try {
+            const stored = localStorage.getItem('xemgiadat_performance_metrics') || '{}';
+            const metrics = JSON.parse(stored);
+            
+            const report = {};
+            for (const [name, values] of Object.entries(metrics)) {
+                if (values.length > 0) {
+                    const recent = values.slice(-10);
+                    const avg = recent.reduce((sum, item) => sum + item.value, 0) / recent.length;
+                    const min = Math.min(...recent.map(item => item.value));
+                    const max = Math.max(...recent.map(item => item.value));
+                    
+                    report[name] = {
+                        average: Math.round(avg),
+                        min: Math.round(min),
+                        max: Math.round(max),
+                        samples: recent.length,
+                        latest: Math.round(recent[recent.length - 1].value)
+                    };
+                }
+            }
+            
+            return report;
+        } catch (error) {
+            console.error('Error generating performance report:', error);
+            return {};
+        }
+    }
+    
+    getErrorReport() {
+        try {
+            const stored = localStorage.getItem('xemgiadat_error_log') || '[]';
+            const errors = JSON.parse(stored);
+            
+            return {
+                totalErrors: errors.length,
+                recentErrors: errors.slice(-10),
+                errorTypes: this.groupErrorsByType(errors)
+            };
+        } catch (error) {
+            console.error('Error generating error report:', error);
+            return { totalErrors: 0, recentErrors: [], errorTypes: {} };
+        }
+    }
+    
+    groupErrorsByType(errors) {
+        const grouped = {};
+        errors.forEach(error => {
+            const type = error.type || 'javascript_error';
+            grouped[type] = (grouped[type] || 0) + 1;
+        });
+        return grouped;
+    }
+}
+
+// Initialize Performance Monitor
+let performanceMonitor;
+document.addEventListener('DOMContentLoaded', function() {
+    performanceMonitor = new PerformanceMonitor();
+    
+    // Make it available globally for debugging
+    window.performanceMonitor = performanceMonitor;
+    
+    // Add dashboard command
+    window.getPerformanceReport = () => performanceMonitor.getPerformanceReport();
+    window.getErrorReport = () => performanceMonitor.getErrorReport();
+});
+
+// ============================================================================
+// 👤 USER BEHAVIOR TRACKING - Phase 2
+// ============================================================================
+
+class UserBehaviorTracker {
+    constructor() {
+        this.sessionId = this.generateSessionId();
+        this.startTime = Date.now();
+        this.interactions = [];
+        this.pageViews = [];
+        this.scrollDepth = 0;
+        this.maxScrollDepth = 0;
+        this.isActive = true;
+        this.lastActivity = Date.now();
+        this.heatmapData = [];
+        
+        this.init();
+    }
+    
+    init() {
+        console.log('👤 Initializing User Behavior Tracker...');
+        this.setupScrollTracking();
+        this.setupClickTracking();
+        this.setupTimeOnPage();
+        this.setupVisibilityTracking();
+        this.setupFormInteractions();
+        this.setupSearchBehavior();
+        this.setupMapInteractions();
+        this.setupHeatmapTracking();
+        this.setupPerformanceCorrelation();
+    }
+    
+    generateSessionId() {
+        return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    }
+    
+    setupScrollTracking() {
+        let ticking = false;
+        let scrollTimeout;
+        
+        window.addEventListener('scroll', () => {
+            this.lastActivity = Date.now();
+            
+            if (!ticking) {
+                requestAnimationFrame(() => {
+                    this.updateScrollDepth();
+                    ticking = false;
+                });
+                ticking = true;
+            }
+            
+            // Track scroll pauses
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(() => {
+                this.trackScrollPause();
+            }, 1000);
+        });
+    }
+    
+    updateScrollDepth() {
+        const windowHeight = window.innerHeight;
+        const documentHeight = document.documentElement.scrollHeight;
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        
+        this.scrollDepth = Math.round((scrollTop + windowHeight) / documentHeight * 100);
+        this.maxScrollDepth = Math.max(this.maxScrollDepth, this.scrollDepth);
+        
+        // Track milestone scroll depths
+        const milestones = [25, 50, 75, 90, 100];
+        milestones.forEach(milestone => {
+            if (this.scrollDepth >= milestone && !this.hasTrackedScrollMilestone(milestone)) {
+                this.trackEvent('scroll_milestone', {
+                    depth: milestone,
+                    timeOnPage: Date.now() - this.startTime
+                });
+            }
+        });
+    }
+    
+    hasTrackedScrollMilestone(milestone) {
+        return this.interactions.some(interaction => 
+            interaction.type === 'scroll_milestone' && 
+            interaction.data.depth === milestone
+        );
+    }
+    
+    trackScrollPause() {
+        const currentDepth = this.scrollDepth;
+        this.trackEvent('scroll_pause', {
+            depth: currentDepth,
+            timestamp: Date.now()
+        });
+    }
+    
+    setupClickTracking() {
+        document.addEventListener('click', (event) => {
+            this.lastActivity = Date.now();
+            
+            const element = event.target;
+            const elementInfo = this.getElementInfo(element);
+            
+            this.trackEvent('click', {
+                element: elementInfo,
+                coordinates: {
+                    x: event.clientX,
+                    y: event.clientY,
+                    pageX: event.pageX,
+                    pageY: event.pageY
+                },
+                timestamp: Date.now()
+            });
+            
+            // Track specific UI element interactions
+            if (element.closest('.portfolio-card')) {
+                this.trackPortfolioInteraction(element, 'click');
+            } else if (element.closest('#map')) {
+                this.trackMapClick(event);
+            } else if (element.closest('.search-container')) {
+                this.trackSearchInteraction(element, 'click');
+            }
+        });
+        
+        // Track right clicks (context menu)
+        document.addEventListener('contextmenu', (event) => {
+            this.trackEvent('right_click', {
+                element: this.getElementInfo(event.target),
+                coordinates: { x: event.clientX, y: event.clientY }
+            });
+        });
+    }
+    
+    getElementInfo(element) {
+        return {
+            tagName: element.tagName,
+            id: element.id || null,
+            className: element.className || null,
+            text: element.textContent ? element.textContent.substring(0, 50) : null,
+            href: element.href || null,
+            type: element.type || null
+        };
+    }
+    
+    setupTimeOnPage() {
+        // Track time on page in intervals
+        setInterval(() => {
+            if (this.isActive) {
+                this.trackEvent('time_checkpoint', {
+                    timeOnPage: Date.now() - this.startTime,
+                    scrollDepth: this.scrollDepth
+                });
+            }
+        }, 30000); // Every 30 seconds
+        
+        // Track page unload
+        window.addEventListener('beforeunload', () => {
+            this.trackSessionEnd();
+        });
+        
+        // Track page visibility changes
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                this.trackEvent('page_hidden', { 
+                    timeOnPage: Date.now() - this.startTime 
+                });
+            } else {
+                this.trackEvent('page_visible', { 
+                    timeOnPage: Date.now() - this.startTime 
+                });
+            }
+        });
+    }
+    
+    setupVisibilityTracking() {
+        // Intersection Observer for element visibility
+        if ('IntersectionObserver' in window) {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        this.trackEvent('element_visible', {
+                            element: this.getElementInfo(entry.target),
+                            visibilityRatio: entry.intersectionRatio
+                        });
+                    }
+                });
+            }, { threshold: [0.5, 1.0] });
+            
+            // Observe key elements
+            document.querySelectorAll('.portfolio-card, .search-result, .map-popup').forEach(el => {
+                observer.observe(el);
+            });
+        }
+    }
+    
+    setupFormInteractions() {
+        // Track form field interactions
+        document.addEventListener('focus', (event) => {
+            if (event.target.matches('input, textarea, select')) {
+                this.trackEvent('form_field_focus', {
+                    field: this.getElementInfo(event.target),
+                    timestamp: Date.now()
+                });
+            }
+        }, true);
+        
+        document.addEventListener('blur', (event) => {
+            if (event.target.matches('input, textarea, select')) {
+                this.trackEvent('form_field_blur', {
+                    field: this.getElementInfo(event.target),
+                    value: event.target.value ? 'has_value' : 'empty',
+                    timestamp: Date.now()
+                });
+            }
+        }, true);
+        
+        // Track form submissions
+        document.addEventListener('submit', (event) => {
+            this.trackEvent('form_submit', {
+                form: this.getElementInfo(event.target),
+                timestamp: Date.now()
+            });
+        });
+    }
+    
+    setupSearchBehavior() {
+        // Track search queries and results
+        const originalSearch = window.searchProperties;
+        if (originalSearch) {
+            window.searchProperties = (...args) => {
+                const query = args[0];
+                this.trackEvent('search_query', {
+                    query: query,
+                    queryLength: query.length,
+                    timestamp: Date.now()
+                });
+                
+                // Call original function and track results
+                const result = originalSearch.apply(this, args);
+                
+                // Track search results (assuming it returns a promise or array)
+                if (result && typeof result.then === 'function') {
+                    result.then(results => {
+                        this.trackEvent('search_results', {
+                            query: query,
+                            resultCount: results ? results.length : 0,
+                            timestamp: Date.now()
+                        });
+                    });
+                } else if (Array.isArray(result)) {
+                    this.trackEvent('search_results', {
+                        query: query,
+                        resultCount: result.length,
+                        timestamp: Date.now()
+                    });
+                }
+                
+                return result;
+            };
+        }
+    }
+    
+    setupMapInteractions() {
+        // Track map interactions if Leaflet map exists
+        if (window.map) {
+            window.map.on('zoomend', () => {
+                this.trackEvent('map_zoom', {
+                    zoom: window.map.getZoom(),
+                    timestamp: Date.now()
+                });
+            });
+            
+            window.map.on('moveend', () => {
+                const center = window.map.getCenter();
+                this.trackEvent('map_move', {
+                    center: { lat: center.lat, lng: center.lng },
+                    zoom: window.map.getZoom(),
+                    timestamp: Date.now()
+                });
+            });
+            
+            window.map.on('click', (event) => {
+                this.trackEvent('map_click', {
+                    coordinates: { lat: event.latlng.lat, lng: event.latlng.lng },
+                    timestamp: Date.now()
+                });
+            });
+        }
+    }
+    
+    setupHeatmapTracking() {
+        // Track mouse movements for heatmap (throttled)
+        let mouseTrackingTimeout;
+        document.addEventListener('mousemove', (event) => {
+            clearTimeout(mouseTrackingTimeout);
+            mouseTrackingTimeout = setTimeout(() => {
+                this.heatmapData.push({
+                    x: event.clientX,
+                    y: event.clientY,
+                    timestamp: Date.now()
+                });
+                
+                // Keep only recent data (last 1000 points)
+                if (this.heatmapData.length > 1000) {
+                    this.heatmapData = this.heatmapData.slice(-1000);
+                }
+            }, 100); // Throttle to 10 times per second
+        });
+    }
+    
+    setupPerformanceCorrelation() {
+        // Correlate user behavior with performance metrics
+        if (window.performanceMonitor) {
+            // Track user actions during performance issues
+            const originalReportMetric = window.performanceMonitor.reportMetric;
+            window.performanceMonitor.reportMetric = (name, value) => {
+                originalReportMetric.call(window.performanceMonitor, name, value);
+                
+                // If performance is poor, log recent user actions
+                const thresholds = {
+                    'LCP': 4000,
+                    'FID': 300,
+                    'Long_Task': 100
+                };
+                
+                if (thresholds[name] && value > thresholds[name]) {
+                    this.trackEvent('performance_impact', {
+                        metric: name,
+                        value: value,
+                        recentActions: this.getRecentActions(5000) // Last 5 seconds
+                    });
+                }
+            };
+        }
+    }
+    
+    trackEvent(type, data) {
+        const event = {
+            type: type,
+            data: data,
+            timestamp: Date.now(),
+            sessionId: this.sessionId,
+            url: window.location.href,
+            userAgent: navigator.userAgent,
+            viewport: {
+                width: window.innerWidth,
+                height: window.innerHeight
+            }
+        };
+        
+        this.interactions.push(event);
+        
+        // Send to analytics
+        if (window.trackUserBehavior) {
+            window.trackUserBehavior(type, data);
+        }
+        
+        console.log('👤 User Event:', type, data);
+        
+        // Keep only recent interactions (last 500)
+        if (this.interactions.length > 500) {
+            this.interactions = this.interactions.slice(-500);
+        }
+        
+        // Store in localStorage for analysis
+        this.storeInteraction(event);
+    }
+    
+    trackPortfolioInteraction(element, action) {
+        const portfolioCard = element.closest('.portfolio-card');
+        if (portfolioCard) {
+            this.trackEvent('portfolio_interaction', {
+                action: action,
+                portfolioId: portfolioCard.dataset.id || null,
+                timestamp: Date.now()
+            });
+        }
+    }
+    
+    trackMapClick(event) {
+        this.trackEvent('map_interaction', {
+            action: 'click',
+            coordinates: { x: event.clientX, y: event.clientY },
+            timestamp: Date.now()
+        });
+    }
+    
+    trackSearchInteraction(element, action) {
+        this.trackEvent('search_interaction', {
+            action: action,
+            element: this.getElementInfo(element),
+            timestamp: Date.now()
+        });
+    }
+    
+    getRecentActions(timeWindow) {
+        const cutoff = Date.now() - timeWindow;
+        return this.interactions
+            .filter(interaction => interaction.timestamp > cutoff)
+            .map(interaction => ({
+                type: interaction.type,
+                timestamp: interaction.timestamp
+            }));
+    }
+    
+    storeInteraction(event) {
+        try {
+            const stored = localStorage.getItem('xemgiadat_user_behavior') || '[]';
+            const behaviors = JSON.parse(stored);
+            
+            behaviors.push(event);
+            
+            // Keep only last 1000 interactions
+            if (behaviors.length > 1000) {
+                behaviors.splice(0, behaviors.length - 1000);
+            }
+            
+            localStorage.setItem('xemgiadat_user_behavior', JSON.stringify(behaviors));
+        } catch (error) {
+            console.error('Error storing user behavior:', error);
+        }
+    }
+    
+    trackSessionEnd() {
+        const sessionData = {
+            sessionId: this.sessionId,
+            duration: Date.now() - this.startTime,
+            maxScrollDepth: this.maxScrollDepth,
+            totalInteractions: this.interactions.length,
+            pageViews: this.pageViews.length,
+            endReason: 'page_unload'
+        };
+        
+        this.trackEvent('session_end', sessionData);
+        
+        // Send session summary to analytics
+        if (window.trackSessionSummary) {
+            window.trackSessionSummary(sessionData);
+        }
+    }
+    
+    // Public API for behavior analytics
+    getBehaviorSummary() {
+        const now = Date.now();
+        const sessionDuration = now - this.startTime;
+        
+        return {
+            sessionId: this.sessionId,
+            sessionDuration: sessionDuration,
+            maxScrollDepth: this.maxScrollDepth,
+            totalInteractions: this.interactions.length,
+            interactionTypes: this.groupInteractionsByType(),
+            averageTimePerInteraction: sessionDuration / this.interactions.length,
+            isActiveSession: this.isActive,
+            lastActivity: this.lastActivity,
+            heatmapPoints: this.heatmapData.length
+        };
+    }
+    
+    groupInteractionsByType() {
+        const grouped = {};
+        this.interactions.forEach(interaction => {
+            grouped[interaction.type] = (grouped[interaction.type] || 0) + 1;
+        });
+        return grouped;
+    }
+    
+    getHeatmapData() {
+        return this.heatmapData.map(point => ({
+            x: point.x,
+            y: point.y,
+            intensity: 1
+        }));
+    }
+    
+    getEngagementScore() {
+        const factors = {
+            timeOnSite: Math.min((Date.now() - this.startTime) / 60000, 10), // Max 10 minutes
+            scrollDepth: this.maxScrollDepth / 100,
+            interactions: Math.min(this.interactions.length / 50, 1), // Max 50 interactions
+            uniqueInteractionTypes: Object.keys(this.groupInteractionsByType()).length / 10
+        };
+        
+        const score = (factors.timeOnSite * 0.3 + 
+                      factors.scrollDepth * 0.2 + 
+                      factors.interactions * 0.3 + 
+                      factors.uniqueInteractionTypes * 0.2) * 100;
+        
+        return Math.round(Math.min(score, 100));
+    }
+}
+
+// Initialize User Behavior Tracker
+let userBehaviorTracker;
+document.addEventListener('DOMContentLoaded', function() {
+    userBehaviorTracker = new UserBehaviorTracker();
+    
+    // Make it available globally for debugging
+    window.userBehaviorTracker = userBehaviorTracker;
+    
+    // Add dashboard commands
+    window.getBehaviorSummary = () => userBehaviorTracker.getBehaviorSummary();
+    window.getHeatmapData = () => userBehaviorTracker.getHeatmapData();
+    window.getEngagementScore = () => userBehaviorTracker.getEngagementScore();
+});
