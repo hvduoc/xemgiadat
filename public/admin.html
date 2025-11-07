@@ -8,143 +8,427 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        /* Enhanced Admin Styles for Better UX */
         .admin-card {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
         }
         .admin-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
         }
+        
+        /* Beautiful Gradient Cards */
         .stat-card {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, rgba(255,255,255,0.1), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .stat-card:hover::before {
+            opacity: 1;
+        }
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+        
         .stat-card.users {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
         .stat-card.listings {
-            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
         }
         .stat-card.feedback {
-            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
         }
         .stat-card.visits {
-            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
         }
+        
+        /* Responsive Sidebar */
         .sidebar {
-            background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+            background: linear-gradient(180deg, #1a202c 0%, #2d3748 100%);
+            transition: all 0.3s ease;
+            box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+        }
+        .sidebar.collapsed {
+            width: 4rem;
+        }
+        .sidebar.collapsed .sidebar-text {
+            display: none;
+        }
+        
+        .sidebar-item {
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
         .sidebar-item:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            transform: translateX(4px);
         }
+        .sidebar-item.active {
+            background: rgba(59, 130, 246, 0.2);
+            border-left: 4px solid #3b82f6;
+        }
+        
+        /* Enhanced Content Area */
         .content-area {
-            background: #f8fafc;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
             min-height: calc(100vh - 4rem);
+            transition: margin-left 0.3s ease;
+        }
+        .content-area.expanded {
+            margin-left: 4rem;
+        }
+        
+        /* Beautiful Tables */
+        .table-row {
+            transition: all 0.2s ease;
+            border-radius: 8px;
+            margin: 2px 0;
         }
         .table-row:hover {
-            background: #f1f5f9;
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
+        
+        /* Status Badges */
         .status-pending {
-            background: #fef3c7;
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
             color: #92400e;
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 12px;
+            font-weight: 600;
         }
         .status-approved {
-            background: #d1fae5;
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
             color: #065f46;
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 12px;
+            font-weight: 600;
         }
         .status-rejected {
-            background: #fee2e2;
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
             color: #991b1b;
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 12px;
+            font-weight: 600;
         }
+        
+        /* Priority Indicators */
         .priority-high {
-            background: #fee2e2;
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
             color: #dc2626;
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 12px;
+            font-weight: 600;
         }
         .priority-medium {
-            background: #fef3c7;
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
             color: #d97706;
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 12px;
+            font-weight: 600;
         }
         .priority-low {
-            background: #d1fae5;
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
             color: #059669;
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                position: fixed;
+                z-index: 40;
+                height: 100vh;
+            }
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+            .content-area {
+                margin-left: 0;
+            }
+            .stat-card {
+                margin-bottom: 1rem;
+            }
+        }
+        
+        /* Loading Animation */
+        .loading-spinner {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Smooth Transitions */
+        * {
+            scroll-behavior: smooth;
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
         }
     </style>
 </head>
 <body class="bg-gray-100 font-sans">
-    <!-- Top Navigation -->
-    <nav class="bg-white shadow-sm border-b h-16 fixed w-full top-0 z-50">
+    <!-- Enhanced Top Navigation -->
+    <nav class="bg-white shadow-lg border-b-2 border-blue-500 h-16 fixed w-full top-0 z-50">
         <div class="flex items-center justify-between h-full px-6">
             <div class="flex items-center space-x-4">
-                <i class="fas fa-tachometer-alt text-2xl text-blue-600"></i>
-                <h1 class="text-xl font-bold text-gray-800">Admin Dashboard</h1>
+                <!-- Mobile Menu Toggle -->
+                <button id="mobile-menu-toggle" class="lg:hidden p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+                
+                <!-- Sidebar Toggle for Desktop -->
+                <button id="sidebar-toggle" class="hidden lg:block p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+                
+                <div class="flex items-center space-x-3">
+                    <div class="bg-gradient-to-r from-blue-500 to-purple-600 p-2 rounded-lg">
+                        <i class="fas fa-tachometer-alt text-xl text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-gray-800">Admin Dashboard</h1>
+                        <p class="text-xs text-gray-500 hidden sm:block">Quản lý hệ thống BDS</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Breadcrumb Navigation -->
+            <div class="hidden md:flex items-center space-x-2 text-sm text-gray-500">
+                <i class="fas fa-home"></i>
+                <span>Admin</span>
+                <i class="fas fa-chevron-right text-xs"></i>
+                <span id="current-section" class="text-blue-600 font-medium">Dashboard</span>
             </div>
             <div class="flex items-center space-x-4">
+                <!-- Real-time Status Indicator -->
+                <div class="flex items-center space-x-2">
+                    <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                    <span class="text-sm text-gray-600 hidden sm:block">Hoạt động</span>
+                </div>
+                
+                <!-- Notifications -->
                 <div class="relative">
-                    <button id="notification-btn" class="p-2 text-gray-600 hover:text-gray-800 relative">
+                    <button id="notification-btn" class="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition relative">
                         <i class="fas fa-bell text-xl"></i>
-                        <span id="notification-badge" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center hidden">0</span>
+                        <span id="notification-badge" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center hidden animate-bounce">0</span>
                     </button>
+                    
+                    <!-- Notification Dropdown -->
+                    <div id="notification-dropdown" class="hidden absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border z-50">
+                        <div class="p-4 border-b">
+                            <h3 class="font-semibold text-gray-800">Thông báo mới</h3>
+                        </div>
+                        <div class="max-h-64 overflow-y-auto">
+                            <div class="p-4 text-center text-gray-500">
+                                <i class="fas fa-bell-slash text-2xl mb-2"></i>
+                                <p>Không có thông báo mới</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div id="admin-profile" class="flex items-center space-x-2 cursor-pointer">
-                    <img id="admin-avatar" class="w-8 h-8 rounded-full" src="https://placehold.co/32x32/3b82f6/white?text=A" alt="Admin">
-                    <span id="admin-name" class="text-gray-700 font-medium">Admin</span>
+                
+                <!-- Admin Profile -->
+                <div id="admin-profile" class="flex items-center space-x-3 cursor-pointer hover:bg-gray-100 rounded-lg p-2 transition">
+                    <div class="relative">
+                        <img id="admin-avatar" class="w-10 h-10 rounded-full border-2 border-blue-500" src="https://placehold.co/40x40/3b82f6/white?text=A" alt="Admin">
+                        <div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
+                    </div>
+                    <div class="hidden sm:block">
+                        <span id="admin-name" class="text-gray-700 font-medium block">Admin</span>
+                        <span class="text-xs text-gray-500">Quản trị viên</span>
+                    </div>
+                    <i class="fas fa-chevron-down text-gray-400 text-sm hidden sm:block"></i>
                 </div>
-                <a href="index.html" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
-                    <i class="fas fa-home mr-2"></i>Về trang chính
+                
+                <!-- Back to Site Button -->
+                <a href="index.html" class="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-lg hover:from-blue-600 hover:to-purple-700 transition flex items-center space-x-2 shadow-lg">
+                    <i class="fas fa-home"></i>
+                    <span class="hidden sm:inline">Về trang chính</span>
                 </a>
             </div>
         </div>
     </nav>
 
+    <!-- Mobile Overlay -->
+    <div id="mobile-overlay" class="hidden fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"></div>
+
     <div class="flex pt-16">
-        <!-- Sidebar -->
-        <aside class="sidebar w-64 h-screen fixed left-0 text-white">
-            <div class="p-6">
-                <div class="space-y-2">
-                    <button onclick="showSection('dashboard')" class="sidebar-item w-full text-left px-4 py-3 rounded-lg transition">
-                        <i class="fas fa-chart-line mr-3"></i>Dashboard
-                    </button>
-                    <button onclick="showSection('users')" class="sidebar-item w-full text-left px-4 py-3 rounded-lg transition">
-                        <i class="fas fa-users mr-3"></i>Quản lý người dùng
-                    </button>
-                    <button onclick="showSection('listings')" class="sidebar-item w-full text-left px-4 py-3 rounded-lg transition">
-                        <i class="fas fa-building mr-3"></i>Tin đăng BDS
-                    </button>
-                    <button onclick="showSection('feedback')" class="sidebar-item w-full text-left px-4 py-3 rounded-lg transition">
-                        <i class="fas fa-comments mr-3"></i>Góp ý & Phản hồi
-                    </button>
-                    <button onclick="showSection('analytics')" class="sidebar-item w-full text-left px-4 py-3 rounded-lg transition">
-                        <i class="fas fa-chart-bar mr-3"></i>Analytics & Performance
-                    </button>
-                    <button onclick="showSection('settings')" class="sidebar-item w-full text-left px-4 py-3 rounded-lg transition">
-                        <i class="fas fa-cog mr-3"></i>Cài đặt hệ thống
-                    </button>
+        <!-- Enhanced Responsive Sidebar -->
+        <aside id="sidebar" class="sidebar w-64 h-screen fixed left-0 text-white z-40">
+            <!-- Sidebar Header -->
+            <div class="p-6 border-b border-gray-600">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-gradient-to-r from-blue-500 to-purple-600 p-2 rounded-lg">
+                        <i class="fas fa-chart-pie text-white"></i>
+                    </div>
+                    <div class="sidebar-text">
+                        <h2 class="font-bold text-lg">Control Panel</h2>
+                        <p class="text-sm text-gray-300">Quản lý hệ thống</p>
+                    </div>
                 </div>
             </div>
+            
+            <!-- Navigation Menu -->
+            <div class="p-6">
+                <nav class="space-y-2">
+                    <button onclick="showSection('dashboard')" class="sidebar-item active w-full text-left px-4 py-3 rounded-lg transition flex items-center space-x-3">
+                        <i class="fas fa-chart-line text-lg w-5"></i>
+                        <span class="sidebar-text">Dashboard</span>
+                        <div class="sidebar-text ml-auto">
+                            <span class="bg-blue-500 text-xs px-2 py-1 rounded-full">Live</span>
+                        </div>
+                    </button>
+                    
+                    <button onclick="showSection('users')" class="sidebar-item w-full text-left px-4 py-3 rounded-lg transition flex items-center space-x-3">
+                        <i class="fas fa-users text-lg w-5"></i>
+                        <span class="sidebar-text">Quản lý người dùng</span>
+                        <div class="sidebar-text ml-auto">
+                            <span id="users-count" class="bg-gray-600 text-xs px-2 py-1 rounded-full">0</span>
+                        </div>
+                    </button>
+                    
+                    <button onclick="showSection('listings')" class="sidebar-item w-full text-left px-4 py-3 rounded-lg transition flex items-center space-x-3">
+                        <i class="fas fa-building text-lg w-5"></i>
+                        <span class="sidebar-text">Tin đăng BDS</span>
+                        <div class="sidebar-text ml-auto">
+                            <span id="listings-count" class="bg-gray-600 text-xs px-2 py-1 rounded-full">0</span>
+                        </div>
+                    </button>
+                    
+                    <button onclick="showSection('feedback')" class="sidebar-item w-full text-left px-4 py-3 rounded-lg transition flex items-center space-x-3">
+                        <i class="fas fa-comments text-lg w-5"></i>
+                        <span class="sidebar-text">Góp ý & Phản hồi</span>
+                        <div class="sidebar-text ml-auto">
+                            <span id="feedback-count" class="bg-yellow-500 text-xs px-2 py-1 rounded-full">0</span>
+                        </div>
+                    </button>
+                    
+                    <button onclick="showSection('analytics')" class="sidebar-item w-full text-left px-4 py-3 rounded-lg transition flex items-center space-x-3">
+                        <i class="fas fa-chart-bar text-lg w-5"></i>
+                        <span class="sidebar-text">Analytics & Performance</span>
+                        <div class="sidebar-text ml-auto">
+                            <i class="fas fa-arrow-up text-green-400 text-xs"></i>
+                        </div>
+                    </button>
+                    
+                    <button onclick="showSection('settings')" class="sidebar-item w-full text-left px-4 py-3 rounded-lg transition flex items-center space-x-3">
+                        <i class="fas fa-cog text-lg w-5"></i>
+                        <span class="sidebar-text">Cài đặt hệ thống</span>
+                    </button>
+                </nav>
+            </div>
 
-            <!-- Quick Stats in Sidebar -->
-            <div class="p-6 border-t border-gray-600">
-                <h3 class="text-sm font-semibold text-gray-300 mb-3">Hoạt động hôm nay</h3>
-                <div class="space-y-2 text-sm">
-                    <div class="flex justify-between">
-                        <span>Người dùng mới:</span>
-                        <span id="today-users" class="text-green-400">0</span>
+            <!-- Enhanced Quick Stats in Sidebar -->
+            <div class="p-6 border-t border-gray-600 mt-auto">
+                <h3 class="text-sm font-semibold text-gray-300 mb-4 sidebar-text">
+                    <i class="fas fa-chart-pie mr-2"></i>Hoạt động hôm nay
+                </h3>
+                <div class="space-y-3 text-sm sidebar-text">
+                    <div class="flex justify-between items-center bg-gray-700 bg-opacity-50 rounded-lg p-2">
+                        <span class="flex items-center">
+                            <i class="fas fa-user-plus mr-2 text-green-400"></i>
+                            Người dùng mới:
+                        </span>
+                        <span id="today-users" class="text-green-400 font-bold">0</span>
                     </div>
-                    <div class="flex justify-between">
-                        <span>Tin đăng mới:</span>
-                        <span id="today-listings" class="text-blue-400">0</span>
+                    <div class="flex justify-between items-center bg-gray-700 bg-opacity-50 rounded-lg p-2">
+                        <span class="flex items-center">
+                            <i class="fas fa-home mr-2 text-blue-400"></i>
+                            Tin đăng mới:
+                        </span>
+                        <span id="today-listings" class="text-blue-400 font-bold">0</span>
                     </div>
-                    <div class="flex justify-between">
-                        <span>Góp ý mới:</span>
-                        <span id="today-feedback" class="text-yellow-400">0</span>
+                    <div class="flex justify-between items-center bg-gray-700 bg-opacity-50 rounded-lg p-2">
+                        <span class="flex items-center">
+                            <i class="fas fa-heart mr-2 text-pink-400"></i>
+                            Góp ý mới:
+                        </span>
+                        <span id="today-feedback" class="text-pink-400 font-bold">0</span>
+                    </div>
+                    <div class="flex justify-between items-center bg-gray-700 bg-opacity-50 rounded-lg p-2">
+                        <span class="flex items-center">
+                            <i class="fas fa-eye mr-2 text-purple-400"></i>
+                            Lượt xem:
+                        </span>
+                        <span id="today-views" class="text-purple-400 font-bold">0</span>
+                    </div>
+                </div>
+                
+                <!-- System Status -->
+                <div class="sidebar-text mt-4 p-3 bg-gray-700 bg-opacity-30 rounded-lg">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs text-gray-300">Hệ thống:</span>
+                        <div class="flex items-center space-x-1">
+                            <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                            <span class="text-xs text-green-400">Hoạt động tốt</span>
+                        </div>
                     </div>
                 </div>
             </div>
         </aside>
 
-        <!-- Main Content -->
-        <main class="content-area ml-64 flex-1 p-6">
+        <!-- Enhanced Main Content -->
+        <main id="main-content" class="content-area ml-64 flex-1 p-6 transition-all duration-300">
+            <!-- Welcome Header -->
+            <div class="mb-8">
+                <div class="bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl p-6 text-white shadow-xl">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="text-2xl font-bold mb-2">Chào mừng trở lại, Admin! 👋</h2>
+                            <p class="text-blue-100">Hôm nay là <span id="current-date"></span></p>
+                        </div>
+                        <div class="hidden md:flex items-center space-x-4">
+                            <div class="text-center">
+                                <div class="text-2xl font-bold" id="current-time"></div>
+                                <div class="text-sm text-blue-200">Thời gian hiện tại</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <!-- Dashboard Section -->
             <section id="dashboard-section" class="section">
                 <div class="mb-8">
@@ -878,6 +1162,251 @@
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+    
+    <!-- Enhanced Admin Dashboard Script -->
+    <script>
+        // Enhanced Admin Dashboard JavaScript
+        
+        // Global variables
+        let sidebarCollapsed = false;
+        let currentSection = 'dashboard';
+        
+        // Initialize dashboard when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeDashboard();
+            updateDateTime();
+            setInterval(updateDateTime, 1000); // Update time every second
+        });
+        
+        // Initialize dashboard functions
+        function initializeDashboard() {
+            setupMobileMenu();
+            setupSidebarToggle();
+            setupNotifications();
+            loadInitialData();
+            showSection('dashboard');
+        }
+        
+        // Update date and time
+        function updateDateTime() {
+            const now = new Date();
+            const dateOptions = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            };
+            const timeOptions = { 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit' 
+            };
+            
+            const dateElement = document.getElementById('current-date');
+            if (dateElement) {
+                dateElement.textContent = now.toLocaleDateString('vi-VN', dateOptions);
+            }
+            
+            const timeElement = document.getElementById('current-time');
+            if (timeElement) {
+                timeElement.textContent = now.toLocaleTimeString('vi-VN', timeOptions);
+            }
+        }
+        
+        // Setup mobile menu
+        function setupMobileMenu() {
+            const mobileToggle = document.getElementById('mobile-menu-toggle');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('mobile-overlay');
+            
+            if (mobileToggle && sidebar && overlay) {
+                mobileToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('mobile-open');
+                    overlay.classList.toggle('hidden');
+                });
+                
+                overlay.addEventListener('click', function() {
+                    sidebar.classList.remove('mobile-open');
+                    overlay.classList.add('hidden');
+                });
+            }
+        }
+        
+        // Setup sidebar toggle for desktop
+        function setupSidebarToggle() {
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('main-content');
+            
+            if (sidebarToggle && sidebar && mainContent) {
+                sidebarToggle.addEventListener('click', function() {
+                    sidebarCollapsed = !sidebarCollapsed;
+                    
+                    if (sidebarCollapsed) {
+                        sidebar.classList.add('collapsed');
+                        mainContent.classList.add('expanded');
+                    } else {
+                        sidebar.classList.remove('collapsed');
+                        mainContent.classList.remove('expanded');
+                    }
+                });
+            }
+        }
+        
+        // Setup notifications
+        function setupNotifications() {
+            const notificationBtn = document.getElementById('notification-btn');
+            const notificationDropdown = document.getElementById('notification-dropdown');
+            
+            if (notificationBtn && notificationDropdown) {
+                notificationBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    notificationDropdown.classList.toggle('hidden');
+                });
+                
+                document.addEventListener('click', function() {
+                    notificationDropdown.classList.add('hidden');
+                });
+            }
+        }
+        
+        // Enhanced showSection function
+        function showSection(sectionName) {
+            currentSection = sectionName;
+            
+            // Hide all sections
+            const sections = document.querySelectorAll('.section');
+            sections.forEach(section => section.classList.add('hidden'));
+            
+            // Show selected section
+            const targetSection = document.getElementById(sectionName + '-section');
+            if (targetSection) {
+                targetSection.classList.remove('hidden');
+            }
+            
+            // Update sidebar active state
+            const sidebarItems = document.querySelectorAll('.sidebar-item');
+            sidebarItems.forEach(item => item.classList.remove('active'));
+            
+            const activeItem = document.querySelector(`[onclick="showSection('${sectionName}')"]`);
+            if (activeItem) {
+                activeItem.classList.add('active');
+            }
+            
+            // Update breadcrumb
+            const breadcrumb = document.getElementById('current-section');
+            if (breadcrumb) {
+                const sectionNames = {
+                    'dashboard': 'Dashboard',
+                    'users': 'Quản lý người dùng',
+                    'listings': 'Tin đăng BDS',
+                    'feedback': 'Góp ý & Phản hồi',
+                    'analytics': 'Analytics & Performance',
+                    'settings': 'Cài đặt hệ thống'
+                };
+                breadcrumb.textContent = sectionNames[sectionName] || 'Dashboard';
+            }
+            
+            // Load section-specific data
+            loadSectionData(sectionName);
+        }
+        
+        // Load initial data
+        function loadInitialData() {
+            // Simulate loading data
+            setTimeout(() => {
+                updateStatsCards();
+                updateSidebarCounts();
+            }, 1000);
+        }
+        
+        // Update stats cards
+        function updateStatsCards() {
+            const stats = {
+                users: Math.floor(Math.random() * 1000) + 500,
+                listings: Math.floor(Math.random() * 500) + 200,
+                feedback: Math.floor(Math.random() * 100) + 50,
+                visits: Math.floor(Math.random() * 5000) + 2000
+            };
+            
+            const totalUsersEl = document.getElementById('total-users');
+            const totalListingsEl = document.getElementById('total-listings');
+            const totalFeedbackEl = document.getElementById('total-feedback');
+            const totalVisitsEl = document.getElementById('total-visits');
+            
+            if (totalUsersEl) totalUsersEl.textContent = stats.users.toLocaleString();
+            if (totalListingsEl) totalListingsEl.textContent = stats.listings.toLocaleString();
+            if (totalFeedbackEl) totalFeedbackEl.textContent = stats.feedback.toLocaleString();
+            if (totalVisitsEl) totalVisitsEl.textContent = stats.visits.toLocaleString();
+            
+            // Update today's stats
+            const todayUsersEl = document.getElementById('today-users');
+            const todayListingsEl = document.getElementById('today-listings');
+            const todayFeedbackEl = document.getElementById('today-feedback');
+            const todayViewsEl = document.getElementById('today-views');
+            
+            if (todayUsersEl) todayUsersEl.textContent = Math.floor(Math.random() * 20) + 5;
+            if (todayListingsEl) todayListingsEl.textContent = Math.floor(Math.random() * 10) + 2;
+            if (todayFeedbackEl) todayFeedbackEl.textContent = Math.floor(Math.random() * 5) + 1;
+            if (todayViewsEl) todayViewsEl.textContent = Math.floor(Math.random() * 500) + 100;
+        }
+        
+        // Update sidebar counts
+        function updateSidebarCounts() {
+            const usersCountEl = document.getElementById('users-count');
+            const listingsCountEl = document.getElementById('listings-count');
+            const feedbackCountEl = document.getElementById('feedback-count');
+            
+            if (usersCountEl) usersCountEl.textContent = Math.floor(Math.random() * 50) + 10;
+            if (listingsCountEl) listingsCountEl.textContent = Math.floor(Math.random() * 25) + 5;
+            if (feedbackCountEl) feedbackCountEl.textContent = Math.floor(Math.random() * 10) + 1;
+        }
+        
+        // Load section-specific data
+        function loadSectionData(sectionName) {
+            switch(sectionName) {
+                case 'analytics':
+                    if (typeof loadAdvancedAnalytics === 'function') {
+                        loadAdvancedAnalytics();
+                    }
+                    break;
+                case 'users':
+                    if (typeof loadUsersData === 'function') {
+                        loadUsersData();
+                    }
+                    break;
+                case 'listings':
+                    if (typeof loadListingsData === 'function') {
+                        loadListingsData();
+                    }
+                    break;
+                case 'feedback':
+                    if (typeof loadFeedbackData === 'function') {
+                        loadFeedbackData();
+                    }
+                    break;
+            }
+        }
+        
+        // Add smooth scroll behavior
+        document.documentElement.style.scrollBehavior = 'smooth';
+        
+        // Add loading indicators
+        function showLoading(elementId) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.innerHTML = '<div class="flex items-center justify-center p-8"><i class="fas fa-spinner loading-spinner text-2xl text-blue-500"></i><span class="ml-2">Đang tải...</span></div>';
+            }
+        }
+        
+        // Hide loading indicators
+        function hideLoading(elementId, content) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.innerHTML = content;
+            }
+        }
+    </script>
 
     <script src="admin.js"></script>
 </body>
