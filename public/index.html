@@ -357,7 +357,7 @@
     </button>
 
     <div id="map"></div>
-    <div id="action-toolbar" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-[1001] flex items-center space-x-2 bg-white/80 backdrop-blur-sm p-2 rounded-full shadow-lg">
+    <div id="action-toolbar" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-[1001] flex flex-col items-center space-y-2 bg-white/80 backdrop-blur-sm p-2 rounded-2xl shadow-lg">
         <button id="analytics-btn" class="toolbar-btn">
             <i class="fa-solid fa-chart-bar"></i>
             <span>Phân tích</span>
@@ -557,7 +557,7 @@
                         <a href="mailto:hotro.xemgiadat@gmail.com" target="_blank" class="contact-link-official"><i class="fas fa-envelope icon-email"></i><span>Email Hỗ Trợ</span></a>
                         <a href="https://www.facebook.com/xemgiadatcom" target="_blank" class="contact-link-official"><i class="fab fa-facebook-square icon-facebook"></i><span>Fanpage Chính Thức</span></a>
                         <a href="https://www.youtube.com/@xemgiadat" target="_blank" class="contact-link-official"><i class="fab fa-youtube icon-youtube"></i><span>Kênh Youtube</span></a>
-                        <a href="https://www.tiktok.com/@yourtiktok" target="_blank" class="contact-link-official"><i class="fab fa-tiktok icon-tiktok"></i><span>Kênh TikTok</span></a>
+                        <a href="https://www.tiktok.com/@xemgiadat" target="_blank" class="contact-link-official"><i class="fab fa-tiktok icon-tiktok"></i><span>Kênh TikTok</span></a>
                     </div>
                 </div>
             </div>
@@ -601,7 +601,7 @@
         </div>
     </div>
 
-    <div id="share-bar" class="hidden fixed bottom-20 right-4 z-[9998] flex space-x-2 bg-white shadow-md p-2 rounded-lg">
+    <div id="share-bar" class="hidden fixed bottom-20 right-4 z-[9998] flex flex-col space-y-2 bg-white shadow-md p-2 rounded-lg">
         <a href="https://www.facebook.com/sharer/sharer.php?u=https://xemgiadat.netlify.app" target="_blank" title="Chia sẻ Facebook">
             <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f5e3.svg" class="w-6 h-6" />
         </a>               
@@ -1306,15 +1306,18 @@
                         <i class="fas fa-map-marked-alt mr-2"></i>Xem Giá Đất
                     </h3>
                     <p class="text-gray-400 mb-4">Nền tảng thông tin bất động sản Đà Nẵng chính xác và minh bạch nhất</p>
-                    <div class="flex space-x-4">
-                        <a href="#" class="text-gray-400 hover:text-white text-xl">
-                            <i class="fab fa-facebook"></i>
+                    <div class="flex flex-col sm:flex-row sm:space-x-4 space-y-2 sm:space-y-0">
+                        <a href="https://www.facebook.com/xemgiadatcom" target="_blank" class="text-gray-400 hover:text-white text-xl flex items-center">
+                            <i class="fab fa-facebook mr-2"></i><span class="text-sm">Facebook</span>
                         </a>
-                        <a href="#" class="text-gray-400 hover:text-white text-xl">
-                            <i class="fas fa-comments"></i>
+                        <a href="mailto:hotro.xemgiadat@gmail.com" class="text-gray-400 hover:text-white text-xl flex items-center">
+                            <i class="fas fa-envelope mr-2"></i><span class="text-sm">Email</span>
                         </a>
-                        <a href="#" class="text-gray-400 hover:text-white text-xl">
-                            <i class="fab fa-youtube"></i>
+                        <a href="https://www.youtube.com/@xemgiadat" target="_blank" class="text-gray-400 hover:text-white text-xl flex items-center">
+                            <i class="fab fa-youtube mr-2"></i><span class="text-sm">YouTube</span>
+                        </a>
+                        <a href="https://www.tiktok.com/@xemgiadat" target="_blank" class="text-gray-400 hover:text-white text-xl flex items-center">
+                            <i class="fab fa-tiktok mr-2"></i><span class="text-sm">TikTok</span>
                         </a>
                     </div>
                 </div>
@@ -1344,8 +1347,8 @@
                         <li><a href="tel:0236xxxxxxx" class="text-gray-400 hover:text-white">
                             <i class="fas fa-phone mr-2"></i>0236.xxx.xxxx
                         </a></li>
-                        <li><a href="mailto:info@xemgiadat.com" class="text-gray-400 hover:text-white">
-                            <i class="fas fa-envelope mr-2"></i>info@xemgiadat.com
+                        <li><a href="mailto:hotro.xemgiadat@gmail.com" class="text-gray-400 hover:text-white">
+                            <i class="fas fa-envelope mr-2"></i>hotro.xemgiadat@gmail.com
                         </a></li>
                         <li><a href="#" class="text-gray-400 hover:text-white">FAQ</a></li>
                         <li><a href="#" class="text-gray-400 hover:text-white">Báo lỗi</a></li>
