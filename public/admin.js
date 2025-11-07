@@ -686,7 +686,11 @@ function setupRealtimeListeners() {
     // Listen for new feedback
     db.collection('feedback').orderBy('timestamp', 'desc').limit(10)
         .onSnapshot(snapshot => {
-            updateRecentFeedback(snapshot);
+            if (typeof updateRecentFeedback === 'function') {
+                updateRecentFeedback(snapshot);
+            } else {
+                console.log('📝 Feedback updates received:', snapshot.size);
+            }
         });
     
     // Listen for new users (requires additional setup)
@@ -846,7 +850,11 @@ function showSection(sectionName) {
             loadFeedbackSection();
             break;
         case 'analytics':
-            loadAnalyticsSection();
+            if (typeof loadAnalyticsSection === 'function') {
+                loadAnalyticsSection();
+            } else {
+                loadAdvancedAnalytics();
+            }
             break;
         case 'performance':
             loadPerformanceAnalytics();
@@ -1669,5 +1677,167 @@ function updateMarketCharts() {
             );
         transactionVolumeChart.update();
     }
+}
+
+// Missing functions implementation
+function updateRecentFeedback(snapshot) {
+    console.log('📝 Processing feedback updates:', snapshot.size);
+    
+    const container = document.getElementById('feedback-list');
+    if (!container) return;
+    
+    const feedbackHTML = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return `
+            <div class="border-b border-gray-200 pb-3 mb-3">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-sm text-gray-600">${data.message || 'No message'}</p>
+                        <p class="text-xs text-gray-400 mt-1">
+                            ${data.timestamp ? new Date(data.timestamp.toDate()).toLocaleString('vi-VN') : 'No timestamp'}
+                        </p>
+                    </div>
+                    <span class="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded">
+                        ★ ${data.rating || 'N/A'}
+                    </span>
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    container.innerHTML = feedbackHTML || '<p class="text-gray-500 text-sm">Chưa có feedback nào</p>';
+}
+
+function loadAdvancedAnalytics() {
+    console.log('📊 Loading advanced analytics section...');
+    
+    const content = document.getElementById('content');
+    if (!content) return;
+    
+    content.innerHTML = `
+        <div class="space-y-6">
+            <!-- Analytics Header -->
+            <div class="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-6 rounded-lg">
+                <h2 class="text-2xl font-bold mb-2">📊 Analytics & Performance</h2>
+                <p class="opacity-90">Comprehensive analytics dashboard for real estate platform</p>
+            </div>
+            
+            <!-- Real-time Analytics Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Real-time Users -->
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-sm font-medium text-gray-600">Online Users</h3>
+                        <div class="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+                    </div>
+                    <div class="text-2xl font-bold text-gray-900 mb-2" id="realtime-users">45</div>
+                    <canvas id="realtimeChart" width="200" height="100"></canvas>
+                </div>
+                
+                <!-- Search Analytics -->
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-sm font-medium text-gray-600 mb-4">Top Searches</h3>
+                    <div class="text-2xl font-bold text-gray-900 mb-2">1,234</div>
+                    <canvas id="searchTrendChart" width="200" height="100"></canvas>
+                </div>
+                
+                <!-- Geographic Distribution -->
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-sm font-medium text-gray-600 mb-4">User Locations</h3>
+                    <div class="text-2xl font-bold text-gray-900 mb-2">5 cities</div>
+                    <canvas id="geoChart" width="200" height="100"></canvas>
+                </div>
+                
+                <!-- Conversion Funnel -->
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-sm font-medium text-gray-600 mb-4">Conversion Rate</h3>
+                    <div class="text-2xl font-bold text-gray-900 mb-2">14.2%</div>
+                    <canvas id="conversionFunnelChart" width="200" height="100"></canvas>
+                </div>
+            </div>
+            
+            <!-- Performance Metrics -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Performance Metrics</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-blue-600" id="avg-session">4m 32s</div>
+                        <div class="text-sm text-gray-600">Avg Session</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-green-600" id="bounce-rate">23.4%</div>
+                        <div class="text-sm text-gray-600">Bounce Rate</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-purple-600" id="page-views">6.7</div>
+                        <div class="text-sm text-gray-600">Pages/Session</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-orange-600" id="conversion-rate">12.8%</div>
+                        <div class="text-sm text-gray-600">Conversion Rate</div>
+                    </div>
+                </div>
+                <canvas id="performanceChart" width="800" height="300"></canvas>
+            </div>
+            
+            <!-- Market Intelligence -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">District Price Trends</h3>
+                        <button onclick="refreshMarketData()" class="text-sm text-blue-600 hover:text-blue-800">
+                            <i class="fas fa-sync-alt mr-1"></i>Refresh
+                        </button>
+                    </div>
+                    <canvas id="districtPriceTrendChart" width="400" height="250"></canvas>
+                </div>
+                
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Transaction Volume</h3>
+                    <canvas id="transactionVolumeChart" width="400" height="250"></canvas>
+                </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="flex space-x-4">
+                <button onclick="refreshHeatmap()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                    <i class="fas fa-map mr-2"></i>Refresh Heatmap
+                </button>
+                <button onclick="exportAnalytics()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">
+                    <i class="fas fa-download mr-2"></i>Export Data
+                </button>
+            </div>
+        </div>
+    `;
+    
+    // Initialize analytics charts after content is loaded
+    setTimeout(() => {
+        if (typeof initializeAdvancedAnalytics === 'function') {
+            initializeAdvancedAnalytics();
+        }
+    }, 100);
+}
+
+function exportAnalytics() {
+    console.log('📊 Exporting analytics data...');
+    
+    // Create export data
+    const exportData = {
+        timestamp: new Date().toISOString(),
+        realTimeUsers: document.getElementById('realtime-users')?.textContent || '0',
+        avgSession: document.getElementById('avg-session')?.textContent || '0',
+        bounceRate: document.getElementById('bounce-rate')?.textContent || '0',
+        conversionRate: document.getElementById('conversion-rate')?.textContent || '0'
+    };
+    
+    // Create and download CSV
+    const csv = Object.entries(exportData).map(([key, value]) => `${key},${value}`).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `analytics-export-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
 }
 console.log('🔧 Admin Dashboard Script Loaded');

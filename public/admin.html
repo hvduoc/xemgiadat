@@ -423,150 +423,22 @@
 
             <!-- Analytics Section -->
             <section id="analytics-section" class="section hidden">
-                <div class="mb-8">
+                <div class="mb-6">
                     <h2 class="text-3xl font-bold text-gray-800 mb-2">Thống kê & Báo cáo</h2>
                     <p class="text-gray-600">Phân tích dữ liệu và xu hướng sử dụng</p>
                 </div>
 
-                <!-- Date Range Selector -->
-                <div class="bg-white p-6 rounded-xl shadow-lg mb-6">
-                    <div class="flex flex-wrap justify-between items-center gap-4">
-                        <div class="flex space-x-4">
-                            <select id="analytics-period" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                                <option value="7">7 ngày qua</option>
-                                <option value="30">30 ngày qua</option>
-                                <option value="90">3 tháng qua</option>
-                                <option value="365">1 năm qua</option>
-                            </select>
-                            <button onclick="refreshAnalytics()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
-                                <i class="fas fa-sync-alt mr-2"></i>Làm mới
-                            </button>
-                        </div>
-                        <button onclick="exportAnalytics()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
-                            <i class="fas fa-file-excel mr-2"></i>Xuất báo cáo
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Analytics Charts -->
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                    <!-- Real-time Users -->
-                    <div class="bg-white p-6 rounded-xl shadow-lg">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-lg font-bold text-gray-800">Người dùng trực tuyến</h3>
-                            <div class="flex items-center">
-                                <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse mr-2"></div>
-                                <span class="text-sm text-gray-600">Live</span>
-                            </div>
-                        </div>
+                <!-- Content will be loaded dynamically by loadAdvancedAnalytics() -->
+                <div id="content" class="min-h-screen">
+                    <div class="flex items-center justify-center h-64">
                         <div class="text-center">
-                            <div id="realtime-users" class="text-4xl font-bold text-green-600 mb-2">--</div>
-                            <p class="text-sm text-gray-500">đang online</p>
-                            <canvas id="realtimeChart" width="200" height="100" class="mt-4"></canvas>
+                            <i class="fas fa-spinner fa-spin text-4xl text-blue-600 mb-4"></i>
+                            <p class="text-gray-600">Đang tải analytics dashboard...</p>
                         </div>
-                    </div>
-
-                    <!-- Search Analytics -->
-                    <div class="bg-white p-6 rounded-xl shadow-lg">
-                        <h3 class="text-lg font-bold text-gray-800 mb-4">Tìm kiếm phổ biến</h3>
-                        <div id="popular-searches" class="space-y-2">
-                            <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
-                                <span class="text-sm">Hải Châu</span>
-                                <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">245</span>
-                            </div>
-                            <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
-                                <span class="text-sm">Ngũ Hành Sơn</span>
-                                <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">189</span>
-                            </div>
-                            <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
-                                <span class="text-sm">Sơn Trà</span>
-                                <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">167</span>
-                            </div>
-                        </div>
-                        <canvas id="searchTrendChart" width="300" height="150" class="mt-4"></canvas>
-                    </div>
-
-                    <!-- Geographic Distribution -->
-                    <div class="bg-white p-6 rounded-xl shadow-lg">
-                        <h3 class="text-lg font-bold text-gray-800 mb-4">Phân bố địa lý</h3>
-                        <div id="geographic-data" class="space-y-3">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center">
-                                    <div class="w-4 h-4 bg-blue-500 rounded mr-2"></div>
-                                    <span class="text-sm">Đà Nẵng</span>
-                                </div>
-                                <span class="text-sm font-semibold">68%</span>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center">
-                                    <div class="w-4 h-4 bg-green-500 rounded mr-2"></div>
-                                    <span class="text-sm">TP.HCM</span>
-                                </div>
-                                <span class="text-sm font-semibold">15%</span>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center">
-                                    <div class="w-4 h-4 bg-yellow-500 rounded mr-2"></div>
-                                    <span class="text-sm">Hà Nội</span>
-                                </div>
-                                <span class="text-sm font-semibold">12%</span>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center">
-                                    <div class="w-4 h-4 bg-purple-500 rounded mr-2"></div>
-                                    <span class="text-sm">Khác</span>
-                                </div>
-                                <span class="text-sm font-semibold">5%</span>
-                            </div>
-                        </div>
-                        <canvas id="geoChart" width="300" height="150" class="mt-4"></canvas>
                     </div>
                 </div>
+            </section>
 
-                <!-- Advanced Analytics Row -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                    <!-- User Journey Heatmap -->
-                    <div class="bg-white p-6 rounded-xl shadow-lg">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-lg font-bold text-gray-800">User Journey Heatmap</h3>
-                            <button onclick="refreshHeatmap()" class="text-blue-600 hover:text-blue-800">
-                                <i class="fas fa-sync-alt"></i>
-                            </button>
-                        </div>
-                        <div id="journey-heatmap" class="relative">
-                            <div class="grid grid-cols-3 gap-2 text-center">
-                                <div class="bg-gradient-to-br from-red-400 to-red-600 text-white p-3 rounded-lg">
-                                    <div class="text-2xl font-bold">2.3k</div>
-                                    <div class="text-xs">Landing</div>
-                                </div>
-                                <div class="bg-gradient-to-br from-orange-400 to-orange-600 text-white p-3 rounded-lg">
-                                    <div class="text-2xl font-bold">1.8k</div>
-                                    <div class="text-xs">Map View</div>
-                                </div>
-                                <div class="bg-gradient-to-br from-green-400 to-green-600 text-white p-3 rounded-lg">
-                                    <div class="text-2xl font-bold">892</div>
-                                    <div class="text-xs">Contact</div>
-                                </div>
-                            </div>
-                        </div>
-                        <canvas id="conversionFunnelChart" width="400" height="200" class="mt-4"></canvas>
-                    </div>
-
-                    <!-- Performance Metrics -->
-                    <div class="bg-white p-6 rounded-xl shadow-lg">
-                        <h3 class="text-lg font-bold text-gray-800 mb-4">Performance Metrics</h3>
-                        <div class="grid grid-cols-2 gap-4 mb-4">
-                            <div class="text-center p-3 bg-blue-50 rounded-lg">
-                                <div id="avg-session" class="text-2xl font-bold text-blue-600">4m 32s</div>
-                                <div class="text-xs text-blue-800">Avg Session</div>
-                            </div>
-                            <div class="text-center p-3 bg-green-50 rounded-lg">
-                                <div id="bounce-rate" class="text-2xl font-bold text-green-600">23.4%</div>
-                                <div class="text-xs text-green-800">Bounce Rate</div>
-                            </div>
-                            <div class="text-center p-3 bg-purple-50 rounded-lg">
-                                <div id="page-views" class="text-2xl font-bold text-purple-600">8.2</div>
-                                <div class="text-xs text-purple-800">Pages/Session</div>
                             </div>
                             <div class="text-center p-3 bg-orange-50 rounded-lg">
                                 <div id="conversion-rate" class="text-2xl font-bold text-orange-600">12.8%</div>
@@ -655,12 +527,15 @@
                                 </div>
                                 <div class="text-3xl opacity-80">
                                     <i class="fas fa-percentage"></i>
-                                </div>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Price Trend Analysis -->
+                <!-- Market Intelligence Section -->
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h3 class="text-lg font-bold text-gray-800 mb-6">📈 Market Intelligence Dashboard</h3>
+                    
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                         <div class="bg-gray-50 p-4 rounded-lg">
                             <h4 class="font-semibold text-gray-800 mb-3">Xu hướng giá theo quận</h4>
@@ -672,90 +547,17 @@
                         </div>
                     </div>
 
-                    <!-- Hot Zones Table -->
-                    <div class="bg-gray-50 p-4 rounded-lg">
-                        <h4 class="font-semibold text-gray-800 mb-3">Top Hot Zones - Cơ hội đầu tư</h4>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-sm">
-                                <thead>
-                                    <tr class="bg-white">
-                                        <th class="px-4 py-2 text-left">Khu vực</th>
-                                        <th class="px-4 py-2 text-left">Giá TB (triệu/m²)</th>
-                                        <th class="px-4 py-2 text-left">Tăng trưởng</th>
-                                        <th class="px-4 py-2 text-left">Demand Score</th>
-                                        <th class="px-4 py-2 text-left">Investment Grade</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="hot-zones-table">
-                                    <tr class="border-t">
-                                        <td class="px-4 py-2 font-medium">Hải Châu - Trần Phú</td>
-                                        <td class="px-4 py-2">125.5</td>
-                                        <td class="px-4 py-2 text-green-600">+18.2%</td>
-                                        <td class="px-4 py-2">
-                                            <div class="flex items-center">
-                                                <div class="w-12 bg-gray-200 rounded-full h-2 mr-2">
-                                                    <div class="bg-red-500 h-2 rounded-full" style="width: 89%"></div>
-                                                </div>
-                                                <span class="text-xs">89</span>
-                                            </div>
-                                        </td>
-                                        <td class="px-4 py-2">
-                                            <span class="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs">A+</span>
-                                        </td>
-                                    </tr>
-                                    <tr class="border-t">
-                                        <td class="px-4 py-2 font-medium">Ngũ Hành Sơn - Mỹ An</td>
-                                        <td class="px-4 py-2">98.3</td>
-                                        <td class="px-4 py-2 text-green-600">+15.7%</td>
-                                        <td class="px-4 py-2">
-                                            <div class="flex items-center">
-                                                <div class="w-12 bg-gray-200 rounded-full h-2 mr-2">
-                                                    <div class="bg-orange-500 h-2 rounded-full" style="width: 76%"></div>
-                                                </div>
-                                                <span class="text-xs">76</span>
-                                            </div>
-                                        </td>
-                                        <td class="px-4 py-2">
-                                            <span class="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs">A</span>
-                                        </td>
-                                    </tr>
-                                    <tr class="border-t">
-                                        <td class="px-4 py-2 font-medium">Sơn Trà - Phước Mỹ</td>
-                                        <td class="px-4 py-2">156.8</td>
-                                        <td class="px-4 py-2 text-green-600">+12.4%</td>
-                                        <td class="px-4 py-2">
-                                            <div class="flex items-center">
-                                                <div class="w-12 bg-gray-200 rounded-full h-2 mr-2">
-                                                    <div class="bg-green-500 h-2 rounded-full" style="width: 68%"></div>
-                                                </div>
-                                                <span class="text-xs">68</span>
-                                            </div>
-                                        </td>
-                                        <td class="px-4 py-2">
-                                            <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">B+</span>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
+                    <!-- Action Buttons -->
+                    <div class="flex space-x-4">
+                        <button onclick="refreshMarketData()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                            <i class="fas fa-sync-alt mr-2"></i>Refresh Data
+                        </button>
+                        <button onclick="exportAnalytics()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">
+                            <i class="fas fa-download mr-2"></i>Export CSV
+                        </button>
                     </div>
                 </div>
-
-                <!-- Popular Areas -->
-                <div class="bg-white p-6 rounded-xl shadow-lg mb-6">
-                    <h3 class="text-lg font-bold text-gray-800 mb-4">Khu vực được tìm kiếm nhiều nhất</h3>
-                    <div id="popular-areas" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <!-- Popular areas will be populated by JS -->
-                    </div>
-                </div>
-
-                <!-- Detailed Tables -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="bg-white p-6 rounded-xl shadow-lg">
-                        <h3 class="text-lg font-bold text-gray-800 mb-4">Top người dùng tích cực</h3>
-                        <div id="top-active-users" class="space-y-3">
-                            <!-- Top users will be populated by JS -->
-                        </div>
+            </section>
                     </div>
                     <div class="bg-white p-6 rounded-xl shadow-lg">
                         <h3 class="text-lg font-bold text-gray-800 mb-4">Tin đăng phổ biến</h3>
