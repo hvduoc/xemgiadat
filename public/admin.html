@@ -1,1724 +1,1836 @@
-﻿<!DOCTYPE html><!DOCTYPE html>
-
-<html lang="vi"><html lang="vi">
-
-<head><head>
-
-    <meta charset="UTF-8">    <meta charset="UTF-8">
-
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Admin Dashboard - Xem Giá Đất</title>    <title>Admin Dashboard - Xem Giá Đất</title>
-
-    <script src="https://cdn.tailwindcss.com"></script>    <script src="https://cdn.tailwindcss.com"></script>
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <style>    <style>
-
-        /* Enhanced Admin Styles for Better UX */        /* Enhanced Admin Styles for Better UX */
-
-        .section {        .section {
-
-            display: block;            display: block;
-
-        }        }
-
-        .section.hidden {        .section.hidden {
-
-            display: none !important;            display: none !important;
-
-        }        }
-
-                
-
-        .admin-card {        .admin-card {
-
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-
-            backdrop-filter: blur(10px);            backdrop-filter: blur(10px);
-
-        }        }
-
-        .admin-card:hover {        .admin-card:hover {
-
-            transform: translateY(-4px) scale(1.02);            transform: translateY(-4px) scale(1.02);
-
-            box-shadow: 0 20px 40px rgba(0,0,0,0.15);            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-
-        }        }
-
-                
-
-        /* Beautiful Gradient Cards */        /* Beautiful Gradient Cards */
-
-        .stat-card {        .stat-card {
-
-            transition: all 0.3s ease;            transition: all 0.3s ease;
-
-            position: relative;            position: relative;
-
-            overflow: hidden;            overflow: hidden;
-
-        }        }
-
-        .stat-card::before {        .stat-card::before {
-
-            content: '';            content: '';
-
-            position: absolute;            position: absolute;
-
-            top: 0;            top: 0;
-
-            left: 0;            left: 0;
-
-            right: 0;            right: 0;
-
-            bottom: 0;            bottom: 0;
-
-            background: linear-gradient(45deg, rgba(255,255,255,0.1), transparent);            background: linear-gradient(45deg, rgba(255,255,255,0.1), transparent);
-
-            opacity: 0;            opacity: 0;
-
-            transition: opacity 0.3s ease;            transition: opacity 0.3s ease;
-
-        }        }
-
-        .stat-card:hover::before {        .stat-card:hover::before {
-
-            opacity: 1;            opacity: 1;
-
-        }        }
-
-        .stat-card:hover {        .stat-card:hover {
-
-            transform: translateY(-3px);            transform: translateY(-3px);
-
-            box-shadow: 0 15px 35px rgba(0,0,0,0.2);            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
-
-        }        }
-
-                
-
-        .stat-card.users {        .stat-card.users {
-
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-
-        }        }
-
-        .stat-card.listings {        .stat-card.listings {
-
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-
-        }        }
-
-        .stat-card.feedback {        .stat-card.feedback {
-
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-
-        }        }
-
-        .stat-card.visits {        .stat-card.visits {
-
-            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-
-        }        }
-
-                
-
-        /* Responsive Sidebar */        /* Responsive Sidebar */
-
-        .sidebar {        .sidebar {
-
-            background: linear-gradient(180deg, #1a202c 0%, #2d3748 100%);            background: linear-gradient(180deg, #1a202c 0%, #2d3748 100%);
-
-            transition: all 0.3s ease;            transition: all 0.3s ease;
-
-            box-shadow: 4px 0 15px rgba(0,0,0,0.1);            box-shadow: 4px 0 15px rgba(0,0,0,0.1);
-
-        }        }
-
-        .sidebar.collapsed {        .sidebar.collapsed {
-
-            width: 4rem;            width: 4rem;
-
-        }        }
-
-        .sidebar.collapsed .sidebar-text {        .sidebar.collapsed .sidebar-text {
-
-            display: none;            display: none;
-
-        }        }
-
-                
-
-        .sidebar-item {        .sidebar-item {
-
-            transition: all 0.3s ease;            transition: all 0.3s ease;
-
-            position: relative;            position: relative;
-
-            overflow: hidden;            overflow: hidden;
-
-        }        }
-
-        .sidebar-item:hover {        .sidebar-item:hover {
-
-            background: rgba(255, 255, 255, 0.15);            background: rgba(255, 255, 255, 0.15);
-
-            border-radius: 12px;            border-radius: 12px;
-
-            transform: translateX(4px);            transform: translateX(4px);
-
-        }        }
-
-        .sidebar-item.active {        .sidebar-item.active {
-
-            background: rgba(59, 130, 246, 0.2);            background: rgba(59, 130, 246, 0.2);
-
-            border-left: 4px solid #3b82f6;            border-left: 4px solid #3b82f6;
-
-        }        }
-
-                
-
-        /* Enhanced Content Area */        /* Enhanced Content Area */
-
-        .content-area {        .content-area {
-
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-
-            min-height: calc(100vh - 4rem);            min-height: calc(100vh - 4rem);
-
-            transition: margin-left 0.3s ease;            transition: margin-left 0.3s ease;
-
-        }        }
-
-        .content-area.expanded {        .content-area.expanded {
-
-            margin-left: 4rem;            margin-left: 4rem;
-
-        }        }
-
-                
-
-        /* Mobile Responsive */        /* Beautiful Tables */
-
-        @media (max-width: 768px) {        .table-row {
-
-            .sidebar {            transition: all 0.2s ease;
-
-                transform: translateX(-100%);            border-radius: 8px;
-
-                position: fixed;            margin: 2px 0;
-
-                z-index: 40;        }
-
-                height: 100vh;        .table-row:hover {
-
-            }            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-
-            .sidebar.mobile-open {            transform: translateX(4px);
-
-                transform: translateX(0);            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-
-            }        }
-
-            .content-area {        
-
-                margin-left: 0;        /* Status Badges */
-
-            }        .status-pending {
-
-        }            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-
-                    color: #92400e;
-
-        /* Loading Animation */            border-radius: 20px;
-
-        .loading-spinner {            padding: 4px 12px;
-
-            animation: spin 1s linear infinite;            font-size: 12px;
-
-        }            font-weight: 600;
-
-        @keyframes spin {        }
-
-            from { transform: rotate(0deg); }        .status-approved {
-
-            to { transform: rotate(360deg); }            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-
-        }            color: #065f46;
-
-                    border-radius: 20px;
-
-        /* Custom Scrollbar */            padding: 4px 12px;
-
-        ::-webkit-scrollbar {            font-size: 12px;
-
-            width: 8px;            font-weight: 600;
-
-        }        }
-
-        ::-webkit-scrollbar-track {        .status-rejected {
-
-            background: #f1f1f1;            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-
-            border-radius: 4px;            color: #991b1b;
-
-        }            border-radius: 20px;
-
-        ::-webkit-scrollbar-thumb {            padding: 4px 12px;
-
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);            font-size: 12px;
-
-            border-radius: 4px;            font-weight: 600;
-
-        }        }
-
-        ::-webkit-scrollbar-thumb:hover {        
-
-            background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);        /* Priority Indicators */
-
-        }        .priority-high {
-
-    </style>            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-
-</head>            color: #dc2626;
-
-<body class="bg-gray-100 font-sans">            border-radius: 20px;
-
-    <!-- Enhanced Top Navigation -->            padding: 4px 12px;
-
-    <nav class="bg-white shadow-lg border-b-2 border-blue-500 h-16 fixed w-full top-0 z-50">            font-size: 12px;
-
-        <div class="flex items-center justify-between h-full px-6">            font-weight: 600;
-
-            <div class="flex items-center space-x-4">        }
-
-                <!-- Mobile Menu Toggle -->        .priority-medium {
-
-                <button id="mobile-menu-toggle" class="lg:hidden p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition">            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-
-                    <i class="fas fa-bars text-xl"></i>            color: #d97706;
-
-                </button>            border-radius: 20px;
-
-                            padding: 4px 12px;
-
-                <!-- Sidebar Toggle for Desktop -->            font-size: 12px;
-
-                <button id="sidebar-toggle" class="hidden lg:block p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition">            font-weight: 600;
-
-                    <i class="fas fa-bars text-xl"></i>        }
-
-                </button>        .priority-low {
-
-                            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-
-                <div class="flex items-center space-x-3">            color: #059669;
-
-                    <div class="bg-gradient-to-r from-blue-500 to-purple-600 p-2 rounded-lg">            border-radius: 20px;
-
-                        <i class="fas fa-tachometer-alt text-xl text-white"></i>            padding: 4px 12px;
-
-                    </div>            font-size: 12px;
-
-                    <div>            font-weight: 600;
-
-                        <h1 class="text-xl font-bold text-gray-800">Admin Dashboard</h1>        }
-
-                        <p class="text-xs text-gray-500 hidden sm:block">Quản lý hệ thống BDS</p>        
-
-                    </div>        /* Mobile Responsive */
-
-                </div>        @media (max-width: 768px) {
-
-            </div>            .sidebar {
-
-                            transform: translateX(-100%);
-
-            <!-- Breadcrumb Navigation -->                position: fixed;
-
-            <div class="hidden md:flex items-center space-x-2 text-sm text-gray-500">                z-index: 40;
-
-                <i class="fas fa-home"></i>                height: 100vh;
-
-                <span>Admin</span>            }
-
-                <i class="fas fa-chevron-right text-xs"></i>            .sidebar.mobile-open {
-
-                <span id="current-section" class="text-blue-600 font-medium">Dashboard</span>                transform: translateX(0);
-
-            </div>            }
-
-            .content-area {
-
-            <div class="flex items-center space-x-4">                margin-left: 0;
-
-                <!-- Real-time Status Indicator -->            }
-
-                <div class="flex items-center space-x-2">            .stat-card {
-
-                    <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>                margin-bottom: 1rem;
-
-                    <span class="text-sm text-gray-600 hidden sm:block">Hoạt động</span>            }
-
-                </div>        }
-
-                        
-
-                <!-- Admin Profile -->        /* Loading Animation */
-
-                <div id="admin-profile" class="flex items-center space-x-3 cursor-pointer hover:bg-gray-100 rounded-lg p-2 transition">        .loading-spinner {
-
-                    <div class="relative">            animation: spin 1s linear infinite;
-
-                        <img id="admin-avatar" class="w-10 h-10 rounded-full border-2 border-blue-500" src="https://placehold.co/40x40/3b82f6/white?text=A" alt="Admin">        }
-
-                        <div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>        @keyframes spin {
-
-                    </div>            from { transform: rotate(0deg); }
-
-                    <div class="hidden sm:block">            to { transform: rotate(360deg); }
-
-                        <span id="admin-name" class="text-gray-700 font-medium block">Admin</span>        }
-
-                        <span class="text-xs text-gray-500">Quản trị viên</span>        
-
-                    </div>        /* Smooth Transitions */
-
-                    <i class="fas fa-chevron-down text-gray-400 text-sm hidden sm:block"></i>        * {
-
-                </div>            scroll-behavior: smooth;
-
-                        }
-
-                <!-- Back to Site Button -->        
-
-                <a href="index.html" class="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-lg hover:from-blue-600 hover:to-purple-700 transition flex items-center space-x-2 shadow-lg">        /* Custom Scrollbar */
-
-                    <i class="fas fa-home"></i>        ::-webkit-scrollbar {
-
-                    <span class="hidden sm:inline">Về trang chính</span>            width: 8px;
-
-                </a>        }
-
-            </div>        ::-webkit-scrollbar-track {
-
-        </div>            background: #f1f1f1;
-
-    </nav>            border-radius: 4px;
-
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎛️ Admin Dashboard - Xem Giá Đất Đà Nẵng</title>
+    
+    <!-- Meta Tags for Admin Dashboard -->
+    <meta name="description" content="Professional Admin Dashboard for Da Nang Real Estate Platform">
+    <meta name="keywords" content="admin, dashboard, real estate, analytics, management">
+    <meta name="robots" content="noindex, nofollow">
+    
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-analytics-compat.js"></script>
+    
+    <!-- Chart.js for Advanced Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <link rel="stylesheet" href="css/tailwind-production.css">
+    
+    <style>
+        /* 🎨 Professional Admin UI Design System */
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --warning-gradient: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            --danger-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            --dark-gradient: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+            
+            --sidebar-width: 280px;
+            --header-height: 70px;
+            --border-radius: 16px;
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
         }
 
-    <!-- Mobile Overlay -->        ::-webkit-scrollbar-thumb {
-
-    <div id="mobile-overlay" class="hidden fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"></div>            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-
-            border-radius: 4px;
-
-    <div class="flex pt-16">        }
-
-        <!-- Enhanced Responsive Sidebar -->        ::-webkit-scrollbar-thumb:hover {
-
-        <aside id="sidebar" class="sidebar w-64 h-screen fixed left-0 text-white z-40">            background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
-
-            <!-- Sidebar Header -->        }
-
-            <div class="p-6 border-b border-gray-600">    </style>
-
-                <div class="flex items-center space-x-3"></head>
-
-                    <div class="bg-gradient-to-r from-blue-500 to-purple-600 p-2 rounded-lg"><body class="bg-gray-100 font-sans">
-
-                        <i class="fas fa-chart-pie text-white"></i>    <!-- Enhanced Top Navigation -->
-
-                    </div>    <nav class="bg-white shadow-lg border-b-2 border-blue-500 h-16 fixed w-full top-0 z-50">
-
-                    <div class="sidebar-text">        <div class="flex items-center justify-between h-full px-6">
-
-                        <h2 class="font-bold text-lg">Control Panel</h2>            <div class="flex items-center space-x-4">
-
-                        <p class="text-sm text-gray-300">Quản lý hệ thống</p>                <!-- Mobile Menu Toggle -->
-
-                    </div>                <button id="mobile-menu-toggle" class="lg:hidden p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition">
-
-                </div>                    <i class="fas fa-bars text-xl"></i>
-
-            </div>                </button>
-
-                            
-
-            <!-- Navigation Menu -->                <!-- Sidebar Toggle for Desktop -->
-
-            <div class="p-6">                <button id="sidebar-toggle" class="hidden lg:block p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition">
-
-                <nav class="space-y-2">                    <i class="fas fa-bars text-xl"></i>
-
-                    <button onclick="showSection('dashboard')" class="sidebar-item active w-full text-left px-4 py-3 rounded-lg transition flex items-center space-x-3">                </button>
-
-                        <i class="fas fa-chart-line text-lg w-5"></i>                
-
-                        <span class="sidebar-text">Dashboard</span>                <div class="flex items-center space-x-3">
-
-                        <div class="sidebar-text ml-auto">                    <div class="bg-gradient-to-r from-blue-500 to-purple-600 p-2 rounded-lg">
-
-                            <span class="bg-blue-500 text-xs px-2 py-1 rounded-full">Live</span>                        <i class="fas fa-tachometer-alt text-xl text-white"></i>
-
-                        </div>                    </div>
-
-                    </button>                    <div>
-
-                                            <h1 class="text-xl font-bold text-gray-800">Admin Dashboard</h1>
-
-                    <button onclick="showSection('users')" class="sidebar-item w-full text-left px-4 py-3 rounded-lg transition flex items-center space-x-3">                        <p class="text-xs text-gray-500 hidden sm:block">Quáº£n lÃ½ há»‡ thá»‘ng BDS</p>
-
-                        <i class="fas fa-users text-lg w-5"></i>                    </div>
-
-                        <span class="sidebar-text">Quản lý người dùng</span>                </div>
-
-                        <div class="sidebar-text ml-auto">            </div>
-
-                            <span id="users-count" class="bg-gray-600 text-xs px-2 py-1 rounded-full">0</span>            
-
-                        </div>            <!-- Breadcrumb Navigation -->
-
-                    </button>            <div class="hidden md:flex items-center space-x-2 text-sm text-gray-500">
-
-                                    <i class="fas fa-home"></i>
-
-                    <button onclick="showSection('listings')" class="sidebar-item w-full text-left px-4 py-3 rounded-lg transition flex items-center space-x-3">                <span>Admin</span>
-
-                        <i class="fas fa-building text-lg w-5"></i>                <i class="fas fa-chevron-right text-xs"></i>
-
-                        <span class="sidebar-text">Tin đăng BDS</span>                <span id="current-section" class="text-blue-600 font-medium">Dashboard</span>
-
-                        <div class="sidebar-text ml-auto">            </div>
-
-                            <span id="listings-count" class="bg-gray-600 text-xs px-2 py-1 rounded-full">0</span>            <div class="flex items-center space-x-4">
-
-                        </div>                <!-- Real-time Status Indicator -->
-
-                    </button>                <div class="flex items-center space-x-2">
-
-                                        <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-
-                    <button onclick="showSection('feedback')" class="sidebar-item w-full text-left px-4 py-3 rounded-lg transition flex items-center space-x-3">                    <span class="text-sm text-gray-600 hidden sm:block">Hoáº¡t Ä‘á»™ng</span>
-
-                        <i class="fas fa-comments text-lg w-5"></i>                </div>
-
-                        <span class="sidebar-text">Góp ý & Phản hồi</span>                
-
-                        <div class="sidebar-text ml-auto">                <!-- Notifications -->
-
-                            <span id="feedback-count" class="bg-yellow-500 text-xs px-2 py-1 rounded-full">0</span>                <div class="relative">
-
-                        </div>                    <button id="notification-btn" class="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition relative">
-
-                    </button>                        <i class="fas fa-bell text-xl"></i>
-
-                                            <span id="notification-badge" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center hidden animate-bounce">0</span>
-
-                    <button onclick="showSection('analytics')" class="sidebar-item w-full text-left px-4 py-3 rounded-lg transition flex items-center space-x-3">                    </button>
-
-                        <i class="fas fa-chart-bar text-lg w-5"></i>                    
-
-                        <span class="sidebar-text">Analytics & Performance</span>                    <!-- Notification Dropdown -->
-
-                        <div class="sidebar-text ml-auto">                    <div id="notification-dropdown" class="hidden absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border z-50">
-
-                            <i class="fas fa-arrow-up text-green-400 text-xs"></i>                        <div class="p-4 border-b">
-
-                        </div>                            <h3 class="font-semibold text-gray-800">ThÃ´ng bÃ¡o má»›i</h3>
-
-                    </button>                        </div>
-
-                                            <div class="max-h-64 overflow-y-auto">
-
-                    <button onclick="showSection('settings')" class="sidebar-item w-full text-left px-4 py-3 rounded-lg transition flex items-center space-x-3">                            <div class="p-4 text-center text-gray-500">
-
-                        <i class="fas fa-cog text-lg w-5"></i>                                <i class="fas fa-bell-slash text-2xl mb-2"></i>
-
-                        <span class="sidebar-text">Cài đặt hệ thống</span>                                <p>KhÃ´ng cÃ³ thÃ´ng bÃ¡o má»›i</p>
-
-                    </button>                            </div>
-
-                </nav>                        </div>
-
-            </div>                    </div>
-
-                </div>
-
-            <!-- Enhanced Quick Stats in Sidebar -->                
-
-            <div class="p-6 border-t border-gray-600 mt-auto">                <!-- Admin Profile -->
-
-                <h3 class="text-sm font-semibold text-gray-300 mb-4 sidebar-text">                <div id="admin-profile" class="flex items-center space-x-3 cursor-pointer hover:bg-gray-100 rounded-lg p-2 transition">
-
-                    <i class="fas fa-chart-pie mr-2"></i>Hoạt động hôm nay                    <div class="relative">
-
-                </h3>                        <img id="admin-avatar" class="w-10 h-10 rounded-full border-2 border-blue-500" src="https://placehold.co/40x40/3b82f6/white?text=A" alt="Admin">
-
-                <div class="space-y-3 text-sm sidebar-text">                        <div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
-
-                    <div class="flex justify-between items-center bg-gray-700 bg-opacity-50 rounded-lg p-2">                    </div>
-
-                        <span class="flex items-center">                    <div class="hidden sm:block">
-
-                            <i class="fas fa-user-plus mr-2 text-green-400"></i>                        <span id="admin-name" class="text-gray-700 font-medium block">Admin</span>
-
-                            Người dùng mới:                        <span class="text-xs text-gray-500">Quáº£n trá»‹ viÃªn</span>
-
-                        </span>                    </div>
-
-                        <span id="today-users" class="text-green-400 font-bold">0</span>                    <i class="fas fa-chevron-down text-gray-400 text-sm hidden sm:block"></i>
-
-                    </div>                </div>
-
-                    <div class="flex justify-between items-center bg-gray-700 bg-opacity-50 rounded-lg p-2">                
-
-                        <span class="flex items-center">                <!-- Back to Site Button -->
-
-                            <i class="fas fa-home mr-2 text-blue-400"></i>                <a href="index.html" class="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-lg hover:from-blue-600 hover:to-purple-700 transition flex items-center space-x-2 shadow-lg">
-
-                            Tin đăng mới:                    <i class="fas fa-home"></i>
-
-                        </span>                    <span class="hidden sm:inline">Vá» trang chÃ­nh</span>
-
-                        <span id="today-listings" class="text-blue-400 font-bold">0</span>                </a>
-
-                    </div>            </div>
-
-                    <div class="flex justify-between items-center bg-gray-700 bg-opacity-50 rounded-lg p-2">        </div>
-
-                        <span class="flex items-center">    </nav>
-
-                            <i class="fas fa-heart mr-2 text-pink-400"></i>
-
-                            Góp ý mới:    <!-- Mobile Overlay -->
-
-                        </span>    <div id="mobile-overlay" class="hidden fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"></div>
-
-                        <span id="today-feedback" class="text-pink-400 font-bold">0</span>
-
-                    </div>    <div class="flex pt-16">
-
-                    <div class="flex justify-between items-center bg-gray-700 bg-opacity-50 rounded-lg p-2">        <!-- Enhanced Responsive Sidebar -->
-
-                        <span class="flex items-center">        <aside id="sidebar" class="sidebar w-64 h-screen fixed left-0 text-white z-40">
-
-                            <i class="fas fa-eye mr-2 text-purple-400"></i>            <!-- Sidebar Header -->
-
-                            Lượt xem:            <div class="p-6 border-b border-gray-600">
-
-                        </span>                <div class="flex items-center space-x-3">
-
-                        <span id="today-views" class="text-purple-400 font-bold">0</span>                    <div class="bg-gradient-to-r from-blue-500 to-purple-600 p-2 rounded-lg">
-
-                    </div>                        <i class="fas fa-chart-pie text-white"></i>
-
-                </div>                    </div>
-
-                                    <div class="sidebar-text">
-
-                <!-- System Status -->                        <h2 class="font-bold text-lg">Control Panel</h2>
-
-                <div class="sidebar-text mt-4 p-3 bg-gray-700 bg-opacity-30 rounded-lg">                        <p class="text-sm text-gray-300">Quáº£n lÃ½ há»‡ thá»‘ng</p>
-
-                    <div class="flex items-center justify-between">                    </div>
-
-                        <span class="text-xs text-gray-300">Hệ thống:</span>                </div>
-
-                        <div class="flex items-center space-x-1">            </div>
-
-                            <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>            
-
-                            <span class="text-xs text-green-400">Hoạt động tốt</span>            <!-- Navigation Menu -->
-
-                        </div>            <div class="p-6">
-
-                    </div>                <nav class="space-y-2">
-
-                </div>                    <button onclick="showSection('dashboard')" class="sidebar-item active w-full text-left px-4 py-3 rounded-lg transition flex items-center space-x-3">
-
-            </div>                        <i class="fas fa-chart-line text-lg w-5"></i>
-
-        </aside>                        <span class="sidebar-text">Dashboard</span>
-
-                        <div class="sidebar-text ml-auto">
-
-        <!-- Enhanced Main Content -->                            <span class="bg-blue-500 text-xs px-2 py-1 rounded-full">Live</span>
-
-        <main id="main-content" class="content-area ml-64 flex-1 p-6 transition-all duration-300">                        </div>
-
-            <!-- Welcome Header -->                    </button>
-
-            <div class="mb-8">                    
-
-                <div class="bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl p-6 text-white shadow-xl">                    <button onclick="showSection('users')" class="sidebar-item w-full text-left px-4 py-3 rounded-lg transition flex items-center space-x-3">
-
-                    <div class="flex items-center justify-between">                        <i class="fas fa-users text-lg w-5"></i>
-
-                        <div>                        <span class="sidebar-text">Quáº£n lÃ½ ngÆ°á»i dÃ¹ng</span>
-
-                            <h2 class="text-2xl font-bold mb-2">Chào mừng trở lại, Admin! 👋</h2>                        <div class="sidebar-text ml-auto">
-
-                            <p class="text-blue-100">Hôm nay là <span id="current-date"></span></p>                            <span id="users-count" class="bg-gray-600 text-xs px-2 py-1 rounded-full">0</span>
-
-                        </div>                        </div>
-
-                        <div class="hidden md:flex items-center space-x-4">                    </button>
-
-                            <div class="text-center">                    
-
-                                <div class="text-2xl font-bold" id="current-time"></div>                    <button onclick="showSection('listings')" class="sidebar-item w-full text-left px-4 py-3 rounded-lg transition flex items-center space-x-3">
-
-                                <div class="text-sm text-blue-200">Thời gian hiện tại</div>                        <i class="fas fa-building text-lg w-5"></i>
-
-                            </div>                        <span class="sidebar-text">Tin Ä‘Äƒng BDS</span>
-
-                        </div>                        <div class="sidebar-text ml-auto">
-
-                    </div>                            <span id="listings-count" class="bg-gray-600 text-xs px-2 py-1 rounded-full">0</span>
-
-                </div>                        </div>
-
-            </div>                    </button>
-
-                    
-
-            <!-- Dashboard Section -->                    <button onclick="showSection('feedback')" class="sidebar-item w-full text-left px-4 py-3 rounded-lg transition flex items-center space-x-3">
-
-            <section id="dashboard-section" class="section">                        <i class="fas fa-comments text-lg w-5"></i>
-
-                <div class="mb-8">                        <span class="sidebar-text">GÃ³p Ã½ & Pháº£n há»“i</span>
-
-                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Dashboard Tổng quan</h2>                        <div class="sidebar-text ml-auto">
-
-                    <p class="text-gray-600">Thống kê và quản lý hoạt động của website</p>                            <span id="feedback-count" class="bg-yellow-500 text-xs px-2 py-1 rounded-full">0</span>
-
-                </div>                        </div>
-
-                    </button>
-
-                <!-- Stats Cards -->                    
-
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">                    <button onclick="showSection('analytics')" class="sidebar-item w-full text-left px-4 py-3 rounded-lg transition flex items-center space-x-3">
-
-                    <div class="stat-card users p-6 rounded-xl text-white shadow-lg">                        <i class="fas fa-chart-bar text-lg w-5"></i>
-
-                        <div class="flex items-center justify-between">                        <span class="sidebar-text">Analytics & Performance</span>
-
-                            <div>                        <div class="sidebar-text ml-auto">
-
-                                <p class="text-sm opacity-80">Tổng người dùng</p>                            <i class="fas fa-arrow-up text-green-400 text-xs"></i>
-
-                                <p id="total-users" class="text-3xl font-bold">0</p>                        </div>
-
-                                <p class="text-sm opacity-70">↗ +<span id="users-growth">0</span> tuần này</p>                    </button>
-
-                            </div>                    
-
-                            <i class="fas fa-users text-4xl opacity-60"></i>                    <button onclick="showSection('settings')" class="sidebar-item w-full text-left px-4 py-3 rounded-lg transition flex items-center space-x-3">
-
-                        </div>                        <i class="fas fa-cog text-lg w-5"></i>
-
-                    </div>                        <span class="sidebar-text">CÃ i Ä‘áº·t há»‡ thá»‘ng</span>
-
-                    </button>
-
-                    <div class="stat-card listings p-6 rounded-xl text-white shadow-lg">                </nav>
-
-                        <div class="flex items-center justify-between">            </div>
-
-                            <div>
-
-                                <p class="text-sm opacity-80">Tin đăng BDS</p>            <!-- Enhanced Quick Stats in Sidebar -->
-
-                                <p id="total-listings" class="text-3xl font-bold">0</p>            <div class="p-6 border-t border-gray-600 mt-auto">
-
-                                <p class="text-sm opacity-70">↗ +<span id="listings-growth">0</span> tuần này</p>                <h3 class="text-sm font-semibold text-gray-300 mb-4 sidebar-text">
-
-                            </div>                    <i class="fas fa-chart-pie mr-2"></i>Hoáº¡t Ä‘á»™ng hÃ´m nay
-
-                            <i class="fas fa-building text-4xl opacity-60"></i>                </h3>
-
-                        </div>                <div class="space-y-3 text-sm sidebar-text">
-
-                    </div>                    <div class="flex justify-between items-center bg-gray-700 bg-opacity-50 rounded-lg p-2">
-
-                        <span class="flex items-center">
-
-                    <div class="stat-card feedback p-6 rounded-xl text-white shadow-lg">                            <i class="fas fa-user-plus mr-2 text-green-400"></i>
-
-                        <div class="flex items-center justify-between">                            NgÆ°á»i dÃ¹ng má»›i:
-
-                            <div>                        </span>
-
-                                <p class="text-sm opacity-80">Góp ý & Phản hồi</p>                        <span id="today-users" class="text-green-400 font-bold">0</span>
-
-                                <p id="total-feedback" class="text-3xl font-bold">0</p>                    </div>
-
-                                <p class="text-sm opacity-70">🌟 <span id="avg-rating">0</span> sao TB</p>                    <div class="flex justify-between items-center bg-gray-700 bg-opacity-50 rounded-lg p-2">
-
-                            </div>                        <span class="flex items-center">
-
-                            <i class="fas fa-comments text-4xl opacity-60"></i>                            <i class="fas fa-home mr-2 text-blue-400"></i>
-
-                        </div>                            Tin Ä‘Äƒng má»›i:
-
-                    </div>                        </span>
-
-                        <span id="today-listings" class="text-blue-400 font-bold">0</span>
-
-                    <div class="stat-card visits p-6 rounded-xl text-white shadow-lg">                    </div>
-
-                        <div class="flex items-center justify-between">                    <div class="flex justify-between items-center bg-gray-700 bg-opacity-50 rounded-lg p-2">
-
-                            <div>                        <span class="flex items-center">
-
-                                <p class="text-sm opacity-80">Lượt truy cập</p>                            <i class="fas fa-heart mr-2 text-pink-400"></i>
-
-                                <p id="total-visits" class="text-3xl font-bold">0</p>                            GÃ³p Ã½ má»›i:
-
-                                <p class="text-sm opacity-70">📊 Ước tính</p>                        </span>
-
-                            </div>                        <span id="today-feedback" class="text-pink-400 font-bold">0</span>
-
-                            <i class="fas fa-chart-line text-4xl opacity-60"></i>                    </div>
-
-                        </div>                    <div class="flex justify-between items-center bg-gray-700 bg-opacity-50 rounded-lg p-2">
-
-                    </div>                        <span class="flex items-center">
-
-                </div>                            <i class="fas fa-eye mr-2 text-purple-400"></i>
-
-                            LÆ°á»£t xem:
-
-                <!-- Charts Section -->                        </span>
-
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">                        <span id="today-views" class="text-purple-400 font-bold">0</span>
-
-                    <div class="bg-white p-6 rounded-xl shadow-lg">                    </div>
-
-                        <h3 class="text-lg font-bold text-gray-800 mb-4">📈 Tăng trưởng người dùng (7 ngày qua)</h3>                </div>
-
-                        <div class="h-64 bg-gray-50 rounded-lg flex items-center justify-center">                
-
-                            <div class="text-center text-gray-500">                <!-- System Status -->
-
-                                <i class="fas fa-chart-line text-4xl mb-4"></i>                <div class="sidebar-text mt-4 p-3 bg-gray-700 bg-opacity-30 rounded-lg">
-
-                                <p>Biểu đồ tăng trưởng người dùng</p>                    <div class="flex items-center justify-between">
-
-                            </div>                        <span class="text-xs text-gray-300">Há»‡ thá»‘ng:</span>
-
-                        </div>                        <div class="flex items-center space-x-1">
-
-                    </div>                            <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-
-                            <span class="text-xs text-green-400">Hoáº¡t Ä‘á»™ng tá»‘t</span>
-
-                    <div class="bg-white p-6 rounded-xl shadow-lg">                        </div>
-
-                        <h3 class="text-lg font-bold text-gray-800 mb-4">🏠 Thống kê tin đăng theo khu vực</h3>                    </div>
-
-                        <div class="h-64 bg-gray-50 rounded-lg flex items-center justify-center">                </div>
-
-                            <div class="text-center text-gray-500">            </div>
-
-                                <i class="fas fa-map text-4xl mb-4"></i>        </aside>
-
-                                <p>Phân bố tin đăng theo khu vực</p>
-
-                            </div>        <!-- Enhanced Main Content -->
-
-                        </div>        <main id="main-content" class="content-area ml-64 flex-1 p-6 transition-all duration-300">
-
-                    </div>            <!-- Welcome Header -->
-
-                </div>            <div class="mb-8">
-
-                <div class="bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl p-6 text-white shadow-xl">
-
-                <!-- Quick Actions -->                    <div class="flex items-center justify-between">
-
-                <div class="bg-white p-6 rounded-xl shadow-lg">                        <div>
-
-                    <h3 class="text-lg font-bold text-gray-800 mb-4">🚀 Thao tác nhanh</h3>                            <h2 class="text-2xl font-bold mb-2">ChÃ o má»«ng trá»Ÿ láº¡i, Admin! ðŸ‘‹</h2>
-
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">                            <p class="text-blue-100">HÃ´m nay lÃ  <span id="current-date"></span></p>
-
-                        <button class="bg-blue-500 text-white p-4 rounded-lg hover:bg-blue-600 transition">                        </div>
-
-                            <i class="fas fa-plus text-2xl mb-2"></i>                        <div class="hidden md:flex items-center space-x-4">
-
-                            <p class="text-sm">Thêm người dùng</p>                            <div class="text-center">
-
-                        </button>                                <div class="text-2xl font-bold" id="current-time"></div>
-
-                        <button class="bg-green-500 text-white p-4 rounded-lg hover:bg-green-600 transition">                                <div class="text-sm text-blue-200">Thá»i gian hiá»‡n táº¡i</div>
-
-                            <i class="fas fa-home text-2xl mb-2"></i>                            </div>
-
-                            <p class="text-sm">Duyệt tin đăng</p>                        </div>
-
-                        </button>                    </div>
-
-                        <button class="bg-purple-500 text-white p-4 rounded-lg hover:bg-purple-600 transition">                </div>
-
-                            <i class="fas fa-chart-bar text-2xl mb-2"></i>            </div>
-
-                            <p class="text-sm">Xem báo cáo</p>            <!-- Dashboard Section -->
-
-                        </button>            <section id="dashboard-section" class="section">
-
-                        <button class="bg-orange-500 text-white p-4 rounded-lg hover:bg-orange-600 transition">                <div class="mb-8">
-
-                            <i class="fas fa-cog text-2xl mb-2"></i>                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Dashboard Tổng quan</h2>
-
-                            <p class="text-sm">Cài đặt</p>                    <p class="text-gray-600">Thá»‘ng kÃª vÃ  quáº£n lÃ½ hoáº¡t Ä‘á»™ng cá»§a website</p>
-
-                        </button>                </div>
-
-                    </div>
-
-                </div>                <!-- Stats Cards -->
-
-            </section>                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-
-                    <div class="stat-card users p-6 rounded-xl text-white shadow-lg">
-
-            <!-- Users Section -->                        <div class="flex items-center justify-between">
-
-            <section id="users-section" class="section hidden">                            <div>
-
-                <div class="mb-8">                                <p class="text-sm opacity-80">Tá»•ng ngÆ°á»i dÃ¹ng</p>
-
-                    <h2 class="text-3xl font-bold text-gray-800 mb-2">👥 Quản lý người dùng</h2>                                <p id="total-users" class="text-3xl font-bold">0</p>
-
-                    <p class="text-gray-600">Xem và quản lý tài khoản người dùng</p>                                <p class="text-sm opacity-70">â†— +<span id="users-growth">0</span> tuáº§n nÃ y</p>
-
-                </div>                            </div>
-
-                                            <i class="fas fa-users text-4xl opacity-60"></i>
-
-                <div class="bg-white p-6 rounded-xl shadow-lg">                        </div>
-
-                    <div class="text-center text-gray-500 py-12">                    </div>
-
-                        <i class="fas fa-users text-6xl mb-4"></i>
-
-                        <h3 class="text-xl font-semibold mb-2">Quản lý người dùng</h3>                    <div class="stat-card listings p-6 rounded-xl text-white shadow-lg">
-
-                        <p>Tính năng quản lý người dùng sẽ được triển khai sớm</p>                        <div class="flex items-center justify-between">
-
-                    </div>                            <div>
-
-                </div>                                <p class="text-sm opacity-80">Tin Ä‘Äƒng BDS</p>
-
-            </section>                                <p id="total-listings" class="text-3xl font-bold">0</p>
-
-                                <p class="text-sm opacity-70">â†— +<span id="listings-growth">0</span> tuáº§n nÃ y</p>
-
-            <!-- Listings Section -->                            </div>
-
-            <section id="listings-section" class="section hidden">                            <i class="fas fa-building text-4xl opacity-60"></i>
-
-                <div class="mb-8">                        </div>
-
-                    <h2 class="text-3xl font-bold text-gray-800 mb-2">🏠 Quản lý tin đăng BDS</h2>                    </div>
-
-                    <p class="text-gray-600">Duyệt và quản lý tin đăng bất động sản</p>
-
-                </div>                    <div class="stat-card feedback p-6 rounded-xl text-white shadow-lg">
-
-                                        <div class="flex items-center justify-between">
-
-                <div class="bg-white p-6 rounded-xl shadow-lg">                            <div>
-
-                    <div class="text-center text-gray-500 py-12">                                <p class="text-sm opacity-80">GÃ³p Ã½ & Pháº£n há»“i</p>
-
-                        <i class="fas fa-building text-6xl mb-4"></i>                                <p id="total-feedback" class="text-3xl font-bold">0</p>
-
-                        <h3 class="text-xl font-semibold mb-2">Quản lý tin đăng</h3>                                <p class="text-sm opacity-70">ðŸŒŸ <span id="avg-rating">0</span> sao TB</p>
-
-                        <p>Tính năng quản lý tin đăng sẽ được triển khai sớm</p>                            </div>
-
-                    </div>                            <i class="fas fa-comments text-4xl opacity-60"></i>
-
-                </div>                        </div>
-
-            </section>                    </div>
-
-
-
-            <!-- Feedback Section -->                    <div class="stat-card visits p-6 rounded-xl text-white shadow-lg">
-
-            <section id="feedback-section" class="section hidden">                        <div class="flex items-center justify-between">
-
-                <div class="mb-8">                            <div>
-
-                    <h2 class="text-3xl font-bold text-gray-800 mb-2">💬 Góp ý & Phản hồi</h2>                                <p class="text-sm opacity-80">LÆ°á»£t truy cáº­p</p>
-
-                    <p class="text-gray-600">Xem và trả lời góp ý từ người dùng</p>                                <p id="total-visits" class="text-3xl font-bold">0</p>
-
-                </div>                                <p class="text-sm opacity-70">ðŸ“Š Æ¯á»›c tÃ­nh</p>
-
-                                            </div>
-
-                <div class="bg-white p-6 rounded-xl shadow-lg">                            <i class="fas fa-chart-line text-4xl opacity-60"></i>
-
-                    <div class="text-center text-gray-500 py-12">                        </div>
-
-                        <i class="fas fa-comments text-6xl mb-4"></i>                    </div>
-
-                        <h3 class="text-xl font-semibold mb-2">Góp ý & Phản hồi</h3>                </div>
-
-                        <p>Tính năng quản lý góp ý sẽ được triển khai sớm</p>
-
-                    </div>                <!-- Charts Row -->
-
-                </div>                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-
-            </section>                    <div class="bg-white p-6 rounded-xl shadow-lg">
-
-                        <h3 class="text-lg font-bold text-gray-800 mb-4">TÄƒng trÆ°á»Ÿng ngÆ°á»i dÃ¹ng (7 ngÃ y qua)</h3>
-
-            <!-- Analytics Section -->                        <canvas id="userGrowthChart" width="400" height="200"></canvas>
-
-            <section id="analytics-section" class="section hidden">                    </div>
-
-                <div class="mb-8">                    <div class="bg-white p-6 rounded-xl shadow-lg">
-
-                    <h2 class="text-3xl font-bold text-gray-800 mb-2">📊 Analytics & Performance</h2>                        <h3 class="text-lg font-bold text-gray-800 mb-4">PhÃ¢n bá»‘ Ä‘Ã¡nh giÃ¡</h3>
-
-                    <p class="text-gray-600">Phân tích hiệu suất và thống kê chi tiết</p>                        <canvas id="ratingChart" width="400" height="200"></canvas>
-
-                </div>                    </div>
-
-                                </div>
-
-                <div class="bg-white p-6 rounded-xl shadow-lg">
-
-                    <div class="text-center text-gray-500 py-12">                <!-- Recent Activity -->
-
-                        <i class="fas fa-chart-bar text-6xl mb-4"></i>                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-                        <h3 class="text-xl font-semibold mb-2">Analytics Dashboard</h3>                    <div class="bg-white p-6 rounded-xl shadow-lg">
-
-                        <p>Tính năng analytics chi tiết sẽ được triển khai sớm</p>                        <h3 class="text-lg font-bold text-gray-800 mb-4">Hoáº¡t Ä‘á»™ng gáº§n Ä‘Ã¢y</h3>
-
-                    </div>                        <div id="recent-activities" class="space-y-3">
-
-                </div>                            <!-- Activities will be populated by JS -->
-
-            </section>                        </div>
-
-                    </div>
-
-            <!-- Settings Section -->                    <div class="bg-white p-6 rounded-xl shadow-lg">
-
-            <section id="settings-section" class="section hidden">                        <h3 class="text-lg font-bold text-gray-800 mb-4">Tin Ä‘Äƒng cáº§n duyá»‡t</h3>
-
-                <div class="mb-8">                        <div id="pending-listings" class="space-y-3">
-
-                    <h2 class="text-3xl font-bold text-gray-800 mb-2">⚙️ Cài đặt hệ thống</h2>                            <!-- Pending listings will be populated by JS -->
-
-                    <p class="text-gray-600">Quản lý cấu hình và tùy chỉnh hệ thống</p>                        </div>
-
-                </div>                    </div>
-
-                                </div>
-
-                <div class="bg-white p-6 rounded-xl shadow-lg">            </section>
-
-                    <div class="text-center text-gray-500 py-12">
-
-                        <i class="fas fa-cog text-6xl mb-4"></i>            <!-- Users Management Section -->
-
-                        <h3 class="text-xl font-semibold mb-2">Cài đặt hệ thống</h3>            <section id="users-section" class="section hidden">
-
-                        <p>Tính năng cài đặt sẽ được triển khai sớm</p>                <div class="mb-8">
-
-                    </div>                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Quáº£n lÃ½ ngÆ°á»i dÃ¹ng</h2>
-
-                </div>                    <p class="text-gray-600">Xem vÃ  quáº£n lÃ½ tÃ i khoáº£n ngÆ°á»i dÃ¹ng</p>
-
-            </section>                </div>
-
-        </main>
-
-    </div>                <!-- User Stats & Actions -->
-
-                <div class="bg-white p-6 rounded-xl shadow-lg mb-6">
-
-    <!-- Chart.js Library -->                    <div class="flex flex-wrap justify-between items-center gap-4">
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>                        <div class="flex space-x-6">
-
-                                <div class="text-center">
-
-    <!-- Enhanced Admin Dashboard Script -->                                <div class="text-2xl font-bold text-blue-600" id="users-active">0</div>
-
-    <script>                                <div class="text-sm text-gray-600">Hoáº¡t Ä‘á»™ng</div>
-
-        // Enhanced Admin Dashboard JavaScript with fixed section switching                            </div>
-
-                                    <div class="text-center">
-
-        // Global variables                                <div class="text-2xl font-bold text-green-600" id="users-premium">0</div>
-
-        let sidebarCollapsed = false;                                <div class="text-sm text-gray-600">Premium</div>
-
-        let currentSection = 'dashboard';                            </div>
-
-                                    <div class="text-center">
-
-        // Initialize dashboard when page loads                                <div class="text-2xl font-bold text-yellow-600" id="users-banned">0</div>
-
-        document.addEventListener('DOMContentLoaded', function() {                                <div class="text-sm text-gray-600">Bá»‹ khÃ³a</div>
-
-            initializeDashboard();                            </div>
-
-            updateDateTime();                        </div>
-
-            setInterval(updateDateTime, 1000); // Update time every second                        <div class="flex space-x-2">
-
-        });                            <input type="text" id="search-users" placeholder="TÃ¬m kiáº¿m ngÆ°á»i dÃ¹ng..." 
-
-                                           class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-
-        // Initialize dashboard functions                            <button onclick="exportUsers()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
-
-        function initializeDashboard() {                                <i class="fas fa-download mr-2"></i>Xuáº¥t Excel
-
-            setupMobileMenu();                            </button>
-
-            setupSidebarToggle();                        </div>
-
-            loadInitialData();                    </div>
-
-            showSection('dashboard');                </div>
-
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-                        <!-- Users Table -->
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            color: #2d3748;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
 
-        // Enhanced showSection function with better error handling                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+        /* 🚀 Enhanced Sidebar */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: var(--dark-gradient);
+            backdrop-filter: blur(20px);
+            box-shadow: var(--shadow-xl);
+            z-index: 1000;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
 
-        function showSection(sectionName) {                    <div class="overflow-x-auto">
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+        }
 
-            console.log('Switching to section:', sectionName);                        <table class="w-full">
+        .sidebar-header h1 {
+            color: white;
+            font-size: 1.25rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
 
-            currentSection = sectionName;                            <thead class="bg-gray-50">
+        .sidebar-header .logo-icon {
+            background: var(--primary-gradient);
+            padding: 0.5rem;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
 
-                                            <tr>
+        .nav-menu {
+            padding: 1rem 0;
+            height: calc(100vh - 200px);
+            overflow-y: auto;
+        }
 
-            // Hide all sections first                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">NgÆ°á»i dÃ¹ng</th>
+        .nav-section {
+            margin: 1.5rem 0;
+        }
 
-            const sections = document.querySelectorAll('.section');                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+        .nav-section-title {
+            padding: 0 1.5rem 0.5rem 1.5rem;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
 
-            sections.forEach(section => {                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ÄÄƒng kÃ½</th>
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 0.875rem 1.5rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+            cursor: pointer;
+            margin: 0.25rem 0;
+            position: relative;
+        }
 
-                section.classList.add('hidden');                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tin Ä‘Äƒng</th>
+        .nav-item:hover, .nav-item.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-left-color: #667eea;
+            transform: translateX(8px);
+        }
 
-                section.style.display = 'none';                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tráº¡ng thÃ¡i</th>
+        .nav-item.active {
+            background: rgba(102, 126, 234, 0.2);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
 
-            });                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">HÃ nh Ä‘á»™ng</th>
+        .nav-item i {
+            width: 20px;
+            margin-right: 0.75rem;
+            font-size: 1.1rem;
+        }
 
-                                            </tr>
+        .nav-item .nav-badge {
+            margin-left: auto;
+            background: #ef4444;
+            color: white;
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            min-width: 20px;
+            text-align: center;
+        }
 
-            // Show selected section                            </thead>
+        /* 🎯 Main Content Area */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+            transition: margin-left 0.3s ease;
+        }
 
-            const targetSection = document.getElementById(sectionName + '-section');                            <tbody id="users-table-body" class="divide-y divide-gray-200">
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            height: var(--header-height);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            box-shadow: var(--shadow-lg);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
 
-            if (targetSection) {                                <!-- Users will be populated by JS -->
+        .header-left h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
 
-                targetSection.classList.remove('hidden');                            </tbody>
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
 
-                targetSection.style.display = 'block';                        </table>
+        .header-notification {
+            position: relative;
+            background: rgba(102, 126, 234, 0.1);
+            padding: 0.75rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
 
-                console.log('Showing section:', sectionName);                    </div>
+        .header-notification:hover {
+            background: rgba(102, 126, 234, 0.2);
+            transform: scale(1.05);
+        }
 
-            } else {                </div>
+        .notification-badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            background: #ef4444;
+            color: white;
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            min-width: 20px;
+            text-align: center;
+        }
 
-                console.error('Section not found:', sectionName + '-section');            </section>
+        .admin-profile {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 1rem;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
 
+        .admin-profile:hover {
+            background: rgba(102, 126, 234, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .admin-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid #667eea;
+            object-fit: cover;
+        }
+
+        /* 💎 Content Sections */
+        .content {
+            padding: 2rem;
+        }
+
+        .section {
+            display: none;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
             }
-
-                        <!-- Listings Management Section -->
-
-            // Update sidebar active state            <section id="listings-section" class="section hidden">
-
-            const sidebarItems = document.querySelectorAll('.sidebar-item');                <div class="mb-8">
-
-            sidebarItems.forEach(item => item.classList.remove('active'));                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Quáº£n lÃ½ tin Ä‘Äƒng BDS</h2>
-
-                                <p class="text-gray-600">Kiá»ƒm duyá»‡t vÃ  quáº£n lÃ½ tin Ä‘Äƒng báº¥t Ä‘á»™ng sáº£n</p>
-
-            const activeItem = document.querySelector(`[onclick="showSection('${sectionName}')"]`);                </div>
-
-            if (activeItem) {
-
-                activeItem.classList.add('active');                <!-- Listing Filters -->
-
-            }                <div class="bg-white p-6 rounded-xl shadow-lg mb-6">
-
-                                <div class="flex flex-wrap justify-between items-center gap-4">
-
-            // Update breadcrumb                        <div class="flex space-x-4">
-
-            const breadcrumb = document.getElementById('current-section');                            <select id="filter-status" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-
-            if (breadcrumb) {                                <option value="">Táº¥t cáº£ tráº¡ng thÃ¡i</option>
-
-                const sectionNames = {                                <option value="pending">Chá» duyá»‡t</option>
-
-                    'dashboard': 'Dashboard',                                <option value="approved">ÄÃ£ duyá»‡t</option>
-
-                    'users': 'Quản lý người dùng',                                <option value="rejected">Tá»« chá»‘i</option>
-
-                    'listings': 'Tin đăng BDS',                            </select>
-
-                    'feedback': 'Góp ý & Phản hồi',                            <input type="text" id="search-listings" placeholder="TÃ¬m kiáº¿m tin Ä‘Äƒng..." 
-
-                    'analytics': 'Analytics & Performance',                                   class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-
-                    'settings': 'Cài đặt hệ thống'                        </div>
-
-                };                        <div class="flex space-x-2">
-
-                breadcrumb.textContent = sectionNames[sectionName] || 'Dashboard';                            <button onclick="bulkApproveListings()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
-
-            }                                <i class="fas fa-check mr-2"></i>Duyá»‡t hÃ ng loáº¡t
-
-        }                            </button>
-
-                                    <button onclick="exportListings()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
-
-        // Update date and time                                <i class="fas fa-download mr-2"></i>Xuáº¥t dá»¯ liá»‡u
-
-        function updateDateTime() {                            </button>
-
-            const now = new Date();                        </div>
-
-            const dateOptions = {                     </div>
-
-                weekday: 'long',                 </div>
-
-                year: 'numeric', 
-
-                month: 'long',                 <!-- Listings Table -->
-
-                day: 'numeric'                 <div class="bg-white rounded-xl shadow-lg overflow-hidden">
-
-            };                    <div class="overflow-x-auto">
-
-            const timeOptions = {                         <table class="w-full">
-
-                hour: '2-digit',                             <thead class="bg-gray-50">
-
-                minute: '2-digit',                                 <tr>
-
-                second: '2-digit'                                     <th class="px-6 py-3 text-left">
-
-            };                                        <input type="checkbox" id="select-all-listings" class="rounded">
-
-                                                </th>
-
-            const dateElement = document.getElementById('current-date');                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tin Ä‘Äƒng</th>
-
-            if (dateElement) {                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">NgÆ°á»i Ä‘Äƒng</th>
-
-                dateElement.textContent = now.toLocaleDateString('vi-VN', dateOptions);                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">GiÃ¡</th>
-
-            }                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">NgÃ y Ä‘Äƒng</th>
-
-                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tráº¡ng thÃ¡i</th>
-
-            const timeElement = document.getElementById('current-time');                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">HÃ nh Ä‘á»™ng</th>
-
-            if (timeElement) {                                </tr>
-
-                timeElement.textContent = now.toLocaleTimeString('vi-VN', timeOptions);                            </thead>
-
-            }                            <tbody id="listings-table-body" class="divide-y divide-gray-200">
-
-        }                                <!-- Listings will be populated by JS -->
-
-                                    </tbody>
-
-        // Setup mobile menu                        </table>
-
-        function setupMobileMenu() {                    </div>
-
-            const mobileToggle = document.getElementById('mobile-menu-toggle');                </div>
-
-            const sidebar = document.getElementById('sidebar');            </section>
-
-            const overlay = document.getElementById('mobile-overlay');
-
-                        <!-- Feedback Management Section -->
-
-            if (mobileToggle && sidebar && overlay) {            <section id="feedback-section" class="section hidden">
-
-                mobileToggle.addEventListener('click', function() {                <div class="mb-8">
-
-                    sidebar.classList.toggle('mobile-open');                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Quáº£n lÃ½ gÃ³p Ã½ & pháº£n há»“i</h2>
-
-                    overlay.classList.toggle('hidden');                    <p class="text-gray-600">Xem vÃ  pháº£n há»“i Ã½ kiáº¿n tá»« ngÆ°á»i dÃ¹ng</p>
-
-                });                </div>
-
-                
-
-                overlay.addEventListener('click', function() {                <!-- Feedback Stats -->
-
-                    sidebar.classList.remove('mobile-open');                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-
-                    overlay.classList.add('hidden');                    <div class="bg-white p-6 rounded-xl shadow-lg">
-
-                });                        <div class="flex items-center justify-between">
-
-            }                            <div>
-
-        }                                <p class="text-sm text-gray-600">GÃ³p Ã½ chÆ°a Ä‘á»c</p>
-
-                                        <p id="feedback-unread" class="text-2xl font-bold text-red-600">0</p>
-
-        // Setup sidebar toggle for desktop                            </div>
-
-        function setupSidebarToggle() {                            <i class="fas fa-exclamation-circle text-3xl text-red-600"></i>
-
-            const sidebarToggle = document.getElementById('sidebar-toggle');                        </div>
-
-            const sidebar = document.getElementById('sidebar');                    </div>
-
-            const mainContent = document.getElementById('main-content');                    <div class="bg-white p-6 rounded-xl shadow-lg">
-
-                                    <div class="flex items-center justify-between">
-
-            if (sidebarToggle && sidebar && mainContent) {                            <div>
-
-                sidebarToggle.addEventListener('click', function() {                                <p class="text-sm text-gray-600">ÄÃ£ pháº£n há»“i</p>
-
-                    sidebarCollapsed = !sidebarCollapsed;                                <p id="feedback-replied" class="text-2xl font-bold text-green-600">0</p>
-
-                                                </div>
-
-                    if (sidebarCollapsed) {                            <i class="fas fa-reply text-3xl text-green-600"></i>
-
-                        sidebar.classList.add('collapsed');                        </div>
-
-                        mainContent.classList.add('expanded');                    </div>
-
-                    } else {                    <div class="bg-white p-6 rounded-xl shadow-lg">
-
-                        sidebar.classList.remove('collapsed');                        <div class="flex items-center justify-between">
-
-                        mainContent.classList.remove('expanded');                            <div>
-
-                    }                                <p class="text-sm text-gray-600">ÄÃ¡nh giÃ¡ trung bÃ¬nh</p>
-
-                });                                <p id="feedback-avg-rating" class="text-2xl font-bold text-yellow-600">0.0</p>
-
-            }                            </div>
-
-        }                            <i class="fas fa-star text-3xl text-yellow-600"></i>
-
-                                </div>
-
-        // Load initial data                    </div>
-
-        function loadInitialData() {                </div>
-
-            // Simulate loading data
-
-            setTimeout(() => {                <!-- Feedback Filters -->
-
-                updateStatsCards();                <div class="bg-white p-6 rounded-xl shadow-lg mb-6">
-
-                updateSidebarCounts();                    <div class="flex flex-wrap justify-between items-center gap-4">
-
-            }, 1000);                        <div class="flex space-x-4">
-
-        }                            <select id="filter-feedback-type" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-
-                                        <option value="">Táº¥t cáº£ loáº¡i</option>
-
-        // Update stats cards                                <option value="suggestion">Äá» xuáº¥t</option>
-
-        function updateStatsCards() {                                <option value="bug">BÃ¡o lá»—i</option>
-
-            const stats = {                                <option value="improvement">Cáº£i thiá»‡n</option>
-
-                users: Math.floor(Math.random() * 1000) + 500,                                <option value="ui">Giao diá»‡n</option>
-
-                listings: Math.floor(Math.random() * 500) + 200,                                <option value="data">Dá»¯ liá»‡u</option>
-
-                feedback: Math.floor(Math.random() * 100) + 50,                                <option value="general">Chung</option>
-
-                visits: Math.floor(Math.random() * 5000) + 2000                            </select>
-
-            };                            <select id="filter-feedback-priority" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-
-                                            <option value="">Táº¥t cáº£ má»©c Ä‘á»™</option>
-
-            const totalUsersEl = document.getElementById('total-users');                                <option value="high">Cao</option>
-
-            const totalListingsEl = document.getElementById('total-listings');                                <option value="medium">Trung bÃ¬nh</option>
-
-            const totalFeedbackEl = document.getElementById('total-feedback');                                <option value="low">Tháº¥p</option>
-
-            const totalVisitsEl = document.getElementById('total-visits');                            </select>
-
-                                        <select id="filter-feedback-rating" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-
-            if (totalUsersEl) totalUsersEl.textContent = stats.users.toLocaleString();                                <option value="">Táº¥t cáº£ Ä‘Ã¡nh giÃ¡</option>
-
-            if (totalListingsEl) totalListingsEl.textContent = stats.listings.toLocaleString();                                <option value="5">5 sao</option>
-
-            if (totalFeedbackEl) totalFeedbackEl.textContent = stats.feedback.toLocaleString();                                <option value="4">4 sao</option>
-
-            if (totalVisitsEl) totalVisitsEl.textContent = stats.visits.toLocaleString();                                <option value="3">3 sao</option>
-
-                                            <option value="2">2 sao</option>
-
-            // Update today's stats                                <option value="1">1 sao</option>
-
-            const todayUsersEl = document.getElementById('today-users');                            </select>
-
-            const todayListingsEl = document.getElementById('today-listings');                        </div>
-
-            const todayFeedbackEl = document.getElementById('today-feedback');                        <button onclick="exportFeedback()" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">
-
-            const todayViewsEl = document.getElementById('today-views');                            <i class="fas fa-download mr-2"></i>Xuáº¥t bÃ¡o cÃ¡o
-
-                                    </button>
-
-            if (todayUsersEl) todayUsersEl.textContent = Math.floor(Math.random() * 20) + 5;                    </div>
-
-            if (todayListingsEl) todayListingsEl.textContent = Math.floor(Math.random() * 10) + 2;                </div>
-
-            if (todayFeedbackEl) todayFeedbackEl.textContent = Math.floor(Math.random() * 5) + 1;
-
-            if (todayViewsEl) todayViewsEl.textContent = Math.floor(Math.random() * 500) + 100;                <!-- Feedback List -->
-
-        }                <div id="feedback-list" class="space-y-4">
-
-                            <!-- Feedback items will be populated by JS -->
-
-        // Update sidebar counts                </div>
-
-        function updateSidebarCounts() {            </section>
-
-            const usersCountEl = document.getElementById('users-count');
-
-            const listingsCountEl = document.getElementById('listings-count');            <!-- Analytics Section -->
-
-            const feedbackCountEl = document.getElementById('feedback-count');            <section id="analytics-section" class="section hidden">
-
-                            <div class="mb-6">
-
-            if (usersCountEl) usersCountEl.textContent = Math.floor(Math.random() * 50) + 10;                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Thá»‘ng kÃª & BÃ¡o cÃ¡o</h2>
-
-            if (listingsCountEl) listingsCountEl.textContent = Math.floor(Math.random() * 25) + 5;                    <p class="text-gray-600">PhÃ¢n tÃ­ch dá»¯ liá»‡u vÃ  xu hÆ°á»›ng sá»­ dá»¥ng</p>
-
-            if (feedbackCountEl) feedbackCountEl.textContent = Math.floor(Math.random() * 10) + 1;                </div>
-
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
-                        <!-- Content will be loaded dynamically by loadAdvancedAnalytics() -->
+        /* 📊 Enhanced Cards */
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-lg);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
 
-        // Add smooth scroll behavior                <div id="content" class="min-h-screen">
+        .card:hover {
+            transform: translateY(-4px) scale(1.01);
+            box-shadow: var(--shadow-xl);
+        }
 
-        document.documentElement.style.scrollBehavior = 'smooth';                    <div class="flex items-center justify-center h-64">
+        .stat-card {
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            color: white;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
 
-    </script>                        <div class="text-center">
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 120px;
+            height: 120px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transform: translate(40px, -40px);
+        }
 
-                                <i class="fas fa-spinner fa-spin text-4xl text-blue-600 mb-4"></i>
+        .stat-card:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
 
-    <!-- Admin Dashboard Script -->                            <p class="text-gray-600">Đang tải analytics dashboard...</p>
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin: 0.5rem 0;
+            position: relative;
+            z-index: 2;
+        }
 
-    <script src="admin.js"></script>                        </div>
+        .stat-label {
+            font-size: 0.875rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 2;
+        }
 
-</body>                    </div>
+        .stat-change {
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            position: relative;
+            z-index: 2;
+        }
 
-</html>                </div>
-            </section>
+        .stat-icon {
+            position: absolute;
+            bottom: 1rem;
+            right: 1rem;
+            font-size: 3rem;
+            opacity: 0.3;
+            z-index: 1;
+        }
 
-                            </div>
-                            <div class="text-center p-3 bg-orange-50 rounded-lg">
-                                <div id="conversion-rate" class="text-2xl font-bold text-orange-600">12.8%</div>
-                                <div class="text-xs text-orange-800">Conversion</div>
+        /* 📈 Charts & Analytics */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 1rem 0;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .chart-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        /* 🎨 Enhanced Tables */
+        .table-container {
+            overflow-x: auto;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-lg);
+            background: white;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            padding: 1.25rem;
+            text-align: left;
+            font-weight: 600;
+            color: #4a5568;
+            border-bottom: 2px solid rgba(102, 126, 234, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .data-table td {
+            padding: 1.25rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            vertical-align: middle;
+        }
+
+        .data-table tr {
+            transition: all 0.2s ease;
+        }
+
+        .data-table tr:hover {
+            background: rgba(102, 126, 234, 0.05);
+            transform: scale(1.01);
+        }
+
+        /* 🏷️ Status Badges */
+        .badge {
+            padding: 0.375rem 0.875rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .badge.success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .badge.warning {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+        }
+
+        .badge.danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+
+        .badge.info {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+        }
+
+        /* 🔘 Enhanced Buttons */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: var(--primary-gradient);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: var(--success-gradient);
+            color: white;
+        }
+
+        .btn-warning {
+            background: var(--warning-gradient);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger-gradient);
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+        }
+
+        /* 📱 Mobile Responsive */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                padding: 1rem;
+            }
+            
+            .header {
+                padding: 0 1rem;
+            }
+            
+            .stat-card {
+                padding: 1.5rem;
+            }
+        }
+
+        /* 🎭 Loading & Animations */
+        .loading {
+            background: linear-gradient(270deg, #667eea, #764ba2, #667eea);
+            background-size: 400% 400%;
+            animation: gradientShift 2s ease-in-out infinite;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        /* 🌈 Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-gradient);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--secondary-gradient);
+        }
+
+        /* 🎯 Grid Layouts */
+        .grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .grid-cols-1 { grid-template-columns: repeat(1, 1fr); }
+        .grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+        .grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+        .grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+
+        @media (max-width: 1280px) {
+            .grid-cols-4 { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        @media (max-width: 1024px) {
+            .grid-cols-4,
+            .grid-cols-3 { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 640px) {
+            .grid-cols-4,
+            .grid-cols-3,
+            .grid-cols-2 { grid-template-columns: repeat(1, 1fr); }
+        }
+
+        /* 🔧 Utility Classes */
+        .hidden { display: none !important; }
+        .visible { display: block !important; }
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .text-left { text-align: left; }
+        .mb-4 { margin-bottom: 1rem; }
+        .mb-6 { margin-bottom: 1.5rem; }
+        .mb-8 { margin-bottom: 2rem; }
+        .mt-4 { margin-top: 1rem; }
+        .mt-6 { margin-top: 1.5rem; }
+        .p-4 { padding: 1rem; }
+        .p-6 { padding: 1.5rem; }
+        .p-8 { padding: 2rem; }
+        .rounded-lg { border-radius: 12px; }
+        .shadow-lg { box-shadow: var(--shadow-lg); }
+        .shadow-xl { box-shadow: var(--shadow-xl); }
+
+        /* 🎨 Analytics Dashboard Embedded Styles */
+        .analytics-metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .analytics-metric-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-lg);
+            transition: all 0.3s ease;
+        }
+
+        .analytics-metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .analytics-metric-card h3 {
+            color: #1e293b;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+        }
+
+        .analytics-metric-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .analytics-metric-value.good { color: #059669; }
+        .analytics-metric-value.warning { color: #d97706; }
+        .analytics-metric-value.poor { color: #dc2626; }
+        .analytics-metric-value.info { color: #2563eb; }
+
+        .analytics-metric-description {
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+
+        .analytics-metric-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .analytics-metric-list li {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 0.875rem;
+        }
+
+        .analytics-metric-list li:last-child {
+            border-bottom: none;
+        }
+
+        .analytics-error-log {
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.75rem;
+            background: #f8fafc;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .analytics-score-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin: 0 auto 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        .score-excellent { background: linear-gradient(135deg, #059669 0%, #10b981 100%); }
+        .score-good { background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%); }
+        .score-fair { background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%); }
+        .score-poor { background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); }
+    </style>
+</head>
+<body>
+    <!-- 📱 Mobile Menu Button -->
+    <button id="mobile-menu-btn" class="lg:hidden fixed top-4 left-4 z-50 bg-white p-3 rounded-xl shadow-lg">
+        <i class="fas fa-bars text-gray-700 text-lg"></i>
+    </button>
+
+    <!-- 🎨 Professional Sidebar -->
+    <nav class="sidebar" id="sidebar">
+        <!-- Sidebar Header -->
+        <div class="sidebar-header">
+            <h1>
+                <span class="logo-icon">
+                    <i class="fas fa-chart-line"></i>
+                </span>
+                Admin Dashboard
+            </h1>
+        </div>
+        
+        <!-- Navigation Menu -->
+        <div class="nav-menu">
+            <!-- Main Section -->
+            <div class="nav-section">
+                <div class="nav-section-title">Tổng quan</div>
+                <div class="nav-item active" onclick="showSection('dashboard')">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                    <span class="nav-badge">Live</span>
+                </div>
+                <div class="nav-item" onclick="showSection('analytics')">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Analytics Hub</span>
+                    <span class="nav-badge">🔥</span>
+                </div>
+            </div>
+            
+            <!-- Management Section -->
+            <div class="nav-section">
+                <div class="nav-section-title">Quản lý</div>
+                <div class="nav-item" onclick="showSection('users')">
+                    <i class="fas fa-users"></i>
+                    <span>Người dùng</span>
+                    <span class="nav-badge" id="users-count">0</span>
+                </div>
+                <div class="nav-item" onclick="showSection('listings')">
+                    <i class="fas fa-building"></i>
+                    <span>Tin đăng BĐS</span>
+                    <span class="nav-badge" id="listings-count">0</span>
+                </div>
+                <div class="nav-item" onclick="showSection('feedback')">
+                    <i class="fas fa-comments"></i>
+                    <span>Phản hồi</span>
+                    <span class="nav-badge" id="feedback-count">0</span>
+                </div>
+            </div>
+            
+            <!-- System Section -->
+            <div class="nav-section">
+                <div class="nav-section-title">Hệ thống</div>
+                <div class="nav-item" onclick="showSection('settings')">
+                    <i class="fas fa-cog"></i>
+                    <span>Cài đặt</span>
+                </div>
+                <div class="nav-item" onclick="window.open('index.html', '_blank')">
+                    <i class="fas fa-external-link-alt"></i>
+                    <span>Xem trang chủ</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 🎯 Main Content -->
+    <main class="main-content">
+        <!-- 🎛️ Professional Header -->
+        <header class="header">
+            <div class="header-left">
+                <h2 id="page-title">Dashboard Tổng quan</h2>
+                <p id="page-subtitle" class="text-sm text-gray-600 mt-1">Quản lý hệ thống xem giá đất Đà Nẵng</p>
+            </div>
+            <div class="header-right">
+                <!-- Real-time Status -->
+                <div class="flex items-center gap-2 text-sm">
+                    <div class="w-2 h-2 bg-green-500 rounded-full pulse"></div>
+                    <span class="text-gray-600">System Online</span>
+                </div>
+                
+                <!-- Notifications -->
+                <div class="header-notification" onclick="toggleNotifications()">
+                    <i class="fas fa-bell text-gray-600"></i>
+                    <span class="notification-badge" id="notification-count">3</span>
+                </div>
+                
+                <!-- Admin Profile -->
+                <div class="admin-profile" onclick="toggleAdminMenu()">
+                    <img id="admin-avatar" class="admin-avatar" src="https://placehold.co/40x40/667eea/white?text=A" alt="Admin">
+                    <div class="hidden md:block">
+                        <div class="text-sm font-semibold text-gray-800" id="admin-name">Admin</div>
+                        <div class="text-xs text-gray-500">Quản trị viên</div>
+                    </div>
+                    <i class="fas fa-chevron-down text-gray-400 text-sm"></i>
+                </div>
+            </div>
+        </header>
+
+        <!-- 📊 Content Area -->
+        <div class="content">
+            <!-- 🏠 Dashboard Section -->
+            <div id="dashboard-section" class="section active">
+                <!-- Welcome Banner -->
+                <div class="card p-6 mb-8" style="background: var(--primary-gradient); color: white;">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="text-2xl font-bold mb-2">Chào mừng trở lại, Admin! 👋</h2>
+                            <p class="opacity-90">Hôm nay là <span id="current-date"></span></p>
+                            <p class="text-sm opacity-80 mt-1">Hệ thống đang hoạt động tốt • Cập nhật lần cuối: <span id="last-update"></span></p>
+                        </div>
+                        <div class="hidden lg:flex items-center gap-6">
+                            <div class="text-center">
+                                <div class="text-3xl font-bold" id="current-time"></div>
+                                <div class="text-sm opacity-80">Thời gian hiện tại</div>
                             </div>
                         </div>
-                        <canvas id="performanceChart" width="400" height="150"></canvas>
                     </div>
                 </div>
 
-                <!-- Legacy Analytics Charts (keep existing) -->
-                    <div class="bg-white p-6 rounded-xl shadow-lg">
-                        <h3 class="text-lg font-bold text-gray-800 mb-4">Xu hÆ°á»›ng tÄƒng trÆ°á»Ÿng</h3>
-                        <canvas id="growthTrendChart" width="400" height="200"></canvas>
+                <!-- 📈 Statistics Cards -->
+                <div class="grid grid-cols-4 mb-8">
+                    <div class="stat-card" style="background: var(--primary-gradient);">
+                        <div class="stat-label">Tổng người dùng</div>
+                        <div class="stat-number" id="total-users">-</div>
+                        <div class="stat-change">
+                            <i class="fas fa-arrow-up"></i>
+                            <span id="users-change">-</span> hôm nay
+                        </div>
+                        <i class="fas fa-users stat-icon"></i>
                     </div>
-                    <div class="bg-white p-6 rounded-xl shadow-lg">
-                        <h3 class="text-lg font-bold text-gray-800 mb-4">PhÃ¢n loáº¡i gÃ³p Ã½</h3>
-                        <canvas id="feedbackTypeChart" width="400" height="200"></canvas>
+                    
+                    <div class="stat-card" style="background: var(--success-gradient);">
+                        <div class="stat-label">Tin đăng BĐS</div>
+                        <div class="stat-number" id="total-listings">-</div>
+                        <div class="stat-change">
+                            <i class="fas fa-arrow-up"></i>
+                            <span id="listings-change">-</span> hôm nay
+                        </div>
+                        <i class="fas fa-building stat-icon"></i>
+                    </div>
+                    
+                    <div class="stat-card" style="background: var(--warning-gradient);">
+                        <div class="stat-label">Phản hồi</div>
+                        <div class="stat-number" id="total-feedback">-</div>
+                        <div class="stat-change">
+                            <i class="fas fa-arrow-up"></i>
+                            <span id="feedback-change">-</span> hôm nay
+                        </div>
+                        <i class="fas fa-comments stat-icon"></i>
+                    </div>
+                    
+                    <div class="stat-card" style="background: var(--secondary-gradient);">
+                        <div class="stat-label">Lượt truy cập</div>
+                        <div class="stat-number" id="total-visits">-</div>
+                        <div class="stat-change">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>+15%</span> so với tuần trước
+                        </div>
+                        <i class="fas fa-chart-line stat-icon"></i>
                     </div>
                 </div>
 
-                <!-- Market Intelligence Dashboard -->
-                <div class="bg-white p-6 rounded-xl shadow-lg mb-6">
-                    <div class="flex items-center justify-between mb-6">
-                        <h3 class="text-xl font-bold text-gray-800">Market Intelligence Dashboard</h3>
-                        <div class="flex space-x-2">
-                            <select id="market-timeframe" class="px-3 py-2 border border-gray-300 rounded-lg text-sm">
-                                <option value="7d">7 ngÃ y</option>
-                                <option value="30d">30 ngÃ y</option>
-                                <option value="3m">3 thÃ¡ng</option>
-                                <option value="1y">1 nÄƒm</option>
-                            </select>
-                            <button onclick="refreshMarketData()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 text-sm">
-                                <i class="fas fa-sync-alt mr-1"></i>Cáº­p nháº­t
+                <!-- 📊 Charts Row -->
+                <div class="grid grid-cols-2 mb-8">
+                    <div class="card p-6">
+                        <div class="chart-header">
+                            <h3 class="chart-title">Người dùng theo thời gian</h3>
+                            <div class="chart-actions">
+                                <button class="btn btn-sm" onclick="refreshChart('users-chart')">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="users-chart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="card p-6">
+                        <div class="chart-header">
+                            <h3 class="chart-title">Phân bố tin đăng</h3>
+                            <div class="chart-actions">
+                                <button class="btn btn-sm" onclick="refreshChart('listings-type-chart')">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="listings-type-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 🎯 Recent Activity -->
+                <div class="card p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xl font-semibold">Hoạt động gần đây</h3>
+                        <button class="btn btn-sm btn-primary" onclick="refreshActivity()">
+                            <i class="fas fa-sync-alt"></i>
+                            Làm mới
+                        </button>
+                    </div>
+                    <div id="recent-activity" class="space-y-4">
+                        <!-- Dynamic content loaded by admin.js -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 📊 Analytics Hub Section - Tích hợp đầy đủ Analytics Dashboard -->
+            <div id="analytics-section" class="section">
+                <!-- Analytics Header -->
+                <div class="card p-6 mb-8" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="text-2xl font-bold mb-2">📊 Analytics Hub</h2>
+                            <p class="opacity-90">Real-time performance monitoring và analytics dashboard</p>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <button onclick="refreshAnalyticsData()" class="btn" style="background: rgba(255,255,255,0.2); color: white;">
+                                <i class="fas fa-sync-alt"></i>
+                                Làm mới
+                            </button>
+                            <button onclick="window.open('analytics-dashboard.html', '_blank')" class="btn" style="background: rgba(255,255,255,0.2); color: white;">
+                                <i class="fas fa-external-link-alt"></i>
+                                Mở riêng
                             </button>
                         </div>
                     </div>
-
-                    <!-- Market Overview Cards -->
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                        <div class="bg-gradient-to-br from-blue-500 to-blue-600 text-white p-4 rounded-lg">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <p class="text-blue-100 text-sm">GiÃ¡ TB/mÂ²</p>
-                                    <p class="text-2xl font-bold">89.2M</p>
-                                    <p class="text-blue-200 text-xs">+5.2% thÃ¡ng nÃ y</p>
-                                </div>
-                                <div class="text-3xl opacity-80">
-                                    <i class="fas fa-chart-line"></i>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="bg-gradient-to-br from-green-500 to-green-600 text-white p-4 rounded-lg">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <p class="text-green-100 text-sm">Giao dá»‹ch</p>
-                                    <p class="text-2xl font-bold">1,234</p>
-                                    <p class="text-green-200 text-xs">+12.8% thÃ¡ng nÃ y</p>
-                                </div>
-                                <div class="text-3xl opacity-80">
-                                    <i class="fas fa-handshake"></i>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="bg-gradient-to-br from-purple-500 to-purple-600 text-white p-4 rounded-lg">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <p class="text-purple-100 text-sm">Hot Zones</p>
-                                    <p class="text-2xl font-bold">23</p>
-                                    <p class="text-purple-200 text-xs">+3 khu vá»±c má»›i</p>
-                                </div>
-                                <div class="text-3xl opacity-80">
-                                    <i class="fas fa-fire"></i>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="bg-gradient-to-br from-orange-500 to-orange-600 text-white p-4 rounded-lg">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <p class="text-orange-100 text-sm">ROI TB</p>
-                                    <p class="text-2xl font-bold">15.4%</p>
-                                    <p class="text-orange-200 text-xs">+2.1% nÄƒm nÃ y</p>
-                                </div>
-                                <div class="text-3xl opacity-80">
-                                    <i class="fas fa-percentage"></i>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
-                <!-- Market Intelligence Section -->
-                <div class="bg-white p-6 rounded-xl shadow-lg">
-                    <h3 class="text-lg font-bold text-gray-800 mb-6">📈 Market Intelligence Dashboard</h3>
+                <!-- Real-time Performance Overview -->
+                <div class="analytics-metrics-grid mb-8">
+                    <!-- Performance Metrics -->
+                    <div class="analytics-metric-card">
+                        <h3>⚡ Thông số hiệu suất</h3>
+                        <div id="performance-metrics">
+                            <div class="analytics-metric-value info">Đang tải...</div>
+                        </div>
+                    </div>
                     
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <h4 class="font-semibold text-gray-800 mb-3">Xu hÆ°á»›ng giÃ¡ theo quáº­n</h4>
-                            <canvas id="districtPriceTrendChart" width="400" height="250"></canvas>
-                        </div>
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <h4 class="font-semibold text-gray-800 mb-3">Volume giao dá»‹ch</h4>
-                            <canvas id="transactionVolumeChart" width="400" height="250"></canvas>
+                    <!-- User Behavior -->
+                    <div class="analytics-metric-card">
+                        <h3>👤 Hành vi người dùng</h3>
+                        <div id="behavior-metrics">
+                            <div class="analytics-metric-value good">Đang tải...</div>
                         </div>
                     </div>
-
-                    <!-- Action Buttons -->
-                    <div class="flex space-x-4">
-                        <button onclick="refreshMarketData()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
-                            <i class="fas fa-sync-alt mr-2"></i>Refresh Data
-                        </button>
-                        <button onclick="exportAnalytics()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">
-                            <i class="fas fa-download mr-2"></i>Export CSV
-                        </button>
+                    
+                    <!-- Search Analytics -->
+                    <div class="analytics-metric-card">
+                        <h3>🔍 Phân tích tìm kiếm</h3>
+                        <div id="search-analytics">
+                            <div class="analytics-metric-value warning">Đang tải...</div>
+                        </div>
                     </div>
-                </div>
-            </section>
-                    </div>
-                    <div class="bg-white p-6 rounded-xl shadow-lg">
-                        <h3 class="text-lg font-bold text-gray-800 mb-4">Tin Ä‘Äƒng phá»• biáº¿n</h3>
-                        <div id="popular-listings" class="space-y-3">
-                            <!-- Popular listings will be populated by JS -->
+                    
+                    <!-- Engagement Score -->
+                    <div class="analytics-metric-card">
+                        <h3>💯 Điểm tương tác</h3>
+                        <div class="text-center" id="engagement-score">
+                            <div class="analytics-score-circle score-good">
+                                <span id="score-value">--</span>
+                            </div>
+                            <div class="analytics-metric-description">Mức độ tương tác real-time</div>
                         </div>
                     </div>
                 </div>
-            </section>
 
-            <!-- Settings Section -->
-            <section id="settings-section" class="section hidden">
-                <div class="mb-8">
-                    <h2 class="text-3xl font-bold text-gray-800 mb-2">âš™ï¸ CÃ i Ä‘áº·t há»‡ thá»‘ng</h2>
-                    <p class="text-gray-600">Quáº£n lÃ½ cáº¥u hÃ¬nh vÃ  tÃ¹y chá»‰nh há»‡ thá»‘ng</p>
-                </div>
-
-                <!-- System Configuration -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <!-- General Settings -->
-                    <div class="bg-white p-6 rounded-xl shadow-lg">
-                        <h3 class="text-lg font-bold text-gray-800 mb-4">ðŸ”§ CÃ i Ä‘áº·t chung</h3>
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">TÃªn website</label>
-                                <input type="text" value="Xem GiÃ¡ Äáº¥t ÄÃ  Náºµng" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">MÃ´ táº£ SEO</label>
-                                <textarea rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">Báº£n Ä‘á»“ giÃ¡ Ä‘áº¥t ÄÃ  Náºµng chÃ­nh xÃ¡c nháº¥t 2025</textarea>
-                            </div>
-                            <div class="flex items-center space-x-3">
-                                <input type="checkbox" id="maintenance-mode" class="rounded">
-                                <label for="maintenance-mode" class="text-sm text-gray-700">Cháº¿ Ä‘á»™ báº£o trÃ¬</label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Analytics Settings -->
-                    <div class="bg-white p-6 rounded-xl shadow-lg">
-                        <h3 class="text-lg font-bold text-gray-800 mb-4">ðŸ“Š CÃ i Ä‘áº·t Analytics</h3>
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Google Analytics ID</label>
-                                <input type="text" value="G-XT932D9N1N" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Data retention</label>
-                                <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                                    <option>14 thÃ¡ng</option>
-                                    <option>26 thÃ¡ng</option>
-                                    <option>38 thÃ¡ng</option>
-                                    <option>50 thÃ¡ng</option>
+                <!-- Advanced Analytics Charts -->
+                <div class="grid grid-cols-2 mb-8">
+                    <div class="card p-6">
+                        <div class="chart-header">
+                            <h3 class="chart-title">Performance Trends</h3>
+                            <div class="chart-actions">
+                                <select class="text-sm border rounded px-2 py-1">
+                                    <option>24 giờ qua</option>
+                                    <option>7 ngày qua</option>
+                                    <option>30 ngày qua</option>
                                 </select>
                             </div>
-                            <div class="flex items-center space-x-3">
-                                <input type="checkbox" id="enhanced-ecommerce" class="rounded" checked>
-                                <label for="enhanced-ecommerce" class="text-sm text-gray-700">Enhanced Ecommerce</label>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="performance-chart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="card p-6">
+                        <div class="chart-header">
+                            <h3 class="chart-title">User Journey Analytics</h3>
+                            <div class="chart-actions">
+                                <button class="btn btn-sm" onclick="refreshHeatmap()">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="user-journey-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Real-time Data Grid -->
+                <div class="analytics-metrics-grid mb-8">
+                    <!-- Error Tracking -->
+                    <div class="analytics-metric-card">
+                        <h3>🚨 Theo dõi lỗi</h3>
+                        <div id="error-tracking">
+                            <div class="analytics-error-log">
+                                <div>Đang tải dữ liệu lỗi...</div>
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- Save Button -->
-                <div class="mt-8">
-                    <button onclick="saveSettings()" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">
-                        <i class="fas fa-save mr-2"></i>LÆ°u cÃ i Ä‘áº·t
-                    </button>
-                </div>
-            </section>
-        </div>
-    </div>
-
-    <!-- Chart.js Library -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <!-- Admin Dashboard Script -->
-    <script src="admin.js"></script>
-</body>
-</html>
-                            <!-- Search analytics will be populated by JS -->
+                    
+                    <!-- System Status -->
+                    <div class="analytics-metric-card">
+                        <h3>🖥️ Trạng thái hệ thống</h3>
+                        <div id="system-metrics">
+                            <ul class="analytics-metric-list">
+                                <li>
+                                    <span>Uptime</span>
+                                    <span id="system-uptime" class="analytics-metric-value good">100%</span>
+                                </li>
+                                <li>
+                                    <span>Memory Usage</span>
+                                    <span id="memory-usage" class="analytics-metric-value info">--</span>
+                                </li>
+                                <li>
+                                    <span>Connection Type</span>
+                                    <span id="connection-type" class="analytics-metric-value">--</span>
+                                </li>
+                                <li>
+                                    <span>Viewport Size</span>
+                                    <span id="viewport-size" class="analytics-metric-value">--</span>
+                                </li>
+                            </ul>
                         </div>
                     </div>
-
-                    <div class="bg-white p-6 rounded-xl shadow-lg">
-                        <h3 class="text-lg font-bold text-gray-800 mb-4">ðŸš¨ Theo DÃµi Lá»—i</h3>
-                        <div id="error-tracking" class="space-y-3">
-                            <!-- Error tracking will be populated by JS -->
+                    
+                    <!-- Performance Score -->
+                    <div class="analytics-metric-card">
+                        <h3>🎯 Performance Score</h3>
+                        <div class="text-center">
+                            <div class="analytics-metric-value good" id="performance-score">85</div>
+                            <div class="analytics-metric-description">Overall performance rating</div>
+                            <div class="mt-4">
+                                <div class="bg-gray-200 rounded-full h-2">
+                                    <div class="bg-green-500 h-2 rounded-full" style="width: 85%"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- System Status -->
-                <div class="bg-white p-6 rounded-xl shadow-lg mb-6">
-                    <h3 class="text-lg font-bold text-gray-800 mb-4">ðŸ–¥ï¸ Tráº¡ng ThÃ¡i Há»‡ Thá»‘ng</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div class="text-center p-4 bg-gray-50 rounded-lg">
-                            <div class="text-2xl font-bold text-green-600" id="system-uptime">100%</div>
-                            <div class="text-sm text-gray-600">Uptime</div>
-                        </div>
-                        <div class="text-center p-4 bg-gray-50 rounded-lg">
-                            <div class="text-2xl font-bold text-blue-600" id="memory-usage">--</div>
-                            <div class="text-sm text-gray-600">Memory Usage</div>
-                        </div>
-                        <div class="text-center p-4 bg-gray-50 rounded-lg">
-                            <div class="text-2xl font-bold text-purple-600" id="connection-type">--</div>
-                            <div class="text-sm text-gray-600">Connection</div>
-                        </div>
-                        <div class="text-center p-4 bg-gray-50 rounded-lg">
-                            <div class="text-2xl font-bold text-orange-600" id="viewport-size">--</div>
-                            <div class="text-sm text-gray-600">Viewport</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Performance History Chart -->
-                <div class="bg-white p-6 rounded-xl shadow-lg">
-                    <h3 class="text-lg font-bold text-gray-800 mb-4">ðŸ“Š Lá»‹ch Sá»­ Hiá»‡u Suáº¥t (24h)</h3>
-                    <div class="h-64 bg-gray-50 rounded-lg flex items-center justify-center">
-                        <div class="text-center text-gray-500">
-                            <i class="fas fa-chart-line text-4xl mb-4"></i>
-                            <p>Biá»ƒu Ä‘á»“ hiá»‡u suáº¥t theo thá»i gian</p>
-                            <p class="text-sm">Dá»¯ liá»‡u sáº½ Ä‘Æ°á»£c cáº­p nháº­t real-time</p>
+                    
+                    <!-- Real-time Users -->
+                    <div class="analytics-metric-card">
+                        <h3>📈 Realtime</h3>
+                        <div class="text-center">
+                            <div class="analytics-metric-value info" id="realtime-users">45</div>
+                            <div class="analytics-metric-description">Người dùng đang online</div>
+                            <div class="mt-2">
+                                <canvas id="realtime-chart" width="250" height="60"></canvas>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Action Buttons -->
-                <div class="flex justify-end space-x-4 mt-6">
-                    <button onclick="exportPerformanceReport()" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700">
-                        <i class="fas fa-download mr-2"></i>Xuáº¥t BÃ¡o CÃ¡o
-                    </button>
-                    <button onclick="clearPerformanceData()" class="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700">
-                        <i class="fas fa-trash mr-2"></i>Xóa Dữ Liệu Cũ
-                    </button>
-                    <a href="analytics-dashboard.html" target="_blank" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
-                        <i class="fas fa-external-link-alt mr-2"></i>Mở Dashboard Riêng
-                    </a>
+                <div class="flex justify-between items-center">
+                    <div class="flex gap-4">
+                        <button onclick="refreshPerformanceData()" class="btn btn-primary">
+                            <i class="fas fa-sync-alt"></i>
+                            Làm mới dữ liệu
+                        </button>
+                        <button onclick="exportPerformanceReport()" class="btn btn-success">
+                            <i class="fas fa-download"></i>
+                            Xuất báo cáo
+                        </button>
+                        <button onclick="clearPerformanceData()" class="btn btn-danger">
+                            <i class="fas fa-trash"></i>
+                            Xóa dữ liệu cũ
+                        </button>
+                    </div>
+                    <div class="text-sm text-gray-500">
+                        Cập nhật lần cuối: <span id="analytics-last-updated">--</span>
+                    </div>
                 </div>
-            </section>
+            </div>
+
+            <!-- 👥 Users Management Section -->
+            <div id="users-section" class="section">
+                <div class="card p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <h3 class="text-xl font-semibold">Quản lý người dùng</h3>
+                            <p class="text-sm text-gray-600 mt-1">Xem và quản lý tài khoản người dùng trong hệ thống</p>
+                        </div>
+                        <div class="flex gap-3">
+                            <button class="btn btn-success btn-sm" onclick="exportUsers()">
+                                <i class="fas fa-download"></i>
+                                Xuất Excel
+                            </button>
+                            <button class="btn btn-primary">
+                                <i class="fas fa-user-plus"></i>
+                                Thêm người dùng
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- User Stats -->
+                    <div class="grid grid-cols-4 gap-4 mb-6">
+                        <div class="text-center p-4 bg-blue-50 rounded-lg">
+                            <div class="text-2xl font-bold text-blue-600" id="users-active">0</div>
+                            <div class="text-sm text-gray-600">Hoạt động</div>
+                        </div>
+                        <div class="text-center p-4 bg-green-50 rounded-lg">
+                            <div class="text-2xl font-bold text-green-600" id="users-new">0</div>
+                            <div class="text-sm text-gray-600">Mới hôm nay</div>
+                        </div>
+                        <div class="text-center p-4 bg-purple-50 rounded-lg">
+                            <div class="text-2xl font-bold text-purple-600" id="users-premium">0</div>
+                            <div class="text-sm text-gray-600">Premium</div>
+                        </div>
+                        <div class="text-center p-4 bg-red-50 rounded-lg">
+                            <div class="text-2xl font-bold text-red-600" id="users-banned">0</div>
+                            <div class="text-sm text-gray-600">Bị khóa</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Search & Filter -->
+                    <div class="flex gap-4 mb-6">
+                        <div class="flex-1">
+                            <input type="text" id="search-users" placeholder="Tìm kiếm người dùng theo tên, email..." 
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <select class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="active">Hoạt động</option>
+                            <option value="banned">Bị khóa</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Users Table -->
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Người dùng</th>
+                                    <th>Email</th>
+                                    <th>Ngày tham gia</th>
+                                    <th>Tin đăng</th>
+                                    <th>Trạng thái</th>
+                                    <th>Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-table-body">
+                                <!-- Dynamic content loaded by admin.js -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 🏢 Listings Management Section -->
+            <div id="listings-section" class="section">
+                <div class="card p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <h3 class="text-xl font-semibold">Quản lý tin đăng BĐS</h3>
+                            <p class="text-sm text-gray-600 mt-1">Kiểm duyệt và quản lý tin đăng bất động sản</p>
+                        </div>
+                        <div class="flex gap-3">
+                            <button class="btn btn-warning btn-sm" onclick="bulkApproveListings()">
+                                <i class="fas fa-check-double"></i>
+                                Duyệt hàng loạt
+                            </button>
+                            <button class="btn btn-success btn-sm" onclick="exportListings()">
+                                <i class="fas fa-download"></i>
+                                Xuất dữ liệu
+                            </button>
+                            <button class="btn btn-primary">
+                                <i class="fas fa-plus"></i>
+                                Thêm tin đăng
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Listing Stats -->
+                    <div class="grid grid-cols-4 gap-4 mb-6">
+                        <div class="text-center p-4 bg-yellow-50 rounded-lg">
+                            <div class="text-2xl font-bold text-yellow-600" id="listings-pending">0</div>
+                            <div class="text-sm text-gray-600">Chờ duyệt</div>
+                        </div>
+                        <div class="text-center p-4 bg-green-50 rounded-lg">
+                            <div class="text-2xl font-bold text-green-600" id="listings-approved">0</div>
+                            <div class="text-sm text-gray-600">Đã duyệt</div>
+                        </div>
+                        <div class="text-center p-4 bg-red-50 rounded-lg">
+                            <div class="text-2xl font-bold text-red-600" id="listings-rejected">0</div>
+                            <div class="text-sm text-gray-600">Từ chối</div>
+                        </div>
+                        <div class="text-center p-4 bg-blue-50 rounded-lg">
+                            <div class="text-2xl font-bold text-blue-600" id="listings-today">0</div>
+                            <div class="text-sm text-gray-600">Hôm nay</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Search & Filter -->
+                    <div class="flex gap-4 mb-6">
+                        <div class="flex-1">
+                            <input type="text" id="search-listings" placeholder="Tìm kiếm tin đăng..." 
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <select id="filter-status" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="pending">Chờ duyệt</option>
+                            <option value="approved">Đã duyệt</option>
+                            <option value="rejected">Từ chối</option>
+                        </select>
+                        <select class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="">Tất cả loại</option>
+                            <option value="land">Đất nền</option>
+                            <option value="house">Nhà phố</option>
+                            <option value="apartment">Căn hộ</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Listings Table -->
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        <input type="checkbox" id="select-all-listings" class="rounded">
+                                    </th>
+                                    <th>Tin đăng</th>
+                                    <th>Người đăng</th>
+                                    <th>Giá</th>
+                                    <th>Ngày đăng</th>
+                                    <th>Trạng thái</th>
+                                    <th>Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody id="listings-table-body">
+                                <!-- Dynamic content loaded by admin.js -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 💬 Feedback Management Section -->
+            <div id="feedback-section" class="section">
+                <div class="card p-6 mb-6">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="text-xl font-semibold">Quản lý phản hồi & góp ý</h3>
+                            <p class="text-sm text-gray-600 mt-1">Xem và phản hồi ý kiến từ người dùng</p>
+                        </div>
+                        <div class="flex gap-3">
+                            <button class="btn btn-success btn-sm" onclick="exportFeedback()">
+                                <i class="fas fa-download"></i>
+                                Xuất báo cáo
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Feedback Stats -->
+                <div class="grid grid-cols-3 gap-6 mb-6">
+                    <div class="card p-6 text-center">
+                        <div class="text-3xl font-bold text-red-600 mb-2" id="feedback-unread">0</div>
+                        <div class="text-sm text-gray-600">Chưa đọc</div>
+                        <div class="mt-2">
+                            <i class="fas fa-exclamation-circle text-2xl text-red-600"></i>
+                        </div>
+                    </div>
+                    <div class="card p-6 text-center">
+                        <div class="text-3xl font-bold text-green-600 mb-2" id="feedback-replied">0</div>
+                        <div class="text-sm text-gray-600">Đã phản hồi</div>
+                        <div class="mt-2">
+                            <i class="fas fa-reply text-2xl text-green-600"></i>
+                        </div>
+                    </div>
+                    <div class="card p-6 text-center">
+                        <div class="text-3xl font-bold text-yellow-600 mb-2" id="feedback-avg-rating">0.0</div>
+                        <div class="text-sm text-gray-600">Đánh giá TB</div>
+                        <div class="mt-2">
+                            <i class="fas fa-star text-2xl text-yellow-600"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Feedback Filters -->
+                <div class="card p-6 mb-6">
+                    <div class="grid grid-cols-4 gap-4">
+                        <select id="filter-feedback-type" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="">Tất cả loại</option>
+                            <option value="suggestion">Đề xuất</option>
+                            <option value="bug">Báo lỗi</option>
+                            <option value="improvement">Cải thiện</option>
+                            <option value="ui">Giao diện</option>
+                            <option value="data">Dữ liệu</option>
+                            <option value="general">Chung</option>
+                        </select>
+                        <select id="filter-feedback-rating" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="">Tất cả đánh giá</option>
+                            <option value="5">5 sao</option>
+                            <option value="4">4 sao</option>
+                            <option value="3">3 sao</option>
+                            <option value="2">2 sao</option>
+                            <option value="1">1 sao</option>
+                        </select>
+                        <select id="filter-feedback-status" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="unread">Chưa đọc</option>
+                            <option value="read">Đã đọc</option>
+                            <option value="replied">Đã phản hồi</option>
+                        </select>
+                        <input type="text" placeholder="Tìm kiếm nội dung..." 
+                               class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+                
+                <!-- Feedback List -->
+                <div id="feedback-list" class="space-y-4">
+                    <!-- Dynamic content loaded by admin.js -->
+                </div>
+            </div>
+
+            <!-- ⚙️ Settings Section -->
+            <div id="settings-section" class="section">
+                <div class="card p-6 mb-8">
+                    <h2 class="text-2xl font-bold mb-2">⚙️ Cài đặt hệ thống</h2>
+                    <p class="text-gray-600">Quản lý cấu hình và tùy chỉnh hệ thống</p>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-8">
+                    <!-- General Settings -->
+                    <div class="card p-6">
+                        <h3 class="text-lg font-semibold mb-6">🔧 Cài đặt chung</h3>
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Tên website</label>
+                                <input type="text" id="site-name" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" value="Xem Giá Đất Đà Nẵng">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Mô tả SEO</label>
+                                <textarea id="site-description" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">Bản đồ giá đất Đà Nẵng chính xác nhất 2025</textarea>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Email liên hệ</label>
+                                <input type="email" id="site-email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" value="admin@xemgiadat.com">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Số điện thoại</label>
+                                <input type="tel" id="site-phone" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" value="0236.123.456">
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <input type="checkbox" id="maintenance-mode" class="rounded">
+                                <label for="maintenance-mode" class="text-sm text-gray-700">Chế độ bảo trì</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- System Settings -->
+                    <div class="card p-6">
+                        <h3 class="text-lg font-semibold mb-6">📊 Cài đặt hệ thống</h3>
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Google Analytics ID</label>
+                                <input type="text" id="ga-id" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" value="G-XT932D9N1N">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Số tin đăng/trang</label>
+                                <select id="items-per-page" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="10">10</option>
+                                    <option value="20" selected>20</option>
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Data retention</label>
+                                <select id="data-retention" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="14">14 tháng</option>
+                                    <option value="26" selected>26 tháng</option>
+                                    <option value="38">38 tháng</option>
+                                    <option value="50">50 tháng</option>
+                                </select>
+                            </div>
+                            <div class="space-y-3">
+                                <div class="flex items-center gap-3">
+                                    <input type="checkbox" id="auto-approve" class="rounded" checked>
+                                    <label for="auto-approve" class="text-sm text-gray-700">Tự động duyệt tin đăng</label>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <input type="checkbox" id="email-notifications" class="rounded" checked>
+                                    <label for="email-notifications" class="text-sm text-gray-700">Gửi email thông báo</label>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <input type="checkbox" id="enhanced-ecommerce" class="rounded" checked>
+                                    <label for="enhanced-ecommerce" class="text-sm text-gray-700">Enhanced Analytics</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Save Buttons -->
+                <div class="mt-8 flex gap-4">
+                    <button onclick="saveSettings()" class="btn btn-primary">
+                        <i class="fas fa-save"></i>
+                        Lưu cài đặt
+                    </button>
+                    <button onclick="resetSettings()" class="btn" style="background: #6b7280; color: white;">
+                        <i class="fas fa-undo"></i>
+                        Khôi phục mặc định
+                    </button>
+                    <button onclick="backupSettings()" class="btn btn-warning">
+                        <i class="fas fa-download"></i>
+                        Sao lưu cấu hình
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 🎭 User Detail Modal -->
+    <div id="user-detail-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-xl p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-semibold">Chi tiết người dùng</h3>
+                <button onclick="closeUserDetailModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="md:col-span-1 text-center">
+                    <img id="user-detail-avatar" class="w-20 h-20 rounded-full mx-auto mb-4" src="" alt="Avatar">
+                    <h4 id="user-detail-name" class="text-lg font-semibold"></h4>
+                    <p id="user-detail-id" class="text-sm text-gray-500"></p>
+                    <span id="user-detail-status" class="mt-2 inline-block"></span>
+                </div>
+                
+                <div class="md:col-span-2">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-sm font-medium text-gray-600">Email:</label>
+                            <p id="user-detail-email" class="text-gray-800"></p>
+                        </div>
+                        <div>
+                            <label class="text-sm font-medium text-gray-600">Số điện thoại:</label>
+                            <p id="user-detail-phone" class="text-gray-800"></p>
+                        </div>
+                        <div>
+                            <label class="text-sm font-medium text-gray-600">Facebook:</label>
+                            <a id="user-detail-fb" href="#" target="_blank" class="text-blue-600 hover:underline"></a>
+                        </div>
+                        <div>
+                            <label class="text-sm font-medium text-gray-600">Ngày tham gia:</label>
+                            <p id="user-detail-created" class="text-gray-800"></p>
+                        </div>
+                        <div>
+                            <label class="text-sm font-medium text-gray-600">Số tin đăng:</label>
+                            <p id="user-detail-listings-count" class="text-gray-800"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-6">
+                <h5 class="font-semibold mb-3">Tin đăng gần đây:</h5>
+                <div id="user-detail-listings" class="space-y-2 max-h-40 overflow-y-auto">
+                    <!-- Dynamic content -->
+                </div>
+            </div>
+            
+            <div class="mt-6 flex gap-3">
+                <button id="user-detail-ban-btn" onclick="toggleUserStatus(currentViewedUserId, currentViewedUserStatus)" 
+                        class="btn btn-warning btn-sm">Khóa</button>
+                <button onclick="closeUserDetailModal()" class="btn btn-sm" style="background: #6b7280; color: white;">Đóng</button>
+            </div>
         </div>
     </div>
 
-    <!-- Chart.js Library -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <!-- Admin Dashboard Script -->
+    <!-- 🔄 Loading Overlay -->
+    <div id="loading-overlay" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="card p-8 text-center">
+            <div class="loading w-16 h-16 rounded-full mx-auto mb-4"></div>
+            <p class="text-gray-600">Đang tải dữ liệu...</p>
+        </div>
+    </div>
+
+    <!-- 📊 JavaScript Files -->
     <script src="admin.js"></script>
+    
+    <script>
+        // 🚀 Enhanced Admin Dashboard JavaScript
+        
+        // Mobile menu functionality
+        document.getElementById('mobile-menu-btn').addEventListener('click', () => {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('open');
+            
+            // Add overlay on mobile
+            if (sidebar.classList.contains('open')) {
+                document.body.style.overflow = 'hidden';
+                const overlay = document.createElement('div');
+                overlay.id = 'mobile-overlay';
+                overlay.className = 'fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden';
+                overlay.onclick = () => {
+                    sidebar.classList.remove('open');
+                    document.body.style.overflow = '';
+                    overlay.remove();
+                };
+                document.body.appendChild(overlay);
+            } else {
+                document.body.style.overflow = '';
+                const overlay = document.getElementById('mobile-overlay');
+                if (overlay) overlay.remove();
+            }
+        });
+
+        // Enhanced Section Navigation
+        function showSection(sectionName) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Show selected section
+            document.getElementById(`${sectionName}-section`).classList.add('active');
+            
+            // Update sidebar active state
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Find and activate the clicked nav item
+            const activeItem = Array.from(document.querySelectorAll('.nav-item'))
+                .find(item => item.getAttribute('onclick')?.includes(sectionName));
+            if (activeItem) {
+                activeItem.classList.add('active');
+            }
+            
+            // Update header
+            const titles = {
+                'dashboard': 'Dashboard Tổng quan',
+                'analytics': 'Analytics Hub',
+                'users': 'Quản lý người dùng',
+                'listings': 'Quản lý tin đăng',
+                'feedback': 'Quản lý phản hồi',
+                'settings': 'Cài đặt hệ thống'
+            };
+            
+            const subtitles = {
+                'dashboard': 'Thống kê tổng quan và hoạt động gần đây',
+                'analytics': 'Real-time performance monitoring và analytics dashboard',
+                'users': 'Xem và quản lý tài khoản người dùng trong hệ thống',
+                'listings': 'Kiểm duyệt và quản lý tin đăng bất động sản',
+                'feedback': 'Xem và phản hồi ý kiến từ người dùng',
+                'settings': 'Quản lý cấu hình và tùy chỉnh hệ thống'
+            };
+            
+            document.getElementById('page-title').textContent = titles[sectionName] || 'Dashboard';
+            document.getElementById('page-subtitle').textContent = subtitles[sectionName] || '';
+            
+            // Load section-specific data
+            loadSectionData(sectionName);
+        }
+
+        // Load section-specific data
+        function loadSectionData(sectionName) {
+            switch(sectionName) {
+                case 'analytics':
+                    if (typeof loadPerformanceAnalytics === 'function') {
+                        loadPerformanceAnalytics();
+                    }
+                    break;
+                case 'users':
+                    if (typeof loadUsersSection === 'function') {
+                        loadUsersSection();
+                    }
+                    break;
+                case 'listings':
+                    if (typeof loadListingsSection === 'function') {
+                        loadListingsSection();
+                    }
+                    break;
+                case 'feedback':
+                    if (typeof loadFeedbackSection === 'function') {
+                        loadFeedbackSection();
+                    }
+                    break;
+            }
+        }
+
+        // Update current time and date
+        function updateDateTime() {
+            const now = new Date();
+            
+            // Update date
+            const dateOptions = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            };
+            const timeOptions = { 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit' 
+            };
+            
+            const dateElement = document.getElementById('current-date');
+            const timeElement = document.getElementById('current-time');
+            const lastUpdateElement = document.getElementById('last-update');
+            
+            if (dateElement) {
+                dateElement.textContent = now.toLocaleDateString('vi-VN', dateOptions);
+            }
+            
+            if (timeElement) {
+                timeElement.textContent = now.toLocaleTimeString('vi-VN', timeOptions);
+            }
+            
+            if (lastUpdateElement) {
+                lastUpdateElement.textContent = now.toLocaleTimeString('vi-VN', timeOptions);
+            }
+            
+            // Update analytics last updated
+            const analyticsLastUpdated = document.getElementById('analytics-last-updated');
+            if (analyticsLastUpdated) {
+                analyticsLastUpdated.textContent = now.toLocaleString('vi-VN');
+            }
+        }
+
+        // Notification and Admin Menu Functions
+        function toggleNotifications() {
+            // Placeholder for notification functionality
+            console.log('🔔 Notifications clicked');
+        }
+
+        function toggleAdminMenu() {
+            // Placeholder for admin menu functionality
+            console.log('👤 Admin menu clicked');
+        }
+
+        // Chart refresh functions
+        function refreshChart(chartId) {
+            console.log(`🔄 Refreshing chart: ${chartId}`);
+            // Add refresh logic here
+        }
+
+        function refreshActivity() {
+            console.log('🔄 Refreshing recent activity');
+            if (typeof updateRecentActivity === 'function') {
+                updateRecentActivity();
+            }
+        }
+
+        // Analytics functions
+        function refreshAnalyticsData() {
+            console.log('🔄 Refreshing analytics data');
+            if (typeof loadPerformanceAnalytics === 'function') {
+                loadPerformanceAnalytics();
+            }
+            updateDateTime();
+        }
+
+        function refreshHeatmap() {
+            console.log('🔄 Refreshing heatmap');
+            // Add heatmap refresh logic
+        }
+
+        // Settings functions
+        function saveSettings() {
+            console.log('💾 Saving settings...');
+            
+            // Show loading state
+            const button = event.target;
+            const originalHtml = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Đang lưu...';
+            button.disabled = true;
+            
+            // Get settings values
+            const settings = {
+                siteName: document.getElementById('site-name')?.value,
+                siteDescription: document.getElementById('site-description')?.value,
+                siteEmail: document.getElementById('site-email')?.value,
+                sitePhone: document.getElementById('site-phone')?.value,
+                gaId: document.getElementById('ga-id')?.value,
+                itemsPerPage: document.getElementById('items-per-page')?.value,
+                dataRetention: document.getElementById('data-retention')?.value,
+                maintenanceMode: document.getElementById('maintenance-mode')?.checked,
+                autoApprove: document.getElementById('auto-approve')?.checked,
+                emailNotifications: document.getElementById('email-notifications')?.checked,
+                enhancedEcommerce: document.getElementById('enhanced-ecommerce')?.checked
+            };
+            
+            // Save to localStorage (in real app, save to Firebase)
+            localStorage.setItem('admin-settings', JSON.stringify(settings));
+            
+            // Simulate save operation
+            setTimeout(() => {
+                button.innerHTML = originalHtml;
+                button.disabled = false;
+                
+                // Show success message
+                showNotification('✅ Đã lưu cài đặt thành công!', 'success');
+            }, 1500);
+        }
+
+        function resetSettings() {
+            if (confirm('Bạn có chắc muốn khôi phục cài đặt mặc định?')) {
+                // Reset to default values
+                document.getElementById('site-name').value = 'Xem Giá Đất Đà Nẵng';
+                document.getElementById('site-description').value = 'Bản đồ giá đất Đà Nẵng chính xác nhất 2025';
+                document.getElementById('site-email').value = 'admin@xemgiadat.com';
+                document.getElementById('site-phone').value = '0236.123.456';
+                document.getElementById('ga-id').value = 'G-XT932D9N1N';
+                document.getElementById('items-per-page').value = '20';
+                document.getElementById('data-retention').value = '26';
+                document.getElementById('maintenance-mode').checked = false;
+                document.getElementById('auto-approve').checked = true;
+                document.getElementById('email-notifications').checked = true;
+                document.getElementById('enhanced-ecommerce').checked = true;
+                
+                showNotification('🔄 Đã khôi phục cài đặt mặc định!', 'info');
+            }
+        }
+
+        function backupSettings() {
+            const settings = {
+                siteName: document.getElementById('site-name')?.value,
+                siteDescription: document.getElementById('site-description')?.value,
+                siteEmail: document.getElementById('site-email')?.value,
+                sitePhone: document.getElementById('site-phone')?.value,
+                gaId: document.getElementById('ga-id')?.value,
+                itemsPerPage: document.getElementById('items-per-page')?.value,
+                dataRetention: document.getElementById('data-retention')?.value,
+                maintenanceMode: document.getElementById('maintenance-mode')?.checked,
+                autoApprove: document.getElementById('auto-approve')?.checked,
+                emailNotifications: document.getElementById('email-notifications')?.checked,
+                enhancedEcommerce: document.getElementById('enhanced-ecommerce')?.checked,
+                timestamp: new Date().toISOString()
+            };
+            
+            const blob = new Blob([JSON.stringify(settings, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `admin-settings-backup-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showNotification('📥 Đã sao lưu cài đặt thành công!', 'success');
+        }
+
+        // Utility function to show notifications
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
+                type === 'success' ? 'bg-green-600 text-white' :
+                type === 'error' ? 'bg-red-600 text-white' :
+                type === 'warning' ? 'bg-yellow-600 text-white' :
+                'bg-blue-600 text-white'
+            }`;
+            notification.innerHTML = message;
+            
+            document.body.appendChild(notification);
+            
+            // Auto remove after 3 seconds
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.remove();
+                }
+            }, 3000);
+        }
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Professional Admin Dashboard Initialized');
+            
+            // Start real-time updates
+            updateDateTime();
+            setInterval(updateDateTime, 1000);
+            
+            // Load saved settings
+            const savedSettings = localStorage.getItem('admin-settings');
+            if (savedSettings) {
+                try {
+                    const settings = JSON.parse(savedSettings);
+                    Object.keys(settings).forEach(key => {
+                        const element = document.getElementById(key.replace(/([A-Z])/g, '-$1').toLowerCase());
+                        if (element) {
+                            if (element.type === 'checkbox') {
+                                element.checked = settings[key];
+                            } else {
+                                element.value = settings[key];
+                            }
+                        }
+                    });
+                } catch (e) {
+                    console.error('Error loading saved settings:', e);
+                }
+            }
+            
+            // Show default section
+            showSection('dashboard');
+        });
+
+        console.log('🎛️ Professional Admin Dashboard Script Loaded');
+    </script>
 </body>
 </html>

@@ -26,8 +26,8 @@ const initLazyLoading = () => {
     });
 };
 
-// Performance monitoring
-const performanceMonitor = {
+// Performance monitoring (simple)
+const simplePerformanceMonitor = {
     marks: new Map(),
     
     mark(name) {
@@ -59,14 +59,14 @@ const performanceMonitor = {
 
 // Initialize performance optimizations
 const initPerformanceOptimizations = () => {
-    performanceMonitor.mark('init-start');
+    simplePerformanceMonitor.mark('init-start');
     
     // Initialize lazy loading
     if ('IntersectionObserver' in window) {
         initLazyLoading();
     }
     
-    performanceMonitor.measure('Performance optimization complete', 'init-start');
+    simplePerformanceMonitor.measure('Performance optimization complete', 'init-start');
 };
 
 // =============================================================================
@@ -176,7 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('🚀 DOM Content Loaded - Initializing app...');
     
     // Initialize performance monitoring
-    performanceMonitor.mark('app-init-start');
+    simplePerformanceMonitor.mark('app-init-start');
     
     // Initialize performance optimizations
     initPerformanceOptimizations();
@@ -7903,12 +7903,12 @@ class PerformanceMonitor {
 }
 
 // Initialize Performance Monitor
-let performanceMonitor;
+let advancedPerformanceMonitor;
 document.addEventListener('DOMContentLoaded', function() {
-    performanceMonitor = new PerformanceMonitor();
+    advancedPerformanceMonitor = new PerformanceMonitor();
     
     // Make it available globally for debugging
-    window.performanceMonitor = performanceMonitor;
+    window.advancedPerformanceMonitor = advancedPerformanceMonitor;
     
     // Add dashboard command
     window.getPerformanceReport = () => performanceMonitor.getPerformanceReport();
@@ -8225,11 +8225,11 @@ class UserBehaviorTracker {
     
     setupPerformanceCorrelation() {
         // Correlate user behavior with performance metrics
-        if (window.performanceMonitor) {
+        if (window.advancedPerformanceMonitor) {
             // Track user actions during performance issues
-            const originalReportMetric = window.performanceMonitor.reportMetric;
-            window.performanceMonitor.reportMetric = (name, value) => {
-                originalReportMetric.call(window.performanceMonitor, name, value);
+            const originalReportMetric = window.advancedPerformanceMonitor.reportMetric;
+            window.advancedPerformanceMonitor.reportMetric = (name, value) => {
+                originalReportMetric.call(window.advancedPerformanceMonitor, name, value);
                 
                 // If performance is poor, log recent user actions
                 const thresholds = {

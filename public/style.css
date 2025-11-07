@@ -7,6 +7,7 @@ html.pwa-mode {
     /* Remove browser UI elements in standalone mode */
     -webkit-touch-callout: none;
     -webkit-user-select: none;
+    user-select: none;
     -webkit-tap-highlight-color: transparent;
 }
 
@@ -137,12 +138,12 @@ img[data-loaded="true"] {
 /* General Layout */
 #map { 
     height: 100vh;
-    width: 100vw; [cite_start]/* [cite: 3] */
+    width: 100vw;
 }
 
 /* Leaflet Customizations */
 .leaflet-popup-content-wrapper { 
-    border-radius: 8px; [cite_start]/* [cite: 4] */
+    border-radius: 8px;
 }
 .leaflet-control-layers-toggle {
     background-image: none !important; /* Xóa icon mặc định */
@@ -168,57 +169,58 @@ img[data-loaded="true"] {
 
 /* Map Interaction Modes */
 .map-add-mode { 
-    cursor: crosshair !important; [cite_start]/* [cite: 6] */
+    cursor: crosshair !important;
 }
 .map-query-mode { 
-    cursor: help !important; [cite_start]/* [cite: 7] */
+    cursor: help !important;
 }
 
 /* Vertical Slider Styles */
 input[type=range][orient=vertical] {
-    writing-mode: bt-lr; [cite_start]/* [cite: 8] */
-    -webkit-appearance: slider-vertical; [cite_start]/* [cite: 9] */
+    writing-mode: bt-lr;
+    -webkit-appearance: slider-vertical;
+    appearance: slider-vertical;
     width: 8px;
     height: 100px;
-    padding: 0 5px; [cite_start]/* [cite: 10] */
+    padding: 0 5px;
 }
 
 /* Custom Marker Cluster Styles */
 .marker-cluster-yellow {
-    background-color: rgba(241, 211, 87, 0.6) !important; [cite_start]/* [cite: 11] */
+    background-color: rgba(241, 211, 87, 0.6) !important;
 }
 .marker-cluster-yellow div {
-    background-color: rgba(240, 194, 12, 0.6) !important; [cite_start]/* [cite: 12] */
+    background-color: rgba(240, 194, 12, 0.6) !important;
 }
 
 /* Cadastral Info Popup Styles */
 .thong-tin-dia-chinh table {
-    width: 100%; [cite_start]/* [cite: 13] */
-    border-collapse: collapse; [cite_start]/* [cite: 13] */
+    width: 100%;
+    border-collapse: collapse;
 }
 .thong-tin-dia-chinh td {
-    padding: 4px 0; [cite_start]/* [cite: 14] */
+    padding: 4px 0;
 }
 .thong-tin-dia-chinh td:first-child {
-    padding-right: 10px; [cite_start]/* [cite: 15] */
-    white-space: nowrap; [cite_start]/* [cite: 16] */
+    padding-right: 10px;
+    white-space: nowrap;
 }
 .thong-tin-dia-chinh .actions {
-    display: flex; [cite_start]/* [cite: 17] */
-    justify-content: space-around; [cite_start]/* [cite: 17] */
+    display: flex;
+    justify-content: space-around;
     align-items: center;
     padding-top: 5px;
 }
 .thong-tin-dia-chinh .actions button {
-    background: none; [cite_start]/* [cite: 18] */
-    border: none; [cite_start]/* [cite: 18] */
+    background: none;
+    border: none;
     cursor: pointer;
     font-size: 18px;
     color: #555;
-    transition: color 0.2s; [cite_start]/* [cite: 19] */
+    transition: color 0.2s;
 }
 .thong-tin-dia-chinh .actions button:hover {
-    color: #000; [cite_start]/* [cite: 20] */
+    color: #000;
 }
 /* --- CSS TỐI ƯU CHO THANH TRƯỢT DỌC --- */
 
@@ -282,7 +284,6 @@ input[type=range][orient=vertical] {
     font-size: 18px; /* Icon lớn hơn */
     width: 24px; /* Fixed width */
     text-align: center; /* Căn giữa */
-}
 }
 
 #search-results .result-item .price {
@@ -1430,7 +1431,7 @@ button:disabled .loading-text {
 #contribution-form input:focus,
 #contribution-form textarea:focus,
 #contribution-form select:focus {
-    ring-color: #10b981;
+    outline: 2px solid #10b981;
     border-color: #10b981;
 }
 
