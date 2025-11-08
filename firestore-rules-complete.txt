@@ -19,9 +19,18 @@ service cloud.firestore {
       allow create: if request.auth != null
               && request.resource.data.name is string
               && request.resource.data.name.size() > 0
-              && request.resource.data.priceValue is number
-              && request.resource.data.priceValue > 0
-              && request.resource.data.userId == request.auth.uid; // Đảm bảo userId match với auth
+              && request.resource.data.userId == request.auth.uid // Đảm bảo userId match với auth
+              && (
+                // Case 1: Giá thương lượng
+                (request.resource.data.isNegotiable == true 
+                 && request.resource.data.priceUnit == 'thương lượng'
+                 && (request.resource.data.priceValue == null || request.resource.data.priceValue is number))
+                ||
+                // Case 2: Giá cụ thể
+                (request.resource.data.priceValue is number 
+                 && request.resource.data.priceValue > 0
+                 && request.resource.data.priceUnit is string)
+              );
       
       // --- PHẦN SỬA LỖI QUAN TRỌNG ---
       // Cho phép CẬP NHẬT hoặc XÓA nếu:
@@ -99,6 +108,23 @@ service cloud.firestore {
         request.auth.uid == 'FEpPWWT1EaTWQ9FOqBxWN5FeEJk1';
     }
 
+    // --- QUY TẮC CHO BETA SIGNUPS ---
+    match /beta-signups/{signupId} {
+      // Chỉ admin được đọc beta signups
+      allow read: if request.auth != null && 
+        request.auth.uid == 'FEpPWWT1EaTWQ9FOqBxWN5FeEJk1';
+      
+      // Ai cũng có thể đăng ký beta (không cần đăng nhập)
+      allow create: if request.resource.data.email is string 
+                    && request.resource.data.email.matches('.*@.*') // Basic email validation
+                    && request.resource.data.name is string
+                    && request.resource.data.name.size() > 0;
+      
+      // Chỉ admin được xóa/sửa beta signups
+      allow update, delete: if request.auth != null && 
+        request.auth.uid == 'FEpPWWT1EaTWQ9FOqBxWN5FeEJk1';
+    }
+
     // --- QUY TẮC MẶC ĐỊNH - DENY ALL ---
     // Từ chối truy cập vào tất cả collections khác
     match /{document=**} {
@@ -119,6 +145,9 @@ service cloud.firestore {
 // CÁC THAY ĐỔI SO VỚI RULES CŨ:
 // ===================================
 // ✅ Thêm validation cho userId trong listings create
+// ✅ Hỗ trợ giá "Thương lượng" với isNegotiable field
+// ✅ Flexible price validation cho cả giá cụ thể và thương lượng
+// ✅ Thêm rules cho beta-signups collection
 // ✅ Thêm quyền admin cho portfolio read/delete
 // ✅ Thêm validation chi tiết cho portfolio fields
 // ✅ Thêm rules cho feedback collection
@@ -130,4 +159,6 @@ service cloud.firestore {
 // ===================================
 // - Admin UID: 'FEpPWWT1EaTWQ9FOqBxWN5FeEJk1' (có thể thay đổi nếu cần)
 // - Portfolio images field hỗ trợ cả Firebase Storage URLs và Google Drive URLs
+// - Listings hỗ trợ cả giá cụ thể và "Thương lượng"
+// - Beta signups có email validation cơ bản
 // - Rules này tương thích với cả hệ thống storage hiện tại và tương lai
