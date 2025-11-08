@@ -1709,10 +1709,6 @@ async function showCommunityParcelInfo(parcelNumber, mapSheet) {
         });
     };
 
-    // Add enhanced search suggestions for community data
-        addCommunitySearchSuggestions(originalQuery);
-    };
-
     // Add community-based search suggestions
     function addCommunitySearchSuggestions(query) {
         if (!query || query.length < 3) return;
