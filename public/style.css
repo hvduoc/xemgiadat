@@ -2338,7 +2338,7 @@ body {
     /* Text styling */
     font-size: 11px !important;
     font-weight: 500 !important;
-    color: #374151 !important;
+    color: #6b7280 !important; /* Gray-500 - more subtle */
     text-align: center !important;
     line-height: 1.2 !important;
     
@@ -2350,7 +2350,7 @@ body {
 .toolbar-btn-compact:hover,
 .toolbar-btn-compact:focus {
     background: rgba(59, 130, 246, 0.1) !important;
-    color: #2563eb !important;
+    color: #3b82f6 !important; /* Blue-500 */
 }
 
 .toolbar-btn-compact:active {
@@ -2361,22 +2361,44 @@ body {
 .toolbar-btn-compact i {
     margin-bottom: 2px !important;
     font-size: 14px !important;
+    color: inherit !important;
 }
 
 .toolbar-btn-compact span {
     font-size: 10px !important;
     font-weight: 500 !important;
     white-space: nowrap !important;
+    color: inherit !important;
 }
 
-/* Special styling for guide button */
-.toolbar-btn-compact.bg-blue-500 {
-    background: #3b82f6 !important;
+/* Special styling for guide button - primary action */
+.toolbar-btn-compact.bg-blue-500,
+#guide-btn {
+    background: #3b82f6 !important; /* Blue-500 */
     color: white !important;
 }
 
-.toolbar-btn-compact.bg-blue-500:hover {
-    background: #2563eb !important;
+.toolbar-btn-compact.bg-blue-500:hover,
+#guide-btn:hover {
+    background: #2563eb !important; /* Blue-600 */
+}
+
+/* Active/selected state for toolbar buttons */
+.toolbar-btn-compact.active {
+    background: #dbeafe !important; /* Blue-100 */
+    color: #1d4ed8 !important; /* Blue-700 */
+}
+
+/* Disabled state */
+.toolbar-btn-compact:disabled {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+    color: #9ca3af !important; /* Gray-400 */
+}
+
+.toolbar-btn-compact:disabled:hover {
+    background: transparent !important;
+    transform: none !important;
 }
 
 /* =============================================================================
@@ -2407,7 +2429,7 @@ div.absolute.top-4.right-4 {
     touch-action: manipulation !important;
 }
 
-/* Right sidebar buttons */
+/* Right sidebar buttons - Updated colors */
 div.absolute.top-4.right-4 button {
     /* Size consistency - use w-12 h-12 equivalent */
     width: 48px !important;
@@ -2435,6 +2457,69 @@ div.absolute.top-4.right-4 button {
     
     /* Prevent transform issues */
     transform: none !important;
+    
+    /* Proper font size for icons */
+    font-size: 16px !important;
+}
+
+/* Specific button colors - more professional */
+#login-btn {
+    background: #059669 !important; /* Green-600 */
+    color: white !important;
+}
+
+#login-btn:hover {
+    background: #047857 !important; /* Green-700 */
+}
+
+#contact-info-btn {
+    background: #f8fafc !important; /* Slate-50 */
+    color: #475569 !important; /* Slate-600 */
+    border: 1px solid #e2e8f0 !important; /* Slate-200 */
+}
+
+#contact-info-btn:hover {
+    background: #f1f5f9 !important; /* Slate-100 */
+    color: #334155 !important; /* Slate-700 */
+}
+
+#feedback-btn {
+    background: #7c3aed !important; /* Violet-600 */
+    color: white !important;
+}
+
+#feedback-btn:hover {
+    background: #6d28d9 !important; /* Violet-700 */
+}
+
+#donate-btn {
+    background: #f59e0b !important; /* Amber-500 */
+    color: #92400e !important; /* Amber-800 */
+}
+
+#donate-btn:hover {
+    background: #d97706 !important; /* Amber-600 */
+    color: white !important;
+}
+
+#locate-btn {
+    background: #ffffff !important;
+    color: #6b7280 !important; /* Gray-500 */
+    border: 1px solid #d1d5db !important; /* Gray-300 */
+}
+
+#locate-btn:hover {
+    background: #f9fafb !important; /* Gray-50 */
+    color: #374151 !important; /* Gray-700 */
+}
+
+#admin-btn {
+    background: #dc2626 !important; /* Red-600 */
+    color: white !important;
+}
+
+#admin-btn:hover {
+    background: #b91c1c !important; /* Red-700 */
 }
 
 div.absolute.top-4.right-4 button:hover {
@@ -2512,7 +2597,7 @@ div.absolute.top-4.right-4 button:active {
 }
 
 /* =============================================================================
-   INFO PANEL FIX - BOTTOM SHEET
+   INFO PANEL FIX - BOTTOM SHEET (CORRECTED)
    ============================================================================= */
 
 #info-panel {
@@ -2531,7 +2616,7 @@ div.absolute.top-4.right-4 button:active {
     border-top-right-radius: 16px !important;
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15) !important;
     
-    /* Animation */
+    /* Animation - Default hidden state */
     transform: translateY(100%) !important;
     transition: transform 0.3s ease-in-out !important;
     
@@ -2548,12 +2633,31 @@ div.absolute.top-4.right-4 button:active {
     
     /* Prevent layout shifts on zoom */
     contain: layout style paint !important;
+    
+    /* Force visibility when needed */
+    visibility: visible !important;
+    opacity: 1 !important;
+    display: block !important;
 }
 
-#info-panel.show {
+/* Show state - overrides default hidden */
+#info-panel.show,
+#info-panel.is-open {
     transform: translateY(0) !important;
     visibility: visible !important;
     opacity: 1 !important;
+    display: block !important;
+}
+
+/* Collapsed state */
+#info-panel.is-collapsed {
+    height: 65px !important; 
+    overflow-y: hidden !important;
+    transform: translateY(0) !important;
+}
+
+#info-panel.is-collapsed #panel-content {
+    display: none !important;
 }
 
 /* Info panel content stability */
@@ -2562,6 +2666,7 @@ div.absolute.top-4.right-4 button:active {
     zoom: 1 !important;
     /* Prevent content jumping */
     contain: layout style !important;
+    padding: 16px !important;
 }
 
 /* =============================================================================
@@ -2721,7 +2826,7 @@ div.absolute.top-4.right-4 button:active {
 }
 
 /* =============================================================================
-   Z-INDEX MANAGEMENT - PREVENT OVERLAP
+   Z-INDEX MANAGEMENT - PREVENT OVERLAP (UPDATED)
    ============================================================================= */
 
 /* Clear z-index hierarchy */
@@ -2738,7 +2843,13 @@ div.absolute.top-4.right-4 {
 #beta-signup-btn { z-index: 1000 !important; }
 #action-toolbar { z-index: 1001 !important; }
 #info-panel { z-index: 1002 !important; }
+/* Profile menu should be highest to avoid being covered */
+#profile-menu { z-index: 2000 !important; }
 #form-modal { z-index: 1003 !important; }
+/* FirebaseUI auth modal */
+#firebaseui-auth-container { z-index: 2500 !important; }
+/* Toast notifications */
+.toast-notification { z-index: 3000 !important; }
 
 /* =============================================================================
    PERFORMANCE & ACCESSIBILITY
@@ -2821,14 +2932,85 @@ div.absolute.top-4.right-4 button {
     position: relative !important;
     /* Override any display none from JS */
     transform: none !important;
+    /* Fixed size */
+    width: 48px !important;
+    height: 48px !important;
 }
 
-/* User profile button when logged in */
+/* User profile button when logged in - FIX AVATAR SIZE */
+#user-profile {
+    visibility: visible !important;
+    opacity: 1 !important;
+    display: flex !important;
+    pointer-events: auto !important;
+    /* Fixed avatar size - not too big */
+    width: 48px !important;
+    height: 48px !important;
+    border-radius: 50% !important;
+    background: white !important;
+    border: 2px solid #e5e7eb !important;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
 #user-profile:not(.hidden) {
     visibility: visible !important;
     opacity: 1 !important;
     display: flex !important;
     pointer-events: auto !important;
+}
+
+/* Avatar image inside profile button */
+#user-avatar {
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 50% !important;
+    object-fit: cover !important;
+}
+
+/* Profile menu dropdown - FIX Z-INDEX ISSUES */
+#profile-menu {
+    position: absolute !important;
+    top: 100% !important;
+    right: 0 !important;
+    margin-top: 8px !important;
+    width: 200px !important;
+    background: white !important;
+    border-radius: 8px !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
+    border: 1px solid #e5e7eb !important;
+    z-index: 2000 !important; /* Higher than all other elements */
+    padding: 8px 0 !important;
+    
+    /* Ensure dropdown appears above everything */
+    transform: translateY(0) !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    display: block !important;
+}
+
+#profile-menu.hidden {
+    display: none !important;
+}
+
+/* Profile menu items */
+#profile-menu a {
+    display: block !important;
+    padding: 12px 16px !important;
+    font-size: 14px !important;
+    color: #374151 !important;
+    text-decoration: none !important;
+    transition: background-color 0.2s !important;
+    border: none !important;
+}
+
+#profile-menu a:hover {
+    background: #f3f4f6 !important;
+    color: #1f2937 !important;
+}
+
+#profile-menu a i {
+    margin-right: 8px !important;
+    width: 16px !important;
 }
 
 /* Admin button special case - respect JavaScript display logic but force when visible */
