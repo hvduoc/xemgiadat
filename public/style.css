@@ -2251,3 +2251,466 @@ button:disabled .loading-text {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+/* =============================================================================
+   MOBILE NAVIGATION FIX - UNIVERSAL COMPATIBILITY 
+   iOS Safari + Android Chrome + All Devices
+   ============================================================================= */
+
+/* iOS Safe Area & Viewport Fix */
+:root {
+    --safe-area-inset-top: env(safe-area-inset-top, 0px);
+    --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-area-inset-left: env(safe-area-inset-left, 0px);
+    --safe-area-inset-right: env(safe-area-inset-right, 0px);
+}
+
+/* Universal Mobile Viewport Fix */
+html {
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    height: 100vh;
+    height: -webkit-fill-available;
+}
+
+body {
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+/* =============================================================================
+   BOTTOM TOOLBAR FIX - ACTION TOOLBAR
+   ============================================================================= */
+
+#action-toolbar {
+    /* Sửa positioning cho tất cả thiết bị */
+    position: fixed !important;
+    bottom: calc(20px + var(--safe-area-inset-bottom)) !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    z-index: 1001 !important;
+    
+    /* Layout cải thiện */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    
+    /* Styling responsive */
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    padding: 8px 12px !important;
+    border-radius: 25px !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+    border: 1px solid rgba(229, 231, 235, 0.8) !important;
+    
+    /* Prevent layout shift */
+    width: auto !important;
+    max-width: calc(100vw - 40px) !important;
+    
+    /* Touch optimization */
+    touch-action: manipulation !important;
+    -webkit-touch-callout: none !important;
+    user-select: none !important;
+}
+
+/* Toolbar buttons optimization */
+.toolbar-btn-compact {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 8px 6px !important;
+    margin: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    border-radius: 12px !important;
+    transition: all 0.2s ease !important;
+    
+    /* Touch target - Apple guidelines */
+    min-width: 44px !important;
+    min-height: 44px !important;
+    
+    /* Text styling */
+    font-size: 11px !important;
+    font-weight: 500 !important;
+    color: #374151 !important;
+    text-align: center !important;
+    line-height: 1.2 !important;
+    
+    /* Touch optimization */
+    touch-action: manipulation !important;
+    -webkit-tap-highlight-color: transparent !important;
+}
+
+.toolbar-btn-compact:hover,
+.toolbar-btn-compact:focus {
+    background: rgba(59, 130, 246, 0.1) !important;
+    color: #2563eb !important;
+}
+
+.toolbar-btn-compact:active {
+    transform: scale(0.95) !important;
+    background: rgba(59, 130, 246, 0.2) !important;
+}
+
+.toolbar-btn-compact i {
+    margin-bottom: 2px !important;
+    font-size: 14px !important;
+}
+
+.toolbar-btn-compact span {
+    font-size: 10px !important;
+    font-weight: 500 !important;
+    white-space: nowrap !important;
+}
+
+/* Special styling for guide button */
+.toolbar-btn-compact.bg-blue-500 {
+    background: #3b82f6 !important;
+    color: white !important;
+}
+
+.toolbar-btn-compact.bg-blue-500:hover {
+    background: #2563eb !important;
+}
+
+/* =============================================================================
+   RIGHT SIDEBAR FIX - VERTICAL BUTTON GROUP
+   ============================================================================= */
+
+.absolute.top-4.right-4 {
+    position: fixed !important;
+    top: calc(16px + var(--safe-area-inset-top)) !important;
+    right: calc(16px + var(--safe-area-inset-right)) !important;
+    z-index: 1000 !important;
+    
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 12px !important;
+    
+    /* Prevent layout issues */
+    width: auto !important;
+    height: auto !important;
+    
+    /* Touch optimization */
+    touch-action: manipulation !important;
+}
+
+/* Right sidebar buttons */
+.absolute.top-4.right-4 button {
+    /* Size consistency */
+    width: 48px !important;
+    height: 48px !important;
+    
+    /* Layout */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    
+    /* Styling */
+    border-radius: 50% !important;
+    border: none !important;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15) !important;
+    transition: all 0.2s ease !important;
+    
+    /* Touch optimization */
+    touch-action: manipulation !important;
+    -webkit-tap-highlight-color: transparent !important;
+    user-select: none !important;
+}
+
+.absolute.top-4.right-4 button:active {
+    transform: scale(0.95) !important;
+}
+
+/* =============================================================================
+   BETA SIGNUP FLOATING BUTTON FIX
+   ============================================================================= */
+
+#beta-signup-btn {
+    position: fixed !important;
+    bottom: calc(100px + var(--safe-area-inset-bottom)) !important;
+    right: calc(16px + var(--safe-area-inset-right)) !important;
+    z-index: 1000 !important;
+    
+    /* Size & layout */
+    width: 56px !important;
+    height: 56px !important;
+    
+    /* Styling */
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 50% !important;
+    box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4) !important;
+    
+    /* Animation & interaction */
+    transition: all 0.3s ease !important;
+    touch-action: manipulation !important;
+    -webkit-tap-highlight-color: transparent !important;
+    
+    /* Center icon */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+#beta-signup-btn:hover {
+    background: linear-gradient(135deg, #2563eb, #7c3aed) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 25px rgba(59, 130, 246, 0.5) !important;
+}
+
+#beta-signup-btn:active {
+    transform: scale(0.95) !important;
+}
+
+#beta-signup-btn i {
+    font-size: 20px !important;
+}
+
+/* =============================================================================
+   SEARCH WIDGET CONTAINER FIX
+   ============================================================================= */
+
+#search-widget-container {
+    position: absolute !important;
+    top: calc(20px + var(--safe-area-inset-top)) !important;
+    left: calc(20px + var(--safe-area-inset-left)) !important;
+    right: calc(80px + var(--safe-area-inset-right)) !important;
+    z-index: 900 !important;
+    
+    max-width: none !important;
+    width: auto !important;
+    pointer-events: none !important;
+}
+
+#search-widget-container > * {
+    pointer-events: auto !important;
+}
+
+/* =============================================================================
+   INFO PANEL FIX - BOTTOM SHEET
+   ============================================================================= */
+
+#info-panel {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 1002 !important;
+    
+    /* Safe area adjustment */
+    padding-bottom: calc(16px + var(--safe-area-inset-bottom)) !important;
+    
+    /* Layout */
+    background: white !important;
+    border-top-left-radius: 16px !important;
+    border-top-right-radius: 16px !important;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15) !important;
+    
+    /* Animation */
+    transform: translateY(100%) !important;
+    transition: transform 0.3s ease-in-out !important;
+    
+    /* Scrolling */
+    max-height: calc(45vh - var(--safe-area-inset-bottom)) !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+}
+
+#info-panel.show {
+    transform: translateY(0) !important;
+}
+
+/* =============================================================================
+   MODAL FIXES
+   ============================================================================= */
+
+#form-modal {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    z-index: 1001 !important;
+    
+    /* Safe area support */
+    padding-top: var(--safe-area-inset-top) !important;
+    padding-bottom: var(--safe-area-inset-bottom) !important;
+    padding-left: var(--safe-area-inset-left) !important;
+    padding-right: var(--safe-area-inset-right) !important;
+    
+    /* Background */
+    background: rgba(0, 0, 0, 0.5) !important;
+    backdrop-filter: blur(4px) !important;
+    -webkit-backdrop-filter: blur(4px) !important;
+    
+    /* Scrolling */
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+}
+
+/* =============================================================================
+   MOBILE SPECIFIC OPTIMIZATIONS
+   ============================================================================= */
+
+/* iPhone specific fixes */
+@supports (-webkit-touch-callout: none) {
+    /* iOS Safari specific */
+    #action-toolbar {
+        bottom: calc(20px + env(safe-area-inset-bottom, 0px)) !important;
+    }
+    
+    #beta-signup-btn {
+        bottom: calc(100px + env(safe-area-inset-bottom, 0px)) !important;
+    }
+    
+    .absolute.top-4.right-4 {
+        top: calc(16px + env(safe-area-inset-top, 0px)) !important;
+        right: calc(16px + env(safe-area-inset-right, 0px)) !important;
+    }
+    
+    #search-widget-container {
+        top: calc(20px + env(safe-area-inset-top, 0px)) !important;
+        left: calc(20px + env(safe-area-inset-left, 0px)) !important;
+        right: calc(80px + env(safe-area-inset-right, 0px)) !important;
+    }
+}
+
+/* Small screens optimization */
+@media (max-width: 480px) {
+    #action-toolbar {
+        gap: 4px !important;
+        padding: 6px 8px !important;
+        max-width: calc(100vw - 20px) !important;
+    }
+    
+    .toolbar-btn-compact {
+        min-width: 40px !important;
+        min-height: 40px !important;
+        padding: 6px 4px !important;
+    }
+    
+    .toolbar-btn-compact span {
+        font-size: 9px !important;
+    }
+    
+    .toolbar-btn-compact i {
+        font-size: 12px !important;
+    }
+    
+    .absolute.top-4.right-4 button {
+        width: 44px !important;
+        height: 44px !important;
+    }
+    
+    #beta-signup-btn {
+        width: 52px !important;
+        height: 52px !important;
+    }
+    
+    #beta-signup-btn i {
+        font-size: 18px !important;
+    }
+    
+    #search-widget-container {
+        right: calc(60px + var(--safe-area-inset-right)) !important;
+    }
+}
+
+/* Extra small screens */
+@media (max-width: 360px) {
+    #action-toolbar {
+        bottom: calc(15px + var(--safe-area-inset-bottom)) !important;
+        gap: 2px !important;
+        padding: 4px 6px !important;
+    }
+    
+    .toolbar-btn-compact {
+        min-width: 36px !important;
+        min-height: 36px !important;
+        padding: 4px 2px !important;
+    }
+    
+    .toolbar-btn-compact span {
+        font-size: 8px !important;
+    }
+    
+    .absolute.top-4.right-4 {
+        top: calc(12px + var(--safe-area-inset-top)) !important;
+        right: calc(12px + var(--safe-area-inset-right)) !important;
+        gap: 8px !important;
+    }
+    
+    .absolute.top-4.right-4 button {
+        width: 40px !important;
+        height: 40px !important;
+    }
+    
+    #search-widget-container {
+        top: calc(16px + var(--safe-area-inset-top)) !important;
+        left: calc(16px + var(--safe-area-inset-left)) !important;
+        right: calc(52px + var(--safe-area-inset-right)) !important;
+    }
+}
+
+/* =============================================================================
+   Z-INDEX MANAGEMENT - PREVENT OVERLAP
+   ============================================================================= */
+
+/* Clear z-index hierarchy */
+#map { z-index: 1 !important; }
+#search-widget-container { z-index: 900 !important; }
+.absolute.top-4.right-4 { z-index: 1000 !important; }
+#beta-signup-btn { z-index: 1000 !important; }
+#action-toolbar { z-index: 1001 !important; }
+#info-panel { z-index: 1002 !important; }
+#form-modal { z-index: 1003 !important; }
+
+/* =============================================================================
+   PERFORMANCE & ACCESSIBILITY
+   ============================================================================= */
+
+/* GPU acceleration for smooth animations */
+#action-toolbar,
+#beta-signup-btn,
+.absolute.top-4.right-4,
+#info-panel {
+    transform: translateZ(0);
+    will-change: transform;
+    -webkit-transform: translateZ(0);
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    #action-toolbar {
+        background: white !important;
+        border: 2px solid black !important;
+    }
+    
+    .toolbar-btn-compact {
+        border: 1px solid black !important;
+    }
+}
+
+/* Focus visible for keyboard navigation */
+button:focus-visible {
+    outline: 2px solid #3b82f6 !important;
+    outline-offset: 2px !important;
+}
