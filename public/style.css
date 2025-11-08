@@ -2383,7 +2383,8 @@ body {
    RIGHT SIDEBAR FIX - VERTICAL BUTTON GROUP
    ============================================================================= */
 
-.absolute.top-4.right-4 {
+/* Right sidebar container - more specific selector */
+div.absolute.top-4.right-4 {
     position: fixed !important;
     top: calc(16px + var(--safe-area-inset-top)) !important;
     right: calc(16px + var(--safe-area-inset-right)) !important;
@@ -2394,6 +2395,10 @@ body {
     align-items: center !important;
     gap: 12px !important;
     
+    /* Ensure visibility */
+    visibility: visible !important;
+    opacity: 1 !important;
+    
     /* Prevent layout issues */
     width: auto !important;
     height: auto !important;
@@ -2403,8 +2408,8 @@ body {
 }
 
 /* Right sidebar buttons */
-.absolute.top-4.right-4 button {
-    /* Size consistency */
+div.absolute.top-4.right-4 button {
+    /* Size consistency - use w-12 h-12 equivalent */
     width: 48px !important;
     height: 48px !important;
     
@@ -2412,6 +2417,10 @@ body {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
+    
+    /* Ensure visibility */
+    visibility: visible !important;
+    opacity: 1 !important;
     
     /* Styling */
     border-radius: 50% !important;
@@ -2423,9 +2432,16 @@ body {
     touch-action: manipulation !important;
     -webkit-tap-highlight-color: transparent !important;
     user-select: none !important;
+    
+    /* Prevent transform issues */
+    transform: none !important;
 }
 
-.absolute.top-4.right-4 button:active {
+div.absolute.top-4.right-4 button:hover {
+    transform: scale(1.05) !important;
+}
+
+div.absolute.top-4.right-4 button:active {
     transform: scale(0.95) !important;
 }
 
@@ -2519,14 +2535,33 @@ body {
     transform: translateY(100%) !important;
     transition: transform 0.3s ease-in-out !important;
     
-    /* Scrolling */
-    max-height: calc(45vh - var(--safe-area-inset-bottom)) !important;
+    /* Scrolling - Fixed for zoom stability */
+    max-height: 45vh !important;
+    min-height: 200px !important;
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch !important;
+    
+    /* Zoom stability */
+    will-change: transform !important;
+    backface-visibility: hidden !important;
+    perspective: 1000px !important;
+    
+    /* Prevent layout shifts on zoom */
+    contain: layout style paint !important;
 }
 
 #info-panel.show {
     transform: translateY(0) !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Info panel content stability */
+#info-panel #panel-content {
+    position: relative !important;
+    zoom: 1 !important;
+    /* Prevent content jumping */
+    contain: layout style !important;
 }
 
 /* =============================================================================
@@ -2572,9 +2607,13 @@ body {
         bottom: calc(100px + env(safe-area-inset-bottom, 0px)) !important;
     }
     
-    .absolute.top-4.right-4 {
+    div.absolute.top-4.right-4 {
         top: calc(16px + env(safe-area-inset-top, 0px)) !important;
         right: calc(16px + env(safe-area-inset-right, 0px)) !important;
+        /* Force visibility on iOS */
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
     }
     
     #search-widget-container {
@@ -2606,9 +2645,21 @@ body {
         font-size: 12px !important;
     }
     
-    .absolute.top-4.right-4 button {
+    div.absolute.top-4.right-4 {
+        /* Force visibility on small screens */
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        gap: 10px !important;
+    }
+    
+    div.absolute.top-4.right-4 button {
         width: 44px !important;
         height: 44px !important;
+        /* Ensure buttons are visible */
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
     }
     
     #beta-signup-btn {
@@ -2643,15 +2694,23 @@ body {
         font-size: 8px !important;
     }
     
-    .absolute.top-4.right-4 {
+    div.absolute.top-4.right-4 {
         top: calc(12px + var(--safe-area-inset-top)) !important;
         right: calc(12px + var(--safe-area-inset-right)) !important;
         gap: 8px !important;
+        /* Force display even on tiny screens */
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
     }
     
-    .absolute.top-4.right-4 button {
+    div.absolute.top-4.right-4 button {
         width: 40px !important;
         height: 40px !important;
+        /* Ensure visibility */
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
     }
     
     #search-widget-container {
@@ -2668,7 +2727,14 @@ body {
 /* Clear z-index hierarchy */
 #map { z-index: 1 !important; }
 #search-widget-container { z-index: 900 !important; }
-.absolute.top-4.right-4 { z-index: 1000 !important; }
+div.absolute.top-4.right-4 { 
+    z-index: 1000 !important; 
+    /* Force layer above everything except modals */
+    position: fixed !important;
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
 #beta-signup-btn { z-index: 1000 !important; }
 #action-toolbar { z-index: 1001 !important; }
 #info-panel { z-index: 1002 !important; }
@@ -2713,4 +2779,106 @@ body {
 button:focus-visible {
     outline: 2px solid #3b82f6 !important;
     outline-offset: 2px !important;
+}
+
+/* =============================================================================
+   VISIBILITY DEBUGGING & FIXES
+   ============================================================================= */
+
+/* Force right sidebar visibility - override any hidden states */
+div.absolute.top-4.right-4 {
+    visibility: visible !important;
+    opacity: 1 !important;
+    display: flex !important;
+    pointer-events: auto !important;
+    /* Additional force properties */
+    position: fixed !important;
+    z-index: 1000 !important;
+    /* Prevent any transform hiding */
+    transform: none !important;
+}
+
+div.absolute.top-4.right-4 > *,
+div.absolute.top-4.right-4 button {
+    visibility: visible !important;
+    opacity: 1 !important;
+    display: flex !important;
+    pointer-events: auto !important;
+    /* Prevent transform hiding */
+    transform: none !important;
+}
+
+/* Specific button visibility fixes - override JavaScript hiding */
+#login-btn,
+#contact-info-btn,
+#feedback-btn,
+#donate-btn,
+#locate-btn {
+    visibility: visible !important;
+    opacity: 1 !important;
+    display: flex !important;
+    pointer-events: auto !important;
+    position: relative !important;
+    /* Override any display none from JS */
+    transform: none !important;
+}
+
+/* User profile button when logged in */
+#user-profile:not(.hidden) {
+    visibility: visible !important;
+    opacity: 1 !important;
+    display: flex !important;
+    pointer-events: auto !important;
+}
+
+/* Admin button special case - respect JavaScript display logic but force when visible */
+#admin-btn:not([style*="display: none"]) {
+    visibility: visible !important;
+    opacity: 1 !important;
+    display: flex !important;
+    pointer-events: auto !important;
+}
+
+/* Auth container fix */
+#auth-container {
+    visibility: visible !important;
+    opacity: 1 !important;
+    display: block !important;
+    position: relative !important;
+}
+
+/* Info panel stability on all zoom levels */
+@media (min-width: 1px) {
+    #info-panel {
+        /* Prevent disappearing on zoom */
+        min-width: 100vw !important;
+        width: 100vw !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        position: fixed !important;
+        /* Force stable positioning */
+        transform: translateY(100%) !important;
+    }
+    
+    #info-panel.show {
+        transform: translateY(0) !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        display: block !important;
+    }
+    
+    /* Prevent panel content from jumping */
+    #info-panel #panel-content {
+        transform: none !important;
+        zoom: 1 !important;
+    }
+}
+
+/* Desktop zoom stability */
+@media (min-width: 768px) {
+    #info-panel {
+        /* Better stability on desktop zoom */
+        transform-origin: bottom center !important;
+    }
 }
