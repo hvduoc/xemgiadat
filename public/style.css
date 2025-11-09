@@ -629,13 +629,13 @@ input[type=range][orient=vertical] {
 
 /* Leaflet bottom right controls - adjust for toolbar */
 .leaflet-bottom.leaflet-right {
-    /* Move controls above toolbar */
-    margin-bottom: calc(100px + var(--safe-area-inset-bottom)) !important;
+    /* Move controls above toolbar - Adjusted for lower toolbar height */
+    margin-bottom: calc(70px + var(--safe-area-inset-bottom)) !important;
 }
 
 /* Leaflet bottom left controls */
 .leaflet-bottom.leaflet-left {
-    margin-bottom: calc(100px + var(--safe-area-inset-bottom)) !important;
+    margin-bottom: calc(70px + var(--safe-area-inset-bottom)) !important;
 }
 /* Thêm vào cuối file style.css */
 .contact-icon-btn {
@@ -2828,28 +2828,37 @@ div.absolute.top-4.right-4 button:active {
 /* Small screens optimization - Enhanced responsive */
 @media (max-width: 480px) {
     #action-toolbar {
-        gap: 15px !important; /* Increased gap for better spacing */
-        padding: 12px 20px !important;
+        gap: 2% !important; /* Responsive gap based on toolbar width */
+        padding: 8px 12px !important; /* Reduced padding for lower height */
         width: 95% !important; /* 95% screen width for maximum compatibility */
         max-width: 95vw !important;
-        border-radius: 26px !important;
+        border-radius: 20px !important; /* Slightly smaller radius */
+        height: 54px !important; /* Fixed height for consistency */
     }
     
     .toolbar-btn-compact {
-        min-width: 72px !important; /* Slightly larger for 95% width */
-        min-height: 60px !important;
-        padding: 12px 14px !important;
-        border-radius: 16px !important;
+        width: 22% !important; /* Each button takes ~22% of toolbar width */
+        min-width: unset !important; /* Remove fixed min-width */
+        height: 40px !important; /* Reduced height - more compact */
+        min-height: unset !important; /* Remove fixed min-height */
+        padding: 6px 8px !important; /* Compact padding */
+        border-radius: 12px !important;
         flex: 1 !important; /* Equal distribution of available space */
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
     }
     
     .toolbar-btn-compact span {
-        font-size: 10px !important;
+        font-size: 9px !important; /* Slightly smaller text */
+        line-height: 1.1 !important;
+        margin-top: 2px !important;
     }
     
     .toolbar-btn-compact i {
-        font-size: 16px !important;
-        margin-bottom: 3px !important;
+        font-size: 14px !important; /* Smaller icon */
+        margin-bottom: 1px !important; /* Less margin */
     }
     
     div.absolute.top-4.right-4 {
@@ -2882,9 +2891,9 @@ div.absolute.top-4.right-4 button:active {
         right: calc(60px + var(--safe-area-inset-right)) !important;
     }
     
-    /* Leaflet attribution on small screens */
+    /* Leaflet attribution on small screens - Adjusted for lower toolbar */
     .leaflet-control-attribution {
-        bottom: calc(100px + var(--safe-area-inset-bottom)) !important;
+        bottom: calc(70px + var(--safe-area-inset-bottom)) !important; /* Reduced from 100px to 70px */
         font-size: 10px !important;
         padding: 3px 6px !important;
     }
