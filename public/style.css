@@ -587,34 +587,39 @@ input[type=range][orient=vertical] {
    LEAFLET ATTRIBUTION & CONTROLS POSITIONING
    ============================================================================= */
 
-/* Leaflet attribution - avoid toolbar overlap */
+/* Leaflet attribution - FIXED CENTER POSITIONING */
 .leaflet-control-attribution {
     position: absolute !important;
-    bottom: calc(120px + var(--safe-area-inset-bottom)) !important; /* Above toolbar */
-    right: 8px !important;
-    left: 8px !important;
+    bottom: calc(8px + var(--safe-area-inset-bottom)) !important; /* Bottom center */
+    left: 50% !important; /* CENTER HORIZONTAL */
+    right: unset !important; /* REMOVE RIGHT POSITIONING */
+    transform: translateX(-50%) !important; /* PERFECT CENTER */
+    width: auto !important; /* AUTO WIDTH */
+    max-width: 90vw !important; /* RESPONSIVE MAX WIDTH */
     
     /* Enhanced styling */
-    background: rgba(0, 0, 0, 0.7) !important;
-    color: rgba(255, 255, 255, 0.9) !important;
-    font-size: 11px !important;
-    padding: 4px 8px !important;
-    border-radius: 6px !important;
-    backdrop-filter: blur(8px) !important;
-    -webkit-backdrop-filter: blur(8px) !important;
+    background: rgba(0, 0, 0, 0.8) !important;
+    color: rgba(255, 255, 255, 0.95) !important;
+    font-size: 10px !important;
+    padding: 4px 10px !important;
+    border-radius: 12px !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
     
-    /* Center align */
+    /* CENTER ALIGN TEXT */
     text-align: center !important;
     z-index: 999 !important;
     
     /* Smooth transitions */
     transition: all 0.3s ease !important;
-    opacity: 0.8 !important;
+    opacity: 0.9 !important;
+    white-space: nowrap !important; /* KEEP TEXT IN ONE LINE */
 }
 
 .leaflet-control-attribution:hover {
     opacity: 1 !important;
-    background: rgba(0, 0, 0, 0.8) !important;
+    background: rgba(0, 0, 0, 0.9) !important;
+    transform: translateX(-50%) scale(1.02) !important; /* MAINTAIN CENTER + SLIGHT SCALE */
 }
 
 .leaflet-control-attribution a {
@@ -2892,24 +2897,7 @@ div.absolute.top-4.right-4 button:active {
         right: calc(60px + var(--safe-area-inset-right)) !important;
     }
     
-    /* Leaflet attribution on small screens - Bottom center layout */
-    .leaflet-control-attribution {
-        bottom: calc(6px + var(--safe-area-inset-bottom)) !important; /* Bottom of screen */
-        left: 50% !important; /* Center horizontally */
-        right: unset !important; /* Remove right positioning */
-        transform: translateX(-50%) !important; /* Perfect center */
-        font-size: 8px !important; /* Smaller for bottom placement */
-        padding: 3px 6px !important;
-        background: rgba(0, 0, 0, 0.7) !important; /* Dark background for bottom */
-        color: rgba(255, 255, 255, 0.9) !important; /* Light text */
-        border-radius: 8px !important;
-        backdrop-filter: blur(8px) !important;
-        border: none !important;
-        white-space: nowrap !important;
-        max-width: 90vw !important;
-        text-align: center !important;
-        z-index: 999 !important; /* Below toolbar but above map */
-    }
+    /* Mobile attribution positioning handled by global CSS above */
 }
 
 /* Medium screens optimization - Tablet landscape */
@@ -2938,23 +2926,7 @@ div.absolute.top-4.right-4 button:active {
         margin-bottom: 6px !important;
     }
     
-    /* Tablet Leaflet attribution - Bottom center layout */
-    .leaflet-control-attribution {
-        bottom: calc(8px + var(--safe-area-inset-bottom)) !important; /* Bottom of screen */
-        left: 50% !important; /* Center horizontally */
-        right: unset !important; /* Remove right positioning */
-        transform: translateX(-50%) !important; /* Perfect center */
-        font-size: 9px !important;
-        padding: 3px 7px !important;
-        background: rgba(0, 0, 0, 0.75) !important; /* Dark background */
-        color: rgba(255, 255, 255, 0.95) !important; /* Light text */
-        border-radius: 10px !important;
-        backdrop-filter: blur(10px) !important;
-        border: none !important;
-        white-space: nowrap !important;
-        text-align: center !important;
-        z-index: 999 !important; /* Below toolbar */
-    }
+    /* Tablet attribution positioning handled by global CSS above */
 }
 
 /* Large screens optimization - Desktop */
@@ -2989,24 +2961,7 @@ div.absolute.top-4.right-4 button:active {
         box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3) !important;
     }
     
-    /* Desktop Leaflet attribution - Bottom center layout */
-    .leaflet-control-attribution {
-        bottom: calc(10px + var(--safe-area-inset-bottom)) !important; /* Bottom of screen */
-        left: 50% !important; /* Center horizontally */
-        right: unset !important; /* Remove right positioning */
-        transform: translateX(-50%) !important; /* Perfect center */
-        font-size: 10px !important;
-        padding: 4px 8px !important;
-        background: rgba(0, 0, 0, 0.8) !important; /* Dark background for bottom */
-        color: rgba(255, 255, 255, 0.95) !important; /* Light text */
-        border-radius: 12px !important;
-        backdrop-filter: blur(12px) !important;
-        border: none !important;
-        white-space: nowrap !important;
-        text-align: center !important;
-        z-index: 999 !important; /* Below toolbar */
-        z-index: 1000 !important;
-    }
+    /* Desktop attribution positioning handled by global CSS above */
 }
 
 /* Extra small screens */
