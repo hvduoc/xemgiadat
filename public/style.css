@@ -2851,13 +2851,14 @@ div.absolute.top-4.right-4 button:active {
     }
     
     .toolbar-btn-compact span {
-        font-size: 9px !important; /* Slightly smaller text */
-        line-height: 1.1 !important;
+        font-size: 10px !important; /* Increased from 9px to 10px for better readability */
+        line-height: 1.2 !important;
         margin-top: 2px !important;
+        font-weight: 500 !important; /* Slightly bolder for better visibility */
     }
     
     .toolbar-btn-compact i {
-        font-size: 14px !important; /* Smaller icon */
+        font-size: 15px !important; /* Increased from 14px to 15px */
         margin-bottom: 1px !important; /* Less margin */
     }
     
@@ -2891,11 +2892,22 @@ div.absolute.top-4.right-4 button:active {
         right: calc(60px + var(--safe-area-inset-right)) !important;
     }
     
-    /* Leaflet attribution on small screens - Adjusted for lower toolbar */
+    /* Leaflet attribution on small screens - Horizontal layout */
     .leaflet-control-attribution {
-        bottom: calc(70px + var(--safe-area-inset-bottom)) !important; /* Reduced from 100px to 70px */
-        font-size: 10px !important;
-        padding: 3px 6px !important;
+        bottom: calc(64px + var(--safe-area-inset-bottom)) !important; /* Just above toolbar */
+        left: 50% !important; /* Center horizontally */
+        right: unset !important; /* Remove right positioning */
+        transform: translateX(-50%) !important; /* Perfect center */
+        font-size: 9px !important;
+        padding: 4px 8px !important;
+        background: rgba(255, 255, 255, 0.9) !important; /* Semi-transparent background */
+        border-radius: 12px !important;
+        backdrop-filter: blur(10px) !important; /* Glassmorphism effect */
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        white-space: nowrap !important; /* Keep text in one line */
+        max-width: 90vw !important; /* Responsive width */
+        text-align: center !important;
+        z-index: 1000 !important; /* Ensure it stays above other elements */
     }
 }
 
@@ -2923,6 +2935,23 @@ div.absolute.top-4.right-4 button:active {
     .toolbar-btn-compact i {
         font-size: 22px !important;
         margin-bottom: 6px !important;
+    }
+    
+    /* Tablet Leaflet attribution - Horizontal layout */
+    .leaflet-control-attribution {
+        bottom: calc(90px + var(--safe-area-inset-bottom)) !important; /* Above tablet toolbar */
+        left: 50% !important; /* Center horizontally */
+        right: unset !important; /* Remove right positioning */
+        transform: translateX(-50%) !important; /* Perfect center */
+        font-size: 10px !important;
+        padding: 4px 8px !important;
+        background: rgba(255, 255, 255, 0.9) !important;
+        border-radius: 14px !important;
+        backdrop-filter: blur(12px) !important;
+        border: 1px solid rgba(255, 255, 255, 0.25) !important;
+        white-space: nowrap !important;
+        text-align: center !important;
+        z-index: 1000 !important;
     }
 }
 
@@ -2958,10 +2987,21 @@ div.absolute.top-4.right-4 button:active {
         box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3) !important;
     }
     
+    /* Desktop Leaflet attribution - Horizontal layout */
     .leaflet-control-attribution {
-        bottom: calc(110px + var(--safe-area-inset-bottom)) !important;
-        font-size: 11px !important;
-        padding: 4px 8px !important;
+        bottom: calc(120px + var(--safe-area-inset-bottom)) !important; /* Above desktop toolbar */
+        left: 50% !important; /* Center horizontally */
+        right: unset !important; /* Remove right positioning */
+        transform: translateX(-50%) !important; /* Perfect center */
+        font-size: 10px !important;
+        padding: 5px 10px !important;
+        background: rgba(255, 255, 255, 0.95) !important; /* More opaque on desktop */
+        border-radius: 16px !important;
+        backdrop-filter: blur(15px) !important;
+        border: 1px solid rgba(255, 255, 255, 0.3) !important;
+        white-space: nowrap !important;
+        text-align: center !important;
+        z-index: 1000 !important;
     }
 }
 
