@@ -469,7 +469,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const donateModal = document.getElementById('donate-modal');
     const closeDonateModalBtn = document.getElementById('close-donate-modal');
     const copyBtn = document.getElementById('copy-stk-btn');
-    const accountNumber = document.getElementById('bank-account-number').textContent;
     const addLocationBtn = document.getElementById('add-location-btn');
     const listBtn = document.getElementById('list-btn');
     const queryBtn = document.getElementById('query-btn');
@@ -1889,6 +1888,12 @@ async function showCommunityParcelInfo(parcelNumber, mapSheet) {
     closeDonateModalBtn.addEventListener('click', () => hideModal(donateModal));
     donateModal.addEventListener('click', (e) => { if (e.target === donateModal) hideModal(donateModal); });
 
+    // Professional Donation System v2.0
+    setupDonationTabs();
+    setupCopyFunctionality();
+
+    console.log('🎯 Professional Donation System v2.0 initialized successfully!');
+
     // Rating system
     let selectedRating = 0;
     const ratingStars = document.querySelectorAll('.rating-star');
@@ -2167,7 +2172,7 @@ async function showCommunityParcelInfo(parcelNumber, mapSheet) {
     else opacityControl.classList.add('hidden');
 
     // Donate handlers already setup earlier - avoid duplicate
-    copyBtn.addEventListener('click', () => navigator.clipboard.writeText(accountNumber).then(() => alert("Đã sao chép số tài khoản!")));
+    // Note: copyBtn functionality is now handled in setupCopyFunctionality() function
 
     addLocationBtn.addEventListener('click', () => {
         if (!currentUser) {
@@ -9037,3 +9042,273 @@ console.log('├── testDangTin() - Test posting functionality');
 console.log('└── viewBetaSignups() - View beta signup data');
 console.log('');
 console.log('💡 Usage: Open Console (F12) and type: debugDangTin()');
+
+// ========================================
+// 🎯 PROFESSIONAL DONATION SYSTEM v2.0
+// ========================================
+
+function setupDonationTabs() {
+    const tabs = document.querySelectorAll('.donation-tab');
+    const contents = document.querySelectorAll('.donation-content');
+    const indicator = document.querySelector('.tab-indicator');
+    
+    if (!tabs.length || !contents.length || !indicator) {
+        console.warn('⚠️ Donation tabs elements not found');
+        return;
+    }
+    
+    tabs.forEach((tab, index) => {
+        tab.addEventListener('click', () => {
+            // Remove active from all tabs
+            tabs.forEach(t => {
+                t.classList.remove('active');
+                const span = t.querySelector('span:last-child');
+                if (span) span.style.color = '#6b7280';
+            });
+            
+            // Hide all contents
+            contents.forEach(c => {
+                c.classList.remove('active');
+                c.classList.add('hidden');
+            });
+            
+            // Activate clicked tab
+            tab.classList.add('active');
+            const activeSpan = tab.querySelector('span:last-child');
+            if (activeSpan) activeSpan.style.color = '#374151';
+            
+            // Move indicator
+            const tabWidth = 100 / tabs.length;
+            indicator.style.transform = `translateX(${index * 100}%)`;
+            
+            // Show corresponding content
+            const targetContent = document.getElementById(tab.dataset.tab + '-tab');
+            if (targetContent) {
+                targetContent.classList.remove('hidden');
+                targetContent.classList.add('active');
+            }
+            
+            // Analytics tracking
+            trackDonationTabSwitch(tab.dataset.tab);
+        });
+    });
+    
+    console.log('✅ Professional donation tabs initialized');
+}
+
+function setupCopyFunctionality() {
+    // Enhanced copy functions with multiple formats
+    const copyButtons = [
+        { id: 'quick-copy-qr', data: '6806879397' },
+        { id: 'copy-account-number', data: '6806879397' },
+        { 
+            id: 'copy-bank-info', 
+            data: `Số tài khoản: 6806879397\nChủ tài khoản: HUYNH VAN DUOC\nNgân hàng: MB BANK\nNội dung: Ủng hộ XemGiaDat` 
+        }
+    ];
+    
+    copyButtons.forEach(({ id, data }) => {
+        const button = document.getElementById(id);
+        if (button) {
+            button.addEventListener('click', () => copyToClipboard(data, button));
+        }
+    });
+    
+    // Legacy support
+    const legacyButtons = ['copy-account-btn', 'copy-stk-btn'];
+    legacyButtons.forEach(id => {
+        const button = document.getElementById(id);
+        if (button) {
+            button.addEventListener('click', () => copyToClipboard('6806879397', button));
+        }
+    });
+    
+    console.log('✅ Professional copy functionality initialized');
+}
+
+async function copyToClipboard(text, button) {
+    try {
+        // Modern Clipboard API
+        if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(text);
+            showCopySuccess(button);
+            showToast('Đã sao chép thành công! 📋', 'success');
+        } else {
+            // Fallback for older browsers
+            fallbackCopyTextToClipboard(text, button);
+        }
+        
+        // Analytics tracking
+        trackCopyAction(text.length > 20 ? 'full-info' : 'account-number');
+        
+    } catch (err) {
+        console.error('Copy failed:', err);
+        showToast('Không thể sao chép. Vui lòng thử lại! ❌', 'error');
+    }
+}
+
+function fallbackCopyTextToClipboard(text, button) {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    textArea.style.top = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+        const successful = document.execCommand('copy');
+        if (successful) {
+            showCopySuccess(button);
+            showToast('Đã sao chép thành công! 📋', 'success');
+        } else {
+            throw new Error('Copy command failed');
+        }
+    } catch (err) {
+        console.error('Fallback copy failed:', err);
+        showToast('Không thể sao chép. Vui lòng copy thủ công! ❌', 'error');
+    }
+    
+    document.body.removeChild(textArea);
+}
+
+function showCopySuccess(button) {
+    if (!button) return;
+    
+    const originalContent = button.innerHTML;
+    const originalClasses = button.className;
+    
+    // Success state
+    button.innerHTML = `
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+        </svg>
+        <span>Đã sao chép!</span>
+    `;
+    button.className = originalClasses.replace(/bg-\w+-\d+/g, 'bg-green-500').replace(/hover:bg-\w+-\d+/g, 'hover:bg-green-600');
+    
+    // Reset after 2 seconds
+    setTimeout(() => {
+        button.innerHTML = originalContent;
+        button.className = originalClasses;
+    }, 2000);
+}
+
+function showToast(message, type = 'info') {
+    // Remove existing toasts
+    document.querySelectorAll('.toast').forEach(toast => toast.remove());
+    
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+    
+    document.body.appendChild(toast);
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        toast.style.animation = 'toastSlideUp 0.3s ease-out reverse';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+function trackDonationTabSwitch(tabName) {
+    // Analytics tracking for tab switches
+    if (typeof gtag !== 'undefined') {
+        gtag('event', 'donation_tab_switch', {
+            tab_name: tabName,
+            event_category: 'donation',
+            event_label: tabName
+        });
+    }
+    
+    console.log(`📊 Tab switched to: ${tabName}`);
+}
+
+function trackCopyAction(copyType) {
+    // Analytics tracking for copy actions
+    if (typeof gtag !== 'undefined') {
+        gtag('event', 'donation_copy', {
+            copy_type: copyType,
+            event_category: 'donation',
+            event_label: copyType
+        });
+    }
+    
+    console.log(`📊 Copy action: ${copyType}`);
+}
+
+function showCopySuccess(button, message) {
+    const originalHTML = button.innerHTML;
+    const originalClasses = button.className;
+    
+    // Update button appearance
+    button.classList.add('copy-success');
+    button.innerHTML = `
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+        </svg>
+        ${message}
+    `;
+    
+    // Show toast notification
+    showToast(message, 'success', '✅');
+    
+    // Reset button after 2 seconds
+    setTimeout(() => {
+        button.className = originalClasses;
+        button.innerHTML = originalHTML;
+    }, 2000);
+}
+
+function showCopyError(button) {
+    showToast('Không thể sao chép. Vui lòng copy thủ công!', 'error', '❌');
+}
+
+function showToast(message, type = 'success', icon = '✅') {
+    // Remove existing toast if any
+    const existingToast = document.querySelector('.donation-toast');
+    if (existingToast) {
+        existingToast.remove();
+    }
+    
+    const toast = document.createElement('div');
+    toast.className = `donation-toast fixed top-4 right-4 z-[9999] px-4 py-3 rounded-lg shadow-lg transition-all duration-300 transform`;
+    
+    if (type === 'success') {
+        toast.classList.add('bg-green-500', 'text-white');
+    } else {
+        toast.classList.add('bg-red-500', 'text-white');
+    }
+    
+    toast.innerHTML = `
+        <div class="flex items-center space-x-2">
+            <span class="text-lg">${icon}</span>
+            <span class="font-medium">${message}</span>
+        </div>
+    `;
+    
+    // Initial state for animation
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(100%)';
+    
+    document.body.appendChild(toast);
+    
+    // Trigger entrance animation
+    requestAnimationFrame(() => {
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateX(0)';
+    });
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(100%)';
+        
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.remove();
+            }
+        }, 300);
+    }, 3000);
+}
