@@ -616,9 +616,10 @@
         <button id="admin-btn" title="Quản trị hệ thống" class="bg-red-600 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-red-700 transition" style="display: none;">
             <i class="fa-solid fa-cog text-xl"></i>
         </button>
-        <button id="donate-btn" title="Ủng hộ (Mời cafe)" class="bg-yellow-400 text-black w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-yellow-500 transition">
+        <!-- DONATE BUTTON - TEMPORARILY HIDDEN DUE TO EXTERNAL QR SERVICE CONFLICT -->
+        <!-- <button id="donate-btn" title="Ủng hộ (Mời cafe)" class="bg-yellow-400 text-black w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-yellow-500 transition">
             <i class="fa-solid fa-mug-saucer"></i>
-        </button>
+        </button> -->
         <button id="locate-btn" title="Tìm vị trí của tôi" class="bg-white text-gray-700 w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100 transition">
             <i class="fa-solid fa-location-crosshairs text-xl"></i>
         </button>
@@ -697,166 +698,77 @@
         <div id="firebaseui-widget" class="bg-white p-6 rounded shadow-lg w-full max-w-sm"></div>
     </div>
     
-    <!-- 🎯 OPTIMIZED DONATION MODAL -->
-    <div id="donate-modal" class="donation-modal hidden fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
-        <div class="donation-container relative bg-white bg-opacity-95 backdrop-blur-xl w-full max-w-sm mx-4 rounded-2xl shadow-xl border border-white border-opacity-20 overflow-hidden transform transition-all duration-300">
+    <!-- 🎯 DONATION MODAL - TEMPORARILY DISABLED -->
+    <!-- <div id="donate-modal" class="donation-modal hidden fixed inset-0 bg-black bg-opacity-25 z-[2000] flex items-center justify-center p-4"> -->
+        <div class="relative bg-white rounded-xl shadow-lg border border-gray-200 w-80 max-w-[90vw] overflow-hidden">
             
-            <!-- Compact Header -->
-            <div class="donation-header relative bg-gradient-to-br from-yellow-400 via-orange-400 to-red-400 px-4 py-3">
-                <button id="close-donate-modal" class="absolute top-2 right-2 text-white hover:text-yellow-100 transition-all duration-200 p-1 rounded-full hover:bg-white hover:bg-opacity-20">
+            <!-- Simple Header -->
+            <div class="bg-gradient-to-r from-amber-400 to-orange-500 px-4 py-3 relative">
+                <button id="close-donate-modal" class="absolute top-2 right-2 text-white hover:text-gray-100 w-6 h-6 flex items-center justify-center rounded-full hover:bg-black hover:bg-opacity-10 transition-colors">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
                 </button>
                 
-                <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 bg-white bg-opacity-20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                <div class="flex items-center">
+                    <div class="w-8 h-8 bg-white bg-opacity-20 rounded-lg flex items-center justify-center mr-3">
                         <span class="text-lg">☕</span>
                     </div>
                     <div>
-                        <h3 class="text-lg font-bold text-white">Ủng Hộ XemGiaDat</h3>
-                        <p class="text-white text-opacity-90 text-xs">Hỗ trợ phát triển dự án</p>
+                        <h3 class="text-white font-semibold text-sm">Ủng Hộ Dự Án</h3>
+                        <p class="text-white text-opacity-80 text-xs">Cảm ơn sự hỗ trợ của bạn</p>
                     </div>
                 </div>
             </div>
             
-            
-            <!-- 🎨 Compact Tabs -->
-            <div class="donation-tabs-container px-4 py-3">
-                <div class="relative bg-gray-100 rounded-xl p-1 grid grid-cols-3 gap-1">
-                    <div class="tab-indicator absolute bg-white rounded-lg shadow-sm transition-transform duration-300 ease-out" style="width: calc(33.333% - 4px); height: calc(100% - 8px); top: 4px; left: 4px;"></div>
-                    
-                    <button class="donation-tab active relative z-10 flex flex-col items-center py-2 px-1 rounded-lg text-center transition-all duration-200" data-tab="qr">
-                        <div class="text-base mb-1">📱</div>
-                        <span class="text-xs font-semibold text-gray-700">QR</span>
-                    </button>
-                    
-                    <button class="donation-tab relative z-10 flex flex-col items-center py-2 px-1 rounded-lg text-center transition-all duration-200" data-tab="card">
-                        <div class="text-base mb-1">💳</div>
-                        <span class="text-xs font-semibold text-gray-500">Bank</span>
-                    </button>
-                    
-                    <button class="donation-tab relative z-10 flex flex-col items-center py-2 px-1 rounded-lg text-center transition-all duration-200" data-tab="paypal">
-                        <div class="text-base mb-1">🌍</div>
-                        <span class="text-xs font-semibold text-gray-500">PayPal</span>
-                    </button>
-                </div>
-            </div>
+            <!-- Single Content Section -->
+            <div class="p-4 space-y-4">
                 
-            <!-- 🎯 Compact Content -->
-            <div class="donation-content-container px-4 pb-4">
-                
-                <!-- 📱 QR SECTION -->
-                <div id="qr-tab" class="donation-content active">
-                    <div class="space-y-4">
-                        
-                        <!-- QR Container -->
-                        <div class="qr-container bg-white border border-gray-200 rounded-2xl p-4">
-                            <div class="flex justify-center mb-3">
-                                <div class="w-32 h-32 bg-gray-50 rounded-xl border border-gray-100 flex items-center justify-center overflow-hidden">
-                                    <img id="qr-image" src="images/qr-code.png" 
-                                         alt="QR Code MB Bank" 
-                                         class="w-full h-full object-contain p-1"
-                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
-                                    
-                                    <div class="hidden w-full h-full bg-gray-100 border border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center text-gray-500 text-xs">
-                                        <div class="text-2xl mb-1">📱</div>
-                                        <div>QR Code</div>
-                                        <div class="text-xs mt-1">6806879397</div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Bank Info -->
-                            <div class="text-center">
-                                <p class="text-sm font-semibold text-gray-900 mb-1">6806 8793 979</p>
-                                <p class="text-xs text-gray-500 mb-3">HUYNH VAN DUOC • MB Bank</p>
-                                
-                                <button id="quick-copy-qr" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center space-x-2">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-                                    </svg>
-                                    <span>Copy STK</span>
-                                </button>
-                            </div>
+                <!-- QR Code -->
+                <div class="text-center">
+                    <div class="w-32 h-32 mx-auto bg-gray-50 border border-gray-200 rounded-lg p-2 mb-3">
+                        <img src="images/qr-code.png" 
+                             alt="QR MB Bank" 
+                             class="w-full h-full object-contain"
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                        <div class="hidden text-gray-400 text-xs flex flex-col items-center justify-center h-full">
+                            <div class="text-2xl mb-1">📱</div>
+                            <div>QR Code</div>
                         </div>
                     </div>
-                </div>
-                
-                
-                <!-- 💳 BANKING SECTION -->
-                <div id="card-tab" class="donation-content hidden">
-                    <div class="space-y-4">
+                    
+                    <div class="text-center">
+                        <p class="font-mono text-lg font-semibold text-gray-900 mb-1">6806 8793 979</p>
+                        <p class="text-sm text-gray-600 mb-3">HUYNH VAN DUOC • MB Bank</p>
                         
-                        <!-- Bank Card -->
-                        <div class="bg-gradient-to-r from-blue-600 to-purple-700 rounded-xl p-4 text-white">
-                            <div class="flex justify-between items-center mb-3">
-                                <div>
-                                    <p class="text-blue-100 text-xs">Tài khoản</p>
-                                    <p class="text-lg font-bold">6806 8793 979</p>
-                                </div>
-                                <div class="w-8 h-5 bg-white bg-opacity-20 rounded flex items-center justify-center">
-                                    <span class="text-xs font-bold">MB</span>
-                                </div>
-                            </div>
-                            
-                            <div class="flex justify-between text-sm">
-                                <div>
-                                    <p class="text-blue-100 text-xs">Chủ TK</p>
-                                    <p class="font-medium">HUYNH VAN DUOC</p>
-                                </div>
-                                <div>
-                                    <p class="text-blue-100 text-xs">Ngân hàng</p>
-                                    <p class="font-medium">MB BANK</p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <button id="copy-account-number" class="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-medium transition-colors flex items-center justify-center space-x-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <button id="quick-copy-qr" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors inline-flex items-center">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
                             </svg>
-                            <span>Copy STK</span>
+                            Copy STK
                         </button>
                     </div>
                 </div>
                 
-                
-                <!-- 🌍 PAYPAL SECTION -->
-                <div id="paypal-tab" class="donation-content hidden">
-                    <div class="space-y-4">
-                        
-                        <!-- PayPal Card -->
-                        <div class="bg-gradient-to-r from-blue-600 to-blue-800 rounded-xl p-4 text-white text-center">
-                            <div class="text-2xl mb-2">🌍</div>
-                            <h3 class="text-lg font-bold mb-2">PayPal Donation</h3>
-                            <p class="text-blue-100 text-sm mb-4">International support</p>
-                            
-                            <a href="https://paypal.me/huynhvanduoc?country.x=VN&locale.x=vi_VN" 
-                               target="_blank" 
-                               class="inline-flex items-center bg-white text-blue-600 px-4 py-2 rounded-xl font-semibold hover:bg-blue-50 transition-colors">
-                                <svg class="w-4 h-4 mr-2" fill="#0070ba" viewBox="0 0 24 24">
-                                    <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.288-.077.437-.983 5.05-4.349 6.797-8.647 6.797h-2.19c-.524 0-.968.382-1.05.9l-1.12 7.106z"/>
-                                </svg>
-                                <span>Open PayPal</span>
-                            </a>
-                        </div>
-                        
-                        <div class="bg-gray-50 p-3 rounded-xl text-center">
-                            <p class="text-xs text-gray-600">🔒 Secure payment • 💳 International cards</p>
-                        </div>
-                    </div>
+                <!-- Quick Options -->
+                <div class="flex space-x-2">
+                    <button id="copy-account-number" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-3 rounded-lg text-sm font-medium transition-colors">
+                        💳 Banking
+                    </button>
+                    <a href="https://paypal.me/huynhvanduoc" 
+                       target="_blank" 
+                       class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-3 rounded-lg text-sm font-medium transition-colors text-center">
+                        🌍 PayPal
+                    </a>
                 </div>
                 
-                <!-- 💯 THANK YOU -->
-                <div class="bg-green-50 border border-green-200 rounded-xl p-4 text-center">
-                    <div class="text-green-600 text-xl mb-2">💝</div>
-                    <h4 class="text-sm font-bold text-green-800 mb-1">Cảm ơn sự ủng hộ!</h4>
-                    <p class="text-xs text-green-600">Mọi đóng góp giúp XemGiaDat phát triển</p>
+                <!-- Thank you note -->
+                <div class="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
+                    <p class="text-green-700 text-sm">🙏 Mọi đóng góp giúp dự án phát triển</p>
                 </div>
             </div>
         </div>
-    </div>
+    </div> -->
 
     <div id="contact-info-modal" class="hidden fixed inset-0 bg-gray-800 bg-opacity-75 z-[2000] flex items-end sm:items-center justify-center p-0 sm:p-4">
         <div class="relative bg-white w-full sm:w-auto sm:max-w-md sm:rounded-2xl rounded-t-2xl shadow-xl text-center max-h-[90vh] overflow-y-auto">

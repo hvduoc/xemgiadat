@@ -1904,11 +1904,13 @@ async function showCommunityParcelInfo(parcelNumber, mapSheet) {
         }
     });
 
-    // Note: Guide, Admin, and Feedback event listeners are now setup earlier in the code
-    // Donate button handlers
+    // DONATION FUNCTIONALITY - TEMPORARILY DISABLED DUE TO EXTERNAL QR CONFLICT
+    /*
     donateBtn.addEventListener('click', () => showModal(donateModal));
     closeDonateModalBtn.addEventListener('click', () => hideModal(donateModal));
     donateModal.addEventListener('click', (e) => { if (e.target === donateModal) hideModal(donateModal); });
+    */
+    console.log('⚠️ Donation system temporarily disabled - External QR service conflict detected');
 
     // Professional Donation System v2.0
     setupDonationTabs();
@@ -9162,56 +9164,14 @@ console.log('');
 console.log('💡 Usage: Open Console (F12) and type: debugDangTin()');
 
 // ========================================
-// 🎯 PROFESSIONAL DONATION SYSTEM v2.0
-// ========================================
+// 🎯 MINIMALIST DONATION SYSTEM v3.0
+// =======================================
 
 function setupDonationTabs() {
-    const tabs = document.querySelectorAll('.donation-tab');
-    const contents = document.querySelectorAll('.donation-content');
-    const indicator = document.querySelector('.tab-indicator');
+    console.log('✅ Minimalist donation system initialized');
     
-    if (!tabs.length || !contents.length || !indicator) {
-        console.warn('⚠️ Donation tabs elements not found');
-        return;
-    }
-    
-    tabs.forEach((tab, index) => {
-        tab.addEventListener('click', () => {
-            // Remove active from all tabs
-            tabs.forEach(t => {
-                t.classList.remove('active');
-                const span = t.querySelector('span:last-child');
-                if (span) span.style.color = '#6b7280';
-            });
-            
-            // Hide all contents
-            contents.forEach(c => {
-                c.classList.remove('active');
-                c.classList.add('hidden');
-            });
-            
-            // Activate clicked tab
-            tab.classList.add('active');
-            const activeSpan = tab.querySelector('span:last-child');
-            if (activeSpan) activeSpan.style.color = '#374151';
-            
-            // Move indicator
-            const tabWidth = 100 / tabs.length;
-            indicator.style.transform = `translateX(${index * 100}%)`;
-            
-            // Show corresponding content
-            const targetContent = document.getElementById(tab.dataset.tab + '-tab');
-            if (targetContent) {
-                targetContent.classList.remove('hidden');
-                targetContent.classList.add('active');
-            }
-            
-            // Analytics tracking
-            trackDonationTabSwitch(tab.dataset.tab);
-        });
-    });
-    
-    console.log('✅ Professional donation tabs initialized');
+    // No complex tabs - just focus on copy functionality
+    setupCopyFunctionality();
 }
 
 function setupCopyFunctionality() {
