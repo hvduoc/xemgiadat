@@ -508,26 +508,49 @@ input[type=range][orient=vertical] {
     font-size: 12px;
     font-weight: 500;
     color: #374151;
-    transition: all 0.2s ease;
+    transition: all 0.15s ease;
     cursor: pointer;
     background: transparent;
     border: none;
     min-width: 56px;
     gap: 4px;
+    position: relative;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .toolbar-btn-compact:hover {
     background-color: #f3f4f6;
     transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .toolbar-btn-compact:active {
-    transform: translateY(0);
+    transform: translateY(0) scale(0.98);
+    background-color: #e5e7eb;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
 
 .toolbar-btn-compact.active-tool {
     background-color: #3b82f6;
     color: white;
+    box-shadow: 0 3px 12px rgba(59,130,246,0.4);
+}
+
+.toolbar-btn-compact.active-tool:hover {
+    background-color: #2563eb;
+    transform: translateY(-1px);
+}
+
+.toolbar-btn-compact.active-tool:active {
+    background-color: #1d4ed8;
+    transform: translateY(0) scale(0.98);
+}
+
+.toolbar-btn-compact.pressed {
+    background-color: #e5e7eb;
+    transform: scale(0.95);
+    transition: all 0.1s ease;
 }
 /* Thêm vào để tạo hiệu ứng di chuyển mượt mà */
 /* == THAY THẾ CSS CŨ BẰNG ĐOẠN NÀY == */

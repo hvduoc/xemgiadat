@@ -538,9 +538,23 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Guide button
+    // Enhanced guide button with visual feedback
     if (guideBtn) {
-        guideBtn.addEventListener('click', () => {
+        guideBtn.addEventListener('mousedown', function() {
+            guideBtn.classList.add('pressed');
+        });
+        
+        guideBtn.addEventListener('mouseup', function() {
+            setTimeout(() => guideBtn.classList.remove('pressed'), 100);
+        });
+        
+        guideBtn.addEventListener('mouseleave', function() {
+            guideBtn.classList.remove('pressed');
+        });
+        
+        guideBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
             console.log('📖 Guide button clicked');
             window.open('guide.html', '_blank');
         });
@@ -1103,6 +1117,14 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => instructionBanner.classList.add('hidden'), 3500);
     }
 
+    function clearAllToolbarStates() {
+        // Clear all active states from toolbar buttons
+        const toolbarButtons = document.querySelectorAll('.toolbar-btn-compact');
+        toolbarButtons.forEach(btn => {
+            btn.classList.remove('active-tool', 'pressed');
+        });
+    }
+    
     function exitAllModes() {
         isAddMode = false;
         isQueryMode = false;
@@ -2174,7 +2196,25 @@ async function showCommunityParcelInfo(parcelNumber, mapSheet) {
     // Donate handlers already setup earlier - avoid duplicate
     // Note: copyBtn functionality is now handled in setupCopyFunctionality() function
 
-    addLocationBtn.addEventListener('click', () => {
+    // Enhanced add-location button with visual feedback
+    addLocationBtn.addEventListener('mousedown', function() {
+        if (!addLocationBtn.disabled) {
+            addLocationBtn.classList.add('pressed');
+        }
+    });
+    
+    addLocationBtn.addEventListener('mouseup', function() {
+        setTimeout(() => addLocationBtn.classList.remove('pressed'), 100);
+    });
+    
+    addLocationBtn.addEventListener('mouseleave', function() {
+        addLocationBtn.classList.remove('pressed');
+    });
+    
+    addLocationBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
         if (!currentUser) {
             alert("Vui lòng đăng nhập để thêm địa điểm!");
             return;
@@ -2183,9 +2223,57 @@ async function showCommunityParcelInfo(parcelNumber, mapSheet) {
         isAddMode ? exitAllModes() : enterAddMode();
     });
 
-    queryBtn.addEventListener('click', () => isQueryMode ? exitAllModes() : enterQueryMode());
-    listBtn.addEventListener('click', () => listModal.classList.remove('hidden'));
-    document.getElementById('close-list-btn').addEventListener('click', () => listModal.classList.add('hidden'));
+    // Enhanced query button with visual feedback
+    queryBtn.addEventListener('mousedown', function() {
+        queryBtn.classList.add('pressed');
+    });
+    
+    queryBtn.addEventListener('mouseup', function() {
+        setTimeout(() => queryBtn.classList.remove('pressed'), 100);
+    });
+    
+    queryBtn.addEventListener('mouseleave', function() {
+        queryBtn.classList.remove('pressed');
+    });
+    
+    queryBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        isQueryMode ? exitAllModes() : enterQueryMode();
+    });
+    // Enhanced list button with visual feedback
+    listBtn.addEventListener('mousedown', function() {
+        listBtn.classList.add('pressed');
+    });
+    
+    listBtn.addEventListener('mouseup', function() {
+        setTimeout(() => listBtn.classList.remove('pressed'), 100);
+    });
+    
+    listBtn.addEventListener('mouseleave', function() {
+        listBtn.classList.remove('pressed');
+    });
+    
+    listBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Toggle active state
+        const isActive = listBtn.classList.contains('active-tool');
+        clearAllToolbarStates();
+        
+        if (!isActive) {
+            listBtn.classList.add('active-tool');
+            listModal.classList.remove('hidden');
+        } else {
+            listModal.classList.add('hidden');
+        }
+    });
+    
+    document.getElementById('close-list-btn').addEventListener('click', function() {
+        listModal.classList.add('hidden');
+        listBtn.classList.remove('active-tool');
+    });
     document.getElementById('close-modal-btn').addEventListener('click', () => { modal.classList.add('hidden'); exitAllModes(); });
 
     form.addEventListener('submit', async (e) => {
@@ -4409,19 +4497,42 @@ function showToast(message, type = 'info', duration = 3000) {
 function initializeAnalytics() {
     console.log('🚀 Initializing Analytics System...');
     
-// Simple analytics button listener
+// Enhanced analytics button with visual feedback
 const analyticsBtn = document.getElementById('analytics-btn');
 if (analyticsBtn) {
     // Clear any existing listeners
     const newBtn = analyticsBtn.cloneNode(true);
     analyticsBtn.parentNode.replaceChild(newBtn, analyticsBtn);
     
-    // Add new listener
+    // Add touch feedback events
+    newBtn.addEventListener('mousedown', function() {
+        newBtn.classList.add('pressed');
+    });
+    
+    newBtn.addEventListener('mouseup', function() {
+        setTimeout(() => newBtn.classList.remove('pressed'), 100);
+    });
+    
+    newBtn.addEventListener('mouseleave', function() {
+        newBtn.classList.remove('pressed');
+    });
+    
+    // Main click handler with state management
     newBtn.addEventListener('click', function(e) {
         console.log('🔥 Analytics button clicked!');
         e.preventDefault();
         e.stopPropagation();
-        openAnalyticsDashboard();
+        
+        // Toggle active state
+        const isActive = newBtn.classList.contains('active-tool');
+        clearAllToolbarStates();
+        
+        if (!isActive) {
+            newBtn.classList.add('active-tool');
+            openAnalyticsDashboard();
+        } else {
+            closeAnalyticsDashboard();
+        }
     });
     console.log('✅ Analytics button listener added');
 }    // Add other event listeners
@@ -4460,8 +4571,15 @@ function openAnalyticsDashboard() {
 // Close Analytics Dashboard
 function closeAnalyticsDashboard() {
     const modal = document.getElementById('analytics-modal');
+    const analyticsBtn = document.getElementById('analytics-btn');
+    
     if (modal) {
         hideModal(modal);
+    }
+    
+    // Clear active state from button
+    if (analyticsBtn) {
+        analyticsBtn.classList.remove('active-tool');
     }
 }
 
