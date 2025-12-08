@@ -3,7 +3,7 @@
 // Progressive Web App Implementation for Real Estate Platform
 // =============================================================================
 
-const CACHE_NAME = 'xemgiadat-v1.2.0';
+const CACHE_NAME = 'xemgiadat-v1.3.0';
 const OFFLINE_URL = '/offline.html';
 
 // Assets to cache immediately
@@ -16,10 +16,9 @@ const STATIC_ASSETS = [
   '/manifest.json',
   '/offline.html',
   
-  // Analytics & Admin
+  // Admin
   '/admin.html',
   '/admin.js',
-  '/analytics-dashboard.html',
   
   // Content Pages
   '/bao-cao-thi-truong.html',
@@ -30,16 +29,19 @@ const STATIC_ASSETS = [
   '/chinh-sach.html',
   '/guide.html',
   
+  // Adapters
+  '/js/adapters/PMTilesAdapter.js',
+  '/js/adapters/GeocodingAdapter.js',
+  '/js/adapters/FeatureFlagConfig.js',
+  
   // Essential Data
   '/data/ranhgioi.geojson',
   '/tiles/metadata.json',
   
-  // External Dependencies (excluding problematic CDNs)
+  // External Dependencies
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
-  'https://cdn.jsdelivr.net/npm/chart.js',
-  'https://unpkg.com/fflate@0.8.1/esm/browser.js'
+  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
 ];
 
 // Dynamic cache patterns

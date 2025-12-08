@@ -2,6 +2,36 @@
 .netlify
 
 # ================================================================
+# PI NETWORK SECURITY - CRITICAL ENVIRONMENT PROTECTION
+# ================================================================
+
+# Environment variables and secrets
+.env
+.env.local
+.env.production
+.env.development
+.env.*.local
+
+# Pi Network credentials
+pi-credentials.json
+pi-app-secret.txt
+platform-api-key.txt
+
+# Other sensitive configuration
+config/secrets.js
+src/config/private.js
+secrets/
+*.key
+*.pem
+*.p12
+*.pfx
+
+# Backup files that might contain secrets
+*.backup
+*.bak
+*.old
+
+# ================================================================
 # XEMGIADAT DATA PROCESSING - GIT OPTIMIZATION
 # ================================================================
 

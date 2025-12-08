@@ -2,6 +2,10 @@
 publish = "public"
 functions = "netlify/functions"
 
+[context.production.environment]
+  NODE_ENV = "production"
+  SITE_URL = "https://xemgiadat.com"
+
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
@@ -10,6 +14,11 @@ functions = "netlify/functions"
 [[redirects]]
   from = "/proxy/*"
   to = "/.netlify/functions/proxy/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/pi-verify"
+  to = "/.netlify/functions/pi-verify"
   status = 200
 
 [[redirects]]
@@ -23,7 +32,24 @@ functions = "netlify/functions"
   status = 200
 
 [[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
+
+[[headers]]
   for = "/tiles/*"
   [headers.values]
     Content-Type = "application/x-protobuf"
     Access-Control-Allow-Origin = "*"
+
+[[headers]]
+  for = "/.netlify/functions/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "https://xemgiadat.com"
+    Access-Control-Allow-Methods = "GET, POST, OPTIONS"
+    Access-Control-Allow-Headers = "Content-Type, Authorization, X-Pi-Signature"

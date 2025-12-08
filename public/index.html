@@ -29,6 +29,12 @@
     
     <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary_large_image">
+    
+    <!-- Pi Network Integration Meta Tags -->
+    <meta name="pi-network:app-id" content="xemgiadat_app">
+    <meta name="pi-network:app-name" content="XemGiaDat - Xem Giá Đất Vietnam">
+    <meta name="pi-network:description" content="Vietnamese Real Estate Price Platform with Pi Network Integration">
+    <meta name="pi-network:image" content="https://xemgiadat.com/images/pi-network-preview.png">
     <meta name="twitter:title" content="Xem Giá Đất Đà Nẵng - Bản Đồ Giá Đất Chính Xác">
     <meta name="twitter:description" content="Bản đồ giá đất Đà Nẵng online, thông tin BDS chính xác, giao dịch minh bạch.">
     <meta name="twitter:image" content="https://xemgiadat.com/images/thumbnail.png">
@@ -542,10 +548,6 @@
 
     <div id="map"></div>
     <div id="action-toolbar" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-[1001] flex items-center space-x-1 bg-white/90 backdrop-blur-sm px-3 py-2 rounded-full shadow-lg border border-gray-200">
-        <button id="analytics-btn" class="toolbar-btn-compact">
-            <i class="fa-solid fa-chart-bar text-sm"></i>
-            <span class="text-xs">Phân tích</span>
-        </button>
         <button id="list-btn" class="toolbar-btn-compact">
             <i class="fa-solid fa-list text-sm"></i>
             <span class="text-xs">Danh sách</span>
@@ -616,49 +618,168 @@
         <button id="admin-btn" title="Quản trị hệ thống" class="bg-red-600 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-red-700 transition" style="display: none;">
             <i class="fa-solid fa-cog text-xl"></i>
         </button>
-        <!-- DONATE BUTTON - TEMPORARILY HIDDEN DUE TO EXTERNAL QR SERVICE CONFLICT -->
-        <!-- <button id="donate-btn" title="Ủng hộ (Mời cafe)" class="bg-yellow-400 text-black w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-yellow-500 transition">
-            <i class="fa-solid fa-mug-saucer"></i>
-        </button> -->
         <button id="locate-btn" title="Tìm vị trí của tôi" class="bg-white text-gray-700 w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100 transition">
             <i class="fa-solid fa-location-crosshairs text-xl"></i>
         </button>
     </div>
     
     <div id="form-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-[1001]">
-        <div class="relative top-10 mx-auto p-4 w-full max-w-sm shadow-lg rounded-md bg-white">
+        <div class="relative top-10 mx-auto p-4 w-full max-w-lg shadow-lg rounded-lg bg-white">
             <div class="text-center">
-                <h3 class="text-base font-semibold text-gray-900 mb-3">📝 Đóng góp địa điểm</h3>
+                <div class="flex items-center justify-center mb-3">
+                    <div class="bg-gradient-to-r from-green-500 to-blue-500 w-12 h-12 rounded-full flex items-center justify-center mr-3">
+                        <i class="fas fa-bullhorn text-white text-xl"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900">📢 Đăng Tin Bất Động Sản</h3>
+                </div>
                 <form id="location-form" class="space-y-3 text-left text-sm">
-                    <input type="text" name="name" placeholder="📌 VD: Lô B2.14" required class="px-3 py-2 w-full border rounded bg-white text-gray-700" />
-                    <input type="text" id="address-input" name="address" placeholder="📍 Địa chỉ sẽ tự động điền..." class="px-3 py-2 w-full border rounded bg-gray-100 text-gray-700" readonly />    
-                    <div class="space-y-2">
-                        <div class="flex space-x-2">
-                            <input type="number" name="priceValue" step="any" placeholder="💰 VD: 5.9" class="px-3 py-2 w-full border rounded bg-white text-gray-700" />
-                            <select name="priceUnit" class="px-2 py-2 border rounded bg-white text-gray-700 text-sm">
-                                <option value="tỷ VNĐ">tỷ VNĐ</option>
-                                <option value="triệu/m²">triệu/m²</option>
-                                <option value="triệu VNĐ">triệu VNĐ</option>
-                                <option value="thương lượng">💬 Thương lượng</option>
+                    <!-- Loại giao dịch -->
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            <i class="fas fa-tags mr-1"></i>Loại giao dịch *
+                        </label>
+                        <select name="transactionType" id="transaction-type" required class="w-full px-3 py-2 border-2 border-blue-300 rounded-lg bg-white text-gray-700 font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">-- Chọn loại giao dịch --</option>
+                            <optgroup label="🏠 Mua Bán">
+                                <option value="ban-dat">🟢 Bán Đất</option>
+                                <option value="ban-nha">🏘️ Bán Nhà</option>
+                                <option value="ban-can-ho">🏢 Bán Căn Hộ/Chung Cư</option>
+                                <option value="ban-biet-thu">🏡 Bán Biệt Thự/Villa</option>
+                                <option value="ban-kho-xuong">🏭 Bán Kho/Xưởng</option>
+                            </optgroup>
+                            <optgroup label="🔑 Cho Thuê">
+                                <option value="cho-thue-dat">🟡 Cho Thuê Đất</option>
+                                <option value="cho-thue-nha">🏠 Cho Thuê Nhà</option>
+                                <option value="cho-thue-can-ho">🏢 Cho Thuê Căn Hộ</option>
+                                <option value="cho-thue-phong-tro">🚪 Cho Thuê Phòng Trọ</option>
+                                <option value="cho-thue-mat-bang">🏪 Cho Thuê Mặt Bằng Kinh Doanh</option>
+                                <option value="cho-thue-van-phong">💼 Cho Thuê Văn Phòng</option>
+                            </optgroup>
+                            <optgroup label="🤝 Khác">
+                                <option value="sang-nhuong">🔄 Sang Nhượng</option>
+                                <option value="can-mua">🔍 Cần Mua</option>
+                                <option value="can-thue">🔍 Cần Thuê</option>
+                            </optgroup>
+                        </select>
+                    </div>
+
+                    <!-- Tiêu đề tin -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            <i class="fas fa-heading mr-1"></i>Tiêu đề tin đăng *
+                        </label>
+                        <input type="text" name="name" placeholder="📌 VD: Bán đất mặt tiền Nguyễn Văn Linh, 120m²" required class="px-3 py-2 w-full border rounded-lg bg-white text-gray-700 focus:ring-2 focus:ring-blue-500" />
+                    </div>
+
+                    <!-- Địa chỉ -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            <i class="fas fa-map-marker-alt mr-1"></i>Địa chỉ
+                        </label>
+                        <input type="text" id="address-input" name="address" placeholder="📍 Địa chỉ sẽ tự động điền khi click trên bản đồ..." class="px-3 py-2 w-full border rounded-lg bg-gray-100 text-gray-700" readonly />
+                    </div>
+
+                    <!-- Giá & Diện tích (2 cột) -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <!-- Giá -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                <i class="fas fa-dollar-sign mr-1"></i>Giá *
+                            </label>
+                            <div class="flex space-x-2">
+                                <input type="number" name="priceValue" step="any" placeholder="💰 VD: 5.9" required class="px-3 py-2 flex-1 border rounded-lg bg-white text-gray-700 focus:ring-2 focus:ring-green-500" />
+                                <select name="priceUnit" class="px-2 py-2 border rounded-lg bg-white text-gray-700 text-sm">
+                                    <option value="tỷ VNĐ">tỷ VNĐ</option>
+                                    <option value="triệu/m²">triệu/m²</option>
+                                    <option value="triệu VNĐ">triệu VNĐ</option>
+                                    <option value="thương lượng">💬 Thỏa thuận</option>
+                                </select>
+                            </div>
+                            <div class="flex items-center space-x-2 mt-1">
+                                <input type="checkbox" id="price-negotiable" class="text-green-500" />
+                                <label for="price-negotiable" class="text-xs text-gray-600">💬 Giá có thể thương lượng</label>
+                            </div>
+                        </div>
+
+                        <!-- Diện tích -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                <i class="fas fa-ruler-combined mr-1"></i>Diện tích *
+                            </label>
+                            <div class="relative">
+                                <input type="number" name="area" step="0.1" placeholder="📐 VD: 100.5" required class="px-3 py-2 w-full border rounded-lg bg-white text-gray-700 focus:ring-2 focus:ring-blue-500" />
+                                <span class="absolute right-3 top-2.5 text-gray-500 text-sm">m²</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Loại hình & Pháp lý (2 cột) -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <!-- Loại hình BDS -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                <i class="fas fa-home mr-1"></i>Loại hình
+                            </label>
+                            <select name="propertyType" class="w-full px-3 py-2 border rounded-lg bg-white text-gray-700">
+                                <option value="">-- Chọn loại hình --</option>
+                                <option value="dat-tho-cu">Đất thổ cư</option>
+                                <option value="dat-nen-du-an">Đất nền dự án</option>
+                                <option value="nha-mat-pho">Nhà mặt phố</option>
+                                <option value="nha-rieng">Nhà riêng</option>
+                                <option value="chung-cu">Chung cư</option>
+                                <option value="biet-thu">Biệt thự</option>
+                                <option value="nha-pho">Nhà phố</option>
+                                <option value="shophouse">Shophouse</option>
+                                <option value="dat-cong-nghiep">Đất công nghiệp</option>
+                                <option value="kho-xuong">Kho/Xưởng</option>
                             </select>
                         </div>
-                        <div class="flex items-center space-x-2">
-                            <input type="checkbox" id="price-negotiable" class="text-green-500" />
-                            <label for="price-negotiable" class="text-sm text-gray-600">💬 Giá có thể thương lượng</label>
+
+                        <!-- Pháp lý -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                <i class="fas fa-file-contract mr-1"></i>Pháp lý
+                            </label>
+                            <select name="legalStatus" class="w-full px-3 py-2 border rounded-lg bg-white text-gray-700">
+                                <option value="">-- Chọn pháp lý --</option>
+                                <option value="so-do">Sổ đỏ/Sổ hồng</option>
+                                <option value="so-hong-rieng">Sổ hồng riêng</option>
+                                <option value="so-chung">Sổ chung</option>
+                                <option value="dang-cho-so">Đang chờ sổ</option>
+                                <option value="giay-to-khac">Giấy tờ khác</option>
+                            </select>
                         </div>
                     </div>
-                    <input type="number" name="area" step="0.1" placeholder="📐 Diện tích (m²) VD: 100.5" class="px-3 py-2 w-full border rounded bg-white text-gray-700" />
-                    <textarea name="notes" rows="2" placeholder="🗒 Ghi chú: Hướng Tây Bắc, mặt tiền 7m..." class="px-3 py-2 w-full border rounded bg-white text-gray-700"></textarea>
-                    <div class="pt-2 border-t">
-                        <p class="text-sm font-medium text-gray-700 mb-2">📞 Thông tin liên hệ (tuỳ chọn)</p>
-                        <input id="contact-name" type="text" name="contactName" placeholder="Tên người liên hệ" class="mb-2 px-3 py-2 w-full border rounded bg-white text-gray-700" />
-                        <input id="email" type="email" name="contactEmail" placeholder="Email" class="mb-2 px-3 py-2 w-full border rounded bg-white text-gray-700" />
-                        <input id="phone" type="tel" name="contactPhone" placeholder="Số điện thoại" class="mb-2 px-3 py-2 w-full border rounded bg-white text-gray-700" />
-                        <input id="facebook" type="text" name="contactFacebook" placeholder="Tên người dùng hoặc link Facebook" class="mb-2 px-3 py-2 w-full border rounded bg-white text-gray-700" />
+
+                    <!-- Mô tả chi tiết -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            <i class="fas fa-align-left mr-1"></i>Mô tả chi tiết
+                        </label>
+                        <textarea name="notes" rows="3" placeholder="🗒️ Mô tả chi tiết: Hướng nhà, số tầng, nội thất, tiện ích xung quanh..." class="px-3 py-2 w-full border rounded-lg bg-white text-gray-700 focus:ring-2 focus:ring-blue-500"></textarea>
                     </div>
+
+                    <!-- Thông tin liên hệ -->
+                    <div class="pt-2 border-t">
+                        <p class="text-sm font-semibold text-gray-700 mb-2">
+                            <i class="fas fa-phone-alt mr-1"></i>Thông tin liên hệ *
+                        </p>
+                        <div class="space-y-2">
+                            <input id="contact-name" type="text" name="contactName" placeholder="👤 Tên người liên hệ" required class="px-3 py-2 w-full border rounded-lg bg-white text-gray-700" />
+                            <input id="phone" type="tel" name="contactPhone" placeholder="📱 Số điện thoại" required class="px-3 py-2 w-full border rounded-lg bg-white text-gray-700" />
+                            <input id="email" type="email" name="contactEmail" placeholder="📧 Email (không bắt buộc)" class="px-3 py-2 w-full border rounded-lg bg-white text-gray-700" />
+                            <input id="facebook" type="text" name="contactFacebook" placeholder="📘 Facebook/Zalo (không bắt buộc)" class="px-3 py-2 w-full border rounded-lg bg-white text-gray-700" />
+                        </div>
+                    </div>
+
+                    <!-- Submit buttons -->
                     <div class="pt-3 space-y-2">
-                        <button id="submit-form-btn" type="submit" class="w-full px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-medium rounded shadow-sm">Gửi Dữ Liệu</button>
-                        <button id="close-modal-btn" type="button" class="w-full px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded shadow-sm">Hủy</button>
+                        <button id="submit-form-btn" type="submit" class="w-full px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold rounded-lg shadow-md transition-all transform hover:scale-[1.02]">
+                            <i class="fas fa-paper-plane mr-2"></i>Đăng Tin Ngay
+                        </button>
+                        <button id="close-modal-btn" type="button" class="w-full px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-lg shadow-sm transition-colors">
+                            <i class="fas fa-times mr-2"></i>Hủy
+                        </button>
                     </div>
                 </form>
             </div>
@@ -697,78 +818,6 @@
     <div id="firebaseui-auth-container" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[2000] flex items-center justify-center">
         <div id="firebaseui-widget" class="bg-white p-6 rounded shadow-lg w-full max-w-sm"></div>
     </div>
-    
-    <!-- 🎯 DONATION MODAL - TEMPORARILY DISABLED -->
-    <!-- <div id="donate-modal" class="donation-modal hidden fixed inset-0 bg-black bg-opacity-25 z-[2000] flex items-center justify-center p-4"> -->
-        <div class="relative bg-white rounded-xl shadow-lg border border-gray-200 w-80 max-w-[90vw] overflow-hidden">
-            
-            <!-- Simple Header -->
-            <div class="bg-gradient-to-r from-amber-400 to-orange-500 px-4 py-3 relative">
-                <button id="close-donate-modal" class="absolute top-2 right-2 text-white hover:text-gray-100 w-6 h-6 flex items-center justify-center rounded-full hover:bg-black hover:bg-opacity-10 transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
-                
-                <div class="flex items-center">
-                    <div class="w-8 h-8 bg-white bg-opacity-20 rounded-lg flex items-center justify-center mr-3">
-                        <span class="text-lg">☕</span>
-                    </div>
-                    <div>
-                        <h3 class="text-white font-semibold text-sm">Ủng Hộ Dự Án</h3>
-                        <p class="text-white text-opacity-80 text-xs">Cảm ơn sự hỗ trợ của bạn</p>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Single Content Section -->
-            <div class="p-4 space-y-4">
-                
-                <!-- QR Code -->
-                <div class="text-center">
-                    <div class="w-32 h-32 mx-auto bg-gray-50 border border-gray-200 rounded-lg p-2 mb-3">
-                        <img src="images/qr-code.png" 
-                             alt="QR MB Bank" 
-                             class="w-full h-full object-contain"
-                             onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
-                        <div class="hidden text-gray-400 text-xs flex flex-col items-center justify-center h-full">
-                            <div class="text-2xl mb-1">📱</div>
-                            <div>QR Code</div>
-                        </div>
-                    </div>
-                    
-                    <div class="text-center">
-                        <p class="font-mono text-lg font-semibold text-gray-900 mb-1">6806 8793 979</p>
-                        <p class="text-sm text-gray-600 mb-3">HUYNH VAN DUOC • MB Bank</p>
-                        
-                        <button id="quick-copy-qr" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors inline-flex items-center">
-                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-                            </svg>
-                            Copy STK
-                        </button>
-                    </div>
-                </div>
-                
-                <!-- Quick Options -->
-                <div class="flex space-x-2">
-                    <button id="copy-account-number" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-3 rounded-lg text-sm font-medium transition-colors">
-                        💳 Banking
-                    </button>
-                    <a href="https://paypal.me/huynhvanduoc" 
-                       target="_blank" 
-                       class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-3 rounded-lg text-sm font-medium transition-colors text-center">
-                        🌍 PayPal
-                    </a>
-                </div>
-                
-                <!-- Thank you note -->
-                <div class="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
-                    <p class="text-green-700 text-sm">🙏 Mọi đóng góp giúp dự án phát triển</p>
-                </div>
-            </div>
-        </div>
-    </div> -->
 
     <div id="contact-info-modal" class="hidden fixed inset-0 bg-gray-800 bg-opacity-75 z-[2000] flex items-end sm:items-center justify-center p-0 sm:p-4">
         <div class="relative bg-white w-full sm:w-auto sm:max-w-md sm:rounded-2xl rounded-t-2xl shadow-xl text-center max-h-[90vh] overflow-y-auto">
@@ -1564,155 +1613,6 @@
         </div>
     </div>
 
-    <!-- Analytics Dashboard Modal -->
-    <div id="analytics-modal" class="fixed inset-0 bg-black bg-opacity-50 z-[3000] hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-xl shadow-2xl overflow-hidden w-full max-w-7xl max-h-full">
-            <!-- Header -->
-            <div class="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-4 flex justify-between items-center">
-                <div class="flex items-center">
-                    <i class="fas fa-chart-bar mr-3 text-xl"></i>
-                    <h2 class="text-xl font-bold">Phân tích thị trường bất động sản Đà Nẵng</h2>
-                </div>
-                <button id="close-analytics" class="text-white hover:text-gray-200 transition">
-                    <i class="fas fa-times text-xl"></i>
-                </button>
-            </div>
-
-            <!-- Dashboard Content -->
-            <div class="p-6 overflow-y-auto" style="max-height: calc(100vh - 200px);">
-                <!-- Stats Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                    <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-4 text-white">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-blue-100 text-sm">Tổng số thửa</p>
-                                <p id="total-parcels" class="text-2xl font-bold">0</p>
-                            </div>
-                            <i class="fas fa-map text-3xl text-blue-200"></i>
-                        </div>
-                    </div>
-                    <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-4 text-white">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-green-100 text-sm">Giá trung bình</p>
-                                <p id="avg-price" class="text-2xl font-bold">0</p>
-                            </div>
-                            <i class="fas fa-dollar-sign text-3xl text-green-200"></i>
-                        </div>
-                    </div>
-                    <div class="bg-gradient-to-br from-yellow-500 to-orange-600 rounded-lg p-4 text-white">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-orange-100 text-sm">Diện tích TB</p>
-                                <p id="avg-area" class="text-2xl font-bold">0</p>
-                            </div>
-                            <i class="fas fa-expand-arrows-alt text-3xl text-orange-200"></i>
-                        </div>
-                    </div>
-                    <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg p-4 text-white">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-purple-100 text-sm">Đóng góp cộng đồng</p>
-                                <p id="community-contributions" class="text-2xl font-bold">0</p>
-                            </div>
-                            <i class="fas fa-users text-3xl text-purple-200"></i>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Charts Section -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                    <!-- Price Distribution Chart -->
-                    <div class="bg-white rounded-lg border border-gray-200 p-4">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-lg font-semibold text-gray-800">Phân bố giá đất</h3>
-                            <div class="text-sm text-gray-500">
-                                <i class="fas fa-chart-pie mr-1"></i>Theo mức giá
-                            </div>
-                        </div>
-                        <div class="h-64">
-                            <canvas id="price-distribution-chart"></canvas>
-                        </div>
-                    </div>
-
-                    <!-- Area Distribution Chart -->
-                    <div class="bg-white rounded-lg border border-gray-200 p-4">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-lg font-semibold text-gray-800">Phân bố diện tích</h3>
-                            <div class="text-sm text-gray-500">
-                                <i class="fas fa-chart-bar mr-1"></i>Theo kích thước
-                            </div>
-                        </div>
-                        <div class="h-64">
-                            <canvas id="area-distribution-chart"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- District Analysis -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                    <!-- District Price Comparison -->
-                    <div class="bg-white rounded-lg border border-gray-200 p-4">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-lg font-semibold text-gray-800">So sánh giá theo quận/huyện</h3>
-                            <div class="text-sm text-gray-500">
-                                <i class="fas fa-map-marked-alt mr-1"></i>Theo vùng
-                            </div>
-                        </div>
-                        <div class="h-64">
-                            <canvas id="district-price-chart"></canvas>
-                        </div>
-                    </div>
-
-                    <!-- Land Use Distribution -->
-                    <div class="bg-white rounded-lg border border-gray-200 p-4">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-lg font-semibold text-gray-800">Phân bố mục đích sử dụng</h3>
-                            <div class="text-sm text-gray-500">
-                                <i class="fas fa-home mr-1"></i>Loại đất
-                            </div>
-                        </div>
-                        <div class="h-64">
-                            <canvas id="land-use-chart"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Community Data Insights -->
-                <div class="bg-white rounded-lg border border-gray-200 p-4 mb-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lg font-semibold text-gray-800">Thông tin từ cộng đồng</h3>
-                        <div class="text-sm text-gray-500">
-                            <i class="fas fa-users mr-1"></i>Dữ liệu thực tế
-                        </div>
-                    </div>
-                    <div class="h-64">
-                        <canvas id="community-data-chart"></canvas>
-                    </div>
-                </div>
-
-                <!-- Export & Actions -->
-                <div class="flex justify-between items-center">
-                    <div class="text-sm text-gray-500">
-                        <i class="fas fa-info-circle mr-1"></i>
-                        Dữ liệu cập nhật lần cuối: <span id="last-updated">Loading...</span>
-                    </div>
-                    <div class="space-x-2">
-                        <button id="export-pdf" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition">
-                            <i class="fas fa-file-pdf mr-2"></i>Xuất PDF
-                        </button>
-                        <button id="export-excel" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">
-                            <i class="fas fa-file-excel mr-2"></i>Xuất Excel
-                        </button>
-                        <button id="refresh-analytics" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
-                            <i class="fas fa-sync-alt mr-2"></i>Làm mới
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- 🚀 BETA SIGNUP FORM - REAL IMPLEMENTATION -->
     <div id="beta-signup-modal" class="fixed inset-0 bg-black bg-opacity-50 z-[2000] hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-lg max-w-lg w-full p-6 relative">
@@ -1801,11 +1701,16 @@
    
     <script defer src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
     <script defer src="https://unpkg.com/leaflet.vectorgrid@1.3.0/dist/Leaflet.VectorGrid.bundled.js"></script>
+    
+    <!-- 🌍 Open Source Migration Adapters -->
+    <script defer src="https://cdn.jsdelivr.net/npm/pmtiles@3.0.7/dist/pmtiles.min.js"></script>
+    <script defer src="js/adapters/PMTilesAdapter.js"></script>
+    <script defer src="js/adapters/GeocodingAdapter.js"></script>
+    <script defer src="js/adapters/FeatureFlagConfig.js"></script>
+    
+    <script defer src="pinetwork.js"></script>
     <script defer src="script.js"></script>
     <script defer src="pwa-enhancements.js"></script>
-    <!-- Project Map Integration System -->
-    <script defer src="project-integration.js"></script>
-    <link rel="stylesheet" href="project-integration.css">
 
 
 </body>

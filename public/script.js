@@ -465,10 +465,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const ui = new firebaseui.auth.AuthUI(auth);
     const opacityControl = document.getElementById('opacity-control');
     const opacitySlider = document.getElementById('opacity-slider');
-    const donateBtn = document.getElementById('donate-btn');
-    const donateModal = document.getElementById('donate-modal');
-    const closeDonateModalBtn = document.getElementById('close-donate-modal');
-    const copyBtn = document.getElementById('copy-stk-btn');
     const addLocationBtn = document.getElementById('add-location-btn');
     const listBtn = document.getElementById('list-btn');
     const queryBtn = document.getElementById('query-btn');
@@ -889,6 +885,27 @@ document.addEventListener('DOMContentLoaded', () => {
         const notes = item.notes || 'Không có';
         const lat = item.lat.toFixed(6);
         const lng = item.lng.toFixed(6);
+        
+        // Transaction type labels
+        const transactionTypeLabels = {
+            'ban-dat': '🟢 Bán Đất',
+            'ban-nha': '🏘️ Bán Nhà',
+            'ban-can-ho': '🏢 Bán Căn Hộ',
+            'ban-biet-thu': '🏡 Bán Biệt Thự',
+            'ban-kho-xuong': '🏭 Bán Kho/Xưởng',
+            'cho-thue-dat': '🟡 Cho Thuê Đất',
+            'cho-thue-nha': '🏠 Cho Thuê Nhà',
+            'cho-thue-can-ho': '🏢 Cho Thuê Căn Hộ',
+            'cho-thue-phong-tro': '🚪 Cho Thuê Phòng',
+            'cho-thue-mat-bang': '🏪 Cho Thuê Mặt Bằng',
+            'cho-thue-van-phong': '💼 Cho Thuê Văn Phòng',
+            'sang-nhuong': '🔄 Sang Nhượng',
+            'can-mua': '🔍 Cần Mua',
+            'can-thue': '🔍 Cần Thuê'
+        };
+        const transactionType = item.transactionType ? transactionTypeLabels[item.transactionType] || item.transactionType : '';
+        const propertyType = item.propertyType || '';
+        const legalStatus = item.legalStatus || '';
 
         let adminDeleteButtonHtml = '';
         if (isAdmin) {
@@ -911,11 +928,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         panelTitle.textContent = item.name;
         panelContent.innerHTML = `
+            ${transactionType ? `<div class="transaction-type-badge">${transactionType}</div>` : ''}
             <div class="price-highlight">${price}</div>
             <div class="info-pills">
                 <span class="pill-item"><i class="fas fa-ruler-combined"></i> ${area}</span>
-                <span class="pill-item"><i class="fas fa-pen"></i> ${notes}</span>
+                ${propertyType ? `<span class="pill-item"><i class="fas fa-home"></i> ${propertyType}</span>` : ''}
+                ${legalStatus ? `<span class="pill-item"><i class="fas fa-file-contract"></i> ${legalStatus}</span>` : ''}
             </div>
+            ${notes !== 'Không có' ? `<div class="property-description"><i class="fas fa-align-left"></i> ${notes}</div>` : ''}
             <div class="address-actions-group">
                 <div class="address-text"><i class="fas fa-map-marker-alt"></i> ${fetchedAddress}</div>
                 <div class="action-buttons-group">
@@ -1904,20 +1924,6 @@ async function showCommunityParcelInfo(parcelNumber, mapSheet) {
         }
     });
 
-    // DONATION FUNCTIONALITY - TEMPORARILY DISABLED DUE TO EXTERNAL QR CONFLICT
-    /*
-    donateBtn.addEventListener('click', () => showModal(donateModal));
-    closeDonateModalBtn.addEventListener('click', () => hideModal(donateModal));
-    donateModal.addEventListener('click', (e) => { if (e.target === donateModal) hideModal(donateModal); });
-    */
-    console.log('⚠️ Donation system temporarily disabled - External QR service conflict detected');
-
-    // Professional Donation System v2.0
-    setupDonationTabs();
-    setupCopyFunctionality();
-
-    console.log('🎯 Professional Donation System v2.0 initialized successfully!');
-
     // Rating system
     let selectedRating = 0;
     const ratingStars = document.querySelectorAll('.rating-star');
@@ -2316,16 +2322,38 @@ async function showCommunityParcelInfo(parcelNumber, mapSheet) {
         console.log('📝 Form Data:', data);
         console.log('📍 Selected Coordinates:', selectedCoords);
         
-        // Enhanced validation with specific error messages  
+        // Enhanced validation with specific error messages
+        if (!data.transactionType || data.transactionType === '') {
+            console.error('❌ ĐĂNG TIN ERROR: Missing transaction type');
+            return alert("⚠️ Vui lòng chọn loại giao dịch!\n\nVí dụ: Bán Đất, Cho Thuê Nhà, v.v.");
+        }
+        
         if (!selectedCoords) {
             console.error('❌ ĐĂNG TIN ERROR: No coordinates selected');
-            return alert("⚠️ Vui lòng click vào bản đồ để chọn vị trí!\n\nBước 1: Click vào vị trí trên bản đồ\nBước 2: Điền thông tin form\nBước 3: Nhấn 'Gửi Dữ Liệu'");
+            return alert("⚠️ Vui lòng click vào bản đồ để chọn vị trí!\n\nBước 1: Click vào vị trí trên bản đồ\nBước 2: Điền thông tin form\nBước 3: Nhấn 'Đăng Tin'");
         }
         
         if (!data.name || data.name.trim() === '') {
             console.error('❌ ĐĂNG TIN ERROR: Missing property name');
-            return alert("⚠️ Vui lòng nhập tên bất động sản!\n\nVí dụ: 'Nhà mặt tiền đường Lê Duẩn' hoặc 'Đất nền khu vực Hải Châu'");
+            return alert("⚠️ Vui lòng nhập tiêu đề tin đăng!\n\nVí dụ: 'Bán nhà mặt tiền đường Lê Duẩn' hoặc 'Cho thuê căn hộ 2PN gần biển'");
         }
+        
+        if (!data.area || data.area.trim() === '' || parseFloat(data.area) <= 0) {
+            console.error('❌ ĐĂNG TIN ERROR: Missing or invalid area');
+            return alert("⚠️ Vui lòng nhập diện tích hợp lệ!\n\nVí dụ: 100 (cho 100m²)");
+        }
+        
+        if (!data.contactName || data.contactName.trim() === '') {
+            console.error('❌ ĐĂNG TIN ERROR: Missing contact name');
+            return alert("⚠️ Vui lòng nhập tên người liên hệ!");
+        }
+        
+        if (!data.contactPhone || data.contactPhone.trim() === '') {
+            console.error('❌ ĐĂNG TIN ERROR: Missing contact phone');
+            return alert("⚠️ Vui lòng nhập số điện thoại liên hệ!");
+        }
+        
+        // Enhanced validation with specific error messages  
         
         // Enhanced price validation with negotiation support
         const isNegotiable = document.getElementById('price-negotiable')?.checked || false;
@@ -2345,20 +2373,33 @@ async function showCommunityParcelInfo(parcelNumber, mapSheet) {
                 userName: currentUser.displayName || 'Người dùng', 
                 userAvatar: currentUser.photoURL || '', 
                 lat: selectedCoords.lat, 
-                lng: selectedCoords.lng, 
+                lng: selectedCoords.lng,
+                
+                // Transaction details
+                transactionType: data.transactionType || 'ban-dat', // Loại giao dịch
+                propertyType: data.propertyType || '', // Loại hình BDS
+                legalStatus: data.legalStatus || '', // Pháp lý
+                
+                // Price info
                 priceValue: isNegotiable ? null : parseFloat(data.priceValue), 
                 priceUnit: isNegotiable ? 'thương lượng' : (data.priceUnit || 'VNĐ'),
                 isNegotiable: isNegotiable,
-                area: data.area ? parseFloat(data.area) : null, 
+                
+                // Property info
+                area: data.area ? parseFloat(data.area) : null,
+                name: data.name.trim(), // Tiêu đề tin
+                notes: data.notes || '', // Mô tả chi tiết
+                
+                // Contact info
+                contactName: data.contactName || currentUser.displayName || '', 
+                contactEmail: data.contactEmail || currentUser.email || '', 
+                contactPhone: data.contactPhone || '', 
+                contactFacebook: data.contactFacebook || '',
+                
+                // Metadata
                 status: 'approved', 
                 createdAt: firebase.firestore.FieldValue.serverTimestamp(), 
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp(), 
-                name: data.name.trim(), 
-                notes: data.notes || '', 
-                contactName: data.contactName || '', 
-                contactEmail: data.contactEmail || '', 
-                contactPhone: data.contactPhone || '', 
-                contactFacebook: data.contactFacebook || '' 
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             };
             
             console.log('📤 Sending data to Firebase:', docData);
@@ -2367,7 +2408,26 @@ async function showCommunityParcelInfo(parcelNumber, mapSheet) {
             const docRef = await db.collection("listings").add(docData);
             console.log('✅ ĐĂNG TIN SUCCESS: Document written with ID:', docRef.id);
             
-            alert('🎉 Gửi dữ liệu thành công!\n\nTin đăng của bạn đã được lưu và sẽ hiển thị trên bản đồ.\nCảm ơn bạn đã đóng góp!');
+            // Get transaction type label for success message
+            const transactionTypeLabels = {
+                'ban-dat': 'Bán Đất',
+                'ban-nha': 'Bán Nhà',
+                'ban-can-ho': 'Bán Căn Hộ',
+                'ban-biet-thu': 'Bán Biệt Thự',
+                'ban-kho-xuong': 'Bán Kho/Xưởng',
+                'cho-thue-dat': 'Cho Thuê Đất',
+                'cho-thue-nha': 'Cho Thuê Nhà',
+                'cho-thue-can-ho': 'Cho Thuê Căn Hộ',
+                'cho-thue-phong-tro': 'Cho Thuê Phòng Trọ',
+                'cho-thue-mat-bang': 'Cho Thuê Mặt Bằng',
+                'cho-thue-van-phong': 'Cho Thuê Văn Phòng',
+                'sang-nhuong': 'Sang Nhượng',
+                'can-mua': 'Cần Mua',
+                'can-thue': 'Cần Thuê'
+            };
+            const typeLabel = transactionTypeLabels[data.transactionType] || 'Bất động sản';
+            
+            alert(`🎉 Đăng tin thành công!\n\n✅ Tin "${typeLabel}" của bạn đã được đăng\n📍 Vị trí: ${data.name}\n📱 Liên hệ: ${data.contactPhone}\n\nTin đăng sẽ hiển thị trên bản đồ ngay bây giờ!`);
             modal.classList.add('hidden'); 
             form.reset(); 
             exitAllModes();
@@ -2376,7 +2436,7 @@ async function showCommunityParcelInfo(parcelNumber, mapSheet) {
             if (typeof gtag !== 'undefined') {
                 gtag('event', 'listing_submitted', {
                     event_category: 'user_engagement',
-                    event_label: 'property_listing',
+                    event_label: data.transactionType,
                     value: 1
                 });
             }
@@ -2913,7 +2973,7 @@ async function showCommunityParcelInfo(parcelNumber, mapSheet) {
             { selector: '#login-btn', text: 'Đăng nhập bằng Google hoặc Email', position: 'left' },
             { selector: '#guide-btn', text: 'Hướng dẫn sử dụng chi tiết', position: 'left' },
             { selector: '#feedback-btn', text: 'Gửi góp ý để cải thiện website', position: 'left' },
-            { selector: '#donate-btn', text: 'Ủng hộ dự án (Mời cafe)', position: 'left' },
+
             { selector: '#locate-btn', text: 'Tìm vị trí hiện tại của bạn', position: 'left' }
         ];
 
@@ -4430,8 +4490,6 @@ let analyticsData = {
     communityInsights: {}
 };
 
-let analyticsCharts = {};
-
 // === GLOBAL UTILITY FUNCTIONS ===
 
 // Universal modal management functions to prevent display conflicts
@@ -4493,96 +4551,6 @@ function showToast(message, type = 'info', duration = 3000) {
             setTimeout(() => toast.remove(), 300);
         }
     }, duration);
-}
-
-// Initialize Analytics System
-function initializeAnalytics() {
-    console.log('🚀 Initializing Analytics System...');
-    
-// Enhanced analytics button with visual feedback
-const analyticsBtn = document.getElementById('analytics-btn');
-if (analyticsBtn) {
-    // Clear any existing listeners
-    const newBtn = analyticsBtn.cloneNode(true);
-    analyticsBtn.parentNode.replaceChild(newBtn, analyticsBtn);
-    
-    // Add touch feedback events
-    newBtn.addEventListener('mousedown', function() {
-        newBtn.classList.add('pressed');
-    });
-    
-    newBtn.addEventListener('mouseup', function() {
-        setTimeout(() => newBtn.classList.remove('pressed'), 100);
-    });
-    
-    newBtn.addEventListener('mouseleave', function() {
-        newBtn.classList.remove('pressed');
-    });
-    
-    // Main click handler with state management
-    newBtn.addEventListener('click', function(e) {
-        console.log('🔥 Analytics button clicked!');
-        e.preventDefault();
-        e.stopPropagation();
-        
-        // Toggle active state
-        const isActive = newBtn.classList.contains('active-tool');
-        clearAllToolbarStates();
-        
-        if (!isActive) {
-            newBtn.classList.add('active-tool');
-            openAnalyticsDashboard();
-        } else {
-            closeAnalyticsDashboard();
-        }
-    });
-    console.log('✅ Analytics button listener added');
-}    // Add other event listeners
-    document.getElementById('close-analytics')?.addEventListener('click', closeAnalyticsDashboard);
-    document.getElementById('refresh-analytics')?.addEventListener('click', refreshAnalyticsData);
-    document.getElementById('export-pdf')?.addEventListener('click', exportAnalyticsToPDF);
-    document.getElementById('export-excel')?.addEventListener('click', exportAnalyticsToExcel);
-    
-    // Load initial analytics data
-    loadAnalyticsData();
-}
-
-// Open Analytics Dashboard
-function openAnalyticsDashboard() {
-    console.log('📊 Opening Analytics Dashboard...');
-    const modal = document.getElementById('analytics-modal');
-    console.log('Modal element:', modal);
-    
-    if (modal) {
-        console.log('Modal classes before:', modal.className);
-        
-        // Use utility function for consistent modal management
-        showModal(modal);
-        
-        console.log('Modal classes after:', modal.className);
-        
-        // DO NOT close other modals - let them coexist or use proper modal management
-        // This was the root cause of the 2-step clicking issue
-        
-        refreshAnalyticsData();
-    } else {
-        console.error('❌ Analytics modal not found!');
-    }
-}
-
-// Close Analytics Dashboard
-function closeAnalyticsDashboard() {
-    const modal = document.getElementById('analytics-modal');
-    const analyticsBtn = document.getElementById('analytics-btn');
-    
-    if (modal) {
-        hideModal(modal);
-    }
-    
-    // Clear active state from button
-    if (analyticsBtn) {
-        analyticsBtn.classList.remove('active-tool');
-    }
 }
 
 // Load and Process Analytics Data
@@ -9163,181 +9131,7 @@ console.log('└── viewBetaSignups() - View beta signup data');
 console.log('');
 console.log('💡 Usage: Open Console (F12) and type: debugDangTin()');
 
-// ========================================
-// 🎯 MINIMALIST DONATION SYSTEM v3.0
-// =======================================
 
-function setupDonationTabs() {
-    console.log('✅ Minimalist donation system initialized');
-    
-    // No complex tabs - just focus on copy functionality
-    setupCopyFunctionality();
-}
-
-function setupCopyFunctionality() {
-    // Enhanced copy functions with multiple formats
-    const copyButtons = [
-        { id: 'quick-copy-qr', data: '6806879397' },
-        { id: 'copy-account-number', data: '6806879397' },
-        { 
-            id: 'copy-bank-info', 
-            data: `Số tài khoản: 6806879397\nChủ tài khoản: HUYNH VAN DUOC\nNgân hàng: MB BANK\nNội dung: Ủng hộ XemGiaDat` 
-        }
-    ];
-    
-    copyButtons.forEach(({ id, data }) => {
-        const button = document.getElementById(id);
-        if (button) {
-            button.addEventListener('click', () => copyToClipboard(data, button));
-        }
-    });
-    
-    // Legacy support
-    const legacyButtons = ['copy-account-btn', 'copy-stk-btn'];
-    legacyButtons.forEach(id => {
-        const button = document.getElementById(id);
-        if (button) {
-            button.addEventListener('click', () => copyToClipboard('6806879397', button));
-        }
-    });
-    
-    console.log('✅ Professional copy functionality initialized');
-}
-
-async function copyToClipboard(text, button) {
-    try {
-        // Modern Clipboard API
-        if (navigator.clipboard && window.isSecureContext) {
-            await navigator.clipboard.writeText(text);
-            showCopySuccess(button);
-            showToast('Đã sao chép thành công! 📋', 'success');
-        } else {
-            // Fallback for older browsers
-            fallbackCopyTextToClipboard(text, button);
-        }
-        
-        // Analytics tracking
-        trackCopyAction(text.length > 20 ? 'full-info' : 'account-number');
-        
-    } catch (err) {
-        console.error('Copy failed:', err);
-        showToast('Không thể sao chép. Vui lòng thử lại! ❌', 'error');
-    }
-}
-
-function fallbackCopyTextToClipboard(text, button) {
-    const textArea = document.createElement('textarea');
-    textArea.value = text;
-    textArea.style.position = 'fixed';
-    textArea.style.left = '-999999px';
-    textArea.style.top = '-999999px';
-    document.body.appendChild(textArea);
-    textArea.focus();
-    textArea.select();
-    
-    try {
-        const successful = document.execCommand('copy');
-        if (successful) {
-            showCopySuccess(button);
-            showToast('Đã sao chép thành công! 📋', 'success');
-        } else {
-            throw new Error('Copy command failed');
-        }
-    } catch (err) {
-        console.error('Fallback copy failed:', err);
-        showToast('Không thể sao chép. Vui lòng copy thủ công! ❌', 'error');
-    }
-    
-    document.body.removeChild(textArea);
-}
-
-function showCopySuccess(button) {
-    if (!button) return;
-    
-    const originalContent = button.innerHTML;
-    const originalClasses = button.className;
-    
-    // Success state
-    button.innerHTML = `
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-        </svg>
-        <span>Đã sao chép!</span>
-    `;
-    button.className = originalClasses.replace(/bg-\w+-\d+/g, 'bg-green-500').replace(/hover:bg-\w+-\d+/g, 'hover:bg-green-600');
-    
-    // Reset after 2 seconds
-    setTimeout(() => {
-        button.innerHTML = originalContent;
-        button.className = originalClasses;
-    }, 2000);
-}
-
-function showToast(message, type = 'info') {
-    // Remove existing toasts
-    document.querySelectorAll('.toast').forEach(toast => toast.remove());
-    
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    toast.textContent = message;
-    
-    document.body.appendChild(toast);
-    
-    // Auto remove after 3 seconds
-    setTimeout(() => {
-        toast.style.animation = 'toastSlideUp 0.3s ease-out reverse';
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
-}
-
-function trackDonationTabSwitch(tabName) {
-    // Analytics tracking for tab switches
-    if (typeof gtag !== 'undefined') {
-        gtag('event', 'donation_tab_switch', {
-            tab_name: tabName,
-            event_category: 'donation',
-            event_label: tabName
-        });
-    }
-    
-    console.log(`📊 Tab switched to: ${tabName}`);
-}
-
-function trackCopyAction(copyType) {
-    // Analytics tracking for copy actions
-    if (typeof gtag !== 'undefined') {
-        gtag('event', 'donation_copy', {
-            copy_type: copyType,
-            event_category: 'donation',
-            event_label: copyType
-        });
-    }
-    
-    console.log(`📊 Copy action: ${copyType}`);
-}
-
-function showCopySuccess(button, message) {
-    const originalHTML = button.innerHTML;
-    const originalClasses = button.className;
-    
-    // Update button appearance
-    button.classList.add('copy-success');
-    button.innerHTML = `
-        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-        </svg>
-        ${message}
-    `;
-    
-    // Show toast notification
-    showToast(message, 'success', '✅');
-    
-    // Reset button after 2 seconds
-    setTimeout(() => {
-        button.className = originalClasses;
-        button.innerHTML = originalHTML;
-    }, 2000);
-}
 
 function showCopyError(button) {
     showToast('Không thể sao chép. Vui lòng copy thủ công!', 'error', '❌');

@@ -1,5 +1,22 @@
 {
+  "name": "xemgiadat-open-source",
+  "version": "2.0.0",
+  "description": "Vietnamese Real Estate Platform - 100% Open Source Edition",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "netlify:dev": "netlify dev"
+  },
   "dependencies": {
-    "node-fetch": "^2.7.0"
+    "@turf/turf": "^6.5.0",
+    "maplibre-gl": "^4.7.1",
+    "node-fetch": "^2.7.0",
+    "pmtiles": "^3.2.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-legacy": "^5.0.0",
+    "vite": "^5.4.21"
   }
 }

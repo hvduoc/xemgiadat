@@ -1,0 +1,135 @@
+// ===================================
+// FIREBASE STORAGE SECURITY RULES
+// ===================================
+// Copy toàn bộ nội dung này vào Firebase Console → Storage → Rules
+// Sau đó click "Publish" để áp dụng
+
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // --- QUY TẮC CHO PORTFOLIO IMAGES ---
+    // Đường dẫn: /portfolio-images/{userId}/{portfolioId}/{filename}
+    match /portfolio-images/{userId}/{portfolioId}/{allPaths=**} {
+      // Cho phép đọc ảnh nếu user đã đăng nhập
+      allow read: if request.auth != null;
+      
+      // Chỉ owner mới được upload/write/delete ảnh của mình
+      // HOẶC admin có thể quản lý tất cả
+      allow write, delete: if request.auth != null && 
+        (request.auth.uid == userId || 
+         request.auth.uid == 'FEpPWWT1EaTWQ9FOqBxWN5FeEJk1');
+      
+      // Validation cho upload:
+      // - Giới hạn kích thước file: tối đa 10MB
+      // - Chỉ cho phép file ảnh
+      // - Giới hạn số lượng: tối đa 10 ảnh per portfolio
+      allow write: if request.auth != null &&
+        (request.auth.uid == userId || 
+         request.auth.uid == 'FEpPWWT1EaTWQ9FOqBxWN5FeEJk1') &&
+        request.resource.size < 10 * 1024 * 1024 &&
+        request.resource.contentType.matches('image/.*') &&
+        // Validate filename không chứa ký tự đặc biệt
+        resource.name.matches('.*\\.(jpg|jpeg|png|gif|webp)$');
+    }
+    
+    // --- QUY TẮC CHO USER AVATARS ---
+    // Đường dẫn: /avatars/{userId}/{filename}
+    match /avatars/{userId}/{filename} {
+      // Ai cũng có thể xem avatar
+      allow read: if true;
+      
+      // Chỉ owner mới được upload avatar của mình
+      allow write, delete: if request.auth != null && 
+        (request.auth.uid == userId ||
+         request.auth.uid == 'FEpPWWT1EaTWQ9FOqBxWN5FeEJk1');
+      
+      // Validation cho avatar:
+      // - Tối đa 5MB
+      // - Chỉ file ảnh
+      allow write: if request.auth != null &&
+        request.resource.size < 5 * 1024 * 1024 &&
+        request.resource.contentType.matches('image/.*');
+    }
+    
+    // --- QUY TẮC CHO PUBLIC FILES ---
+    // Đường dẫn: /public/{filename}
+    match /public/{allPaths=**} {
+      // Ai cũng có thể đọc public files
+      allow read: if true;
+      
+      // Chỉ admin mới được upload public files
+      allow write, delete: if request.auth != null && 
+        request.auth.uid == 'FEpPWWT1EaTWQ9FOqBxWN5FeEJk1';
+    }
+    
+    // --- QUY TẮC CHO LISTING IMAGES ---
+    // Đường dẫn: /listing-images/{userId}/{listingId}/{filename}
+    match /listing-images/{userId}/{listingId}/{allPaths=**} {
+      // Ai cũng có thể xem ảnh listing (public)
+      allow read: if true;
+      
+      // Chỉ owner hoặc admin mới được quản lý
+      allow write, delete: if request.auth != null && 
+        (request.auth.uid == userId ||
+         request.auth.uid == 'FEpPWWT1EaTWQ9FOqBxWN5FeEJk1');
+      
+      // Validation cho listing images
+      allow write: if request.auth != null &&
+        request.resource.size < 15 * 1024 * 1024 &&
+        request.resource.contentType.matches('image/.*');
+    }
+    
+    // --- QUY TẮC MẶC ĐỊNH - DENY ALL ---
+    // Từ chối truy cập vào tất cả paths khác
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
+// ===================================
+// HƯỚNG DẪN SỬ DỤNG:
+// ===================================
+// 1. Copy toàn bộ rules trên
+// 2. Vào Firebase Console → Storage → Rules
+// 3. Paste vào editor và click "Publish"
+// 4. Đợi khoảng 1-2 phút để rules được áp dụng
+
+// ===================================
+// CẤU TRÚC FOLDER STORAGE:
+// ===================================
+// /portfolio-images/{userId}/{portfolioId}/
+//   ├── image_1234567890_abc123.jpg
+//   ├── image_1234567891_def456.webp
+//   └── image_1234567892_ghi789.png
+//
+// /avatars/{userId}/
+//   └── avatar.jpg
+//
+// /listing-images/{userId}/{listingId}/
+//   ├── main.jpg
+//   ├── photo1.jpg
+//   └── photo2.jpg
+//
+// /public/
+//   ├── logos/
+//   ├── banners/
+//   └── icons/
+
+// ===================================
+// GIỚI HẠN VÀ VALIDATION:
+// ===================================
+// ✅ Portfolio images: 10MB max, 10 ảnh/portfolio
+// ✅ Avatars: 5MB max
+// ✅ Listing images: 15MB max  
+// ✅ Chỉ file ảnh được phép (jpg, png, gif, webp)
+// ✅ Admin có full quyền trên tất cả files
+// ✅ Security: Owner chỉ access được files của mình
+
+// ===================================
+// LƯU Ý QUAN TRỌNG:
+// ===================================
+// - Cập nhật rules này TRƯỚC KHI test upload ảnh
+// - Nếu gặp lỗi CORS, check lại domain trong Firebase Console → Authentication → Settings
+// - Rules này tương thích với Google Drive API integration (chuẩn bị implement)

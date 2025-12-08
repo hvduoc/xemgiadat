@@ -675,6 +675,18 @@ input[type=range][orient=vertical] {
 /* Thêm vào cuối file style.css */
 
 /* XÓA CSS CŨ CHO PANEL VÀ THAY BẰNG ĐOẠN NÀY */
+.transaction-type-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+}
+
 .price-highlight {
     font-size: 1.5rem; /* text-2xl */
     font-weight: 700;
@@ -698,6 +710,22 @@ input[type=range][orient=vertical] {
     margin-right: 5px;
     color: #6b7280;
 }
+
+.property-description {
+    background-color: #eff6ff;
+    border-left: 3px solid #3b82f6;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    font-size: 13px;
+    color: #1e40af;
+    line-height: 1.6;
+}
+
+.property-description i {
+    margin-right: 6px;
+    color: #3b82f6;
+}
+
 .address-actions-group {
     margin-bottom: 16px;
 }
