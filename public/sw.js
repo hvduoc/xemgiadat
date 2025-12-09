@@ -3,7 +3,7 @@
 // Progressive Web App Implementation for Real Estate Platform
 // =============================================================================
 
-const CACHE_NAME = 'xemgiadat-v1.3.0';
+const CACHE_NAME = 'xemgiadat-v1.3.1-dev';
 const OFFLINE_URL = '/offline.html';
 
 // Assets to cache immediately

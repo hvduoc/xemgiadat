@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clear Service Worker - XemGiaDat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div class="bg-white p-8 rounded-lg shadow-lg max-w-md">
+        <h1 class="text-2xl font-bold mb-4 text-gray-800">🔧 Clear Service Worker</h1>
+        <p class="mb-4 text-gray-600">Click button below to unregister service worker and reload app:</p>
+        
+        <button onclick="clearSW()" class="w-full bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 mb-4">
+            🗑️ Clear Service Worker
+        </button>
+        
+        <div id="status" class="mt-4 p-4 rounded hidden"></div>
+    </div>
+
+    <script>
+        async function clearSW() {
+            const status = document.getElementById('status');
+            status.classList.remove('hidden');
+            
+            try {
+                // Unregister all service workers
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                
+                if (registrations.length === 0) {
+                    status.className = 'mt-4 p-4 rounded bg-yellow-100 text-yellow-800';
+                    status.textContent = '⚠️ No service workers found';
+                    return;
+                }
+                
+                for (let registration of registrations) {
+                    await registration.unregister();
+                }
+                
+                // Clear all caches
+                const cacheNames = await caches.keys();
+                for (let name of cacheNames) {
+                    await caches.delete(name);
+                }
+                
+                status.className = 'mt-4 p-4 rounded bg-green-100 text-green-800';
+                status.innerHTML = '✅ Service Worker cleared!<br>Redirecting...';
+                
+                // Redirect to home
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 2000);
+                
+            } catch (error) {
+                status.className = 'mt-4 p-4 rounded bg-red-100 text-red-800';
+                status.textContent = '❌ Error: ' + error.message;
+            }
+        }
+        
+        // Auto-run on load
+        if (window.location.search.includes('auto=true')) {
+            clearSW();
+        }
+    </script>
+</body>
+</html>
