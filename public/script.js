@@ -4031,8 +4031,9 @@ window.initializeCommunityContribution = initializeCommunityContribution;
 // Export các functions modal để đảm bảo accessible
 window.openContributionModal = openContributionModal;
 window.closeContributionModal = closeContributionModal;
-window.openAnalyticsDashboard = openAnalyticsDashboard;
-window.closeAnalyticsDashboard = closeAnalyticsDashboard;
+// Analytics dashboard removed - placeholder for compatibility
+window.openAnalyticsDashboard = function() { console.log('Analytics dashboard feature removed'); };
+window.closeAnalyticsDashboard = function() { console.log('Analytics dashboard feature removed'); };
 
 function openContributionModal() {
     console.log('🔥 Opening contribution modal...');
@@ -7377,7 +7378,7 @@ class AdvancedSearchManager {
     
     init() {
         console.log('🔍 Initializing Advanced Search Manager...');
-        this.setupSearchHistory();
+        // this.setupSearchHistory(); // Method not implemented yet
         this.setupAutoComplete();
         this.setupSearchAnalytics();
         this.setupFuzzySearch();
