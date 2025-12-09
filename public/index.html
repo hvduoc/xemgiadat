@@ -1699,18 +1699,26 @@
         <i class="fas fa-rocket text-xl"></i>
     </button>
    
-    <script defer src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
-    <script defer src="https://unpkg.com/leaflet.vectorgrid@1.3.0/dist/Leaflet.VectorGrid.bundled.js"></script>
+    <!-- 🚀 Optimized Script Loading Strategy -->
     
-    <!-- 🌍 Open Source Migration Adapters -->
-    <script defer src="https://cdn.jsdelivr.net/npm/pmtiles@3.0.7/dist/pmtiles.min.js"></script>
+    <!-- Critical: Load immediately but don't block -->
+    <script async src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+    <script async src="https://unpkg.com/leaflet.vectorgrid@1.3.0/dist/Leaflet.VectorGrid.bundled.js"></script>
+    
+    <!-- Open Source Adapters: Load early but async -->
+    <script async src="https://cdn.jsdelivr.net/npm/pmtiles@3.0.7/dist/pmtiles.min.js"></script>
     <script defer src="js/adapters/PMTilesAdapter.js"></script>
     <script defer src="js/adapters/GeocodingAdapter.js"></script>
     <script defer src="js/adapters/FeatureFlagConfig.js"></script>
     
+    <!-- Application Scripts: Defer to ensure DOM ready -->
     <script defer src="pinetwork.js"></script>
     <script defer src="script.js"></script>
     <script defer src="pwa-enhancements.js"></script>
+    
+    <!-- 💡 Performance Hint: Prefetch next page resources -->
+    <link rel="prefetch" href="/admin.html">
+    <link rel="prefetch" href="/guide.html">
 
 
 </body>

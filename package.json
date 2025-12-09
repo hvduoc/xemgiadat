@@ -7,7 +7,12 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "netlify:dev": "netlify dev"
+    "netlify:dev": "netlify dev",
+    "optimize": "npm run optimize:js && npm run optimize:css",
+    "optimize:js": "echo 'Minifying JavaScript...' && terser public/script.js -o public/script.min.js -c -m",
+    "optimize:css": "echo 'Minifying CSS...' && cleancss public/style.css -o public/style.min.css",
+    "analyze": "echo 'File sizes:' && ls -lh public/*.{js,css,html} 2>/dev/null || dir public\\*.js public\\*.css public\\*.html",
+    "performance": "echo 'Opening performance dashboard...' && start http://localhost:3000/performance.html"
   },
   "dependencies": {
     "@turf/turf": "^6.5.0",
