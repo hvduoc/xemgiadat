@@ -1,3 +1,12 @@
+<!--
+  ⚠️  FROZEN LEGACY - Production v1 Entry Point
+  
+  Do not edit without approval from @architect.
+  See: docs/PROJECT_MAP.md and docs/DO_NOT_EDIT.md
+  
+  Migration to v2 is in progress (see src2/ and public/v2.html).
+  This file is critical production infrastructure.
+-->
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -35,6 +44,11 @@
     <meta name="pi-network:app-name" content="XemGiaDat - Xem Giá Đất Vietnam">
     <meta name="pi-network:description" content="Vietnamese Real Estate Price Platform with Pi Network Integration">
     <meta name="pi-network:image" content="https://xemgiadat.com/images/pi-network-preview.png">
+    
+        <!-- Build Version Meta Tags -->
+        <meta name="build-version" content="2.0.1-cache-fix">
+        <meta name="build-time" content="">
+        <meta name="cache-version" content="2.0.1-cache-fix">
     <meta name="twitter:title" content="Xem Giá Đất Đà Nẵng - Bản Đồ Giá Đất Chính Xác">
     <meta name="twitter:description" content="Bản đồ giá đất Đà Nẵng online, thông tin BDS chính xác, giao dịch minh bạch.">
     <meta name="twitter:image" content="https://xemgiadat.com/images/thumbnail.png">
@@ -134,14 +148,14 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
     <link rel="stylesheet" href="https://unpkg.com/esri-leaflet-geocoder@3.1.4/dist/esri-leaflet-geocoder.css" crossorigin="">
     <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
-    <link rel="stylesheet" href="style.css">
+
 
     <meta name="description" content="Nền tảng BĐS Đà Nẵng thế hệ mới. Dễ dàng tra cứu thông tin thửa đất, đồng thời đăng tin bán hoặc cho thuê siêu nhẹ chỉ trong vài giây. Hoàn toàn miễn phí.">
     
     <script defer src="maxa_list.js"></script>
     
     <!-- Tailwind CSS Production Build -->
-    <link rel="stylesheet" href="/css/tailwind-production.css">
+
     
     <meta property="fb:app_id" content="754800037069626" />
     
@@ -257,7 +271,7 @@
     </script>
     
     <!-- PWA Manifest -->
-    <link rel="manifest" href="/manifest.json">
+    <link rel="manifest" href="/assets/manifest-yuxn1Fnh.json">
     
     <!-- PWA Theme Colors -->
     <meta name="theme-color" content="#3b82f6">
@@ -460,8 +474,16 @@
             }
         };
     </script>
+  <link rel="stylesheet" crossorigin href="/assets/main-CoB823_Y.css">
 </head>
 <body class="relative overflow-hidden">
+    <!-- 🏷️ IDENTITY BADGE: LEGACY APP -->
+    <script>
+        console.log('%c[IDENTITY] LEGACY', 'background: #ff6b6b; color: white; padding: 4px 8px; font-weight: bold;');
+        console.log('[LEGACY] File: public/index.html + public/script.js (9209 lines)');
+        console.log('[LEGACY] Stack: Leaflet + Mapbox GL v4 + Firebase');
+        console.log('[LEGACY] Entry: / (production-stable)');
+    </script>
     
     <!-- Bọc ô tìm kiếm và kết quả trong một container chính -->
     <div id="search-widget-container">
@@ -594,6 +616,12 @@
     </div>
 
    <div class="absolute top-4 right-4 z-[1000] flex flex-col items-center space-y-3">
+        <!-- V2 Beta Link -->
+        <a href="/v2/" target="_blank" class="text-xs text-gray-500 hover:text-indigo-600 transition-colors flex items-center space-x-1">
+            <span>V2</span>
+            <span class="px-1.5 py-0.5 bg-indigo-100 text-indigo-600 rounded text-[10px] font-semibold">BETA</span>
+        </a>
+        
         <div id="auth-container" class="relative">
             <button id="login-btn" title="Đăng nhập" class="bg-green-500 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-green-600 transition">
                 <i class="fa-solid fa-user"></i>
@@ -623,16 +651,24 @@
         </button>
     </div>
     
-    <div id="form-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-[1001]">
-        <div class="relative top-10 mx-auto p-4 w-full max-w-lg shadow-lg rounded-lg bg-white">
-            <div class="text-center">
-                <div class="flex items-center justify-center mb-3">
-                    <div class="bg-gradient-to-r from-green-500 to-blue-500 w-12 h-12 rounded-full flex items-center justify-center mr-3">
-                        <i class="fas fa-bullhorn text-white text-xl"></i>
+    <!-- FIXED: Modal now has 3-section layout (header/body flex-1/footer) to keep CTA always visible on mobile -->
+    <div id="form-modal" class="hidden fixed inset-0 bg-black/50 z-[1001] flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg max-w-lg w-full max-h-[100dvh] flex flex-col">
+            <!-- HEADER: flex-none -->
+            <div class="flex-none px-6 pt-6 pb-2 text-center border-b">
+                <div class="flex items-center justify-center mb-2">
+                    <div class="bg-gradient-to-r from-green-500 to-blue-500 w-10 h-10 rounded-full flex items-center justify-center mr-2">
+                        <i class="fas fa-bullhorn text-white text-lg"></i>
                     </div>
-                    <h3 class="text-lg font-bold text-gray-900">📢 Đăng Tin Bất Động Sản</h3>
+                    <h3 class="text-lg font-bold text-gray-900">📢 Đăng Tin</h3>
                 </div>
-                <form id="location-form" class="space-y-3 text-left text-sm">
+                <p class="text-xs text-gray-500">Chia sẻ thông tin bất động sản của bạn</p>
+            </div>
+            
+            <!-- BODY: flex-1 min-h-0 overflow-y-auto (ONLY scroll zone) -->
+            <div class="flex-1 min-h-0 overflow-y-auto" data-listing-scroll style="-webkit-overflow-scrolling: touch;">
+                <div class="px-6 py-4">
+                    <form id="location-form" class="space-y-3 text-left text-sm">
                     <!-- Loại giao dịch -->
                     <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
                         <label class="block text-sm font-semibold text-gray-700 mb-2">
@@ -771,17 +807,25 @@
                             <input id="facebook" type="text" name="contactFacebook" placeholder="📘 Facebook/Zalo (không bắt buộc)" class="px-3 py-2 w-full border rounded-lg bg-white text-gray-700" />
                         </div>
                     </div>
-
-                    <!-- Submit buttons -->
-                    <div class="pt-3 space-y-2">
-                        <button id="submit-form-btn" type="submit" class="w-full px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold rounded-lg shadow-md transition-all transform hover:scale-[1.02]">
-                            <i class="fas fa-paper-plane mr-2"></i>Đăng Tin Ngay
-                        </button>
-                        <button id="close-modal-btn" type="button" class="w-full px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-lg shadow-sm transition-colors">
-                            <i class="fas fa-times mr-2"></i>Hủy
-                        </button>
-                    </div>
-                </form>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- FOOTER: flex-none (CTA always visible, OUTSIDE scroll area) -->
+            <div class="flex-none border-t bg-white p-4 space-y-2" style="padding-bottom: calc(1rem + env(safe-area-inset-bottom));">
+                <button id="submit-form-btn" type="submit" form="location-form" class="w-full px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold rounded-lg shadow-md transition-all transform hover:scale-[1.02] min-h-[44px]">
+                    <i class="fas fa-paper-plane mr-2"></i>Đăng Tin Ngay
+                </button>
+                <button id="close-modal-btn" type="button" class="w-full px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-lg shadow-sm transition-colors min-h-[44px]">
+                    <i class="fas fa-times mr-2"></i>Hủy
+                </button>
+                <!-- Debug helper for mobile testing -->
+                <div id="modal-debug" style="display: none; margin-top: 1rem; padding: 8px; background: #f0f0f0; border-radius: 4px; font-size: 11px; font-family: monospace; color: #666;">
+                    <div>viewport: <span id="debug-viewport">-</span></div>
+                    <div>scroll: <span id="debug-scroll">-</span></div>
+                    <div>footer visible: <span id="debug-footer-vis">-</span></div>
+                    <div>cta size: <span id="debug-cta-size">-</span></div>
+                </div>
             </div>
         </div>
     </div>
@@ -1041,7 +1085,7 @@
                         <div class="p-4 bg-white space-y-4">
                             <!-- Founder Profile -->
                             <div class="text-center">
-                                <img src="images/your-avatar.png" alt="Ảnh tác giả" class="w-16 h-16 rounded-full mx-auto mb-3 shadow-md border-2 border-green-200">
+                                <img src="/assets/your-avatar-C80wWt61.png" alt="Ảnh tác giả" class="w-16 h-16 rounded-full mx-auto mb-3 shadow-md border-2 border-green-200">
                                 <h4 class="font-bold text-gray-800 mb-1">Huỳnh Văn Được</h4>
                                 <p class="text-xs text-gray-500 mb-3">Founder & Developer</p>
                                 <p class="text-gray-700 text-sm leading-relaxed">
@@ -1717,8 +1761,8 @@
     <script defer src="pwa-enhancements.js"></script>
     
     <!-- 💡 Performance Hint: Prefetch next page resources -->
-    <link rel="prefetch" href="/admin.html">
-    <link rel="prefetch" href="/guide.html">
+    <link rel="prefetch" href="/assets/admin-Bsp4HTaC.html">
+    <link rel="prefetch" href="/assets/guide-B7nbgJxT.html">
 
 
 </body>
