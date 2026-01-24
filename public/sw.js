@@ -1,9 +1,26 @@
+/*
+  ⚠️  FROZEN LEGACY - Service Worker (PWA Caching)
+  
+  Do not edit without approval from @architect.
+  See: docs/PROJECT_MAP.md and docs/DO_NOT_EDIT.md
+  
+  This file handles:
+  - Cache management
+  - Offline fallback
+  - PWA support
+  
+  Changes here affect ALL users' offline experience.
+  Migration to v2 will include new SW.
+*/
+
 // =============================================================================
 // XEMGIADAT.COM - SERVICE WORKER PWA
 // Progressive Web App Implementation for Real Estate Platform
 // =============================================================================
 
-const CACHE_NAME = 'xemgiadat-v1.3.1-dev';
+// Dynamic versioning - update when deployment occurs
+const CACHE_VERSION = '2.0.1-cache-fix';
+const CACHE_NAME = `xemgiadat-v${CACHE_VERSION}`;
 const OFFLINE_URL = '/offline.html';
 
 // Assets to cache immediately
@@ -69,7 +86,9 @@ self.addEventListener('install', event => {
       })
       .then(() => {
         console.log('✅ Static assets cached successfully');
-        return self.skipWaiting();
+        // Immediately take control, don't wait for clients to close/refresh
+        self.skipWaiting();
+        return Promise.resolve();
       })
       .catch(error => {
         console.error('❌ Failed to cache static assets:', error);
@@ -95,7 +114,9 @@ self.addEventListener('activate', event => {
       })
       .then(() => {
         console.log('✅ Service Worker activated');
-        return self.clients.claim();
+        // Claim all clients immediately - no need to wait for refresh
+        self.clients.claim();
+        return Promise.resolve();
       })
   );
 });
@@ -107,6 +128,13 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   const { request } = event;
   const url = new URL(request.url);
+  
+  // V2 Isolation: Bypass all cache strategies for /v2/* paths (Phase 6: moved to /v2/)
+  // V2 app manages its own caching; legacy SW must not interfere
+  if (url.pathname.startsWith('/v2/')) {
+    event.respondWith(fetch(request));
+    return;
+  }
   
   // Skip non-GET requests
   if (request.method !== 'GET') return;
@@ -364,3 +392,8 @@ async function getCacheStats() {
 }
 
 console.log('🚀 Xem Giá Đất Service Worker loaded successfully');
+
+// Build version tracking
+console.log(\? Service Worker Cache Version: ${CACHE_VERSION}\);
+console.log(\?? Cache Name: ${CACHE_NAME}\);
+console.log(\?? skipWaiting & clientsClaim: Enabled - immediate updates\);

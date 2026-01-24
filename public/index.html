@@ -1745,12 +1745,12 @@
    
     <!-- 🚀 Optimized Script Loading Strategy -->
     
-    <!-- Critical: Load immediately but don't block -->
-    <script async src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
-    <script async src="https://unpkg.com/leaflet.vectorgrid@1.3.0/dist/Leaflet.VectorGrid.bundled.js"></script>
+    <!-- Critical: Load with defer to ensure proper load order -->
+    <script defer src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+    <script defer src="https://unpkg.com/leaflet.vectorgrid@1.3.0/dist/Leaflet.VectorGrid.bundled.js"></script>
     
-    <!-- Open Source Adapters: Load early but async -->
-    <script async src="https://cdn.jsdelivr.net/npm/pmtiles@3.0.7/dist/pmtiles.min.js"></script>
+    <!-- Open Source Adapters: Load early but defer for ordering -->
+    <script defer src="https://cdn.jsdelivr.net/npm/pmtiles@3.0.7/dist/pmtiles.min.js"></script>
     <script defer src="js/adapters/PMTilesAdapter.js"></script>
     <script defer src="js/adapters/GeocodingAdapter.js"></script>
     <script defer src="js/adapters/FeatureFlagConfig.js"></script>
