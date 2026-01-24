@@ -5,17 +5,18 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && node scripts/verify-v2-build.mjs",
     "preview": "vite preview",
     "netlify:dev": "netlify dev",
     "optimize": "npm run optimize:js && npm run optimize:css",
     "optimize:js": "echo 'Minifying JavaScript...' && terser public/script.js -o public/script.min.js -c -m",
     "optimize:css": "echo 'Minifying CSS...' && cleancss public/style.css -o public/style.min.css",
-    "analyze": "echo 'File sizes:' && ls -lh public/*.{js,css,html} 2>/dev/null || dir public\\*.js public\\*.css public\\*.html",
+    "analyze": "echo \"File sizes:\" && Get-ChildItem public\\*.js, public\\*.css, public\\*.html -ErrorAction SilentlyContinue | Select-Object Name, @{N='Size_KB';E={[Math]::Round($_.Length/1KB)}} || dir public\\*.js public\\*.css public\\*.html",
     "performance": "echo 'Opening performance dashboard...' && start http://localhost:3000/performance.html"
   },
   "dependencies": {
     "@turf/turf": "^6.5.0",
+    "firebase": "^10.12.3",
     "maplibre-gl": "^4.7.1",
     "node-fetch": "^2.7.0",
     "pmtiles": "^3.2.1"

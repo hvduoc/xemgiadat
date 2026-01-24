@@ -1,7 +1,38 @@
+/*
+  ⚠️  FROZEN LEGACY - Production v1 Main Runtime (9187 lines)
+  
+  WARNING: This file contains ALL v1 application logic.
+  Do not edit without approval from @architect.
+  See: docs/PROJECT_MAP.md and docs/DO_NOT_EDIT.md
+  
+  - Firebase Auth/Firestore integration
+  - Map initialization & rendering
+  - PMTiles/GeoJSON data loading
+  - All user-facing features
+  
+  Migration to v2 is in progress (see src2/).
+  v2 will replace this file entirely.
+  
+  Any change requires:
+  1. Code review + architecture approval
+  2. Staging test
+  3. Production backup
+  4. Rollback plan
+*/
+
 // =============================================================================
 // PERFORMANCE OPTIMIZATION & LAZY LOADING SYSTEM
 // Enhanced loading strategies for better user experience
 // =============================================================================
+
+// =============================================================================
+// 🚨 DIAGNOSTIC: LEGACY APP BOOT CONFIRMATION
+// =============================================================================
+console.log('%c[LEGACY APP BOOTED]', 'background: #ff6b6b; color: white; padding: 4px 8px; font-weight: bold;');
+console.log('[LEGACY] File: script.js (9209 lines)');
+console.log('[LEGACY] Stack: Leaflet + Mapbox v4 + Firebase');
+console.log('[LEGACY] Entry: index.html at /');
+console.log('[LEGACY] Frozen: Do not edit without approval');
 
 // Image lazy loading with Intersection Observer
 const initLazyLoading = () => {
@@ -4507,6 +4538,55 @@ function hideModal(el) {
         el.style.display = 'none'; 
     } 
 }
+
+// [VERIFY MODAL] Debug helper for mobile testing (call: window.verifyDangTinModal())
+window.verifyDangTinModal = function() {
+    const modal = document.getElementById('form-modal');
+    const scrollContainer = document.querySelector('[data-listing-scroll]');
+    const footer = document.querySelector('#form-modal .flex-none.border-t');
+    const ctaButton = document.getElementById('submit-form-btn');
+    
+    if (!modal || !scrollContainer || !footer || !ctaButton) {
+        console.log('[VERIFY MODAL] ❌ Elements not found');
+        return;
+    }
+    
+    const footerRect = footer.getBoundingClientRect();
+    const ctaRect = ctaButton.getBoundingClientRect();
+    const scrollRect = scrollContainer.getBoundingClientRect();
+    const viewportH = window.innerHeight || window.visualViewport?.height || 0;
+    
+    const footerVisible = footerRect.bottom <= viewportH + 100;  // Small margin
+    const ctaMin44 = ctaRect.height >= 44 && ctaRect.width >= 44;
+    const scrollHeight = scrollContainer.scrollHeight;
+    const scrollClient = scrollContainer.clientHeight;
+    const isScrolling = scrollHeight > scrollClient;
+    
+    const report = {
+        viewport: `${window.innerWidth}×${viewportH}`,
+        footerY: `${footerRect.top.toFixed(0)}-${footerRect.bottom.toFixed(0)}`,
+        footerVisible: footerVisible ? '✅ yes' : '❌ no',
+        ctaSize: `${ctaRect.width.toFixed(0)}×${ctaRect.height.toFixed(0)}px`,
+        ctaMin44: ctaMin44 ? '✅ yes' : '❌ no',
+        scrollable: isScrolling ? `yes (${scrollHeight} vs ${scrollClient})` : 'no',
+        scrollTop: `${scrollContainer.scrollTop}`,
+    };
+    
+    console.log(`[VERIFY MODAL] ${JSON.stringify(report)}`);  // One-liner for copy-paste
+    console.table(report);  // Pretty table
+    
+    // Update debug div if visible
+    const debugDiv = document.getElementById('modal-debug');
+    if (debugDiv) {
+        debugDiv.style.display = 'block';
+        document.getElementById('debug-viewport').textContent = report.viewport;
+        document.getElementById('debug-scroll').textContent = `${scrollHeight}/${scrollClient}`;
+        document.getElementById('debug-footer-vis').textContent = report.footerVisible;
+        document.getElementById('debug-cta-size').textContent = report.ctaSize + (ctaMin44 ? ' ✅' : ' ❌');
+    }
+    
+    return report;
+};
 
 // === GLOBAL TOAST NOTIFICATION SYSTEM ===
 function showToast(message, type = 'info', duration = 3000) {

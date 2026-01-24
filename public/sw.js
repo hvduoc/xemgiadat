@@ -18,8 +18,8 @@
 // Progressive Web App Implementation for Real Estate Platform
 // =============================================================================
 
-// Dynamic versioning - update when deployment occurs
-const CACHE_VERSION = '2.0.1-cache-fix';
+// PHASE 3 FIX: Dynamic versioning - date-based to force cache bust on each deploy
+const CACHE_VERSION = '2026-01-24-routing-fix';
 const CACHE_NAME = `xemgiadat-v${CACHE_VERSION}`;
 const OFFLINE_URL = '/offline.html';
 
@@ -96,9 +96,10 @@ self.addEventListener('install', event => {
   );
 });
 
-// Activate Event - Clean old caches
+// PHASE 3 FIX: Activate Event - Clean old caches AND verify version
 self.addEventListener('activate', event => {
   console.log('⚡ Service Worker activating...');
+  console.log('%c[VERIFY SW] Active version: ' + CACHE_VERSION, 'background: #51cf66; color: white; padding: 4px 8px;');
   
   event.waitUntil(
     caches.keys()
@@ -113,7 +114,7 @@ self.addEventListener('activate', event => {
         );
       })
       .then(() => {
-        console.log('✅ Service Worker activated');
+        console.log('✅ Service Worker activated, old caches cleared');
         // Claim all clients immediately - no need to wait for refresh
         self.clients.claim();
         return Promise.resolve();

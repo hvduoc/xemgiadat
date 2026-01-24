@@ -1,0 +1,1986 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎛️ Admin Dashboard - Xem Giá Đất Đà Nẵng</title>
+    
+    <!-- Meta Tags for Admin Dashboard -->
+    <meta name="description" content="Professional Admin Dashboard for Da Nang Real Estate Platform">
+    <meta name="keywords" content="admin, dashboard, real estate, analytics, management">
+    <meta name="robots" content="noindex, nofollow">
+    
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-analytics-compat.js"></script>
+    
+    <!-- Chart.js for Advanced Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <link rel="stylesheet" href="css/tailwind-production.css">
+    
+    <style>
+        /* 🎨 Professional Admin UI Design System */
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --warning-gradient: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            --danger-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            --dark-gradient: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+            
+            --sidebar-width: 280px;
+            --header-height: 70px;
+            --border-radius: 16px;
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            color: #2d3748;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* 🚀 Enhanced Sidebar */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: var(--dark-gradient);
+            backdrop-filter: blur(20px);
+            box-shadow: var(--shadow-xl);
+            z-index: 1000;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-header h1 {
+            color: white;
+            font-size: 1.25rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .sidebar-header .logo-icon {
+            background: var(--primary-gradient);
+            padding: 0.5rem;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .nav-menu {
+            padding: 1rem 0;
+            height: calc(100vh - 200px);
+            overflow-y: auto;
+        }
+
+        .nav-section {
+            margin: 1.5rem 0;
+        }
+
+        .nav-section-title {
+            padding: 0 1.5rem 0.5rem 1.5rem;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 0.875rem 1.5rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+            cursor: pointer;
+            margin: 0.25rem 0;
+            position: relative;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-left-color: #667eea;
+            transform: translateX(8px);
+        }
+
+        .nav-item.active {
+            background: rgba(102, 126, 234, 0.2);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-item i {
+            width: 20px;
+            margin-right: 0.75rem;
+            font-size: 1.1rem;
+        }
+
+        .nav-item .nav-badge {
+            margin-left: auto;
+            background: #ef4444;
+            color: white;
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            min-width: 20px;
+            text-align: center;
+        }
+
+        /* 🎯 Main Content Area */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+            transition: margin-left 0.3s ease;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            height: var(--header-height);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            box-shadow: var(--shadow-lg);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-left h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .header-notification {
+            position: relative;
+            background: rgba(102, 126, 234, 0.1);
+            padding: 0.75rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .header-notification:hover {
+            background: rgba(102, 126, 234, 0.2);
+            transform: scale(1.05);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            background: #ef4444;
+            color: white;
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            min-width: 20px;
+            text-align: center;
+        }
+
+        .admin-profile {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 1rem;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .admin-profile:hover {
+            background: rgba(102, 126, 234, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .admin-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid #667eea;
+            object-fit: cover;
+        }
+
+        /* 💎 Content Sections */
+        .content {
+            padding: 2rem;
+        }
+
+        .section {
+            display: none;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 📊 Enhanced Cards */
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-lg);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card:hover {
+            transform: translateY(-4px) scale(1.01);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .stat-card {
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            color: white;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 120px;
+            height: 120px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transform: translate(40px, -40px);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin: 0.5rem 0;
+            position: relative;
+            z-index: 2;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 2;
+        }
+
+        .stat-change {
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .stat-icon {
+            position: absolute;
+            bottom: 1rem;
+            right: 1rem;
+            font-size: 3rem;
+            opacity: 0.3;
+            z-index: 1;
+        }
+
+        /* 📈 Charts & Analytics */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 1rem 0;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .chart-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        /* 🎨 Enhanced Tables */
+        .table-container {
+            overflow-x: auto;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-lg);
+            background: white;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            padding: 1.25rem;
+            text-align: left;
+            font-weight: 600;
+            color: #4a5568;
+            border-bottom: 2px solid rgba(102, 126, 234, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .data-table td {
+            padding: 1.25rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            vertical-align: middle;
+        }
+
+        .data-table tr {
+            transition: all 0.2s ease;
+        }
+
+        .data-table tr:hover {
+            background: rgba(102, 126, 234, 0.05);
+            transform: scale(1.01);
+        }
+
+        /* 🏷️ Status Badges */
+        .badge {
+            padding: 0.375rem 0.875rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .badge.success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .badge.warning {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+        }
+
+        .badge.danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+
+        .badge.info {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+        }
+
+        /* 🔘 Enhanced Buttons */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: var(--primary-gradient);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: var(--success-gradient);
+            color: white;
+        }
+
+        .btn-warning {
+            background: var(--warning-gradient);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger-gradient);
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+        }
+
+        /* 📱 Mobile Responsive */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                padding: 1rem;
+            }
+            
+            .header {
+                padding: 0 1rem;
+            }
+            
+            .stat-card {
+                padding: 1.5rem;
+            }
+        }
+
+        /* 🎭 Loading & Animations */
+        .loading {
+            background: linear-gradient(270deg, #667eea, #764ba2, #667eea);
+            background-size: 400% 400%;
+            animation: gradientShift 2s ease-in-out infinite;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        /* 🌈 Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-gradient);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--secondary-gradient);
+        }
+
+        /* 🎯 Grid Layouts */
+        .grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .grid-cols-1 { grid-template-columns: repeat(1, 1fr); }
+        .grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+        .grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+        .grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+
+        @media (max-width: 1280px) {
+            .grid-cols-4 { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        @media (max-width: 1024px) {
+            .grid-cols-4,
+            .grid-cols-3 { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 640px) {
+            .grid-cols-4,
+            .grid-cols-3,
+            .grid-cols-2 { grid-template-columns: repeat(1, 1fr); }
+        }
+
+        /* 🔧 Utility Classes */
+        .hidden { display: none !important; }
+        .visible { display: block !important; }
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .text-left { text-align: left; }
+        .mb-4 { margin-bottom: 1rem; }
+        .mb-6 { margin-bottom: 1.5rem; }
+        .mb-8 { margin-bottom: 2rem; }
+        .mt-4 { margin-top: 1rem; }
+        .mt-6 { margin-top: 1.5rem; }
+        .p-4 { padding: 1rem; }
+        .p-6 { padding: 1.5rem; }
+        .p-8 { padding: 2rem; }
+        .rounded-lg { border-radius: 12px; }
+        .shadow-lg { box-shadow: var(--shadow-lg); }
+        .shadow-xl { box-shadow: var(--shadow-xl); }
+
+        /* 🎨 Analytics Dashboard Embedded Styles */
+        .analytics-metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .analytics-metric-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-lg);
+            transition: all 0.3s ease;
+        }
+
+        .analytics-metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .analytics-metric-card h3 {
+            color: #1e293b;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+        }
+
+        .analytics-metric-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .analytics-metric-value.good { color: #059669; }
+        .analytics-metric-value.warning { color: #d97706; }
+        .analytics-metric-value.poor { color: #dc2626; }
+        .analytics-metric-value.info { color: #2563eb; }
+
+        .analytics-metric-description {
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+
+        .analytics-metric-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .analytics-metric-list li {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 0.875rem;
+        }
+
+        .analytics-metric-list li:last-child {
+            border-bottom: none;
+        }
+
+        .analytics-error-log {
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.75rem;
+            background: #f8fafc;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .analytics-score-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin: 0 auto 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        .score-excellent { background: linear-gradient(135deg, #059669 0%, #10b981 100%); }
+        .score-good { background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%); }
+        .score-fair { background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%); }
+        .score-poor { background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); }
+    </style>
+</head>
+<body>
+    <!-- 📱 Mobile Menu Button -->
+    <button id="mobile-menu-btn" class="lg:hidden fixed top-4 left-4 z-50 bg-white p-3 rounded-xl shadow-lg">
+        <i class="fas fa-bars text-gray-700 text-lg"></i>
+    </button>
+
+    <!-- 🎨 Professional Sidebar -->
+    <nav class="sidebar" id="sidebar">
+        <!-- Sidebar Header -->
+        <div class="sidebar-header">
+            <h1>
+                <span class="logo-icon">
+                    <i class="fas fa-chart-line"></i>
+                </span>
+                Admin Dashboard
+            </h1>
+        </div>
+        
+        <!-- Navigation Menu -->
+        <div class="nav-menu">
+            <!-- Main Section -->
+            <div class="nav-section">
+                <div class="nav-section-title">Tổng quan</div>
+                <div class="nav-item active" onclick="showSection('dashboard')">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                    <span class="nav-badge">Live</span>
+                </div>
+                <div class="nav-item" onclick="showSection('analytics')">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Analytics Hub</span>
+                    <span class="nav-badge">🔥</span>
+                </div>
+            </div>
+            
+            <!-- Management Section -->
+            <div class="nav-section">
+                <div class="nav-section-title">Quản lý</div>
+                <div class="nav-item" onclick="showSection('beta-signups')">
+                    <i class="fas fa-rocket"></i>
+                    <span>Beta Signups</span>
+                    <span class="nav-badge" id="beta-count">0</span>
+                </div>
+                <div class="nav-item" onclick="showSection('users')">
+                    <i class="fas fa-users"></i>
+                    <span>Người dùng</span>
+                    <span class="nav-badge" id="users-count">0</span>
+                </div>
+                <div class="nav-item" onclick="showSection('listings')">
+                    <i class="fas fa-building"></i>
+                    <span>Tin đăng BĐS</span>
+                    <span class="nav-badge" id="listings-count">0</span>
+                </div>
+                <div class="nav-item" onclick="showSection('feedback')">
+                    <i class="fas fa-comments"></i>
+                    <span>Phản hồi</span>
+                    <span class="nav-badge" id="feedback-count">0</span>
+                </div>
+            </div>
+            
+            <!-- System Section -->
+            <div class="nav-section">
+                <div class="nav-section-title">Hệ thống</div>
+                <div class="nav-item" onclick="showSection('settings')">
+                    <i class="fas fa-cog"></i>
+                    <span>Cài đặt</span>
+                </div>
+                <div class="nav-item" onclick="window.open('index.html', '_blank')">
+                    <i class="fas fa-external-link-alt"></i>
+                    <span>Xem trang chủ</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 🎯 Main Content -->
+    <main class="main-content">
+        <!-- 🎛️ Professional Header -->
+        <header class="header">
+            <div class="header-left">
+                <h2 id="page-title">Dashboard Tổng quan</h2>
+                <p id="page-subtitle" class="text-sm text-gray-600 mt-1">Quản lý hệ thống xem giá đất Đà Nẵng</p>
+            </div>
+            <div class="header-right">
+                <!-- Real-time Status -->
+                <div class="flex items-center gap-2 text-sm">
+                    <div class="w-2 h-2 bg-green-500 rounded-full pulse"></div>
+                    <span class="text-gray-600">System Online</span>
+                </div>
+                
+                <!-- Notifications -->
+                <div class="header-notification" onclick="toggleNotifications()">
+                    <i class="fas fa-bell text-gray-600"></i>
+                    <span class="notification-badge" id="notification-count">3</span>
+                </div>
+                
+                <!-- Admin Profile -->
+                <div class="admin-profile" onclick="toggleAdminMenu()">
+                    <img id="admin-avatar" class="admin-avatar" src="https://placehold.co/40x40/667eea/white?text=A" alt="Admin">
+                    <div class="hidden md:block">
+                        <div class="text-sm font-semibold text-gray-800" id="admin-name">Admin</div>
+                        <div class="text-xs text-gray-500">Quản trị viên</div>
+                    </div>
+                    <i class="fas fa-chevron-down text-gray-400 text-sm"></i>
+                </div>
+            </div>
+        </header>
+
+        <!-- 📊 Content Area -->
+        <div class="content">
+            <!-- 🏠 Dashboard Section -->
+            <div id="dashboard-section" class="section active">
+                <!-- Welcome Banner -->
+                <div class="card p-6 mb-8" style="background: var(--primary-gradient); color: white;">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="text-2xl font-bold mb-2">Chào mừng trở lại, Admin! 👋</h2>
+                            <p class="opacity-90">Hôm nay là <span id="current-date"></span></p>
+                            <p class="text-sm opacity-80 mt-1">Hệ thống đang hoạt động tốt • Cập nhật lần cuối: <span id="last-update"></span></p>
+                        </div>
+                        <div class="hidden lg:flex items-center gap-6">
+                            <div class="text-center">
+                                <div class="text-3xl font-bold" id="current-time"></div>
+                                <div class="text-sm opacity-80">Thời gian hiện tại</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 📈 Statistics Cards -->
+                <div class="grid grid-cols-4 mb-8">
+                    <div class="stat-card" style="background: var(--primary-gradient);">
+                        <div class="stat-label">Tổng người dùng</div>
+                        <div class="stat-number" id="total-users">-</div>
+                        <div class="stat-change">
+                            <i class="fas fa-arrow-up"></i>
+                            <span id="users-change">-</span> hôm nay
+                        </div>
+                        <i class="fas fa-users stat-icon"></i>
+                    </div>
+                    
+                    <div class="stat-card" style="background: var(--success-gradient);">
+                        <div class="stat-label">Tin đăng BĐS</div>
+                        <div class="stat-number" id="total-listings">-</div>
+                        <div class="stat-change">
+                            <i class="fas fa-arrow-up"></i>
+                            <span id="listings-change">-</span> hôm nay
+                        </div>
+                        <i class="fas fa-building stat-icon"></i>
+                    </div>
+                    
+                    <div class="stat-card" style="background: var(--warning-gradient);">
+                        <div class="stat-label">Phản hồi</div>
+                        <div class="stat-number" id="total-feedback">-</div>
+                        <div class="stat-change">
+                            <i class="fas fa-arrow-up"></i>
+                            <span id="feedback-change">-</span> hôm nay
+                        </div>
+                        <i class="fas fa-comments stat-icon"></i>
+                    </div>
+                    
+                    <div class="stat-card" style="background: var(--secondary-gradient);">
+                        <div class="stat-label">Lượt truy cập</div>
+                        <div class="stat-number" id="total-visits">-</div>
+                        <div class="stat-change">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>+15%</span> so với tuần trước
+                        </div>
+                        <i class="fas fa-chart-line stat-icon"></i>
+                    </div>
+                </div>
+
+                <!-- 📊 Charts Row -->
+                <div class="grid grid-cols-2 mb-8">
+                    <div class="card p-6">
+                        <div class="chart-header">
+                            <h3 class="chart-title">Người dùng theo thời gian</h3>
+                            <div class="chart-actions">
+                                <button class="btn btn-sm" onclick="refreshChart('users-chart')">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="users-chart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="card p-6">
+                        <div class="chart-header">
+                            <h3 class="chart-title">Phân bố tin đăng</h3>
+                            <div class="chart-actions">
+                                <button class="btn btn-sm" onclick="refreshChart('listings-type-chart')">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="listings-type-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 🎯 Recent Activity -->
+                <div class="card p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xl font-semibold">Hoạt động gần đây</h3>
+                        <button class="btn btn-sm btn-primary" onclick="refreshActivity()">
+                            <i class="fas fa-sync-alt"></i>
+                            Làm mới
+                        </button>
+                    </div>
+                    <div id="recent-activity" class="space-y-4">
+                        <!-- Dynamic content loaded by admin.js -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 📊 Analytics Hub Section - Tích hợp đầy đủ Analytics Dashboard -->
+            <div id="analytics-section" class="section">
+                <!-- Analytics Header -->
+                <div class="card p-6 mb-8" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="text-2xl font-bold mb-2">📊 Analytics Hub</h2>
+                            <p class="opacity-90">Real-time performance monitoring và analytics dashboard</p>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <button onclick="refreshAnalyticsData()" class="btn" style="background: rgba(255,255,255,0.2); color: white;">
+                                <i class="fas fa-sync-alt"></i>
+                                Làm mới
+                            </button>
+                            <button onclick="window.open('analytics-dashboard.html', '_blank')" class="btn" style="background: rgba(255,255,255,0.2); color: white;">
+                                <i class="fas fa-external-link-alt"></i>
+                                Mở riêng
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Real-time Performance Overview -->
+                <div class="analytics-metrics-grid mb-8">
+                    <!-- Performance Metrics -->
+                    <div class="analytics-metric-card">
+                        <h3>⚡ Thông số hiệu suất</h3>
+                        <div id="performance-metrics">
+                            <div class="analytics-metric-value info">Đang tải...</div>
+                        </div>
+                    </div>
+                    
+                    <!-- User Behavior -->
+                    <div class="analytics-metric-card">
+                        <h3>👤 Hành vi người dùng</h3>
+                        <div id="behavior-metrics">
+                            <div class="analytics-metric-value good">Đang tải...</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Search Analytics -->
+                    <div class="analytics-metric-card">
+                        <h3>🔍 Phân tích tìm kiếm</h3>
+                        <div id="search-analytics">
+                            <div class="analytics-metric-value warning">Đang tải...</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Engagement Score -->
+                    <div class="analytics-metric-card">
+                        <h3>💯 Điểm tương tác</h3>
+                        <div class="text-center" id="engagement-score">
+                            <div class="analytics-score-circle score-good">
+                                <span id="score-value">--</span>
+                            </div>
+                            <div class="analytics-metric-description">Mức độ tương tác real-time</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Advanced Analytics Charts -->
+                <div class="grid grid-cols-2 mb-8">
+                    <div class="card p-6">
+                        <div class="chart-header">
+                            <h3 class="chart-title">Performance Trends</h3>
+                            <div class="chart-actions">
+                                <select class="text-sm border rounded px-2 py-1">
+                                    <option>24 giờ qua</option>
+                                    <option>7 ngày qua</option>
+                                    <option>30 ngày qua</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="performance-chart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="card p-6">
+                        <div class="chart-header">
+                            <h3 class="chart-title">User Journey Analytics</h3>
+                            <div class="chart-actions">
+                                <button class="btn btn-sm" onclick="refreshHeatmap()">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="user-journey-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Real-time Data Grid -->
+                <div class="analytics-metrics-grid mb-8">
+                    <!-- Error Tracking -->
+                    <div class="analytics-metric-card">
+                        <h3>🚨 Theo dõi lỗi</h3>
+                        <div id="error-tracking">
+                            <div class="analytics-error-log">
+                                <div>Đang tải dữ liệu lỗi...</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- System Status -->
+                    <div class="analytics-metric-card">
+                        <h3>🖥️ Trạng thái hệ thống</h3>
+                        <div id="system-metrics">
+                            <ul class="analytics-metric-list">
+                                <li>
+                                    <span>Uptime</span>
+                                    <span id="system-uptime" class="analytics-metric-value good">100%</span>
+                                </li>
+                                <li>
+                                    <span>Memory Usage</span>
+                                    <span id="memory-usage" class="analytics-metric-value info">--</span>
+                                </li>
+                                <li>
+                                    <span>Connection Type</span>
+                                    <span id="connection-type" class="analytics-metric-value">--</span>
+                                </li>
+                                <li>
+                                    <span>Viewport Size</span>
+                                    <span id="viewport-size" class="analytics-metric-value">--</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <!-- Performance Score -->
+                    <div class="analytics-metric-card">
+                        <h3>🎯 Performance Score</h3>
+                        <div class="text-center">
+                            <div class="analytics-metric-value good" id="performance-score">85</div>
+                            <div class="analytics-metric-description">Overall performance rating</div>
+                            <div class="mt-4">
+                                <div class="bg-gray-200 rounded-full h-2">
+                                    <div class="bg-green-500 h-2 rounded-full" style="width: 85%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Real-time Users -->
+                    <div class="analytics-metric-card">
+                        <h3>📈 Realtime</h3>
+                        <div class="text-center">
+                            <div class="analytics-metric-value info" id="realtime-users">45</div>
+                            <div class="analytics-metric-description">Người dùng đang online</div>
+                            <div class="mt-2">
+                                <canvas id="realtime-chart" width="250" height="60"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex justify-between items-center">
+                    <div class="flex gap-4">
+                        <button onclick="refreshPerformanceData()" class="btn btn-primary">
+                            <i class="fas fa-sync-alt"></i>
+                            Làm mới dữ liệu
+                        </button>
+                        <button onclick="exportPerformanceReport()" class="btn btn-success">
+                            <i class="fas fa-download"></i>
+                            Xuất báo cáo
+                        </button>
+                        <button onclick="clearPerformanceData()" class="btn btn-danger">
+                            <i class="fas fa-trash"></i>
+                            Xóa dữ liệu cũ
+                        </button>
+                    </div>
+                    <div class="text-sm text-gray-500">
+                        Cập nhật lần cuối: <span id="analytics-last-updated">--</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- � Beta Signups Management Section -->
+            <div id="beta-signups-section" class="section">
+                <div class="card p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <h3 class="text-xl font-semibold flex items-center">
+                                <i class="fas fa-rocket mr-2 text-blue-600"></i>
+                                Beta Signups Management
+                            </h3>
+                            <p class="text-sm text-gray-600 mt-1">Quản lý danh sách đăng ký beta testing và theo dõi engagement</p>
+                        </div>
+                        <div class="flex gap-3">
+                            <button class="btn btn-success btn-sm" onclick="exportBetaSignups()">
+                                <i class="fas fa-download"></i>
+                                Xuất Excel
+                            </button>
+                            <button class="btn btn-primary btn-sm" onclick="refreshBetaSignups()">
+                                <i class="fas fa-sync-alt"></i>
+                                Làm mới
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Beta Stats Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                        <div class="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg p-4 text-white">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-blue-100 text-sm">Total Signups</p>
+                                    <p class="text-2xl font-bold" id="beta-total-count">0</p>
+                                </div>
+                                <i class="fas fa-users text-3xl text-blue-200"></i>
+                            </div>
+                        </div>
+                        <div class="bg-gradient-to-r from-green-500 to-green-600 rounded-lg p-4 text-white">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-green-100 text-sm">Today</p>
+                                    <p class="text-2xl font-bold" id="beta-today-count">0</p>
+                                </div>
+                                <i class="fas fa-calendar-day text-3xl text-green-200"></i>
+                            </div>
+                        </div>
+                        <div class="bg-gradient-to-r from-orange-500 to-red-500 rounded-lg p-4 text-white">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-orange-100 text-sm">Investors</p>
+                                    <p class="text-2xl font-bold" id="beta-investors-count">0</p>
+                                </div>
+                                <i class="fas fa-chart-line text-3xl text-orange-200"></i>
+                            </div>
+                        </div>
+                        <div class="bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg p-4 text-white">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-purple-100 text-sm">Conversion Rate</p>
+                                    <p class="text-2xl font-bold" id="beta-conversion-rate">0%</p>
+                                </div>
+                                <i class="fas fa-percentage text-3xl text-purple-200"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filter and Search -->
+                    <div class="flex flex-wrap gap-4 mb-4">
+                        <div class="flex-1 min-w-64">
+                            <input type="text" id="beta-search" 
+                                   placeholder="Tìm kiếm theo tên, email..."
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <select id="beta-type-filter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="">Tất cả loại người dùng</option>
+                            <option value="investor">Nhà đầu tư BĐS</option>
+                            <option value="agent">Môi giới BĐS</option>
+                            <option value="buyer">Người mua/bán đất</option>
+                            <option value="researcher">Nghiên cứu thị trường</option>
+                            <option value="other">Khác</option>
+                        </select>
+                        <select id="beta-date-filter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="">Tất cả thời gian</option>
+                            <option value="today">Hôm nay</option>
+                            <option value="yesterday">Hôm qua</option>
+                            <option value="week">Tuần này</option>
+                            <option value="month">Tháng này</option>
+                        </select>
+                    </div>
+
+                    <!-- Beta Signups Table -->
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full bg-white">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Người dùng
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Loại
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Kỳ vọng
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Thời gian
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Trạng thái
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Hành động
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="beta-signups-table" class="bg-white divide-y divide-gray-200">
+                                <!-- Dynamic content will be loaded here -->
+                                <tr>
+                                    <td colspan="6" class="px-6 py-12 text-center text-gray-500">
+                                        <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                                        <p>Đang tải dữ liệu beta signups...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="flex items-center justify-between mt-6">
+                        <div class="text-sm text-gray-700">
+                            Hiển thị <span id="beta-showing-start">0</span> đến <span id="beta-showing-end">0</span> 
+                            trong tổng số <span id="beta-total-records">0</span> bản ghi
+                        </div>
+                        <div class="flex gap-2">
+                            <button id="beta-prev-page" class="px-3 py-2 text-sm border rounded-lg hover:bg-gray-50 disabled:opacity-50" disabled>
+                                <i class="fas fa-chevron-left"></i> Trước
+                            </button>
+                            <span class="px-3 py-2 text-sm">
+                                Trang <span id="beta-current-page">1</span> / <span id="beta-total-pages">1</span>
+                            </span>
+                            <button id="beta-next-page" class="px-3 py-2 text-sm border rounded-lg hover:bg-gray-50 disabled:opacity-50" disabled>
+                                Sau <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- �👥 Users Management Section -->
+            <div id="users-section" class="section">
+                <div class="card p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <h3 class="text-xl font-semibold">Quản lý người dùng</h3>
+                            <p class="text-sm text-gray-600 mt-1">Xem và quản lý tài khoản người dùng trong hệ thống</p>
+                        </div>
+                        <div class="flex gap-3">
+                            <button class="btn btn-success btn-sm" onclick="exportUsers()">
+                                <i class="fas fa-download"></i>
+                                Xuất Excel
+                            </button>
+                            <button class="btn btn-primary">
+                                <i class="fas fa-user-plus"></i>
+                                Thêm người dùng
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- User Stats -->
+                    <div class="grid grid-cols-4 gap-4 mb-6">
+                        <div class="text-center p-4 bg-blue-50 rounded-lg">
+                            <div class="text-2xl font-bold text-blue-600" id="users-active">0</div>
+                            <div class="text-sm text-gray-600">Hoạt động</div>
+                        </div>
+                        <div class="text-center p-4 bg-green-50 rounded-lg">
+                            <div class="text-2xl font-bold text-green-600" id="users-new">0</div>
+                            <div class="text-sm text-gray-600">Mới hôm nay</div>
+                        </div>
+                        <div class="text-center p-4 bg-purple-50 rounded-lg">
+                            <div class="text-2xl font-bold text-purple-600" id="users-premium">0</div>
+                            <div class="text-sm text-gray-600">Premium</div>
+                        </div>
+                        <div class="text-center p-4 bg-red-50 rounded-lg">
+                            <div class="text-2xl font-bold text-red-600" id="users-banned">0</div>
+                            <div class="text-sm text-gray-600">Bị khóa</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Search & Filter -->
+                    <div class="flex gap-4 mb-6">
+                        <div class="flex-1">
+                            <input type="text" id="search-users" placeholder="Tìm kiếm người dùng theo tên, email..." 
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <select class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="active">Hoạt động</option>
+                            <option value="banned">Bị khóa</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Users Table -->
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Người dùng</th>
+                                    <th>Email</th>
+                                    <th>Ngày tham gia</th>
+                                    <th>Tin đăng</th>
+                                    <th>Trạng thái</th>
+                                    <th>Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-table-body">
+                                <!-- Dynamic content loaded by admin.js -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 🏢 Listings Management Section -->
+            <div id="listings-section" class="section">
+                <div class="card p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <h3 class="text-xl font-semibold">Quản lý tin đăng BĐS</h3>
+                            <p class="text-sm text-gray-600 mt-1">Kiểm duyệt và quản lý tin đăng bất động sản</p>
+                        </div>
+                        <div class="flex gap-3">
+                            <button class="btn btn-warning btn-sm" onclick="bulkApproveListings()">
+                                <i class="fas fa-check-double"></i>
+                                Duyệt hàng loạt
+                            </button>
+                            <button class="btn btn-success btn-sm" onclick="exportListings()">
+                                <i class="fas fa-download"></i>
+                                Xuất dữ liệu
+                            </button>
+                            <button class="btn btn-primary">
+                                <i class="fas fa-plus"></i>
+                                Thêm tin đăng
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Listing Stats -->
+                    <div class="grid grid-cols-4 gap-4 mb-6">
+                        <div class="text-center p-4 bg-yellow-50 rounded-lg">
+                            <div class="text-2xl font-bold text-yellow-600" id="listings-pending">0</div>
+                            <div class="text-sm text-gray-600">Chờ duyệt</div>
+                        </div>
+                        <div class="text-center p-4 bg-green-50 rounded-lg">
+                            <div class="text-2xl font-bold text-green-600" id="listings-approved">0</div>
+                            <div class="text-sm text-gray-600">Đã duyệt</div>
+                        </div>
+                        <div class="text-center p-4 bg-red-50 rounded-lg">
+                            <div class="text-2xl font-bold text-red-600" id="listings-rejected">0</div>
+                            <div class="text-sm text-gray-600">Từ chối</div>
+                        </div>
+                        <div class="text-center p-4 bg-blue-50 rounded-lg">
+                            <div class="text-2xl font-bold text-blue-600" id="listings-today">0</div>
+                            <div class="text-sm text-gray-600">Hôm nay</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Search & Filter -->
+                    <div class="flex gap-4 mb-6">
+                        <div class="flex-1">
+                            <input type="text" id="search-listings" placeholder="Tìm kiếm tin đăng..." 
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <select id="filter-status" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="pending">Chờ duyệt</option>
+                            <option value="approved">Đã duyệt</option>
+                            <option value="rejected">Từ chối</option>
+                        </select>
+                        <select class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="">Tất cả loại</option>
+                            <option value="land">Đất nền</option>
+                            <option value="house">Nhà phố</option>
+                            <option value="apartment">Căn hộ</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Listings Table -->
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        <input type="checkbox" id="select-all-listings" class="rounded">
+                                    </th>
+                                    <th>Tin đăng</th>
+                                    <th>Người đăng</th>
+                                    <th>Giá</th>
+                                    <th>Ngày đăng</th>
+                                    <th>Trạng thái</th>
+                                    <th>Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody id="listings-table-body">
+                                <!-- Dynamic content loaded by admin.js -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 💬 Feedback Management Section -->
+            <div id="feedback-section" class="section">
+                <div class="card p-6 mb-6">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="text-xl font-semibold">Quản lý phản hồi & góp ý</h3>
+                            <p class="text-sm text-gray-600 mt-1">Xem và phản hồi ý kiến từ người dùng</p>
+                        </div>
+                        <div class="flex gap-3">
+                            <button class="btn btn-success btn-sm" onclick="exportFeedback()">
+                                <i class="fas fa-download"></i>
+                                Xuất báo cáo
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Feedback Stats -->
+                <div class="grid grid-cols-3 gap-6 mb-6">
+                    <div class="card p-6 text-center">
+                        <div class="text-3xl font-bold text-red-600 mb-2" id="feedback-unread">0</div>
+                        <div class="text-sm text-gray-600">Chưa đọc</div>
+                        <div class="mt-2">
+                            <i class="fas fa-exclamation-circle text-2xl text-red-600"></i>
+                        </div>
+                    </div>
+                    <div class="card p-6 text-center">
+                        <div class="text-3xl font-bold text-green-600 mb-2" id="feedback-replied">0</div>
+                        <div class="text-sm text-gray-600">Đã phản hồi</div>
+                        <div class="mt-2">
+                            <i class="fas fa-reply text-2xl text-green-600"></i>
+                        </div>
+                    </div>
+                    <div class="card p-6 text-center">
+                        <div class="text-3xl font-bold text-yellow-600 mb-2" id="feedback-avg-rating">0.0</div>
+                        <div class="text-sm text-gray-600">Đánh giá TB</div>
+                        <div class="mt-2">
+                            <i class="fas fa-star text-2xl text-yellow-600"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Feedback Filters -->
+                <div class="card p-6 mb-6">
+                    <div class="grid grid-cols-4 gap-4">
+                        <select id="filter-feedback-type" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="">Tất cả loại</option>
+                            <option value="suggestion">Đề xuất</option>
+                            <option value="bug">Báo lỗi</option>
+                            <option value="improvement">Cải thiện</option>
+                            <option value="ui">Giao diện</option>
+                            <option value="data">Dữ liệu</option>
+                            <option value="general">Chung</option>
+                        </select>
+                        <select id="filter-feedback-rating" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="">Tất cả đánh giá</option>
+                            <option value="5">5 sao</option>
+                            <option value="4">4 sao</option>
+                            <option value="3">3 sao</option>
+                            <option value="2">2 sao</option>
+                            <option value="1">1 sao</option>
+                        </select>
+                        <select id="filter-feedback-status" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="unread">Chưa đọc</option>
+                            <option value="read">Đã đọc</option>
+                            <option value="replied">Đã phản hồi</option>
+                        </select>
+                        <input type="text" placeholder="Tìm kiếm nội dung..." 
+                               class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+                
+                <!-- Feedback List -->
+                <div id="feedback-list" class="space-y-4">
+                    <!-- Dynamic content loaded by admin.js -->
+                </div>
+            </div>
+
+            <!-- ⚙️ Settings Section -->
+            <div id="settings-section" class="section">
+                <div class="card p-6 mb-8">
+                    <h2 class="text-2xl font-bold mb-2">⚙️ Cài đặt hệ thống</h2>
+                    <p class="text-gray-600">Quản lý cấu hình và tùy chỉnh hệ thống</p>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-8">
+                    <!-- General Settings -->
+                    <div class="card p-6">
+                        <h3 class="text-lg font-semibold mb-6">🔧 Cài đặt chung</h3>
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Tên website</label>
+                                <input type="text" id="site-name" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" value="Xem Giá Đất Đà Nẵng">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Mô tả SEO</label>
+                                <textarea id="site-description" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">Bản đồ giá đất Đà Nẵng chính xác nhất 2025</textarea>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Email liên hệ</label>
+                                <input type="email" id="site-email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" value="admin@xemgiadat.com">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Số điện thoại</label>
+                                <input type="tel" id="site-phone" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" value="0236.123.456">
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <input type="checkbox" id="maintenance-mode" class="rounded">
+                                <label for="maintenance-mode" class="text-sm text-gray-700">Chế độ bảo trì</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- System Settings -->
+                    <div class="card p-6">
+                        <h3 class="text-lg font-semibold mb-6">📊 Cài đặt hệ thống</h3>
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Google Analytics ID</label>
+                                <input type="text" id="ga-id" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" value="G-XT932D9N1N">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Số tin đăng/trang</label>
+                                <select id="items-per-page" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="10">10</option>
+                                    <option value="20" selected>20</option>
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Data retention</label>
+                                <select id="data-retention" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="14">14 tháng</option>
+                                    <option value="26" selected>26 tháng</option>
+                                    <option value="38">38 tháng</option>
+                                    <option value="50">50 tháng</option>
+                                </select>
+                            </div>
+                            <div class="space-y-3">
+                                <div class="flex items-center gap-3">
+                                    <input type="checkbox" id="auto-approve" class="rounded" checked>
+                                    <label for="auto-approve" class="text-sm text-gray-700">Tự động duyệt tin đăng</label>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <input type="checkbox" id="email-notifications" class="rounded" checked>
+                                    <label for="email-notifications" class="text-sm text-gray-700">Gửi email thông báo</label>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <input type="checkbox" id="enhanced-ecommerce" class="rounded" checked>
+                                    <label for="enhanced-ecommerce" class="text-sm text-gray-700">Enhanced Analytics</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Save Buttons -->
+                <div class="mt-8 flex gap-4">
+                    <button onclick="saveSettings()" class="btn btn-primary">
+                        <i class="fas fa-save"></i>
+                        Lưu cài đặt
+                    </button>
+                    <button onclick="resetSettings()" class="btn" style="background: #6b7280; color: white;">
+                        <i class="fas fa-undo"></i>
+                        Khôi phục mặc định
+                    </button>
+                    <button onclick="backupSettings()" class="btn btn-warning">
+                        <i class="fas fa-download"></i>
+                        Sao lưu cấu hình
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 🎭 User Detail Modal -->
+    <div id="user-detail-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-xl p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-semibold">Chi tiết người dùng</h3>
+                <button onclick="closeUserDetailModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="md:col-span-1 text-center">
+                    <img id="user-detail-avatar" class="w-20 h-20 rounded-full mx-auto mb-4" src="" alt="Avatar">
+                    <h4 id="user-detail-name" class="text-lg font-semibold"></h4>
+                    <p id="user-detail-id" class="text-sm text-gray-500"></p>
+                    <span id="user-detail-status" class="mt-2 inline-block"></span>
+                </div>
+                
+                <div class="md:col-span-2">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-sm font-medium text-gray-600">Email:</label>
+                            <p id="user-detail-email" class="text-gray-800"></p>
+                        </div>
+                        <div>
+                            <label class="text-sm font-medium text-gray-600">Số điện thoại:</label>
+                            <p id="user-detail-phone" class="text-gray-800"></p>
+                        </div>
+                        <div>
+                            <label class="text-sm font-medium text-gray-600">Facebook:</label>
+                            <a id="user-detail-fb" href="#" target="_blank" class="text-blue-600 hover:underline"></a>
+                        </div>
+                        <div>
+                            <label class="text-sm font-medium text-gray-600">Ngày tham gia:</label>
+                            <p id="user-detail-created" class="text-gray-800"></p>
+                        </div>
+                        <div>
+                            <label class="text-sm font-medium text-gray-600">Số tin đăng:</label>
+                            <p id="user-detail-listings-count" class="text-gray-800"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-6">
+                <h5 class="font-semibold mb-3">Tin đăng gần đây:</h5>
+                <div id="user-detail-listings" class="space-y-2 max-h-40 overflow-y-auto">
+                    <!-- Dynamic content -->
+                </div>
+            </div>
+            
+            <div class="mt-6 flex gap-3">
+                <button id="user-detail-ban-btn" onclick="toggleUserStatus(currentViewedUserId, currentViewedUserStatus)" 
+                        class="btn btn-warning btn-sm">Khóa</button>
+                <button onclick="closeUserDetailModal()" class="btn btn-sm" style="background: #6b7280; color: white;">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🔄 Loading Overlay -->
+    <div id="loading-overlay" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="card p-8 text-center">
+            <div class="loading w-16 h-16 rounded-full mx-auto mb-4"></div>
+            <p class="text-gray-600">Đang tải dữ liệu...</p>
+        </div>
+    </div>
+
+    <!-- 📊 JavaScript Files -->
+    <script src="admin.js"></script>
+    
+    <script>
+        // 🚀 Enhanced Admin Dashboard JavaScript
+        
+        // Mobile menu functionality
+        document.getElementById('mobile-menu-btn').addEventListener('click', () => {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('open');
+            
+            // Add overlay on mobile
+            if (sidebar.classList.contains('open')) {
+                document.body.style.overflow = 'hidden';
+                const overlay = document.createElement('div');
+                overlay.id = 'mobile-overlay';
+                overlay.className = 'fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden';
+                overlay.onclick = () => {
+                    sidebar.classList.remove('open');
+                    document.body.style.overflow = '';
+                    overlay.remove();
+                };
+                document.body.appendChild(overlay);
+            } else {
+                document.body.style.overflow = '';
+                const overlay = document.getElementById('mobile-overlay');
+                if (overlay) overlay.remove();
+            }
+        });
+
+        // Enhanced Section Navigation
+        function showSection(sectionName) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Show selected section
+            document.getElementById(`${sectionName}-section`).classList.add('active');
+            
+            // Update sidebar active state
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Find and activate the clicked nav item
+            const activeItem = Array.from(document.querySelectorAll('.nav-item'))
+                .find(item => item.getAttribute('onclick')?.includes(sectionName));
+            if (activeItem) {
+                activeItem.classList.add('active');
+            }
+            
+            // Update header
+            const titles = {
+                'dashboard': 'Dashboard Tổng quan',
+                'analytics': 'Analytics Hub',
+                'users': 'Quản lý người dùng',
+                'listings': 'Quản lý tin đăng',
+                'feedback': 'Quản lý phản hồi',
+                'settings': 'Cài đặt hệ thống'
+            };
+            
+            const subtitles = {
+                'dashboard': 'Thống kê tổng quan và hoạt động gần đây',
+                'analytics': 'Real-time performance monitoring và analytics dashboard',
+                'users': 'Xem và quản lý tài khoản người dùng trong hệ thống',
+                'listings': 'Kiểm duyệt và quản lý tin đăng bất động sản',
+                'feedback': 'Xem và phản hồi ý kiến từ người dùng',
+                'settings': 'Quản lý cấu hình và tùy chỉnh hệ thống'
+            };
+            
+            document.getElementById('page-title').textContent = titles[sectionName] || 'Dashboard';
+            document.getElementById('page-subtitle').textContent = subtitles[sectionName] || '';
+            
+            // Load section-specific data
+            loadSectionData(sectionName);
+        }
+
+        // Load section-specific data
+        function loadSectionData(sectionName) {
+            switch(sectionName) {
+                case 'analytics':
+                    if (typeof loadPerformanceAnalytics === 'function') {
+                        loadPerformanceAnalytics();
+                    }
+                    break;
+                case 'users':
+                    if (typeof loadUsersSection === 'function') {
+                        loadUsersSection();
+                    }
+                    break;
+                case 'listings':
+                    if (typeof loadListingsSection === 'function') {
+                        loadListingsSection();
+                    }
+                    break;
+                case 'feedback':
+                    if (typeof loadFeedbackSection === 'function') {
+                        loadFeedbackSection();
+                    }
+                    break;
+            }
+        }
+
+        // Update current time and date
+        function updateDateTime() {
+            const now = new Date();
+            
+            // Update date
+            const dateOptions = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            };
+            const timeOptions = { 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit' 
+            };
+            
+            const dateElement = document.getElementById('current-date');
+            const timeElement = document.getElementById('current-time');
+            const lastUpdateElement = document.getElementById('last-update');
+            
+            if (dateElement) {
+                dateElement.textContent = now.toLocaleDateString('vi-VN', dateOptions);
+            }
+            
+            if (timeElement) {
+                timeElement.textContent = now.toLocaleTimeString('vi-VN', timeOptions);
+            }
+            
+            if (lastUpdateElement) {
+                lastUpdateElement.textContent = now.toLocaleTimeString('vi-VN', timeOptions);
+            }
+            
+            // Update analytics last updated
+            const analyticsLastUpdated = document.getElementById('analytics-last-updated');
+            if (analyticsLastUpdated) {
+                analyticsLastUpdated.textContent = now.toLocaleString('vi-VN');
+            }
+        }
+
+        // Notification and Admin Menu Functions
+        function toggleNotifications() {
+            // Placeholder for notification functionality
+            console.log('🔔 Notifications clicked');
+        }
+
+        function toggleAdminMenu() {
+            // Placeholder for admin menu functionality
+            console.log('👤 Admin menu clicked');
+        }
+
+        // Chart refresh functions
+        function refreshChart(chartId) {
+            console.log(`🔄 Refreshing chart: ${chartId}`);
+            // Add refresh logic here
+        }
+
+        function refreshActivity() {
+            console.log('🔄 Refreshing recent activity');
+            if (typeof updateRecentActivity === 'function') {
+                updateRecentActivity();
+            }
+        }
+
+        // Analytics functions
+        function refreshAnalyticsData() {
+            console.log('🔄 Refreshing analytics data');
+            if (typeof loadPerformanceAnalytics === 'function') {
+                loadPerformanceAnalytics();
+            }
+            updateDateTime();
+        }
+
+        function refreshHeatmap() {
+            console.log('🔄 Refreshing heatmap');
+            // Add heatmap refresh logic
+        }
+
+        // Settings functions
+        function saveSettings() {
+            console.log('💾 Saving settings...');
+            
+            // Show loading state
+            const button = event.target;
+            const originalHtml = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Đang lưu...';
+            button.disabled = true;
+            
+            // Get settings values
+            const settings = {
+                siteName: document.getElementById('site-name')?.value,
+                siteDescription: document.getElementById('site-description')?.value,
+                siteEmail: document.getElementById('site-email')?.value,
+                sitePhone: document.getElementById('site-phone')?.value,
+                gaId: document.getElementById('ga-id')?.value,
+                itemsPerPage: document.getElementById('items-per-page')?.value,
+                dataRetention: document.getElementById('data-retention')?.value,
+                maintenanceMode: document.getElementById('maintenance-mode')?.checked,
+                autoApprove: document.getElementById('auto-approve')?.checked,
+                emailNotifications: document.getElementById('email-notifications')?.checked,
+                enhancedEcommerce: document.getElementById('enhanced-ecommerce')?.checked
+            };
+            
+            // Save to localStorage (in real app, save to Firebase)
+            localStorage.setItem('admin-settings', JSON.stringify(settings));
+            
+            // Simulate save operation
+            setTimeout(() => {
+                button.innerHTML = originalHtml;
+                button.disabled = false;
+                
+                // Show success message
+                showNotification('✅ Đã lưu cài đặt thành công!', 'success');
+            }, 1500);
+        }
+
+        function resetSettings() {
+            if (confirm('Bạn có chắc muốn khôi phục cài đặt mặc định?')) {
+                // Reset to default values
+                document.getElementById('site-name').value = 'Xem Giá Đất Đà Nẵng';
+                document.getElementById('site-description').value = 'Bản đồ giá đất Đà Nẵng chính xác nhất 2025';
+                document.getElementById('site-email').value = 'admin@xemgiadat.com';
+                document.getElementById('site-phone').value = '0236.123.456';
+                document.getElementById('ga-id').value = 'G-XT932D9N1N';
+                document.getElementById('items-per-page').value = '20';
+                document.getElementById('data-retention').value = '26';
+                document.getElementById('maintenance-mode').checked = false;
+                document.getElementById('auto-approve').checked = true;
+                document.getElementById('email-notifications').checked = true;
+                document.getElementById('enhanced-ecommerce').checked = true;
+                
+                showNotification('🔄 Đã khôi phục cài đặt mặc định!', 'info');
+            }
+        }
+
+        function backupSettings() {
+            const settings = {
+                siteName: document.getElementById('site-name')?.value,
+                siteDescription: document.getElementById('site-description')?.value,
+                siteEmail: document.getElementById('site-email')?.value,
+                sitePhone: document.getElementById('site-phone')?.value,
+                gaId: document.getElementById('ga-id')?.value,
+                itemsPerPage: document.getElementById('items-per-page')?.value,
+                dataRetention: document.getElementById('data-retention')?.value,
+                maintenanceMode: document.getElementById('maintenance-mode')?.checked,
+                autoApprove: document.getElementById('auto-approve')?.checked,
+                emailNotifications: document.getElementById('email-notifications')?.checked,
+                enhancedEcommerce: document.getElementById('enhanced-ecommerce')?.checked,
+                timestamp: new Date().toISOString()
+            };
+            
+            const blob = new Blob([JSON.stringify(settings, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `admin-settings-backup-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showNotification('📥 Đã sao lưu cài đặt thành công!', 'success');
+        }
+
+        // Utility function to show notifications
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
+                type === 'success' ? 'bg-green-600 text-white' :
+                type === 'error' ? 'bg-red-600 text-white' :
+                type === 'warning' ? 'bg-yellow-600 text-white' :
+                'bg-blue-600 text-white'
+            }`;
+            notification.innerHTML = message;
+            
+            document.body.appendChild(notification);
+            
+            // Auto remove after 3 seconds
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.remove();
+                }
+            }, 3000);
+        }
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Professional Admin Dashboard Initialized');
+            
+            // Start real-time updates
+            updateDateTime();
+            setInterval(updateDateTime, 1000);
+            
+            // Load saved settings
+            const savedSettings = localStorage.getItem('admin-settings');
+            if (savedSettings) {
+                try {
+                    const settings = JSON.parse(savedSettings);
+                    Object.keys(settings).forEach(key => {
+                        const element = document.getElementById(key.replace(/([A-Z])/g, '-$1').toLowerCase());
+                        if (element) {
+                            if (element.type === 'checkbox') {
+                                element.checked = settings[key];
+                            } else {
+                                element.value = settings[key];
+                            }
+                        }
+                    });
+                } catch (e) {
+                    console.error('Error loading saved settings:', e);
+                }
+            }
+            
+            // Show default section
+            showSection('dashboard');
+        });
+
+        console.log('🎛️ Professional Admin Dashboard Script Loaded');
+    </script>
+</body>
+</html>

@@ -1,0 +1,96 @@
+{
+  "// ==================================================================": "VSCODE SETTINGS FOR XEMGIADAT REPOSITORY",
+  "// ==================================================================": "This file optimizes VS Code performance for this large repository",
+  "// See: PROJECT_FORENSICS_REPORT.md for context",
+  "// ==================================================================": "",
+
+  "// ======================== FILE WATCHING ========================": "Exclude large/frequent-change directories from watcher",
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/public/data/parcels/**": true,
+    "**/public/tiles/**": true,
+    "**/.netlify/**": true,
+    "**/logs/**": true,
+    "**/.git/**": true,
+    "**/dist/**": true
+  },
+
+  "// ======================== SEARCH & INDEXING ========================": "Exclude non-code directories from search",
+  "search.exclude": {
+    "node_modules": true,
+    "public/data/parcels": true,
+    "public/tiles": true,
+    "logs": true,
+    "dist": true,
+    ".git": true
+  },
+
+  "// ======================== FILE ASSOCIATIONS ========================": "Help VS Code understand file types",
+  "files.associations": {
+    "*.geojson": "json",
+    "*.pmtiles": "binary",
+    ".env.local": "text",
+    ".env.production": "text"
+  },
+
+  "// ======================== EDITOR SETTINGS ========================": "Optimize editor for this project",
+  "editor.formatOnSave": false,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": false
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": false
+  },
+  "[json]": {
+    "editor.formatOnSave": true
+  },
+  "[markdown]": {
+    "editor.wordWrap": "on",
+    "editor.formatOnSave": false
+  },
+
+  "// ======================== EXCLUDE FROM OPERATIONS ========================": "Prevent accidental operations on large/temp directories",
+  "files.exclude": {
+    "**/.DS_Store": true,
+    "**/Thumbs.db": true,
+    "**/.vscode": false,
+    "**/node_modules": false
+  },
+
+  "// ======================== TYPESCRIPT ========================": "TypeScript settings for src2/",
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+
+  "// ======================== EXTENSIONS CONFIG ========================": "Settings for specific extensions if installed",
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ],
+
+  "// ======================== GIT SETTINGS ========================": "Git configuration for large files",
+  "git.ignoreLimitWarning": true,
+  "git.inputValidation": false,
+
+  "// ======================== RECOMMENDED EXTENSIONS ========================": "Install these for better development experience:",
+  "// Extensions": [
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "eamodio.gitlens",
+    "bradlc.vscode-tailwindcss",
+    "rust-lang.rust-analyzer",
+    "devsense.total-typescript"
+  ],
+
+  "// ======================== NOTES ========================": "",
+  "// Notes": [
+    "After editing this file, reload VS Code: Ctrl+Shift+P → Reload Window",
+    "If repo is slow on first load, clear cache: Ctrl+Shift+P → Developer: Reload",
+    "Large geojson files are watched but excluded from search",
+    "Increase timeout for slow operations: git.commandsToLog or increaseWSLMemory"
+  ]
+}

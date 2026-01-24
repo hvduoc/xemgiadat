@@ -1,0 +1,483 @@
+{
+  "project_name": "XemGiaDat - Vietnamese Real Estate Platform",
+  "audit_date": "2026-01-19",
+  "repo_root": "d:\\DUAN1\\Firebase\\xemgiadat",
+  
+  "repo_statistics": {
+    "total_size_mb": 641.4,
+    "total_size_bytes": 672552813,
+    "total_files": 10912,
+    "directory_breakdown": {
+      "public": {
+        "size_mb": 525.15,
+        "file_count": 5000,
+        "description": "Live assets & data"
+      },
+      "node_modules": {
+        "size_mb": 112.5,
+        "file_count": 7500,
+        "description": "npm dependencies"
+      },
+      "public/data/parcels": {
+        "size_mb": 400,
+        "file_count": 56,
+        "git_tracked": true,
+        "issue": "Should use Git LFS"
+      },
+      "public/tiles": {
+        "size_mb": 143.4,
+        "file_count": 2,
+        "issue": "Contains exact duplicates"
+      },
+      "src": {
+        "size_mb": 0.04,
+        "file_count": 5,
+        "status": "ORPHANED"
+      },
+      "src2": {
+        "size_mb": 0.01,
+        "file_count": 6,
+        "status": "DEVELOPMENT"
+      },
+      "logs": {
+        "size_mb": 10,
+        "file_count": 4,
+        "status": "DEBUG OUTPUT"
+      }
+    }
+  },
+
+  "top_30_files": [
+    {
+      "rank": 1,
+      "path": "public/tiles/danang_parcels.pmtiles",
+      "size_mb": 71.7,
+      "type": "binary",
+      "issue": "EXACT DUPLICATE - use only _final version"
+    },
+    {
+      "rank": 2,
+      "path": "public/tiles/danang_parcels_final.pmtiles",
+      "size_mb": 71.7,
+      "type": "binary",
+      "issue": "EXACT DUPLICATE - same as danang_parcels.pmtiles"
+    },
+    {
+      "rank": 3,
+      "path": "public/data/parcels/20287.geojson",
+      "size_mb": 21.15,
+      "type": "geojson",
+      "git_tracked": true
+    },
+    {
+      "rank": 4,
+      "path": "public/data/parcels/20314.geojson",
+      "size_mb": 16.42,
+      "type": "geojson",
+      "git_tracked": true
+    },
+    {
+      "rank": 5,
+      "path": "public/data/parcels/20320.geojson",
+      "size_mb": 15.48,
+      "type": "geojson",
+      "git_tracked": true
+    },
+    {
+      "rank": 6,
+      "path": "node_modules/@esbuild/win32-x64/esbuild.exe",
+      "size_mb": 9.45,
+      "type": "executable",
+      "note": "Normal npm dependency"
+    },
+    {
+      "rank": 7,
+      "path": "public/data/parcels/20296.geojson",
+      "size_mb": 14.06,
+      "type": "geojson",
+      "git_tracked": true
+    },
+    {
+      "rank": 8,
+      "path": "public/data/parcels/20332.geojson",
+      "size_mb": 13.81,
+      "type": "geojson",
+      "git_tracked": true
+    },
+    {
+      "rank": 9,
+      "path": "public/data/parcels/20290.geojson",
+      "size_mb": 13.59,
+      "type": "geojson",
+      "git_tracked": true
+    },
+    {
+      "rank": 10,
+      "path": "public/data/parcels/20200.geojson",
+      "size_mb": 13.32,
+      "type": "geojson",
+      "git_tracked": true
+    },
+    {
+      "rank": 11,
+      "path": "public/data/parcels/20326.geojson",
+      "size_mb": 13.06,
+      "type": "geojson",
+      "git_tracked": true
+    },
+    {
+      "rank": 12,
+      "path": "public/data/parcels/20308.geojson",
+      "size_mb": 12.1,
+      "type": "geojson",
+      "git_tracked": true
+    },
+    {
+      "rank": 13,
+      "path": "public/data/parcels/20302.geojson",
+      "size_mb": 10.69,
+      "type": "geojson",
+      "git_tracked": true
+    },
+    {
+      "rank": 14,
+      "path": "public/data/parcels/20323.geojson",
+      "size_mb": 10.48,
+      "type": "geojson",
+      "git_tracked": true
+    },
+    {
+      "rank": 15,
+      "path": "public/data/ranhgioi.geojson",
+      "size_mb": 9.87,
+      "type": "geojson",
+      "git_tracked": true
+    },
+    {
+      "rank": 16,
+      "path": "public/data/parcels/20195.geojson",
+      "size_mb": 9.76,
+      "type": "geojson",
+      "git_tracked": true
+    },
+    {
+      "rank": 17,
+      "path": "public/data/parcels/20194.geojson",
+      "size_mb": 8.58,
+      "type": "geojson",
+      "git_tracked": true
+    },
+    {
+      "rank": 18,
+      "path": "public/data/parcels/20198.geojson",
+      "size_mb": 8.06,
+      "type": "geojson",
+      "git_tracked": true
+    },
+    {
+      "rank": 19,
+      "path": "public/data/parcels/20197.geojson",
+      "size_mb": 7.83,
+      "type": "geojson",
+      "git_tracked": true
+    },
+    {
+      "rank": 20,
+      "path": "public/data/parcels/20306.geojson",
+      "size_mb": 7.56,
+      "type": "geojson",
+      "git_tracked": true
+    }
+  ],
+
+  "duplicates": {
+    "exact_duplicates": [
+      {
+        "id": "PMTILES_DUP_1",
+        "file1": "public/tiles/danang_parcels.pmtiles",
+        "file2": "public/tiles/danang_parcels_final.pmtiles",
+        "size_each_mb": 71.7,
+        "total_waste_mb": 71.7,
+        "md5": "27C769250A6B38DA",
+        "note": "Identical files - MUST DELETE ONE",
+        "recommendation": "Keep _final version, delete the other"
+      }
+    ],
+    "architecture_duplicates": [
+      {
+        "id": "APP_DUP_1",
+        "name": "App v1",
+        "entrypoint": "public/index.html",
+        "runtime": "public/script.js (9187 lines)",
+        "status": "PRODUCTION",
+        "deployed": true
+      },
+      {
+        "id": "APP_DUP_2",
+        "name": "App v2",
+        "entrypoint": "public/v2.html",
+        "runtime": "src2/index.ts",
+        "status": "DEVELOPMENT",
+        "deployed": false,
+        "route": "/v2",
+        "note": "Behind separate route, isolated"
+      },
+      {
+        "id": "ORPHANED_1",
+        "name": "src/ (abandoned)",
+        "entrypoint": "src/main.js",
+        "status": "DEAD CODE",
+        "deployed": false,
+        "note": "Never built or deployed"
+      }
+    ],
+    "service_duplicates": [
+      {
+        "name": "GeocodingService",
+        "instances": 2,
+        "locations": [
+          "src/services/GeocodingService.js (ORPHANED)",
+          "public/js/adapters/GeocodingAdapter.js (ACTIVE)"
+        ],
+        "conflict": false,
+        "note": "Separate code branches, no conflict"
+      },
+      {
+        "name": "ParcelQueryService",
+        "instances": 1,
+        "locations": [
+          "src/services/ParcelQueryService.js (ORPHANED)"
+        ],
+        "conflict": false,
+        "note": "Never used"
+      },
+      {
+        "name": "MapService",
+        "instances": 2,
+        "locations": [
+          "src/map/MapLibreConfig.js (ORPHANED)",
+          "src2/services/MapService.ts (v2 DEV)"
+        ],
+        "conflict": false,
+        "note": "Different implementations, no concurrent execution"
+      }
+    ]
+  },
+
+  "build_deploy_analysis": {
+    "build_config": {
+      "tool": "Vite",
+      "root": "public/",
+      "output_dir": "dist/",
+      "config_file": "vite.config.js",
+      "status": "CONFIGURED but UNUSED"
+    },
+    "deploy_config": {
+      "platform": "Netlify",
+      "publish_dir": "public/",
+      "config_file": "netlify.toml",
+      "status": "ACTIVE - serves raw public/ files"
+    },
+    "mismatch": {
+      "severity": "CRITICAL",
+      "issue": "Vite builds to dist/ but Netlify publishes from public/",
+      "implications": [
+        "Build artifacts are ignored",
+        "Tree-shaking not applied",
+        "Code splitting not applied",
+        "Production serves 9187-line monolithic script.js"
+      ],
+      "actual_deploy_flow": "public/ (raw) → Netlify → browser"
+    }
+  },
+
+  "entrypoints": [
+    {
+      "path": "public/index.html",
+      "lines": 1731,
+      "status": "ACTIVE",
+      "deployed": true,
+      "route": "/",
+      "description": "Main v1 app entry"
+    },
+    {
+      "path": "public/v2.html",
+      "lines": 26,
+      "status": "DEVELOPMENT",
+      "deployed": true,
+      "route": "/v2",
+      "description": "v2 app entry (MapLibre + PMTiles)"
+    },
+    {
+      "path": "public/admin.html",
+      "lines": null,
+      "status": "LEGACY",
+      "deployed": true,
+      "route": "/admin",
+      "description": "Admin panel"
+    },
+    {
+      "path": "public/script.js",
+      "lines": 9187,
+      "size_kb": 374,
+      "status": "ACTIVE",
+      "deployed": true,
+      "description": "Main runtime v1"
+    },
+    {
+      "path": "src/main.js",
+      "lines": null,
+      "status": "DEAD",
+      "deployed": false,
+      "reason": "Vite config doesn't reference src/main.js"
+    }
+  ],
+
+  "map_implementations": [
+    {
+      "location": "src/map/MapLibreConfig.js",
+      "type": "JavaScript",
+      "lines_total": 344,
+      "map_init_line": 32,
+      "pmtiles_protocol_line": 13,
+      "functions": ["initMap", "addSource", "addLayer"],
+      "status": "ORPHANED",
+      "deployed": false,
+      "reason": "src/ not built by Vite"
+    },
+    {
+      "location": "src2/services/MapService.ts",
+      "type": "TypeScript",
+      "lines_total": 161,
+      "map_init_line": 21,
+      "pmtiles_protocol_line": 18,
+      "functions": ["initMap", "setupSources", "addSource", "addLayer"],
+      "status": "DEVELOPMENT",
+      "deployed": false,
+      "reason": "Only used in v2 (dev route)"
+    },
+    {
+      "location": "public/script.js",
+      "type": "JavaScript",
+      "lines_total": 9187,
+      "map_init_line": null,
+      "pmtiles_protocol_line": null,
+      "status": "ACTIVE (no MapLibre init found)",
+      "deployed": true,
+      "note": "Uses different map library or Leaflet"
+    }
+  ],
+
+  "vscode_warnings": [
+    {
+      "severity": "MEDIUM",
+      "issue": "Large geojson files tracked in git",
+      "impact": "Slow clones, git operations freeze",
+      "location": "public/data/parcels/ (56 files × 5-20 MB)",
+      "fix": "Use Git LFS for *.geojson"
+    },
+    {
+      "severity": "LOW",
+      "issue": "Many files to watch (10,912 total)",
+      "impact": "Initial workspace indexing may take 5-10 sec",
+      "location": "All directories",
+      "fix": "Add .vscode/settings.json with watcherExclude"
+    },
+    {
+      "severity": "LOW",
+      "issue": "Large PMTiles binary files",
+      "impact": "VS Code search/indexing may lag",
+      "location": "public/tiles/",
+      "fix": "Exclude from search.exclude in .vscode/settings.json"
+    }
+  ],
+
+  "critical_findings": [
+    {
+      "id": "CRIT_001",
+      "title": "Build/Deploy Config Mismatch",
+      "severity": "CRITICAL",
+      "description": "vite.config.js outputs to 'dist/' but netlify.toml publishes from 'public/'",
+      "evidence": "vite build outputs to dist/ (line 12) but production serves from public/ (netlify.toml line 2)",
+      "impact": "No code optimization, tree-shaking ignored, monolithic script.js deployed",
+      "recommendation": "Update netlify.toml to publish = 'dist/' OR remove vite build from pipeline"
+    },
+    {
+      "id": "CRIT_002",
+      "title": "Exact Duplicate PMTiles Files",
+      "severity": "CRITICAL",
+      "description": "Two identical 71.7 MB files in public/tiles/",
+      "evidence": "danang_parcels.pmtiles and danang_parcels_final.pmtiles have identical MD5: 27C769250A6B38DA",
+      "impact": "Wastes 71.7 MB storage, increases deployment size",
+      "recommendation": "Delete danang_parcels.pmtiles (keep _final version)"
+    },
+    {
+      "id": "CRIT_003",
+      "title": "Large GeoJSON Files in Git",
+      "severity": "CRITICAL",
+      "description": "56 geojson files (400+ MB) tracked in git despite .gitignore rules",
+      "evidence": "git ls-files shows 56 .geojson files in public/data/parcels/; total ~400 MB",
+      "impact": "Slow clones, massive git history, poor developer experience",
+      "recommendation": "Migrate to Git LFS for all *.geojson files"
+    },
+    {
+      "id": "WARN_001",
+      "title": "Orphaned Source Code",
+      "severity": "MEDIUM",
+      "description": "src/ folder contains code that's never built or deployed",
+      "evidence": "vite.config.js doesn't reference src/main.js; only uses public/index.html and public/v2.html",
+      "impact": "Confusion, maintenance burden, dead code",
+      "recommendation": "Delete src/ folder or merge into src2/"
+    },
+    {
+      "id": "WARN_002",
+      "title": "Unused Build Output",
+      "severity": "MEDIUM",
+      "description": "public/dist/ folder contains 0.56 MB of built files but production never uses them",
+      "evidence": "dist/ exists but netlify.toml publishes from 'public/', not 'dist/'",
+      "impact": "Wasted space, confusing build process",
+      "recommendation": "Either fix deploy to use dist/ OR remove dist/ from git"
+    }
+  ],
+
+  "recommendations": {
+    "priority_1": [
+      {
+        "action": "Delete duplicate PMTiles file",
+        "time_estimate": "30 min",
+        "savings_mb": 71.7,
+        "command": "rm public/tiles/danang_parcels.pmtiles"
+      }
+    ],
+    "priority_2": [
+      {
+        "action": "Migrate GeoJSON to Git LFS",
+        "time_estimate": "2 hours",
+        "savings_mb": 400,
+        "command": "git lfs track '*.geojson'; git rm --cached public/data/parcels/*.geojson"
+      }
+    ],
+    "priority_3": [
+      {
+        "action": "Fix build/deploy mismatch",
+        "time_estimate": "1 hour",
+        "option_a": "Update netlify.toml: publish = 'dist/'",
+        "option_b": "Keep serving public/, remove vite build"
+      }
+    ],
+    "priority_4": [
+      {
+        "action": "Delete orphaned src/ folder",
+        "time_estimate": "30 min",
+        "command": "rm -rf src/"
+      }
+    ],
+    "priority_5": [
+      {
+        "action": "Add .vscode/settings.json",
+        "time_estimate": "5 min",
+        "includes": ["files.watcherExclude", "search.exclude"]
+      }
+    ]
+  }
+}

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="XemGiaDat v2 - Core Map - MapLibre + PMTiles" />
+    <meta name="build-version" content="2.0.0" />
+    <title>XemGiaDat v2 - Tra cứu giá đất (Beta)</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- MapLibre GL CSS is loaded dynamically in TS -->
+  </head>
+  <body class="bg-gray-50">
+    <div id="app">
+      <div id="map"></div>
+    </div>
+
+    <!-- V2 Core App Entry (lazy-loads maplibre + pmtiles) -->
+    <script type="module" src="/v2-entry.ts"></script>
+  </body>
+</html>

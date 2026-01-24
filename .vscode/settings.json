@@ -1,0 +1,137 @@
+{
+  "// ============================================================": "VS Code Settings for XemGiaDat Repository",
+  "// ============================================================": "Optimizes editor performance for large repo with 10,912 files",
+  "// See: docs/PROJECT_MAP.md for context",
+  "// ============================================================": "",
+
+  "// ======================== FILE WATCHING ========================": "Exclude large/binary/temp directories from file watcher",
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/public/data/parcels/**": true,
+    "**/public/tiles/**": true,
+    "**/.netlify/**": true,
+    "**/logs/**": true,
+    "**/.git/**": true,
+    "**/dist/**": true,
+    "**/.vite/**": true,
+    "**/coverage/**": true,
+    "**/__pycache__/**": true
+  },
+
+  "// ======================== SEARCH INDEXING ========================": "Exclude directories from search.exclude to keep search fast",
+  "search.exclude": {
+    "node_modules": true,
+    "public/data/parcels": true,
+    "public/tiles": true,
+    "logs": true,
+    "dist": true,
+    ".git": true,
+    ".vite": true,
+    "coverage": true
+  },
+
+  "// ======================== FILE VISIBILITY ========================": "Hide noise without deleting files",
+  "files.exclude": {
+    "**/.DS_Store": true,
+    "**/Thumbs.db": true,
+    "**/.git": false,
+    "**/node_modules": false,
+    "**/__pycache__": true
+  },
+
+  "// ======================== PERFORMANCE TWEAKS ========================": "Improve editor responsiveness on large repo",
+  "files.maxMemoryForLargeFilesMB": 4096,
+  "html.maxHTMLSize": 5242880,
+  "editor.maxTokenizationLineLength": 2000,
+
+  "// ======================== CODE FORMATTING ========================": "Format files on save (optional, set to false to disable)",
+  "editor.formatOnSave": false,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": false
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": false
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[html]": {
+    "editor.formatOnSave": false
+  },
+  "[markdown]": {
+    "editor.wordWrap": "on",
+    "editor.formatOnSave": false
+  },
+
+  "// ======================== FILE ASSOCIATIONS ========================": "Help VS Code understand custom file types",
+  "files.associations": {
+    "*.geojson": "json",
+    "*.pmtiles": "binary",
+    ".env.local": "text",
+    ".env.production": "text",
+    "*.geojson.*": "json"
+  },
+
+  "// ======================== TYPESCRIPT ========================": "Use workspace TypeScript for best compatibility",
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "typescript.preferGoToProjectRootOnClick": true,
+
+  "// ======================== GIT ========================": "Git settings for large repo",
+  "git.ignoreLimitWarning": true,
+  "git.inputValidation": false,
+  "git.autofetch": true,
+
+  "// ======================== TERMINAL ========================": "Terminal settings",
+  "terminal.explorerKind": "external",
+  "terminal.external.windowsExec": "pwsh.exe",
+
+  "// ======================== EXTENSIONS CONFIG ========================": "Settings for specific extensions (if installed)",
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ],
+  "eslint.format.enable": false,
+
+  "// ======================== EDITOR DEFAULTS ========================": "General editor settings",
+  "editor.fontSize": 12,
+  "editor.lineHeight": 1.6,
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "editor.trimAutoWhitespace": true,
+  "editor.renderWhitespace": "none",
+
+  "// ======================== RECOMMENDED EXTENSIONS ========================": "Extensions to install for better DX",
+  "// Extensions-list": [
+    "esbenp.prettier-vscode - Code formatter",
+    "dbaeumer.vscode-eslint - Linting",
+    "eamodio.gitlens - Git integration",
+    "bradlc.vscode-tailwindcss - Tailwind CSS IntelliSense",
+    "bierner.markdown-mermaid - Mermaid diagram support",
+    "gruntfuggly.todo-tree - TODO highlighting"
+  ],
+
+  "// ======================== NOTES ========================": "",
+  "// Notes": [
+    "This file optimizes VS Code for a 641 MB repo with 10,912 files.",
+    "Large data directories (geojson, pmtiles) are excluded from watching.",
+    "If repo still feels slow:",
+    "  1. Close/reopen folders not needed",
+    "  2. Run: Ctrl+Shift+P > Developer: Reload",
+    "  3. Check Extensions > disable unnecessary ones",
+    "  4. Report performance issue with 'perfissues' label",
+    "",
+    "To DISABLE a watcher exclusion (if you need to search/edit that folder):",
+    "  1. Remove the line from files.watcherExclude",
+    "  2. Reload VS Code",
+    "  3. Changes will take effect",
+    "",
+    "See docs/PROJECT_MAP.md for why certain directories are excluded."
+  ]
+}
