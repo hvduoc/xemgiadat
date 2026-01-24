@@ -124,8 +124,21 @@ Thumbs.db
 .vscode/*
 !.vscode/settings.json
 
-# Node Modules (Keep for web build)
+# Node Modules
 node_modules/
+
+# Vite build outputs
+dist/
+.vite/
+
+# Development logs and temp
+dev-server.log
+*.log
+*.tmp
+
+# Optional: exclude sourcemaps to reduce repo size
+# Comment this line if you decide to keep maps for debugging
+*.map
 
 # But exclude essential samples (small ones only)
 !sample-data/output/euro_village_2_sample.geojson
