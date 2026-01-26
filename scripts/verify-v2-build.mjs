@@ -3,14 +3,14 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 /**
- * Strict smoke check: v2-dist must have core assets after build
+ * Strict smoke check: v2 must have core assets after build
  * - Uses absolute paths from repo root
  * - Requires CSS presence (v2 core styles)
  * - Validates all vendor chunks
  */
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
-const distDir = path.resolve(rootDir, 'public', 'v2-dist');
+const distDir = path.resolve(rootDir, 'public', 'v2');
 const assetsDir = path.resolve(distDir, 'assets');
 
 const requiredPatterns = [
