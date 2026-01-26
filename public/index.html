@@ -46,9 +46,9 @@
     <meta name="pi-network:image" content="https://xemgiadat.com/images/pi-network-preview.png">
     
         <!-- Build Version Meta Tags -->
-        <meta name="build-version" content="5d17be8-1769408091728">
-        <meta name="build-time" content="2026-01-26T06:14:51.727Z">
-        <meta name="cache-version" content="5d17be8-1769408091728">
+        <meta name="build-version" content="faea47b-1769417025243">
+        <meta name="build-time" content="2026-01-26T08:43:45.242Z">
+        <meta name="cache-version" content="faea47b-1769417025243">
     <meta name="twitter:title" content="Xem Giá Đất Đà Nẵng - Bản Đồ Giá Đất Chính Xác">
     <meta name="twitter:description" content="Bản đồ giá đất Đà Nẵng online, thông tin BDS chính xác, giao dịch minh bạch.">
     <meta name="twitter:image" content="https://xemgiadat.com/images/thumbnail.png">
@@ -1768,7 +1768,8 @@
     <script defer src="https://unpkg.com/leaflet.vectorgrid@1.3.0/dist/Leaflet.VectorGrid.bundled.js"></script>
     
     <!-- Open Source Adapters: Load early but defer for ordering -->
-    <script defer src="https://cdn.jsdelivr.net/npm/pmtiles@3.0.7/dist/pmtiles.min.js"></script>
+    <!-- PMTiles: local copy to avoid CDN timing issues -->
+    <script defer src="js/lib/pmtiles.js"></script>
     <script defer src="js/adapters/PMTilesAdapter.js"></script>
     <script defer src="js/adapters/GeocodingAdapter.js"></script>
     <script defer src="js/adapters/FeatureFlagConfig.js"></script>

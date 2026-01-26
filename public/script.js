@@ -268,13 +268,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // 5. Tạo lớp bản đồ phân lô với RETRY mechanism để xử lý race condition
     // P0 FIX: Wait for VectorTileConfig/PMTilesAdapter to be ready before creating layer
     function createParcelLayer(retryCount = 0) {
-        const MAX_RETRIES = 10;
+        const MAX_RETRIES = 30; // Increased for PMTiles init time
         const RETRY_DELAY = 200; // ms
         
         try {
             // Check if dependencies are ready
             const leafletReady = typeof L !== 'undefined' && L.vectorGrid;
-            const pmtilesReady = leafletReady && (L.vectorGrid.pmtiles || L.vectorGrid.isPMTilesSupported);
+            // CRITICAL: Check for L.vectorGrid.pmtiles FUNCTION specifically
+            const pmtilesMethodReady = leafletReady && typeof L.vectorGrid.pmtiles === 'function';
             const configReady = typeof VectorTileConfig !== 'undefined' && VectorTileConfig.createVectorLayer;
             
             if (!leafletReady) {
@@ -286,28 +287,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error('Leaflet.VectorGrid not available after max retries');
             }
             
-            if (!pmtilesReady && !configReady) {
-                if (retryCount < MAX_RETRIES) {
-                    console.warn(`⏳ [${retryCount + 1}/${MAX_RETRIES}] Waiting for PMTiles/VectorTileConfig...`);
-                    setTimeout(() => createParcelLayer(retryCount + 1), RETRY_DELAY);
-                    return;
-                }
-                // Fall through to use basic protobuf as last resort
-                console.warn('⚠️ PMTiles not ready, using protobuf fallback');
+            // P0 FIX: Wait for pmtiles method to be available before proceeding
+            // This prevents falling back to Mapbox when PMTiles is just slow to init
+            if (!pmtilesMethodReady && retryCount < MAX_RETRIES) {
+                console.warn(`⏳ [${retryCount + 1}/${MAX_RETRIES}] Waiting for L.vectorGrid.pmtiles()...`);
+                setTimeout(() => createParcelLayer(retryCount + 1), RETRY_DELAY);
+                return;
             }
             
             // Create the layer
             let layer;
-            if (configReady) {
+            if (configReady && pmtilesMethodReady) {
                 layer = VectorTileConfig.createVectorLayer(vectorTileOptions);
                 console.log('✅ Using VectorTileConfig:', VectorTileConfig.getConfig());
-            } else if (pmtilesReady && L.vectorGrid.pmtiles) {
+            } else if (pmtilesMethodReady) {
                 console.log('✅ Using L.vectorGrid.pmtiles directly');
                 layer = L.vectorGrid.pmtiles('/tiles/danang_parcels_final.pmtiles', vectorTileOptions);
             } else {
-                // Last resort: use protobuf with local PMTiles URL pattern (won't work but prevents crash)
-                console.warn('⚠️ Using protobuf fallback - tiles may not load');
-                layer = L.vectorGrid.protobuf('/tiles/danang_parcels_final/{z}/{x}/{y}.mvt', vectorTileOptions);
+                // Last resort: This should NOT happen in production
+                console.error('❌ PMTiles not available after max retries - tiles will not load');
+                console.error('❌ Check that pmtiles.js and PMTilesAdapter.js are loading correctly');
+                layer = L.layerGroup(); // Empty layer to prevent crash
             }
             
             // Add error handler
@@ -5464,93 +5464,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // === PORTFOLIO MANAGEMENT FUNCTIONS ===
 
-// Function to show modal helper
-function showModal(modal) {
-    console.log('🔧 showModal called', {
-        modal: modal ? modal.id : 'null',
-        exists: !!modal
-    });
-    
-    if (modal) {
-        console.log('📖 Before showing modal:', {
-            id: modal.id,
-            classes: modal.className,
-            display: modal.style.display,
-            hidden: modal.classList.contains('hidden'),
-            offsetParent: modal.offsetParent,
-            parentElement: modal.parentElement?.tagName
-        });
-        
-        // SOLUTION: Move modal to body root to avoid parent container issues
-        if (modal.parentElement !== document.body) {
-            console.log('🔄 Moving modal to document.body...');
-            document.body.appendChild(modal);
-        }
-        
-        // Force remove hidden class and set visibility
-        modal.classList.remove('hidden');
-        modal.style.display = 'flex';
-        modal.style.visibility = 'visible';
-        modal.style.opacity = '1';
-        modal.style.zIndex = '9999';
-        modal.style.position = 'fixed';
-        modal.style.top = '0';
-        modal.style.left = '0';
-        modal.style.width = '100vw';
-        modal.style.height = '100vh';
-        modal.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-        
-        // Force re-render
-        modal.offsetHeight; // Trigger reflow
-        
-        // Prevent body scroll
-        document.body.style.overflow = 'hidden';
-        
-        // Check all parent elements for hidden
-        let parent = modal.parentElement;
-        while (parent && parent !== document.body) {
-            console.log(`👀 Parent ${parent.tagName}:`, {
-                classes: parent.className,
-                display: window.getComputedStyle(parent).display,
-                visibility: window.getComputedStyle(parent).visibility
-            });
-            parent = parent.parentElement;
-        }
-        
-        console.log('✅ After showing modal:', {
-            id: modal.id,
-            classes: modal.className,
-            display: modal.style.display,
-            visibility: modal.style.visibility,
-            opacity: modal.style.opacity,
-            zIndex: modal.style.zIndex,
-            computedDisplay: window.getComputedStyle(modal).display,
-            computedVisibility: window.getComputedStyle(modal).visibility,
-            computedZIndex: window.getComputedStyle(modal).zIndex,
-            visible: modal.offsetParent !== null,
-            rect: modal.getBoundingClientRect(),
-            parentIsBody: modal.parentElement === document.body
-        });
-        
-        // Test: Add click listener to modal background
-        const testClick = (e) => {
-            console.log('🔥 Modal clicked!', e.target);
-        };
-        modal.addEventListener('click', testClick, { once: true });
-        
-    } else {
-        console.error('❌ Modal element is null');
-    }
-}
-
-function hideModal(modal) {
-    if (modal) {
-        modal.classList.add('hidden');
-        modal.style.display = 'none';
-        // Restore body scroll
-        document.body.style.overflow = 'auto';
-    }
-}
+// Note: showModal/hideModal already defined above in GLOBAL UTILITY FUNCTIONS section
 
 // Load user portfolio from Firestore
 async function loadUserPortfolio() {
@@ -6536,29 +6450,7 @@ async function compressImageToBase64(file, quality = 0.6, maxWidth = 800) {
     });
 }
 
-// Clear all selected images
-function clearAllImages() {
-    selectedImages = [];
-    imagePreview.innerHTML = '';
-    imageUploadText.style.display = 'block';
-    imageProgress.style.display = 'none';
-    
-    // Reset image count
-    updateImageCount();
-}
-
-// Update image count display
-function updateImageCount() {
-    const imageCountText = document.querySelector('.image-count-text');
-    if (imageCountText) {
-        if (selectedImages.length > 0) {
-            imageCountText.textContent = `${selectedImages.length} ảnh đã chọn`;
-            imageCountText.style.display = 'block';
-        } else {
-            imageCountText.style.display = 'none';
-        }
-    }
-}
+// Note: clearAllImages and updateImageCount are already defined above (line ~6230-6260)
 
 // Enhanced image compression with better quality and WebP support
 function compressImage(file, maxWidth = 800, quality = 0.8) {
@@ -7206,37 +7098,7 @@ async function uploadPortfolioImagesToImgur(portfolioId, files) {
     }
 }
 
-// Upload portfolio images to Imgur
-async function uploadPortfolioImagesToImgur(portfolioId, files) {
-    console.log('📤 Starting Imgur upload for portfolio:', portfolioId);
-    
-    try {
-        const uploadedFiles = [];
-        
-        for (let i = 0; i < files.length; i++) {
-            const file = files[i];
-            const timestamp = Date.now();
-            const extension = file.name.split('.').pop() || 'jpg';
-            const fileName = `portfolio_${portfolioId}_${timestamp}_${Math.random().toString(36).substring(7)}.${extension}`;
-            
-            try {
-                const result = await uploadToImgur(file, fileName);
-                uploadedFiles.push(result);
-                console.log(`✅ Uploaded ${i + 1}/${files.length}: ${fileName}`);
-            } catch (error) {
-                console.error(`❌ Failed to upload ${fileName}:`, error);
-                throw error;
-            }
-        }
-        
-        console.log('✅ All files uploaded to Imgur successfully');
-        return uploadedFiles;
-        
-    } catch (error) {
-        console.error('❌ Imgur upload failed:', error);
-        throw error;
-    }
-}
+// Note: Second uploadPortfolioImagesToImgur removed (duplicate)
 
 // Initialize image upload when DOM is ready
 if (document.readyState === 'loading') {
@@ -9275,55 +9137,8 @@ console.log('');
 console.log('💡 Usage: Open Console (F12) and type: debugDangTin()');
 
 
-
+// showCopyError uses the global showToast defined above
 function showCopyError(button) {
-    showToast('Không thể sao chép. Vui lòng copy thủ công!', 'error', '❌');
+    showToast('Không thể sao chép. Vui lòng copy thủ công!', 'error', 3000);
 }
-
-function showToast(message, type = 'success', icon = '✅') {
-    // Remove existing toast if any
-    const existingToast = document.querySelector('.donation-toast');
-    if (existingToast) {
-        existingToast.remove();
-    }
-    
-    const toast = document.createElement('div');
-    toast.className = `donation-toast fixed top-4 right-4 z-[9999] px-4 py-3 rounded-lg shadow-lg transition-all duration-300 transform`;
-    
-    if (type === 'success') {
-        toast.classList.add('bg-green-500', 'text-white');
-    } else {
-        toast.classList.add('bg-red-500', 'text-white');
-    }
-    
-    toast.innerHTML = `
-        <div class="flex items-center space-x-2">
-            <span class="text-lg">${icon}</span>
-            <span class="font-medium">${message}</span>
-        </div>
-    `;
-    
-    // Initial state for animation
-    toast.style.opacity = '0';
-    toast.style.transform = 'translateX(100%)';
-    
-    document.body.appendChild(toast);
-    
-    // Trigger entrance animation
-    requestAnimationFrame(() => {
-        toast.style.opacity = '1';
-        toast.style.transform = 'translateX(0)';
-    });
-    
-    // Auto remove after 3 seconds
-    setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateX(100%)';
-        
-        setTimeout(() => {
-            if (toast.parentNode) {
-                toast.remove();
-            }
-        }, 300);
-    }, 3000);
-}
+// Note: showToast is already defined globally above (line ~4654)
