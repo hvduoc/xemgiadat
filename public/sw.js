@@ -19,7 +19,7 @@
 // =============================================================================
 
 // PHASE 3 FIX: Dynamic versioning - date-based to force cache bust on each deploy
-const CACHE_VERSION = '2026-01-26-race-condition-fix';
+const CACHE_VERSION = '2026-01-26-cleanup-and-layer-fix';
 const CACHE_NAME = `xemgiadat-v${CACHE_VERSION}`;
 const OFFLINE_URL = '/offline.html';
 
