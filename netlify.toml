@@ -1,8 +1,9 @@
+﻿# PMTiles Adapter V3.2.0 fix - force rebuild
 [build]
 publish = "public"
 functions = "netlify/functions"
 
-# ⚡ Performance Optimization
+# âš¡ Performance Optimization
 [build.processing]
   skip_processing = false
 
