@@ -252,7 +252,9 @@ document.addEventListener('DOMContentLoaded', () => {
         keepBuffer: 1, // Giảm buffer để tiết kiệm memory
         getFeatureId: feature => feature.properties.OBJECTID,
         vectorTileLayerStyles: {
-            'danang_full': function(properties, zoom) {
+            // CRITICAL: Layer name must match exactly with PMTiles layer ID
+            // PMTiles file contains layer named 'parcels', NOT 'danang_full'
+            'parcels': function(properties, zoom) {
                 return {
                     color: zoom >= 16 ? '#6B7280' : '#9CA3AF',
                     weight: zoom >= 18 ? 1.2 : zoom >= 16 ? 0.8 : zoom >= 14 ? 0.4 : 0.2,
