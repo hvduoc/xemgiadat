@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/stamp-build.mjs && vite build && node scripts/verify-v2-build.mjs",
-    "build:ci": "node scripts/stamp-build.mjs && vite build && node scripts/verify-v2-build.mjs",
+    "build": "node scripts/stamp-build.mjs && vite build && node scripts/fix-v2-html.mjs && node scripts/verify-v2-build.mjs",
+    "build:ci": "node scripts/stamp-build.mjs && vite build && node scripts/fix-v2-html.mjs && node scripts/verify-v2-build.mjs",
     "preview": "vite preview",
     "netlify:dev": "netlify dev",
     "stamp": "node scripts/stamp-build.mjs",

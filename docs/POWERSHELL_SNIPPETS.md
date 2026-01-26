@@ -67,24 +67,30 @@ dir -r src2
 
 ---
 
-### Filtering with find/grep
+### Filtering (replace grep/head)
 
-**❌ BASH**:
+**❌ BASH (avoid on Windows)**:
 ```bash
 find src2 -name "*.ts" | grep -v node_modules
 grep -r "visualViewport" src2 2>/dev/null
+npm run build 2>&1 | head -20
 ```
 
 **✅ POWERSHELL**:
 ```powershell
+# Find files excluding node_modules
 Get-ChildItem src2 -Filter "*.ts" -Recurse | Where-Object { $_.FullName -notlike "*node_modules*" }
-Get-ChildItem src2 -Recurse -Filter "*.ts" | Select-String "visualViewport" -ErrorAction SilentlyContinue
+
+# Search content recursively
+Get-ChildItem src2 -Recurse | Select-String "visualViewport" -ErrorAction SilentlyContinue
+
+# Show first N lines of output
+npm run build 2>&1 | Select-Object -First 20
 ```
 
-**Simpler**:
-```powershell
-Get-ChildItem src2 -Filter "*.ts" -Recurse -Exclude "*node_modules*"
-```
+**Notes**:
+- Use `Select-String` instead of `grep`
+- Use `Select-Object -First/-Last` instead of `head`/`tail`
 
 ---
 

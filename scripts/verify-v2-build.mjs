@@ -58,9 +58,10 @@ if (!fs.existsSync(distDir)) {
   fail('Missing public/v2-dist/. Run "npm run build" first.');
 }
 
-const htmlPath = path.resolve(distDir, 'v2.html');
+// P0 FIX: Now expect index.html (renamed from v2.html by fix-v2-html.mjs)
+const htmlPath = path.resolve(distDir, 'index.html');
 if (!fs.existsSync(htmlPath)) {
-  fail('Missing public/v2-dist/v2.html. Vite entry may be misconfigured.');
+  fail('Missing public/v2/index.html. Ensure fix-v2-html.mjs ran after vite build.');
 }
 
 if (!fs.existsSync(assetsDir)) {
