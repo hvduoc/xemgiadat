@@ -324,6 +324,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (map && !map.hasLayer(parcelLayer)) {
                 parcelLayer.addTo(map);
                 console.log('✅ Parcel layer added to map successfully');
+                
+                // Add to layer control if available
+                if (window._layerControl) {
+                    window._layerControl.addOverlay(parcelLayer, "🗺️ Bản đồ phân lô");
+                    console.log('✅ Parcel layer added to layer control');
+                }
             }
             
         } catch (err) {
@@ -500,15 +506,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- KẾT THÚC KHẮC PHỤC ---
 
+    // IMPORTANT: Add base map FIRST - this must work regardless of parcel layer status
+    googleStreets.addTo(map);
+    console.log('✅ Base map (Google Streets) added');
+    
+    // Add parcel labels layer (empty initially, will be populated when tiles load)
+    parcelLabels.addTo(map);
+    
+    // Base maps for layer control (parcelLayer will be added when ready via createParcelLayer)
     const baseMaps = { "Ảnh vệ tinh": googleSat, "Bản đồ đường": googleStreets, "OpenStreetMap": osmLayer };
+    
+    // Create layer control - parcel layer will be added to overlays dynamically when ready
     const overlayMaps = { 
-        "🗺️ Bản đồ phân lô": parcelLayer,
         "🏷️ Số thửa": parcelLabels 
     };
-    googleStreets.addTo(map);
-    parcelLayer.addTo(map); // Thêm lớp phân lô vào bản đồ
-    parcelLabels.addTo(map); // Thêm lớp số thửa vào bản đồ
-    L.control.layers(baseMaps, overlayMaps, { position: 'bottomright' }).addTo(map);
+    const layerControl = L.control.layers(baseMaps, overlayMaps, { position: 'bottomright' }).addTo(map);
+    
+    // Store layerControl globally so createParcelLayer can add parcel layer to it
+    window._layerControl = layerControl;
     
     // Tối ưu: Performance-focused event handling
     let zoomTimeout = null;
