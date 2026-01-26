@@ -395,6 +395,6 @@ async function getCacheStats() {
 console.log('🚀 Xem Giá Đất Service Worker loaded successfully');
 
 // Build version tracking
-console.log(\? Service Worker Cache Version: ${CACHE_VERSION}\);
-console.log(\?? Cache Name: ${CACHE_NAME}\);
-console.log(\?? skipWaiting & clientsClaim: Enabled - immediate updates\);
+console.log(`📦 Service Worker Cache Version: ${CACHE_VERSION}`);
+console.log(`🗂️ Cache Name: ${CACHE_NAME}`);
+console.log(`⚡ skipWaiting & clientsClaim: Enabled - immediate updates`);
