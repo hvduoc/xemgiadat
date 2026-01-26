@@ -227,9 +227,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let parcelLabels = L.layerGroup(); // Layer group cho số thửa
     let isLabelsVisible = true; // Biến kiểm soát hiển thị labels
 
-    // 2. URL để tải vector tiles
-    const tilesetId = 'hvduoc.danang_parcels_final';
-    const tileUrl = `https://api.mapbox.com/v4/${tilesetId}/{z}/{x}/{y}.mvt?access_token=${mapboxAccessToken}`;
+    // 2. URL để tải vector tiles - P0 FIX: Use VectorTileConfig for PMTiles/Mapbox switching
+    // Legacy Mapbox tileset deleted - now using local PMTiles
+    const tilesetId = 'hvduoc.danang_parcels_final'; // Keep for reference
+    // tileUrl is now handled by VectorTileConfig.createVectorLayer()
 
     
    // 3. Style mặc định cho các thửa đất - tối ưu cho zoom xa
@@ -265,8 +266,16 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // 5. Tạo lớp bản đồ phân lô MỘT LẦN DUY NHẤT với error handling
+    // P0 FIX: Use VectorTileConfig to switch between PMTiles (default) and Mapbox
     try {
-        parcelLayer = L.vectorGrid.protobuf(tileUrl, vectorTileOptions);
+        if (typeof VectorTileConfig !== 'undefined' && VectorTileConfig.createVectorLayer) {
+            parcelLayer = VectorTileConfig.createVectorLayer(vectorTileOptions);
+            console.log('✅ Using VectorTileConfig:', VectorTileConfig.getConfig());
+        } else {
+            // Fallback to PMTiles directly if VectorTileConfig not loaded yet
+            console.warn('⚠️ VectorTileConfig not ready, using PMTiles directly');
+            parcelLayer = L.vectorGrid.pmtiles('/tiles/danang_parcels_final.pmtiles', vectorTileOptions);
+        }
         
         // Xử lý lỗi 404 tiles để tránh spam console
         parcelLayer.on('tileerror', function(e) {

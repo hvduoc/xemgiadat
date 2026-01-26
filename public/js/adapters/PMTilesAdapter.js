@@ -172,8 +172,8 @@ console.log('🔄 Loading PMTilesAdapter.js...');
      */
     window.VectorTileConfig = {
         // Configuration
-        useOpenSource: false, // Set to true để dùng PMTiles
-        pmtilesUrl: '/tiles/danang_parcels.pmtiles',
+        useOpenSource: true, // P0 FIX: Default to PMTiles (Mapbox tileset deleted)
+        pmtilesUrl: '/tiles/danang_parcels_final.pmtiles',
         mapboxTilesetId: 'hvduoc.danang_parcels_final',
         mapboxAccessToken: 'pk.eyJ1IjoiaHZkdW9jIiwiYSI6ImNtZDFwcjVxYTAzOGUybHEzc3ZrNTJmcnIifQ.D5VlPC8c_n1i3kezgqtzwg',
         
