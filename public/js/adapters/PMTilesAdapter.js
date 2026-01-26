@@ -3,14 +3,17 @@
  * Tích hợp PMTiles vào code Leaflet hiện tại KHÔNG PHÁ VỠ
  * API tương thích 100% với L.vectorGrid.protobuf()
  * 
- * VERSION: 3.0.0 - Proper VectorGrid extension with _getVectorTilePromise override
+ * VERSION: 3.1.0 - Cache bust + PMTiles fix
+ * BUILD: 2025-01-26T21:00:00Z
  * 
  * FIX: Previous versions tried to use custom fetch option which VectorGrid ignores.
  * This version properly extends L.VectorGrid and overrides _getVectorTilePromise
  * to load tiles directly from PMTiles archive.
+ * 
+ * CRITICAL FIX v3.1.0: Force useOpenSource=true, correct pmtilesUrl
  */
 
-console.log('🔄 Loading PMTilesAdapter.js v3.0.0...');
+console.log('🔄 Loading PMTilesAdapter.js v3.1.0 (build 2025-01-26)...');
 
 (function() {
     'use strict';
