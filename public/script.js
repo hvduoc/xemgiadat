@@ -265,42 +265,95 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // 5. Tạo lớp bản đồ phân lô MỘT LẦN DUY NHẤT với error handling
-    // P0 FIX: Use VectorTileConfig to switch between PMTiles (default) and Mapbox
-    try {
-        if (typeof VectorTileConfig !== 'undefined' && VectorTileConfig.createVectorLayer) {
-            parcelLayer = VectorTileConfig.createVectorLayer(vectorTileOptions);
-            console.log('✅ Using VectorTileConfig:', VectorTileConfig.getConfig());
-        } else {
-            // Fallback to PMTiles directly if VectorTileConfig not loaded yet
-            console.warn('⚠️ VectorTileConfig not ready, using PMTiles directly');
-            parcelLayer = L.vectorGrid.pmtiles('/tiles/danang_parcels_final.pmtiles', vectorTileOptions);
-        }
+    // 5. Tạo lớp bản đồ phân lô với RETRY mechanism để xử lý race condition
+    // P0 FIX: Wait for VectorTileConfig/PMTilesAdapter to be ready before creating layer
+    function createParcelLayer(retryCount = 0) {
+        const MAX_RETRIES = 10;
+        const RETRY_DELAY = 200; // ms
         
-        // Xử lý lỗi 404 tiles để tránh spam console
-        parcelLayer.on('tileerror', function(e) {
-            // Chỉ log lỗi nghiêm trọng, bỏ qua 404 (tile không tồn tại)
-            if (e.error && !e.error.message?.includes('404')) {
-                console.warn('Lỗi tải vector tile:', e.error);
+        try {
+            // Check if dependencies are ready
+            const leafletReady = typeof L !== 'undefined' && L.vectorGrid;
+            const pmtilesReady = leafletReady && (L.vectorGrid.pmtiles || L.vectorGrid.isPMTilesSupported);
+            const configReady = typeof VectorTileConfig !== 'undefined' && VectorTileConfig.createVectorLayer;
+            
+            if (!leafletReady) {
+                if (retryCount < MAX_RETRIES) {
+                    console.warn(`⏳ [${retryCount + 1}/${MAX_RETRIES}] Waiting for Leaflet.VectorGrid...`);
+                    setTimeout(() => createParcelLayer(retryCount + 1), RETRY_DELAY);
+                    return;
+                }
+                throw new Error('Leaflet.VectorGrid not available after max retries');
             }
-        });
-    } catch (err) {
-        console.warn('Map layer failed to load (non-fatal):', err);
-        // Tạo empty layer group để UI vẫn hoạt động
-        parcelLayer = L.layerGroup();
+            
+            if (!pmtilesReady && !configReady) {
+                if (retryCount < MAX_RETRIES) {
+                    console.warn(`⏳ [${retryCount + 1}/${MAX_RETRIES}] Waiting for PMTiles/VectorTileConfig...`);
+                    setTimeout(() => createParcelLayer(retryCount + 1), RETRY_DELAY);
+                    return;
+                }
+                // Fall through to use basic protobuf as last resort
+                console.warn('⚠️ PMTiles not ready, using protobuf fallback');
+            }
+            
+            // Create the layer
+            let layer;
+            if (configReady) {
+                layer = VectorTileConfig.createVectorLayer(vectorTileOptions);
+                console.log('✅ Using VectorTileConfig:', VectorTileConfig.getConfig());
+            } else if (pmtilesReady && L.vectorGrid.pmtiles) {
+                console.log('✅ Using L.vectorGrid.pmtiles directly');
+                layer = L.vectorGrid.pmtiles('/tiles/danang_parcels_final.pmtiles', vectorTileOptions);
+            } else {
+                // Last resort: use protobuf with local PMTiles URL pattern (won't work but prevents crash)
+                console.warn('⚠️ Using protobuf fallback - tiles may not load');
+                layer = L.vectorGrid.protobuf('/tiles/danang_parcels_final/{z}/{x}/{y}.mvt', vectorTileOptions);
+            }
+            
+            // Add error handler
+            layer.on('tileerror', function(e) {
+                if (e.error && !e.error.message?.includes('404')) {
+                    console.warn('Lỗi tải vector tile:', e.error);
+                }
+            });
+            
+            // Assign to parcelLayer and add to map
+            parcelLayer = layer;
+            if (map && !map.hasLayer(parcelLayer)) {
+                parcelLayer.addTo(map);
+                console.log('✅ Parcel layer added to map successfully');
+            }
+            
+        } catch (err) {
+            console.warn('Map layer failed to load (non-fatal):', err);
+            parcelLayer = L.layerGroup();
+        }
     }
+    
+    // Start the layer creation with retry
+    createParcelLayer();
     
     // 6. System để hiển thị số thửa từ vector tiles
     let tileLabels = new Map(); // Store labels by tile coordinates
     const MIN_LABEL_ZOOM = 16;
     
-    // Event listener khi vector tile được load
-    parcelLayer.on('loading', function(e) {
-        // Clear labels when new tiles are loading
-        if (map.getZoom() < MIN_LABEL_ZOOM) {
-            parcelLabels.clearLayers();
+    // Event listener khi vector tile được load - setup after layer is ready
+    function setupParcelLayerEvents() {
+        if (!parcelLayer || typeof parcelLayer.on !== 'function') {
+            // Retry if parcelLayer not ready yet
+            setTimeout(setupParcelLayerEvents, 300);
+            return;
         }
-    });
+        
+        parcelLayer.on('loading', function(e) {
+            // Clear labels when new tiles are loading
+            if (map.getZoom() < MIN_LABEL_ZOOM) {
+                parcelLabels.clearLayers();
+            }
+        });
+        console.log('✅ Parcel layer events attached');
+    }
+    setupParcelLayerEvents();
     
     // Function to create label from vector feature
     function createLabelFromVectorFeature(layer, properties) {
