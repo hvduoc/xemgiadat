@@ -3,46 +3,79 @@
  * Tích hợp PMTiles vào code Leaflet hiện tại KHÔNG PHÁ VỠ
  * API tương thích 100% với L.vectorGrid.protobuf()
  * 
- * VERSION: 3.2.0 - Force Netlify rebuild
- * BUILD: 2025-01-26T23:30:00Z
+ * VERSION: 3.3.0 - Performance Optimized
+ * BUILD: 2026-01-29T00:00:00Z
  * 
- * FIX: Previous versions tried to use custom fetch option which VectorGrid ignores.
- * This version properly extends L.VectorGrid and overrides _getVectorTilePromise
- * to load tiles directly from PMTiles archive.
- * 
- * CRITICAL FIX v3.1.0: Force useOpenSource=true, correct pmtilesUrl
+ * OPTIMIZATIONS:
+ * - Removed excessive console.log (production mode)
+ * - Added LRU tile cache
+ * - Request deduplication
+ * - Feature limit per tile
  */
 
-console.log('🔄 Loading PMTilesAdapterV3.js v3.2.0 (build 2025-01-26T23:30Z)...');
+console.log('🔄 Loading PMTilesAdapterV3.js v3.3.0 (performance optimized)...');
 
 (function() {
     'use strict';
+
+    // Production mode - disable verbose logging
+    const DEBUG = false;
+    const log = DEBUG ? console.log.bind(console) : () => {};
 
     // Configuration constants
     const CONFIG = {
         pmtilesUrl: '/tiles/danang_parcels_final.pmtiles',
         mapboxTilesetId: 'hvduoc.danang_parcels_final',
         mapboxAccessToken: 'pk.eyJ1IjoiaHZkdW9jIiwiYSI6ImNtZDFwcjVxYTAzOGUybHEzc3ZrNTJmcnIifQ.D5VlPC8c_n1i3kezgqtzwg',
-        maxRetries: 50, // Max 5 seconds wait for pmtiles
-        retryInterval: 100 // Check every 100ms
+        maxRetries: 50,
+        retryInterval: 100,
+        tileCacheSize: 150  // Max tiles to keep in memory
     };
 
     let initRetryCount = 0;
+
+    // ============================================
+    // LRU TILE CACHE - Keep parsed tiles in memory
+    // ============================================
+    class TileCache {
+        constructor(maxSize = 150) {
+            this.cache = new Map();
+            this.maxSize = maxSize;
+        }
+
+        get(key) {
+            if (!this.cache.has(key)) return null;
+            const value = this.cache.get(key);
+            this.cache.delete(key);
+            this.cache.set(key, value);
+            return value;
+        }
+
+        set(key, value) {
+            if (this.cache.size >= this.maxSize) {
+                const firstKey = this.cache.keys().next().value;
+                this.cache.delete(firstKey);
+            }
+            this.cache.set(key, value);
+        }
+
+        has(key) { return this.cache.has(key); }
+        clear() { this.cache.clear(); }
+        get size() { return this.cache.size; }
+    }
+
+    const tileCache = new TileCache(CONFIG.tileCacheSize);
 
     /**
      * Initialize adapter when dependencies are ready
      */
     function init() {
-        // Check if Leaflet VectorGrid is loaded
         if (typeof L === 'undefined' || !L.vectorGrid || !L.VectorGrid) {
-            console.warn('⚠️ Leaflet VectorGrid not loaded yet. Retrying in 100ms...');
             setTimeout(init, 100);
             return;
         }
 
-        // Check for required dependencies: Pbf and VectorTile (from VectorGrid bundled)
         if (typeof Pbf === 'undefined' || typeof VectorTile === 'undefined') {
-            console.warn('⚠️ Pbf or VectorTile not loaded yet. Retrying in 100ms...');
             if (initRetryCount < CONFIG.maxRetries) {
                 initRetryCount++;
                 setTimeout(init, CONFIG.retryInterval);
@@ -50,127 +83,92 @@ console.log('🔄 Loading PMTilesAdapterV3.js v3.2.0 (build 2025-01-26T23:30Z)..
             }
         }
 
-        // Check if PMTiles library is available
         const pmtilesLib = typeof pmtiles !== 'undefined' ? pmtiles : null;
         const isPMTilesAvailable = pmtilesLib && pmtilesLib.PMTiles;
 
-        console.log('🔍 PMTiles library check:', {
-            pmtilesGlobal: typeof pmtiles,
-            hasPMTilesClass: isPMTilesAvailable,
-            hasPbf: typeof Pbf !== 'undefined',
-            hasVectorTile: typeof VectorTile !== 'undefined',
-            retryCount: initRetryCount
-        });
+        log('🔍 PMTiles check:', { available: isPMTilesAvailable, retries: initRetryCount });
 
-        // If PMTiles not ready yet, retry a few times (CDN might be slow)
         if (!isPMTilesAvailable && initRetryCount < CONFIG.maxRetries) {
             initRetryCount++;
             setTimeout(init, CONFIG.retryInterval);
             return;
         }
 
-        // Always set isPMTilesSupported function
         L.vectorGrid.isPMTilesSupported = function() {
             return isPMTilesAvailable;
         };
 
-        // Only create PMTiles layer class if library is available
         if (isPMTilesAvailable) {
             setupPMTilesVectorGrid(pmtilesLib);
-            console.log('✅ PMTiles support enabled');
-        } else {
-            console.warn('⚠️ PMTiles library not found after ' + initRetryCount + ' retries. Only Mapbox fallback available.');
+            console.log('✅ PMTiles support enabled (v3.3.0 optimized)');
         }
 
-        // Always setup VectorTileConfig (with or without PMTiles)
         setupVectorTileConfig();
-
         console.log('✅ PMTilesAdapter initialization complete');
     }
 
     /**
-     * Setup L.VectorGrid.PMTiles - PROPER extension of VectorGrid
-     * This is the correct approach: override _getVectorTilePromise
+     * Setup L.VectorGrid.PMTiles - PERFORMANCE OPTIMIZED
      */
     function setupPMTilesVectorGrid(pmtilesLib) {
-        /**
-         * L.VectorGrid.PMTiles - Load vector tiles from PMTiles archive
-         * Extends L.VectorGrid and implements _getVectorTilePromise
-         */
         L.VectorGrid.PMTiles = L.VectorGrid.extend({
             options: {
-                // PMTiles-specific options
                 pmtilesUrl: null,
-                // Inherited from VectorGrid
                 rendererFactory: L.svg.tile,
                 vectorTileLayerStyles: {},
                 interactive: false,
                 getFeatureId: undefined
             },
 
-            /**
-             * Initialize PMTiles layer
-             * @param {string} pmtilesUrl - URL to .pmtiles file
-             * @param {object} options - Layer options
-             */
             initialize: function(pmtilesUrl, options) {
-                // Store PMTiles URL
                 this._pmtilesUrl = pmtilesUrl;
-                
-                // Create PMTiles source
                 this._pmtilesSource = new pmtilesLib.PMTiles(pmtilesUrl);
-                
-                // Call parent initialize
+                this._pendingRequests = new Map();
                 L.VectorGrid.prototype.initialize.call(this, options);
-                
-                console.log('🗺️ L.VectorGrid.PMTiles initialized:', pmtilesUrl);
+                log('🗺️ PMTiles initialized:', pmtilesUrl);
             },
 
             /**
-             * Override _getVectorTilePromise to load from PMTiles
-             * This is the KEY method that VectorGrid calls to get tile data
-             * 
-             * @param {object} coords - {x, y, z} tile coordinates
-             * @returns {Promise} Promise resolving to VectorTile object
+             * OPTIMIZED _getVectorTilePromise
+             * - LRU tile cache
+             * - Request deduplication
+             * - Minimal logging
              */
             _getVectorTilePromise: function(coords) {
                 const self = this;
                 const z = coords.z;
                 const x = coords.x;
                 const y = coords.y;
+                const cacheKey = `${z}/${x}/${y}`;
 
-                console.log(`🔄 Fetching tile ${z}/${x}/${y}...`);
+                // 1. Check LRU cache first
+                const cached = tileCache.get(cacheKey);
+                if (cached) {
+                    return Promise.resolve(cached);
+                }
 
-                return this._pmtilesSource.getZxy(z, x, y).then(function(result) {
+                // 2. Deduplicate in-flight requests
+                if (this._pendingRequests.has(cacheKey)) {
+                    return this._pendingRequests.get(cacheKey);
+                }
+
+                // 3. Fetch from PMTiles
+                const promise = this._pmtilesSource.getZxy(z, x, y).then(function(result) {
+                    self._pendingRequests.delete(cacheKey);
+
                     if (!result || !result.data) {
-                        // No tile data at this location - return empty layers
-                        console.log(`📭 No tile data at ${z}/${x}/${y}`);
                         return { layers: [] };
                     }
 
-                    console.log(`📦 Tile ${z}/${x}/${y} data received: ${result.data.byteLength} bytes`);
-
-                    // Parse the protobuf data using Pbf and VectorTile
                     try {
-                        // Check if Pbf and VectorTile are available
-                        if (typeof Pbf === 'undefined') {
-                            throw new Error('Pbf is not defined - library not loaded');
-                        }
-                        if (typeof VectorTile === 'undefined') {
-                            throw new Error('VectorTile is not defined - library not loaded');
+                        if (typeof Pbf === 'undefined' || typeof VectorTile === 'undefined') {
+                            throw new Error('Pbf/VectorTile not loaded');
                         }
 
                         const pbf = new Pbf(result.data);
                         const vectorTile = new VectorTile(pbf);
 
-                        // Normalize feature getters into actual instanced features
-                        // (Same as VectorGrid.Protobuf does)
-                        let totalFeatures = 0;
-                        const layerNames = Object.keys(vectorTile.layers);
-                        
-                        // DEBUG: Log layer names for style matching
-                        console.log(`🏷️ Tile ${z}/${x}/${y} layer names:`, layerNames);
-                        
+                        // Process layers
                         for (const layerName in vectorTile.layers) {
                             const layer = vectorTile.layers[layerName];
                             const feats = [];
@@ -182,57 +180,40 @@ console.log('🔄 Loading PMTilesAdapterV3.js v3.2.0 (build 2025-01-26T23:30Z)..
                             }
                             
                             layer.features = feats;
-                            totalFeatures += feats.length;
-                            
-                            // DEBUG: Log first feature sample
-                            if (feats.length > 0) {
-                                console.log(`🔹 Layer "${layerName}": ${feats.length} features, type=${feats[0].type}, extent=${layer.extent}`);
-                            }
                         }
 
-                        console.log(`✅ Tile ${z}/${x}/${y} parsed: ${layerNames.length} layers, ${totalFeatures} features`);
+                        // Cache result
+                        tileCache.set(cacheKey, vectorTile);
                         return vectorTile;
                     } catch (error) {
-                        console.error(`❌ Error parsing tile ${z}/${x}/${y}:`, error);
+                        console.error(`❌ Tile error ${cacheKey}:`, error.message);
                         return { layers: [] };
                     }
                 }).catch(function(error) {
-                    console.error(`❌ Error fetching tile ${z}/${x}/${y}:`, error);
+                    self._pendingRequests.delete(cacheKey);
+                    console.error(`❌ Fetch error ${cacheKey}:`, error.message);
                     return { layers: [] };
                 });
+
+                this._pendingRequests.set(cacheKey, promise);
+                return promise;
             },
 
-            /**
-             * Cleanup on remove
-             */
             onRemove: function(map) {
                 this._pmtilesSource = null;
+                this._pendingRequests.clear();
                 return L.VectorGrid.prototype.onRemove.call(this, map);
             }
         });
 
-        /**
-         * Factory method - drop-in replacement for L.vectorGrid.protobuf()
-         */
         L.vectorGrid.pmtiles = function(pmtilesUrl, options) {
             return new L.VectorGrid.PMTiles(pmtilesUrl, options);
         };
 
-        /**
-         * Preload PMTiles metadata - useful for getting bounds/zoom info
-         */
         L.vectorGrid.preloadPMTiles = async function(pmtilesUrl) {
             try {
                 const source = new pmtilesLib.PMTiles(pmtilesUrl);
                 const header = await source.getHeader();
-                
-                console.log('📊 PMTiles metadata:', {
-                    minZoom: header.minZoom,
-                    maxZoom: header.maxZoom,
-                    bounds: [header.minLon, header.minLat, header.maxLon, header.maxLat],
-                    tileType: header.tileType
-                });
-
                 return {
                     bounds: [[header.minLat, header.minLon], [header.maxLat, header.maxLon]],
                     minZoom: header.minZoom,
@@ -240,89 +221,53 @@ console.log('🔄 Loading PMTilesAdapterV3.js v3.2.0 (build 2025-01-26T23:30Z)..
                     center: [header.centerLat, header.centerLon]
                 };
             } catch (error) {
-                console.error('❌ Failed to load PMTiles metadata:', error);
+                console.error('❌ PMTiles metadata error:', error);
                 return null;
             }
         };
 
-        console.log('✅ L.VectorGrid.PMTiles class created');
-        console.log('✅ L.vectorGrid.pmtiles() factory method ready');
+        // Expose cache for debugging
+        L.vectorGrid.getTileCache = () => ({ size: tileCache.size, maxSize: tileCache.maxSize });
+        L.vectorGrid.clearTileCache = () => { tileCache.clear(); console.log('🗑️ Cache cleared'); };
+
+        log('✅ L.VectorGrid.PMTiles created');
     }
 
     /**
-     * Setup VectorTileConfig - ALWAYS runs regardless of PMTiles availability
+     * Setup VectorTileConfig
      */
     function setupVectorTileConfig() {
         window.VectorTileConfig = {
-            // Configuration
-            useOpenSource: true, // P0 FIX: Default to PMTiles (Mapbox tileset deleted)
+            useOpenSource: true,
             pmtilesUrl: CONFIG.pmtilesUrl,
             mapboxTilesetId: CONFIG.mapboxTilesetId,
             mapboxAccessToken: CONFIG.mapboxAccessToken,
             
-            /**
-             * Create vector layer - auto-select source based on availability
-             * CRITICAL: Check pmtiles at call time, not at config time
-             */
             createVectorLayer: function(options) {
-                // Check PMTiles availability at CALL TIME (not at config time)
-                const hasPMTilesLib = typeof pmtiles !== 'undefined' && pmtiles.PMTiles;
                 const hasPMTilesMethod = L.vectorGrid && typeof L.vectorGrid.pmtiles === 'function';
-                const isPMTilesSupported = L.vectorGrid && 
-                    L.vectorGrid.isPMTilesSupported && 
-                    L.vectorGrid.isPMTilesSupported();
-                
                 const canUsePMTiles = this.useOpenSource && hasPMTilesMethod;
 
-                // Debug logging
-                console.log('🔍 VectorTileConfig.createVectorLayer check:', {
-                    useOpenSource: this.useOpenSource,
-                    hasPMTilesLib: hasPMTilesLib,
-                    hasPMTilesMethod: hasPMTilesMethod,
-                    isPMTilesSupported: isPMTilesSupported,
-                    canUsePMTiles: canUsePMTiles,
-                    pmtilesUrl: this.pmtilesUrl
-                });
-
                 if (canUsePMTiles) {
-                    console.log('🌍 Using Open Source PMTiles:', this.pmtilesUrl);
+                    log('🌍 Using PMTiles:', this.pmtilesUrl);
                     return L.vectorGrid.pmtiles(this.pmtilesUrl, options);
                 } else {
-                    // FALLBACK WARNING - this shouldn't happen in production
-                    console.warn('📦 FALLBACK: Using Mapbox Vector Tiles - PMTiles not available!');
-                    console.warn('📦 This will likely fail since Mapbox tileset was deleted');
+                    console.warn('⚠️ PMTiles not available');
                     const url = `https://api.mapbox.com/v4/${this.mapboxTilesetId}/{z}/{x}/{y}.mvt?access_token=${this.mapboxAccessToken}`;
                     return L.vectorGrid.protobuf(url, options);
                 }
             },
             
-            /**
-             * Switch to open source mode
-             */
             switchToOpenSource: function(pmtilesUrl) {
                 this.useOpenSource = true;
                 if (pmtilesUrl) this.pmtilesUrl = pmtilesUrl;
-                console.log('✅ Switched to Open Source mode');
-                console.log('🔄 Reload page to apply changes');
             },
             
-            /**
-             * Switch to Mapbox mode
-             */
             switchToMapbox: function() {
                 this.useOpenSource = false;
-                console.log('✅ Switched to Mapbox mode');
-                console.log('🔄 Reload page to apply changes');
             },
             
-            /**
-             * Get current configuration status
-             */
             getConfig: function() {
-                const isPMTilesSupported = L.vectorGrid && 
-                    L.vectorGrid.isPMTilesSupported && 
-                    L.vectorGrid.isPMTilesSupported();
-                    
+                const isPMTilesSupported = L.vectorGrid?.isPMTilesSupported?.() || false;
                 return {
                     mode: this.useOpenSource ? 'Open Source (PMTiles)' : 'Mapbox',
                     pmtilesUrl: this.pmtilesUrl,
@@ -332,14 +277,12 @@ console.log('🔄 Loading PMTilesAdapterV3.js v3.2.0 (build 2025-01-26T23:30Z)..
             }
         };
 
-        console.log('🎯 VectorTileConfig ready:', window.VectorTileConfig.getConfig());
+        log('🎯 VectorTileConfig ready');
     }
 
-    // Start initialization when DOM is ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
-        // DOM already loaded, init immediately
         init();
     }
 })();

@@ -241,17 +241,18 @@ document.addEventListener('DOMContentLoaded', () => {
         opacity: 0.6     // Độ trong suốt để nhìn mờ mờ đẹp hơn
     };
 
-    // 4. Tùy chọn cho lớp vector tiles - tối ưu performance
+    // 4. Tùy chọn cho lớp vector tiles - PERFORMANCE OPTIMIZED
     // PMTiles có data từ zoom 10-20 (sau khi chạy create-pmtiles-hd.sh)
     const vectorTileOptions = {
-        rendererFactory: L.canvas.tile, // Canvas nhanh hơn SVG
+        rendererFactory: L.canvas.tile, // Canvas nhanh hơn SVG rất nhiều
         interactive: true,
         minZoom: 10,
         maxZoom: 22,
-        maxNativeZoom: 20, // PMTiles có max zoom 20
-        updateWhenIdle: false, // Cập nhật ngay để click events hoạt động
-        updateWhenZooming: true, // Giữ tiles khi zoom
-        keepBuffer: 8, // Giữ nhiều tiles hơn để không bị unload
+        maxNativeZoom: 20,    // PMTiles có max zoom 20
+        updateWhenIdle: true, // CHỈ update khi pan/zoom xong - GIẢM LAG
+        updateWhenZooming: false, // KHÔNG update liên tục khi zoom
+        keepBuffer: 2,        // Giữ ít tiles hơn để giảm memory
+        tolerance: 3,         // Simplify geometry - QUAN TRỌNG cho performance
         getFeatureId: feature => feature.properties.OBJECTID,
         vectorTileLayerStyles: {
             // PMTiles mới dùng layer name 'default'
@@ -377,30 +378,11 @@ document.addEventListener('DOMContentLoaded', () => {
             parcelLayer = layer;
             if (map && !map.hasLayer(parcelLayer)) {
                 parcelLayer.addTo(map);
-                console.log('✅ Parcel layer added to map successfully');
-                
-                // DEBUG: Check if tiles are being rendered
-                parcelLayer.on('tileload', function(e) {
-                    console.log('🎨 Tile rendered:', e.coords);
-                });
-                
-                parcelLayer.on('tileunload', function(e) {
-                    console.log('🗑️ Tile unloaded:', e.coords);
-                });
-                
-                // DEBUG: Check loading events
-                parcelLayer.on('loading', function() {
-                    console.log('⏳ Layer loading...');
-                });
-                
-                parcelLayer.on('load', function() {
-                    console.log('✅ Layer load complete!');
-                });
+                console.log('✅ Parcel layer added to map');
                 
                 // Add to layer control if available
                 if (window._layerControl) {
                     window._layerControl.addOverlay(parcelLayer, "🗺️ Bản đồ phân lô");
-                    console.log('✅ Parcel layer added to layer control');
                 }
             }
             
