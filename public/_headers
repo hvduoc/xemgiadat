@@ -1,3 +1,13 @@
+# JavaScript files - ensure correct MIME type
+/js/*
+  Content-Type: application/javascript
+  Cache-Control: public, max-age=3600
+
+/*.js
+  Content-Type: application/javascript
+  Cache-Control: public, max-age=3600
+
+# PMTiles
 /tiles/*
   Content-Type: application/x-protobuf
   Access-Control-Allow-Origin: *
