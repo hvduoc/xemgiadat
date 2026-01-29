@@ -153,6 +153,52 @@
     <link rel="stylesheet" href="https://unpkg.com/esri-leaflet-geocoder@3.1.4/dist/esri-leaflet-geocoder.css" crossorigin="">
     <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
 
+    <!-- Custom CSS for mobile optimizations and toast animations -->
+    <style>
+        /* Toast animations */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translate(-50%, 20px); }
+            to { opacity: 1; transform: translate(-50%, 0); }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+        
+        /* iPhone notch safe area */
+        #map { 
+            padding-bottom: env(safe-area-inset-bottom, 0); 
+        }
+        
+        /* Better touch targets for mobile */
+        @media (hover: none) and (pointer: coarse) {
+            .leaflet-control-layers-toggle,
+            .leaflet-control-zoom a,
+            .leaflet-bar a {
+                width: 44px !important;
+                height: 44px !important;
+                line-height: 44px !important;
+                font-size: 18px !important;
+            }
+            
+            /* Bigger hit area for parcel clicks */
+            .leaflet-interactive {
+                stroke-width: 2px;
+            }
+            
+            /* Prevent 300ms tap delay */
+            * {
+                touch-action: manipulation;
+            }
+        }
+        
+        /* Smoother map panning on iOS */
+        .leaflet-container {
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+        }
+    </style>
+
 
     <meta name="description" content="Nền tảng BĐS Đà Nẵng thế hệ mới. Dễ dàng tra cứu thông tin thửa đất, đồng thời đăng tin bán hoặc cho thuê siêu nhẹ chỉ trong vài giây. Hoàn toàn miễn phí.">
     

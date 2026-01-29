@@ -213,7 +213,16 @@ document.addEventListener('DOMContentLoaded', () => {
     initPerformanceOptimizations();
 
     // --- MAP AND LAYERS INITIALIZATION ---
-    window.map = L.map('map', { center: [16.054456, 108.202167], zoom: 13, zoomControl: false });
+    // FIXED: maxZoom = 20 to match PMTiles data, ensures click/query works at all zoom levels
+    window.map = L.map('map', { 
+        center: [16.054456, 108.202167], 
+        zoom: 13, 
+        zoomControl: false,
+        maxZoom: 20,              // Match PMTiles maxNativeZoom
+        tap: true,                // Better touch handling for iOS
+        touchZoom: 'center',      // Zoom to center on pinch (better UX)
+        bounceAtZoomLimits: true  // Visual feedback when hitting zoom limit
+    });
     const myAttribution = '© XemGiaDat | 📌 Dữ liệu tham khảo từ Sở TNMT Đà Nẵng. Không có giá trị pháp lý.';
     const googleStreets = L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',{ maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'], attribution: myAttribution + ' | © Google Maps' });
     const googleSat = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{ maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'], attribution: myAttribution + ' | © Google Satellite' });
@@ -243,11 +252,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 4. Tùy chọn cho lớp vector tiles - PERFORMANCE OPTIMIZED
     // PMTiles có data từ zoom 10-20 (sau khi chạy create-pmtiles-hd.sh)
+    // FIXED: maxZoom = 20 to match PMTiles data, prevents click issues at over-zoom
     const vectorTileOptions = {
         rendererFactory: L.canvas.tile, // Canvas nhanh hơn SVG rất nhiều
         interactive: true,
         minZoom: 10,
-        maxZoom: 22,
+        maxZoom: 20,                  // CHANGED: Match maxNativeZoom to fix click issues
         maxNativeZoom: 20,    // PMTiles có max zoom 20
         updateWhenIdle: true, // CHỈ update khi pan/zoom xong - GIẢM LAG
         updateWhenZooming: false, // KHÔNG update liên tục khi zoom
@@ -605,8 +615,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- KẾT THÚC KHẮC PHỤC ---
 
     // IMPORTANT: Add base map FIRST - this must work regardless of parcel layer status
-    googleStreets.addTo(map);
-    console.log('✅ Base map (Google Streets) added');
+    // CHANGED: Default to OpenStreetMap (lighter, faster for mobile users)
+    osmLayer.addTo(map);
+    console.log('✅ Base map (OpenStreetMap) added - optimized for mobile');
     
     // Add parcel labels layer (empty initially, will be populated when tiles load)
     parcelLabels.addTo(map);
@@ -644,6 +655,12 @@ document.addEventListener('DOMContentLoaded', () => {
         clearTimeout(zoomTimeout);
         zoomTimeout = setTimeout(() => {
             const currentZoom = map.getZoom();
+            
+            // Show toast when user hits max zoom limit
+            if (currentZoom >= 20) {
+                showZoomLimitToast();
+            }
+            
             if (currentZoom < 12) {
                 // Zoom quá xa - giảm opacity và tắt interaction
                 if (map.hasLayer(parcelLayer)) {
@@ -657,6 +674,26 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }, 100); // Debounce zoom events
     });
+    
+    // Toast notification for zoom limit (mobile-friendly)
+    let zoomToastTimeout = null;
+    function showZoomLimitToast() {
+        // Prevent spam - only show once every 3 seconds
+        if (document.getElementById('zoom-limit-toast')) return;
+        
+        const toast = document.createElement('div');
+        toast.id = 'zoom-limit-toast';
+        toast.className = 'fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-4 py-2 rounded-lg shadow-lg text-sm z-[9999] animate-fade-in';
+        toast.innerHTML = '📍 Đã phóng to tối đa. Click vào thửa đất để tra cứu!';
+        toast.style.cssText = 'animation: fadeInUp 0.3s ease-out; max-width: 90vw; text-align: center;';
+        document.body.appendChild(toast);
+        
+        clearTimeout(zoomToastTimeout);
+        zoomToastTimeout = setTimeout(() => {
+            toast.style.animation = 'fadeOut 0.3s ease-out forwards';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
     
     map.on('movestart', function() {
         // Clear labels khi đang di chuyển để tăng performance
