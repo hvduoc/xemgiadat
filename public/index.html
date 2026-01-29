@@ -162,67 +162,104 @@
         /* ========================================
            🎯 MOBILE-FIRST UI FOR IPHONE
            Target: Real estate investors on iPhone
+           iOS Safari Compatible with fallbacks
            ======================================== */
         
         :root {
-            --safe-bottom: env(safe-area-inset-bottom, 0px);
-            --safe-top: env(safe-area-inset-top, 0px);
+            /* Hardcoded fallbacks for older iOS */
+            --safe-bottom: 0px;
+            --safe-top: 0px;
             --toolbar-height: 72px;
-            --touch-min: 48px; /* Apple HIG minimum */
+            --touch-min: 48px;
+        }
+        
+        /* iOS 11.2+ env() support */
+        @supports (padding-bottom: env(safe-area-inset-bottom)) {
+            :root {
+                --safe-bottom: env(safe-area-inset-bottom, 0px);
+                --safe-top: env(safe-area-inset-top, 0px);
+            }
         }
         
         /* Toast animations */
+        @-webkit-keyframes fadeInUp {
+            from { opacity: 0; -webkit-transform: translate(-50%, 20px); transform: translate(-50%, 20px); }
+            to { opacity: 1; -webkit-transform: translate(-50%, 0); transform: translate(-50%, 0); }
+        }
         @keyframes fadeInUp {
-            from { opacity: 0; transform: translate(-50%, 20px); }
-            to { opacity: 1; transform: translate(-50%, 0); }
+            from { opacity: 0; -webkit-transform: translate(-50%, 20px); transform: translate(-50%, 20px); }
+            to { opacity: 1; -webkit-transform: translate(-50%, 0); transform: translate(-50%, 0); }
+        }
+        @-webkit-keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
         }
         @keyframes fadeOut {
             from { opacity: 1; }
             to { opacity: 0; }
         }
-        @keyframes slideUp {
-            from { transform: translateY(100%); }
-            to { transform: translateY(0); }
+        @-webkit-keyframes slideUp {
+            from { -webkit-transform: translateY(100%); transform: translateY(100%); }
+            to { -webkit-transform: translateY(0); transform: translateY(0); }
         }
-        @keyframes pulse-gentle {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+        @keyframes slideUp {
+            from { -webkit-transform: translateY(100%); transform: translateY(100%); }
+            to { -webkit-transform: translateY(0); transform: translateY(0); }
         }
         
-        /* iPhone safe areas */
+        /* iPhone safe areas - with pixel fallback */
         #map { 
-            padding-bottom: calc(var(--toolbar-height) + var(--safe-bottom) + 8px);
+            padding-bottom: 80px;
+            padding-bottom: calc(72px + var(--safe-bottom) + 8px);
         }
         
         /* ========== BOTTOM TOOLBAR (Primary Actions) ========== */
         #action-toolbar {
+            position: fixed !important;
+            left: 50% !important;
+            -webkit-transform: translateX(-50%) !important;
+            transform: translateX(-50%) !important;
+            bottom: 12px !important;
             bottom: calc(var(--safe-bottom) + 12px) !important;
             padding: 8px 16px !important;
             gap: 8px !important;
             background: rgba(255,255,255,0.95) !important;
-            backdrop-filter: blur(20px) saturate(180%) !important;
             -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+            backdrop-filter: blur(20px) saturate(180%) !important;
             border: 1px solid rgba(0,0,0,0.08) !important;
+            -webkit-box-shadow: 0 4px 24px rgba(0,0,0,0.12), 0 0 0 1px rgba(255,255,255,0.5) inset !important;
             box-shadow: 0 4px 24px rgba(0,0,0,0.12), 0 0 0 1px rgba(255,255,255,0.5) inset !important;
+            z-index: 1001 !important;
         }
         
         .toolbar-btn-compact {
-            min-width: var(--touch-min) !important;
-            min-height: var(--touch-min) !important;
+            min-width: 48px !important;
+            min-height: 48px !important;
             padding: 8px 12px !important;
             border-radius: 12px !important;
             font-size: 13px !important;
             font-weight: 500 !important;
+            display: -webkit-box !important;
+            display: -webkit-flex !important;
             display: flex !important;
+            -webkit-box-orient: vertical !important;
+            -webkit-box-direction: normal !important;
+            -webkit-flex-direction: column !important;
             flex-direction: column !important;
+            -webkit-box-align: center !important;
+            -webkit-align-items: center !important;
             align-items: center !important;
+            -webkit-box-pack: center !important;
+            -webkit-justify-content: center !important;
             justify-content: center !important;
             gap: 2px !important;
+            -webkit-transition: all 0.2s ease !important;
             transition: all 0.2s ease !important;
             -webkit-tap-highlight-color: transparent !important;
         }
         
         .toolbar-btn-compact:active {
+            -webkit-transform: scale(0.95) !important;
             transform: scale(0.95) !important;
             background: rgba(0,0,0,0.05) !important;
         }
@@ -239,35 +276,56 @@
         
         /* Query button highlight (primary CTA) */
         #query-btn {
+            background: -webkit-linear-gradient(315deg, #3b82f6 0%, #2563eb 100%) !important;
             background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
             color: white !important;
+            -webkit-box-shadow: 0 2px 8px rgba(59,130,246,0.4) !important;
             box-shadow: 0 2px 8px rgba(59,130,246,0.4) !important;
         }
         
         #query-btn:active {
+            background: -webkit-linear-gradient(315deg, #2563eb 0%, #1d4ed8 100%) !important;
             background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
         }
         
         /* ========== RIGHT SIDEBAR (Quick Actions) ========== */
-        .absolute.top-4.right-4 {
+        #right-sidebar {
+            position: absolute !important;
+            top: 16px !important;
             top: calc(var(--safe-top) + 16px) !important;
             right: 12px !important;
+            z-index: 1000 !important;
+            display: -webkit-box !important;
+            display: -webkit-flex !important;
+            display: flex !important;
+            -webkit-box-orient: vertical !important;
+            -webkit-box-direction: normal !important;
+            -webkit-flex-direction: column !important;
+            flex-direction: column !important;
+            -webkit-box-align: center !important;
+            -webkit-align-items: center !important;
+            align-items: center !important;
             gap: 12px !important;
         }
         
-        .absolute.top-4.right-4 button {
-            width: 52px !important;
-            height: 52px !important;
+        #right-sidebar > button,
+        #right-sidebar #auth-container button {
+            width: 48px !important;
+            height: 48px !important;
+            -webkit-box-shadow: 0 2px 12px rgba(0,0,0,0.15) !important;
             box-shadow: 0 2px 12px rgba(0,0,0,0.15) !important;
             border: 1px solid rgba(255,255,255,0.8) !important;
         }
         
-        .absolute.top-4.right-4 button:active {
+        #right-sidebar > button:active,
+        #right-sidebar #auth-container button:active {
+            -webkit-transform: scale(0.92) !important;
             transform: scale(0.92) !important;
         }
         
         /* Login button special style */
         #login-btn {
+            background: -webkit-linear-gradient(315deg, #22c55e 0%, #16a34a 100%) !important;
             background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important;
         }
         
@@ -275,8 +333,11 @@
         #info-panel {
             max-height: 55vh !important;
             border-radius: 20px 20px 0 0 !important;
-            padding: 12px 16px calc(var(--safe-bottom) + 16px) !important;
+            padding: 12px 16px 16px !important;
+            padding-bottom: calc(16px + var(--safe-bottom)) !important;
+            -webkit-box-shadow: 0 -4px 32px rgba(0,0,0,0.15) !important;
             box-shadow: 0 -4px 32px rgba(0,0,0,0.15) !important;
+            -webkit-animation: slideUp 0.3s ease-out !important;
             animation: slideUp 0.3s ease-out !important;
         }
         
@@ -291,12 +352,19 @@
         
         /* Panel header buttons */
         .panel-header-btn {
-            width: var(--touch-min) !important;
-            height: var(--touch-min) !important;
+            width: 48px !important;
+            height: 48px !important;
+            display: -webkit-box !important;
+            display: -webkit-flex !important;
             display: flex !important;
+            -webkit-box-align: center !important;
+            -webkit-align-items: center !important;
             align-items: center !important;
+            -webkit-box-pack: center !important;
+            -webkit-justify-content: center !important;
             justify-content: center !important;
             border-radius: 12px !important;
+            -webkit-transition: background 0.2s !important;
             transition: background 0.2s !important;
         }
         
@@ -310,6 +378,7 @@
             font-size: 16px !important; /* Prevents iOS zoom */
             border-radius: 26px !important;
             padding: 0 20px !important;
+            -webkit-box-shadow: 0 2px 16px rgba(0,0,0,0.1) !important;
             box-shadow: 0 2px 16px rgba(0,0,0,0.1) !important;
         }
         
@@ -326,6 +395,7 @@
         .leaflet-control-zoom {
             border-radius: 12px !important;
             overflow: hidden !important;
+            -webkit-box-shadow: 0 2px 12px rgba(0,0,0,0.15) !important;
             box-shadow: 0 2px 12px rgba(0,0,0,0.15) !important;
         }
         
@@ -342,12 +412,13 @@
             
             /* Prevent 300ms tap delay */
             * {
+                -ms-touch-action: manipulation;
                 touch-action: manipulation;
             }
             
             /* Modal buttons */
             .modal button, .modal a {
-                min-height: var(--touch-min) !important;
+                min-height: 48px !important;
             }
             
             /* Better scrolling in panels */
@@ -365,6 +436,7 @@
         
         /* ========== LOADING SKELETON ENHANCEMENT ========== */
         #loading-skeleton {
+            background: -webkit-linear-gradient(315deg, #f8fafc 0%, #e2e8f0 100%) !important;
             background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%) !important;
         }
         
@@ -888,7 +960,7 @@
     </div>
 
    <!-- ========== RIGHT SIDEBAR (Quick Actions) ========== -->
-   <div class="absolute top-4 right-4 z-[1000] flex flex-col items-center space-y-3">
+   <div id="right-sidebar" class="absolute top-4 right-4 z-[1000] flex flex-col items-center space-y-3">
         <!-- V2 Beta Link -->
         <a href="/v2/" target="_blank" class="text-xs text-gray-500 hover:text-indigo-600 transition-colors flex items-center space-x-1 bg-white/80 backdrop-blur px-2 py-1 rounded-full">
             <span>V2</span>
