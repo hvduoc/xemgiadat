@@ -995,12 +995,6 @@
 
         </div>
     </div>
-    <!-- Opacity control removed - not needed for mobile-first UX -->
-    <!-- Banner hướng dẫn chỉ hiển thị khi cần -->
-    <div id="instruction-banner" class="hidden absolute top-4 left-1/2 -translate-x-1/2 z-[1000] bg-yellow-400 text-black font-semibold py-2 px-4 rounded-lg shadow-lg">
-        <span id="instruction-text"></span>
-    </div>
-
    <!-- ========== RIGHT SIDEBAR (Quick Actions) ========== -->
    <div id="right-sidebar" class="absolute top-4 right-4 z-[1000] flex flex-col items-center space-y-3">
         <!-- V2 Beta Link -->
@@ -1029,16 +1023,11 @@
                 </a>
             </div>
         </div>
-        <button id="contact-info-btn" title="Thông tin liên hệ" class="bg-white text-gray-700 w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100 transition active:scale-95" aria-label="Thông tin liên hệ">
-            <i class="fa-solid fa-info-circle text-xl"></i>
+        <!-- Merged: Contact + Feedback into single Help button -->
+        <button id="contact-info-btn" title="Hỗ trợ & Góp ý" class="bg-white text-gray-700 w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100 transition active:scale-95" aria-label="Hỗ trợ">
+            <i class="fa-solid fa-headset text-xl"></i>
         </button>
-        <button id="feedback-btn" title="Góp ý & Phản hồi" class="bg-purple-500 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-purple-600 transition active:scale-95" aria-label="Gửi góp ý">
-            <i class="fa-solid fa-comment-dots text-xl"></i>
-        </button>
-        <button id="admin-btn" title="Quản trị hệ thống" class="bg-red-600 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-red-700 transition active:scale-95" style="display: none;" aria-label="Trang quản trị">
-            <i class="fa-solid fa-cog text-xl"></i>
-        </button>
-        <button id="locate-btn" title="Tìm vị trí của tôi" class="bg-white text-gray-700 w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100 transition active:scale-95" aria-label="Định vị">
+        <button id="locate-btn" title="Tìm vị trí của tôi" class="bg-blue-500 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-blue-600 transition active:scale-95" aria-label="Định vị">
             <i class="fa-solid fa-location-crosshairs text-xl"></i>
         </button>
     </div>
@@ -1570,10 +1559,13 @@
                             <!-- Support Info -->
                             <div class="bg-green-50 p-3 rounded-lg">
                                 <h6 class="font-semibold text-green-800 mb-2">💬 Hỗ trợ & Phản hồi</h6>
-                                <p class="text-green-700 text-xs">
+                                <p class="text-green-700 text-xs mb-2">
                                     Mọi ý kiến đóng góp và báo lỗi xin gửi về: 
                                     <strong>hotro.xemgiadat@gmail.com</strong>
                                 </p>
+                                <button id="open-feedback-from-contact" class="w-full bg-purple-500 hover:bg-purple-600 text-white py-2 px-4 rounded-lg text-sm font-medium transition">
+                                    <i class="fas fa-comment-dots mr-2"></i>Gửi góp ý ngay
+                                </button>
                             </div>
                             
                             <div class="text-center pt-2 border-t">
@@ -2170,11 +2162,7 @@
         </div>
     </div>
 
-    <!-- Beta Signup Floating Button -->
-    <button id="beta-signup-btn" 
-            class="fixed bottom-20 right-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center hover:from-blue-700 hover:to-purple-700 transition z-[1000] animate-pulse">
-        <i class="fas fa-rocket text-xl"></i>
-    </button>
+    <!-- Beta signup button removed - use V2 link in sidebar instead -->
    
     <!-- 🚀 Optimized Script Loading Strategy -->
     

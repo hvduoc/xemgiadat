@@ -844,6 +844,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 hideModal(contactInfoModal);
             }
         });
+        
+        // Open feedback from contact modal button
+        const openFeedbackFromContact = document.getElementById('open-feedback-from-contact');
+        if (openFeedbackFromContact && feedbackModal) {
+            openFeedbackFromContact.addEventListener('click', () => {
+                hideModal(contactInfoModal);
+                setTimeout(() => showModal(feedbackModal), 200);
+            });
+        }
     }
 
     // Portfolio modal event listeners
@@ -2769,9 +2778,24 @@ async function showCommunityParcelInfo(parcelNumber, mapSheet) {
             const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
             if (user.uid === ADMIN_UID || isLocalhost) {
                 console.log('👑 Showing admin button (admin user or localhost)');
-                if (adminBtn) adminBtn.style.display = 'flex';
-            } else {
-                if (adminBtn) adminBtn.style.display = 'none';
+                // Dynamically inject admin button if not exists
+                let adminBtn = document.getElementById('admin-btn');
+                if (!adminBtn) {
+                    const sidebar = document.getElementById('right-sidebar');
+                    if (sidebar) {
+                        adminBtn = document.createElement('button');
+                        adminBtn.id = 'admin-btn';
+                        adminBtn.title = 'Quản trị hệ thống';
+                        adminBtn.className = 'bg-red-600 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-red-700 transition active:scale-95';
+                        adminBtn.setAttribute('aria-label', 'Trang quản trị');
+                        adminBtn.innerHTML = '<i class="fa-solid fa-cog text-xl"></i>';
+                        adminBtn.addEventListener('click', () => window.location.href = '/admin.html');
+                        sidebar.appendChild(adminBtn);
+                        console.log('✅ Admin button injected');
+                    }
+                } else {
+                    adminBtn.style.display = 'flex';
+                }
             }
             
             firebaseuiContainer.classList.add('hidden');
@@ -3070,9 +3094,9 @@ async function showCommunityParcelInfo(parcelNumber, mapSheet) {
                 position: 'left'
             },
             {
-                target: '#feedback-btn',
-                title: '💬 Góp ý & Phản hồi',
-                content: 'Chia sẻ ý kiến để giúp chúng tôi cải thiện website tốt hơn',
+                target: '#contact-info-btn',
+                title: '💬 Hỗ trợ & Góp ý',
+                content: 'Liên hệ hỗ trợ và gửi góp ý để cải thiện website',
                 position: 'left'
             }
         ];
@@ -3238,13 +3262,11 @@ async function showCommunityParcelInfo(parcelNumber, mapSheet) {
     function createEnhancedTooltips() {
         const tooltipElements = [
             { selector: '#search-bar-container', text: 'Tìm kiếm thửa đất (VD: Thửa 123, Tờ 45)', position: 'bottom' },
-            // { selector: '#query-btn', text: 'Click để bật chế độ xem thông tin thửa đất', position: 'top' }, // Đã loại bỏ theo yêu cầu
             { selector: '#add-location-btn', text: 'Thêm tin đăng bán/cho thuê (Cần đăng nhập)', position: 'top' },
             { selector: '#list-btn', text: 'Xem danh sách tất cả tin đăng', position: 'top' },
             { selector: '#login-btn', text: 'Đăng nhập bằng Google hoặc Email', position: 'left' },
             { selector: '#guide-btn', text: 'Hướng dẫn sử dụng chi tiết', position: 'left' },
-            { selector: '#feedback-btn', text: 'Gửi góp ý để cải thiện website', position: 'left' },
-
+            { selector: '#contact-info-btn', text: 'Hỗ trợ & Gửi góp ý', position: 'left' },
             { selector: '#locate-btn', text: 'Tìm vị trí hiện tại của bạn', position: 'left' }
         ];
 
