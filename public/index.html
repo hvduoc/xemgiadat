@@ -13,6 +13,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no, maximum-scale=1.0">
     
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/images/favicon.png">
+    <link rel="shortcut icon" type="image/png" href="/images/favicon.png">
+    
     <!-- SEO Meta Tags -->
     <title>Xem Giá Đất Đà Nẵng - Bản Đồ Giá Đất Chính Xác Nhất 2025</title>
     <meta name="description" content="Xem giá đất Đà Nẵng chính xác nhất 2025. Bản đồ giá đất online, thông tin BDS, giao dịch minh bạch. Cộng đồng chia sẻ thông tin bất động sản Đà Nẵng.">
@@ -1765,6 +1769,13 @@
     
     <!-- Critical: Load with defer to ensure proper load order -->
     <script defer src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+    
+    <!-- CRITICAL: Load Pbf and VectorTile as globals BEFORE VectorGrid -->
+    <!-- These must be globals for PMTilesAdapterV3 to use them -->
+    <script src="js/lib/pbf.js"></script>
+    <script src="js/lib/vector-tile.js"></script>
+    
+    <!-- VectorGrid base - will use the global Pbf/VectorTile we just loaded -->
     <script defer src="https://unpkg.com/leaflet.vectorgrid@1.3.0/dist/Leaflet.VectorGrid.bundled.js"></script>
     
     <!-- Open Source Adapters: Load early but defer for ordering -->
