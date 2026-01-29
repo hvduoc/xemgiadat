@@ -159,6 +159,18 @@
 
     <!-- Custom CSS for mobile optimizations and toast animations -->
     <style>
+        /* ========================================
+           🎯 MOBILE-FIRST UI FOR IPHONE
+           Target: Real estate investors on iPhone
+           ======================================== */
+        
+        :root {
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+            --safe-top: env(safe-area-inset-top, 0px);
+            --toolbar-height: 72px;
+            --touch-min: 48px; /* Apple HIG minimum */
+        }
+        
         /* Toast animations */
         @keyframes fadeInUp {
             from { opacity: 0; transform: translate(-50%, 20px); }
@@ -168,31 +180,180 @@
             from { opacity: 1; }
             to { opacity: 0; }
         }
-        
-        /* iPhone notch safe area */
-        #map { 
-            padding-bottom: env(safe-area-inset-bottom, 0); 
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+        @keyframes pulse-gentle {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
         }
         
-        /* Better touch targets for mobile */
+        /* iPhone safe areas */
+        #map { 
+            padding-bottom: calc(var(--toolbar-height) + var(--safe-bottom) + 8px);
+        }
+        
+        /* ========== BOTTOM TOOLBAR (Primary Actions) ========== */
+        #action-toolbar {
+            bottom: calc(var(--safe-bottom) + 12px) !important;
+            padding: 8px 16px !important;
+            gap: 8px !important;
+            background: rgba(255,255,255,0.95) !important;
+            backdrop-filter: blur(20px) saturate(180%) !important;
+            -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+            border: 1px solid rgba(0,0,0,0.08) !important;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.12), 0 0 0 1px rgba(255,255,255,0.5) inset !important;
+        }
+        
+        .toolbar-btn-compact {
+            min-width: var(--touch-min) !important;
+            min-height: var(--touch-min) !important;
+            padding: 8px 12px !important;
+            border-radius: 12px !important;
+            font-size: 13px !important;
+            font-weight: 500 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 2px !important;
+            transition: all 0.2s ease !important;
+            -webkit-tap-highlight-color: transparent !important;
+        }
+        
+        .toolbar-btn-compact:active {
+            transform: scale(0.95) !important;
+            background: rgba(0,0,0,0.05) !important;
+        }
+        
+        .toolbar-btn-compact i {
+            font-size: 18px !important;
+        }
+        
+        .toolbar-btn-compact span {
+            font-size: 10px !important;
+            font-weight: 600 !important;
+            letter-spacing: 0.3px !important;
+        }
+        
+        /* Query button highlight (primary CTA) */
+        #query-btn {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+            color: white !important;
+            box-shadow: 0 2px 8px rgba(59,130,246,0.4) !important;
+        }
+        
+        #query-btn:active {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+        }
+        
+        /* ========== RIGHT SIDEBAR (Quick Actions) ========== */
+        .absolute.top-4.right-4 {
+            top: calc(var(--safe-top) + 16px) !important;
+            right: 12px !important;
+            gap: 12px !important;
+        }
+        
+        .absolute.top-4.right-4 button {
+            width: 52px !important;
+            height: 52px !important;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.15) !important;
+            border: 1px solid rgba(255,255,255,0.8) !important;
+        }
+        
+        .absolute.top-4.right-4 button:active {
+            transform: scale(0.92) !important;
+        }
+        
+        /* Login button special style */
+        #login-btn {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important;
+        }
+        
+        /* ========== INFO PANEL (Parcel Details) ========== */
+        #info-panel {
+            max-height: 55vh !important;
+            border-radius: 20px 20px 0 0 !important;
+            padding: 12px 16px calc(var(--safe-bottom) + 16px) !important;
+            box-shadow: 0 -4px 32px rgba(0,0,0,0.15) !important;
+            animation: slideUp 0.3s ease-out !important;
+        }
+        
+        /* Drag handle */
+        #info-panel > .w-10 {
+            width: 40px !important;
+            height: 5px !important;
+            background: #d1d5db !important;
+            border-radius: 3px !important;
+            margin-bottom: 12px !important;
+        }
+        
+        /* Panel header buttons */
+        .panel-header-btn {
+            width: var(--touch-min) !important;
+            height: var(--touch-min) !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            border-radius: 12px !important;
+            transition: background 0.2s !important;
+        }
+        
+        .panel-header-btn:active {
+            background: rgba(0,0,0,0.08) !important;
+        }
+        
+        /* ========== SEARCH BAR ========== */
+        #search-input {
+            height: 52px !important;
+            font-size: 16px !important; /* Prevents iOS zoom */
+            border-radius: 26px !important;
+            padding: 0 20px !important;
+            box-shadow: 0 2px 16px rgba(0,0,0,0.1) !important;
+        }
+        
+        /* ========== LEAFLET CONTROLS ========== */
+        .leaflet-control-layers-toggle,
+        .leaflet-control-zoom a,
+        .leaflet-bar a {
+            width: 44px !important;
+            height: 44px !important;
+            line-height: 44px !important;
+            font-size: 18px !important;
+        }
+        
+        .leaflet-control-zoom {
+            border-radius: 12px !important;
+            overflow: hidden !important;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.15) !important;
+        }
+        
+        .leaflet-control-layers {
+            border-radius: 12px !important;
+        }
+        
+        /* ========== MOBILE-SPECIFIC ========== */
         @media (hover: none) and (pointer: coarse) {
-            .leaflet-control-layers-toggle,
-            .leaflet-control-zoom a,
-            .leaflet-bar a {
-                width: 44px !important;
-                height: 44px !important;
-                line-height: 44px !important;
-                font-size: 18px !important;
-            }
-            
             /* Bigger hit area for parcel clicks */
             .leaflet-interactive {
-                stroke-width: 2px;
+                stroke-width: 3px;
             }
             
             /* Prevent 300ms tap delay */
             * {
                 touch-action: manipulation;
+            }
+            
+            /* Modal buttons */
+            .modal button, .modal a {
+                min-height: var(--touch-min) !important;
+            }
+            
+            /* Better scrolling in panels */
+            #info-panel, #panel-content {
+                -webkit-overflow-scrolling: touch;
+                overscroll-behavior: contain;
             }
         }
         
@@ -200,6 +361,22 @@
         .leaflet-container {
             -webkit-tap-highlight-color: transparent;
             -webkit-touch-callout: none;
+        }
+        
+        /* ========== LOADING SKELETON ENHANCEMENT ========== */
+        #loading-skeleton {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%) !important;
+        }
+        
+        /* ========== LANDSCAPE MODE ========== */
+        @media (orientation: landscape) and (max-height: 500px) {
+            #action-toolbar {
+                bottom: 8px !important;
+                padding: 6px 12px !important;
+            }
+            #info-panel {
+                max-height: 70vh !important;
+            }
         }
     </style>
 
@@ -660,27 +837,31 @@
     </button>
 
     <div id="map"></div>
-    <div id="action-toolbar" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-[1001] flex items-center space-x-1 bg-white/90 backdrop-blur-sm px-3 py-2 rounded-full shadow-lg border border-gray-200">
-        <button id="list-btn" class="toolbar-btn-compact">
-            <i class="fa-solid fa-list text-sm"></i>
-            <span class="text-xs">Danh sách</span>
+    
+    <!-- ========== BOTTOM ACTION TOOLBAR ========== -->
+    <div id="action-toolbar" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-[1001] flex items-center bg-white/90 backdrop-blur-sm px-4 py-2 rounded-2xl shadow-lg border border-gray-200">
+        <button id="list-btn" class="toolbar-btn-compact" aria-label="Xem danh sách BĐS">
+            <i class="fa-solid fa-list"></i>
+            <span>Danh sách</span>
         </button>
-        <button id="add-location-btn" title="Đăng tin bất động sản" class="toolbar-btn-compact disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-            <i class="fa-solid fa-bullhorn text-sm"></i>
-            <span class="text-xs">Đăng tin</span>
+        <button id="add-location-btn" title="Đăng tin bất động sản" class="toolbar-btn-compact disabled:opacity-50 disabled:cursor-not-allowed" disabled aria-label="Đăng tin rao bán">
+            <i class="fa-solid fa-bullhorn"></i>
+            <span>Đăng tin</span>
         </button>
-        <button id="query-btn" title="Tra cứu Địa chính" class="toolbar-btn-compact">
-            <i class="fa-solid fa-search text-sm"></i>
-            <span class="text-xs">Tra cứu</span>
+        <button id="query-btn" title="Tra cứu Địa chính" class="toolbar-btn-compact" aria-label="Tra cứu thửa đất">
+            <i class="fa-solid fa-search"></i>
+            <span>Tra cứu</span>
         </button>
-        <button id="guide-btn" title="Hướng dẫn sử dụng" class="toolbar-btn-compact bg-blue-500 text-white hover:bg-blue-600">
-            <i class="fa-solid fa-question-circle text-sm"></i>
-            <span class="text-xs">Hướng dẫn</span>
+        <button id="guide-btn" title="Hướng dẫn sử dụng" class="toolbar-btn-compact" aria-label="Xem hướng dẫn">
+            <i class="fa-solid fa-question-circle"></i>
+            <span>Hướng dẫn</span>
         </button>
     </div>
 
-    <div id="info-panel" class="fixed bottom-0 left-0 right-0 bg-white shadow-2xl rounded-t-2xl z-[1002] p-4 transform translate-y-full transition-transform duration-300 ease-in-out" style="max-height: 45vh; overflow-y: auto;">
-        <div class="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-3"></div>
+    <!-- ========== INFO PANEL (Parcel Details) ========== -->
+    <div id="info-panel" class="fixed bottom-0 left-0 right-0 bg-white shadow-2xl rounded-t-2xl z-[1002] p-4 transform translate-y-full transition-transform duration-300 ease-out" style="max-height: 55vh; overflow-y: auto;">
+        <!-- Drag handle for mobile -->
+        <div class="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-3 cursor-grab active:cursor-grabbing"></div>
         
         <div class="flex justify-between items-center mb-3">
             <h3 id="panel-title" class="text-base font-bold text-gray-800">Thông tin</h3>
@@ -706,38 +887,44 @@
         <span id="instruction-text"></span>
     </div>
 
+   <!-- ========== RIGHT SIDEBAR (Quick Actions) ========== -->
    <div class="absolute top-4 right-4 z-[1000] flex flex-col items-center space-y-3">
         <!-- V2 Beta Link -->
-        <a href="/v2/" target="_blank" class="text-xs text-gray-500 hover:text-indigo-600 transition-colors flex items-center space-x-1">
+        <a href="/v2/" target="_blank" class="text-xs text-gray-500 hover:text-indigo-600 transition-colors flex items-center space-x-1 bg-white/80 backdrop-blur px-2 py-1 rounded-full">
             <span>V2</span>
             <span class="px-1.5 py-0.5 bg-indigo-100 text-indigo-600 rounded text-[10px] font-semibold">BETA</span>
         </a>
         
         <div id="auth-container" class="relative">
-            <button id="login-btn" title="Đăng nhập" class="bg-green-500 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-green-600 transition">
-                <i class="fa-solid fa-user"></i>
+            <button id="login-btn" title="Đăng nhập" class="bg-green-500 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-green-600 transition active:scale-95" aria-label="Đăng nhập tài khoản">
+                <i class="fa-solid fa-user text-lg"></i>
             </button>
-            <div id="user-profile" class="hidden items-center justify-center bg-white w-12 h-12 rounded-full shadow-lg cursor-pointer">
-                <img id="user-avatar" class="w-10 h-10 rounded-full">
+            <div id="user-profile" class="hidden items-center justify-center bg-white w-12 h-12 rounded-full shadow-lg cursor-pointer border-2 border-green-500">
+                <img id="user-avatar" class="w-10 h-10 rounded-full" alt="Avatar">
             </div>
-            <div id="profile-menu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-[1002] py-1 border">
-                <a href="#" id="portfolio-menu-btn" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                    <i class="fa-solid fa-briefcase mr-2"></i>Ví Bất Động Sản
+            <div id="profile-menu" class="hidden absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-xl z-[1002] py-2 border">
+                <a href="#" id="portfolio-menu-btn" class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 active:bg-gray-100">
+                    <i class="fa-solid fa-briefcase mr-3 text-blue-500"></i>Ví Bất Động Sản
                 </a>
-                <a href="#" id="update-profile-btn" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Cập nhật hồ sơ</a>
-                <a href="#" id="logout-btn-menu" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Thoát</a>
+                <a href="#" id="update-profile-btn" class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 active:bg-gray-100">
+                    <i class="fa-solid fa-user-edit mr-3 text-gray-400"></i>Cập nhật hồ sơ
+                </a>
+                <hr class="my-1">
+                <a href="#" id="logout-btn-menu" class="flex items-center px-4 py-3 text-sm text-red-600 hover:bg-red-50 active:bg-red-100">
+                    <i class="fa-solid fa-sign-out-alt mr-3"></i>Đăng xuất
+                </a>
             </div>
         </div>
-        <button id="contact-info-btn" title="Thông tin liên hệ" class="bg-white text-gray-700 w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100 transition">
+        <button id="contact-info-btn" title="Thông tin liên hệ" class="bg-white text-gray-700 w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100 transition active:scale-95" aria-label="Thông tin liên hệ">
             <i class="fa-solid fa-info-circle text-xl"></i>
         </button>
-        <button id="feedback-btn" title="Góp ý & Phản hồi" class="bg-purple-500 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-purple-600 transition">
+        <button id="feedback-btn" title="Góp ý & Phản hồi" class="bg-purple-500 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-purple-600 transition active:scale-95" aria-label="Gửi góp ý">
             <i class="fa-solid fa-comment-dots text-xl"></i>
         </button>
-        <button id="admin-btn" title="Quản trị hệ thống" class="bg-red-600 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-red-700 transition" style="display: none;">
+        <button id="admin-btn" title="Quản trị hệ thống" class="bg-red-600 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-red-700 transition active:scale-95" style="display: none;" aria-label="Trang quản trị">
             <i class="fa-solid fa-cog text-xl"></i>
         </button>
-        <button id="locate-btn" title="Tìm vị trí của tôi" class="bg-white text-gray-700 w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100 transition">
+        <button id="locate-btn" title="Tìm vị trí của tôi" class="bg-white text-gray-700 w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100 transition active:scale-95" aria-label="Định vị">
             <i class="fa-solid fa-location-crosshairs text-xl"></i>
         </button>
     </div>
