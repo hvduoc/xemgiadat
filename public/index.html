@@ -143,15 +143,19 @@
     <link rel="dns-prefetch" href="//firebase.googleapis.com">
     <link rel="dns-prefetch" href="//firestore.googleapis.com">
     <link rel="dns-prefetch" href="//storage.googleapis.com">
+    <link rel="dns-prefetch" href="//unpkg.com">
+    <link rel="dns-prefetch" href="//tile.openstreetmap.org">
     
-    <!-- CSS Stylesheets -->
+    <!-- 🚀 CRITICAL: Preload essential resources for faster FCP -->
+    <link rel="preload" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" as="script">
+    <link rel="preload" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" as="style">
+    <link rel="preload" href="/script.js" as="script">
+    
+    <!-- CSS Stylesheets - Critical first, others deferred -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-    <link rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/4.8.1/firebase-ui-auth.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
-    <link rel="stylesheet" href="https://unpkg.com/esri-leaflet-geocoder@3.1.4/dist/esri-leaflet-geocoder.css" crossorigin="">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+    <!-- Non-critical CSS loaded async via JS below -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" media="print" onload="this.media='all'" />
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"></noscript>
 
     <!-- Custom CSS for mobile optimizations and toast animations -->
     <style>
@@ -527,6 +531,25 @@
   <link rel="stylesheet" crossorigin href="/assets/main-CoB823_Y.css">
 </head>
 <body class="relative overflow-hidden">
+    <!-- 🚀 LOADING SKELETON - Shows instantly while scripts load -->
+    <div id="loading-skeleton" style="position:fixed;inset:0;z-index:99999;background:#f3f4f6;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 0.3s;">
+        <div style="text-align:center;">
+            <div style="width:60px;height:60px;border:4px solid #e5e7eb;border-top-color:#3b82f6;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px;"></div>
+            <h2 style="color:#1f2937;font-size:1.25rem;font-weight:600;margin:0 0 8px;">Xem Giá Đất</h2>
+            <p style="color:#6b7280;font-size:0.875rem;margin:0;">Đang tải bản đồ...</p>
+        </div>
+        <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+    </div>
+    <script>
+        // Hide skeleton when map is ready (triggered from script.js)
+        window.hideLoadingSkeleton = function() {
+            var el = document.getElementById('loading-skeleton');
+            if (el) { el.style.opacity = '0'; setTimeout(function() { el.remove(); }, 300); }
+        };
+        // Fallback: hide after 8 seconds max
+        setTimeout(function() { window.hideLoadingSkeleton && window.hideLoadingSkeleton(); }, 8000);
+    </script>
+
     <!-- P0 FIX: Build Version Banner (development only, hidden in production CSS) -->
     <div id="build-banner" style="position:fixed;bottom:0;right:0;z-index:99999;font-size:10px;padding:2px 6px;background:rgba(0,0,0,0.7);color:#0f0;font-family:monospace;pointer-events:none;">
         BUILD: 2.0.0 | <span id="build-stamp">local</span>
@@ -1463,14 +1486,71 @@
     <script defer src="https://unpkg.com/esri-leaflet@3.0.10/dist/esri-leaflet.js"></script>
     <script defer src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
     <script defer src="https://unpkg.com/esri-leaflet-geocoder@3.1.4/dist/esri-leaflet-geocoder.js" crossorigin=""></script>
-    <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-    <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-    <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-    <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
-    <script defer src="https://www.gstatic.com/firebasejs/ui/4.8.1/firebase-ui-auth.js"></script>
-    <script async src="https://apis.google.com/js/api.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script async defer crossorigin="anonymous" src="https://connect.facebook.net/vi_VN/sdk.js#xfbml=1&version=v19.0" nonce="fb-plugin"></script>
+    
+    <!-- 🚀 LAZY LOAD: Firebase + non-critical libs loaded after page interactive -->
+    <script>
+        // Lazy load non-critical scripts after map renders
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                // Firebase scripts - only needed for auth/data
+                var firebaseScripts = [
+                    'https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js',
+                    'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js',
+                    'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js',
+                    'https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js',
+                    'https://www.gstatic.com/firebasejs/ui/4.8.1/firebase-ui-auth.js'
+                ];
+                
+                // Load Firebase sequentially (dependencies matter)
+                var loadNext = function(i) {
+                    if (i >= firebaseScripts.length) {
+                        // After Firebase loaded, dispatch event
+                        window.dispatchEvent(new Event('firebase-ready'));
+                        return;
+                    }
+                    var s = document.createElement('script');
+                    s.src = firebaseScripts[i];
+                    s.onload = function() { loadNext(i + 1); };
+                    document.body.appendChild(s);
+                };
+                loadNext(0);
+                
+                // Lazy load non-critical CSS
+                var lazyCss = [
+                    'https://www.gstatic.com/firebasejs/ui/4.8.1/firebase-ui-auth.css',
+                    'https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css',
+                    'https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css',
+                    'https://unpkg.com/esri-leaflet-geocoder@3.1.4/dist/esri-leaflet-geocoder.css',
+                    'https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css'
+                ];
+                lazyCss.forEach(function(href) {
+                    var link = document.createElement('link');
+                    link.rel = 'stylesheet';
+                    link.href = href;
+                    document.head.appendChild(link);
+                });
+                
+                // Lazy load optional scripts
+                ['https://apis.google.com/js/api.js', 'https://cdn.jsdelivr.net/npm/chart.js'].forEach(function(src) {
+                    var s = document.createElement('script');
+                    s.src = src;
+                    s.async = true;
+                    document.body.appendChild(s);
+                });
+            }, 100); // Small delay to let map render first
+        });
+    </script>
+    <!-- Facebook SDK - very low priority, load even later -->
+    <script>
+        setTimeout(function() {
+            var fb = document.createElement('script');
+            fb.src = 'https://connect.facebook.net/vi_VN/sdk.js#xfbml=1&version=v19.0';
+            fb.async = true;
+            fb.defer = true;
+            fb.crossOrigin = 'anonymous';
+            document.body.appendChild(fb);
+        }, 3000);
+    </script>
 
     <!-- User Guide & Feedback Modal -->
     <div id="feedback-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[3001] flex items-center justify-center p-4" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0,0,0,0.5); z-index: 3001; display: none; align-items: center; justify-content: center;">

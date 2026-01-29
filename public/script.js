@@ -146,10 +146,35 @@ let isGoogleDriveReady = false;
 let googleAuthInstance = null;
 
 // --- SERVICE INITIALIZATION ---
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
-const storage = firebase.storage();
+// 🚀 PERFORMANCE: Firebase is now lazy loaded, init when ready
+let auth, db, storage;
+let firebaseInitialized = false;
+
+function initFirebase() {
+    if (firebaseInitialized) return;
+    if (typeof firebase === 'undefined') {
+        console.log('⏳ Waiting for Firebase SDK...');
+        return;
+    }
+    
+    firebase.initializeApp(firebaseConfig);
+    auth = firebase.auth();
+    db = firebase.firestore();
+    storage = firebase.storage();
+    firebaseInitialized = true;
+    console.log('✅ Firebase initialized');
+    
+    // Dispatch event for dependent code
+    window.dispatchEvent(new Event('firebase-initialized'));
+}
+
+// Try init immediately (if scripts loaded synchronously)
+if (typeof firebase !== 'undefined') {
+    initFirebase();
+} else {
+    // Wait for lazy loaded Firebase
+    window.addEventListener('firebase-ready', initFirebase);
+}
 const cachedGeojsonByMaXa = {};
 const frequentlyUsedXa = ["20194", "20195", "20197", "20198", "20200", "20203", "20206", "20207"]; 
 // Cập nhật danh sách các xã/phường có sẵn dữ liệu
@@ -222,6 +247,12 @@ document.addEventListener('DOMContentLoaded', () => {
         tap: true,                // Better touch handling for iOS
         touchZoom: 'center',      // Zoom to center on pinch (better UX)
         bounceAtZoomLimits: true  // Visual feedback when hitting zoom limit
+    });
+    
+    // 🚀 PERFORMANCE: Hide loading skeleton once map container is ready
+    // This gives instant visual feedback before tiles load
+    requestAnimationFrame(() => {
+        if (window.hideLoadingSkeleton) window.hideLoadingSkeleton();
     });
     const myAttribution = '© XemGiaDat | 📌 Dữ liệu tham khảo từ Sở TNMT Đà Nẵng. Không có giá trị pháp lý.';
     const googleStreets = L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',{ maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'], attribution: myAttribution + ' | © Google Maps' });
