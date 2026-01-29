@@ -2997,14 +2997,14 @@ async function showCommunityParcelInfo(parcelNumber, mapSheet) {
     }, 1000);
 
     // === USER ONBOARDING SYSTEM ===
+    // DISABLED: Auto tour causes iOS white screen issues
+    // Tour can be triggered manually via guide.html page
     function checkFirstTimeUser() {
         const hasVisited = localStorage.getItem('hasVisitedBefore');
         if (!hasVisited) {
-            // Delay để đảm bảo trang đã load xong
-            setTimeout(() => {
-                startOnboardingTour();
-                localStorage.setItem('hasVisitedBefore', 'true');
-            }, 2000);
+            // Mark as visited but DON'T auto-start tour (causes iOS issues)
+            localStorage.setItem('hasVisitedBefore', 'true');
+            console.log('📖 First time user - tour disabled, use guide.html instead');
         }
     }
 

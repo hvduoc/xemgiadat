@@ -434,6 +434,34 @@
             -webkit-touch-callout: none;
         }
         
+        /* ========== SEARCH BAR FIX ========== */
+        #search-bar-container {
+            position: relative !important;
+            display: -webkit-box !important;
+            display: -webkit-flex !important;
+            display: flex !important;
+            -webkit-box-align: center !important;
+            -webkit-align-items: center !important;
+            align-items: center !important;
+        }
+        
+        #search-bar-container .search-icon {
+            position: absolute !important;
+            left: 16px !important;
+            top: 50% !important;
+            -webkit-transform: translateY(-50%) !important;
+            transform: translateY(-50%) !important;
+            color: #6b7280 !important;
+            font-size: 16px !important;
+            z-index: 1 !important;
+            pointer-events: none !important;
+        }
+        
+        #search-bar-container #search-input {
+            padding-left: 44px !important;
+            width: 100% !important;
+        }
+        
         /* ========== LOADING SKELETON ENHANCEMENT ========== */
         #loading-skeleton {
             background: -webkit-linear-gradient(315deg, #f8fafc 0%, #e2e8f0 100%) !important;
@@ -449,6 +477,22 @@
             #info-panel {
                 max-height: 70vh !important;
             }
+        }
+        
+        /* ========== PREVENT HORIZONTAL SCROLL ========== */
+        html, body {
+            overflow-x: hidden !important;
+            max-width: 100vw !important;
+        }
+        
+        /* ========== DISABLE TOUR OVERLAY ON IOS ========== */
+        /* Tour causes white screen on iOS - completely disable */
+        #onboarding-overlay,
+        .tour-tooltip,
+        .tour-highlight {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
         }
     </style>
 
@@ -829,8 +873,8 @@
     <div id="search-widget-container">
         <!-- Đây là thanh tìm kiếm sẽ thu gọn/mở rộng -->
         <div id="search-bar-container">
-            <i class="fas fa-search search-icon"></i>
-            <input type="search" id="search-input" placeholder="🔍 Tìm thửa đất (VD: Thửa 123, Tờ 45 hoặc 123/45)...">
+            <i class="fas fa-search search-icon" aria-hidden="true"></i>
+            <input type="search" id="search-input" placeholder="Tìm thửa đất (VD: Thửa 123, Tờ 45)...">
         </div>
         
         <!-- Advanced Filters Panel -->
@@ -951,9 +995,7 @@
 
         </div>
     </div>
-    <div id="opacity-control" class="hidden bg-white p-2 rounded-lg shadow-lg">
-        <input id="opacity-slider" type="range" min="0" max="1" step="0.1" value="0.7">
-    </div>
+    <!-- Opacity control removed - not needed for mobile-first UX -->
     <!-- Banner hướng dẫn chỉ hiển thị khi cần -->
     <div id="instruction-banner" class="hidden absolute top-4 left-1/2 -translate-x-1/2 z-[1000] bg-yellow-400 text-black font-semibold py-2 px-4 rounded-lg shadow-lg">
         <span id="instruction-text"></span>
