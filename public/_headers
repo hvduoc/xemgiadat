@@ -1,3 +1,10 @@
 /tiles/*
   Content-Type: application/x-protobuf
   Access-Control-Allow-Origin: *
+  Cache-Control: public, max-age=31536000, immutable
+
+/tiles/*.pmtiles
+  Content-Type: application/octet-stream
+  Access-Control-Allow-Origin: *
+  Cache-Control: public, max-age=31536000, immutable
+  Accept-Ranges: bytes

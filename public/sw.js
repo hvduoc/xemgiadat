@@ -19,7 +19,7 @@
 // =============================================================================
 
 // PHASE 3 FIX: Dynamic versioning - date-based to force cache bust on each deploy
-const CACHE_VERSION = '2026-01-26-cleanup-and-layer-fix';
+const CACHE_VERSION = '2026-01-29-pmtiles-hd-v1';
 const CACHE_NAME = `xemgiadat-v${CACHE_VERSION}`;
 const OFFLINE_URL = '/offline.html';
 
@@ -174,7 +174,8 @@ async function cacheFirstStrategy(request) {
     }
     
     const networkResponse = await fetch(request);
-    if (networkResponse.ok) {
+    // Only cache successful full responses (not partial 206 responses)
+    if (networkResponse.ok && networkResponse.status !== 206) {
       const cache = await caches.open(CACHE_NAME);
       cache.put(request, networkResponse.clone());
     }
@@ -190,7 +191,8 @@ async function cacheFirstStrategy(request) {
 async function networkFirstStrategy(request) {
   try {
     const networkResponse = await fetch(request);
-    if (networkResponse.ok) {
+    // Only cache successful full responses (not partial 206 responses)
+    if (networkResponse.ok && networkResponse.status !== 206) {
       const cache = await caches.open(CACHE_NAME);
       cache.put(request, networkResponse.clone());
     }

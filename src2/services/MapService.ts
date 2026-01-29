@@ -194,12 +194,15 @@ export class MapService {
     }
 
     try {
-      // Add PMTiles source
+      // Add PMTiles source with minzoom/maxzoom matching PMTiles header
+      // Current file: zoom 12-16, target after rebuild: zoom 10-20
       this.map.addSource('parcels-source', {
         type: 'vector',
         url: pmtilesUrl,
+        minzoom: 10,
+        maxzoom: 20,
       } as any);
-      this.log('Parcels source added successfully');
+      this.log('Parcels source added successfully (minzoom:10, maxzoom:20)');
     } catch (err) {
       this.error('Failed to add parcels source:', err);
     }
@@ -213,13 +216,15 @@ export class MapService {
             type: 'fill',
             source: 'parcels-source',
             'source-layer': 'default',  // Try 'default' as common PMTiles layer name
+            minzoom: 10,
+            maxzoom: 22,  // Allow overzoom beyond maxzoom
             paint: {
-              'fill-color': '#6366f1',
+              'fill-color': '#ffffff',  // Nền trắng
               'fill-opacity': [
                 'case',
                 ['boolean', ['feature-state', 'selected'], false],
-                0.8,
-                0.5,
+                0.5,    // Selected: 50% opacity
+                0,      // Normal: transparent (chỉ show outline)
               ],
             },
           },
@@ -241,13 +246,15 @@ export class MapService {
             type: 'fill',
             source: 'parcels-source',
             'source-layer': 'parcels',
+            minzoom: 10,
+            maxzoom: 22,  // Allow overzoom beyond maxzoom
             paint: {
-              'fill-color': '#6366f1',
+              'fill-color': '#ffffff',  // Nền trắng
               'fill-opacity': [
                 'case',
                 ['boolean', ['feature-state', 'selected'], false],
-                0.8,
-                0.5,
+                0.5,    // Selected: 50% opacity
+                0,      // Normal: transparent
               ],
             },
           },
@@ -268,9 +275,11 @@ export class MapService {
           type: 'line',
           source: 'parcels-source',
           'source-layer': this.workingSourceLayer,
+          minzoom: 10,
+          maxzoom: 22,  // Allow overzoom beyond maxzoom
           paint: {
-            'line-color': '#4f46e5',
-            'line-width': 1,
+            'line-color': '#a3a3a3',  // Màu xám nhạt như cũ
+            'line-width': 0.1
           },
         });
         this.log(`Parcels outline layer added with source-layer: ${this.workingSourceLayer}`);
@@ -289,6 +298,8 @@ export class MapService {
           type: 'line',
           source: 'parcels-source',
           'source-layer': this.workingSourceLayer,
+          minzoom: 10,
+          maxzoom: 22,  // Allow overzoom beyond maxzoom
           filter: ['==', ['feature-state', 'selected'], true],
           paint: {
             'line-color': '#ff6b6b',

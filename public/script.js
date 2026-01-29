@@ -242,27 +242,81 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // 4. Tùy chọn cho lớp vector tiles - tối ưu performance
+    // PMTiles có data từ zoom 10-20 (sau khi chạy create-pmtiles-hd.sh)
     const vectorTileOptions = {
-        rendererFactory: L.canvas.tile,
+        rendererFactory: L.canvas.tile, // Canvas nhanh hơn SVG
         interactive: true,
-        minZoom: 10, // Không load tiles khi zoom quá xa
-        maxZoom: 20, // Giới hạn zoom tối đa
-        updateWhenIdle: true, // Chỉ update khi map dừng di chuyển
-        updateWhenZooming: false, // Không update trong lúc zoom
-        keepBuffer: 1, // Giảm buffer để tiết kiệm memory
+        minZoom: 10,
+        maxZoom: 22,
+        maxNativeZoom: 20, // PMTiles có max zoom 20
+        updateWhenIdle: false, // Cập nhật ngay để click events hoạt động
+        updateWhenZooming: true, // Giữ tiles khi zoom
+        keepBuffer: 8, // Giữ nhiều tiles hơn để không bị unload
         getFeatureId: feature => feature.properties.OBJECTID,
         vectorTileLayerStyles: {
-            // CRITICAL: Layer name must match exactly with PMTiles layer ID
-            // PMTiles file contains layer named 'parcels', NOT 'danang_full'
-            'parcels': function(properties, zoom) {
-                return {
-                    color: zoom >= 16 ? '#6B7280' : '#9CA3AF',
-                    weight: zoom >= 18 ? 1.2 : zoom >= 16 ? 0.8 : zoom >= 14 ? 0.4 : 0.2,
-                    fill: false,
-                    opacity: zoom >= 16 ? 0.8 : zoom >= 14 ? 0.5 : 0.3,
-                    // Tối ưu rendering
-                    smoothFactor: zoom >= 16 ? 1.0 : 0.5 // Giảm smoothing khi zoom xa
-                };
+            // PMTiles mới dùng layer name 'default'
+            'default': function(properties, zoom) {
+                if (zoom >= 17) {
+                    return {
+                        color: '#6B7280', // Gray-500 - rõ hơn ở zoom cận
+                        weight: 1,
+                        fill: false,
+                        opacity: 0.8
+                    };
+                } else if (zoom >= 15) {
+                    return {
+                        color: '#9CA3AF', // Gray-400
+                        weight: 0.8,
+                        fill: false,
+                        opacity: 0.7
+                    };
+                } else if (zoom >= 13) {
+                    return {
+                        color: '#9CA3AF', // Gray-400
+                        weight: 0.6,
+                        fill: false,
+                        opacity: 0.6
+                    };
+                } else {
+                    return {
+                        color: '#D1D5DB', // Gray-300 - nhạt hơn ở zoom xa
+                        weight: 0.4,
+                        fill: false,
+                        opacity: 0.5
+                    };
+                }
+            },
+            // Giữ danang_full cho backward compatibility
+            'danang_full': function(properties, zoom) {
+                if (zoom >= 17) {
+                    return {
+                        color: '#6B7280',
+                        weight: 1,
+                        fill: false,
+                        opacity: 0.8
+                    };
+                } else if (zoom >= 15) {
+                    return {
+                        color: '#9CA3AF',
+                        weight: 0.8,
+                        fill: false,
+                        opacity: 0.7
+                    };
+                } else if (zoom >= 13) {
+                    return {
+                        color: '#9CA3AF',
+                        weight: 0.6,
+                        fill: false,
+                        opacity: 0.6
+                    };
+                } else {
+                    return {
+                        color: '#D1D5DB',
+                        weight: 0.4,
+                        fill: false,
+                        opacity: 0.5
+                    };
+                }
             }
         }
     };
@@ -324,6 +378,24 @@ document.addEventListener('DOMContentLoaded', () => {
             if (map && !map.hasLayer(parcelLayer)) {
                 parcelLayer.addTo(map);
                 console.log('✅ Parcel layer added to map successfully');
+                
+                // DEBUG: Check if tiles are being rendered
+                parcelLayer.on('tileload', function(e) {
+                    console.log('🎨 Tile rendered:', e.coords);
+                });
+                
+                parcelLayer.on('tileunload', function(e) {
+                    console.log('🗑️ Tile unloaded:', e.coords);
+                });
+                
+                // DEBUG: Check loading events
+                parcelLayer.on('loading', function() {
+                    console.log('⏳ Layer loading...');
+                });
+                
+                parcelLayer.on('load', function() {
+                    console.log('✅ Layer load complete!');
+                });
                 
                 // Add to layer control if available
                 if (window._layerControl) {
@@ -397,12 +469,20 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Old heavy loading function removed for performance optimization
     
-    // Add labels when tiles are loaded
-    parcelLayer.on('add', function(e) {
-        if (map.getZoom() >= MIN_LABEL_ZOOM) {
-            setTimeout(updateParcelLabels, 200);
+    // Add labels when tiles are loaded - moved to setupParcelLayerEvents
+    function setupParcelLayerAddEvent() {
+        if (!parcelLayer || typeof parcelLayer.on !== 'function') {
+            setTimeout(setupParcelLayerAddEvent, 300);
+            return;
         }
-    });
+        parcelLayer.on('add', function(e) {
+            if (map.getZoom() >= MIN_LABEL_ZOOM) {
+                setTimeout(updateParcelLabels, 200);
+            }
+        });
+    }
+    setupParcelLayerAddEvent();
+    
         async function fetchAndDrawDimensions(maXa, soTo, soThua) {
         dimensionMarkers.clearLayers(); // Xóa nhãn cũ nếu có
 
@@ -503,6 +583,42 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // FALLBACK: Query features khi click không hit được layer (zoom cao)
+    // Sử dụng L.VectorGrid internal method để tìm features
+    function queryFeaturesAtPoint(latlng, callback) {
+        if (!parcelLayer || !parcelLayer._vectorTiles) {
+            callback(null);
+            return;
+        }
+        
+        const point = map.latLngToContainerPoint(latlng);
+        const features = [];
+        
+        // Iterate through all loaded tiles
+        for (const key in parcelLayer._vectorTiles) {
+            const tile = parcelLayer._vectorTiles[key];
+            if (!tile || !tile._features) continue;
+            
+            // Check each feature in the tile
+            for (const featureKey in tile._features) {
+                const feature = tile._features[featureKey];
+                if (!feature || !feature.feature) continue;
+                
+                // Check if point is inside feature bounds
+                try {
+                    const featureBounds = feature.getBounds ? feature.getBounds() : null;
+                    if (featureBounds && featureBounds.contains(latlng)) {
+                        features.push(feature.feature);
+                    }
+                } catch (e) {
+                    // Ignore errors for individual features
+                }
+            }
+        }
+        
+        callback(features.length > 0 ? features[0] : null);
+    }
+
 
     // --- KẾT THÚC KHẮC PHỤC ---
 
@@ -524,6 +640,12 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Store layerControl globally so createParcelLayer can add parcel layer to it
     window._layerControl = layerControl;
+    
+    // Add parcel layer to layer control if it was created before layerControl
+    if (parcelLayer && typeof parcelLayer.addTo === 'function') {
+        layerControl.addOverlay(parcelLayer, "🗺️ Bản đồ phân lô");
+        console.log('✅ Parcel layer added to layer control (after control created)');
+    }
     
     // Tối ưu: Performance-focused event handling
     let zoomTimeout = null;
@@ -2288,6 +2410,20 @@ async function showCommunityParcelInfo(parcelNumber, mapSheet) {
             modal.classList.remove('hidden');
             L.esri.Geocoding.geocodeService().reverse().latlng(selectedCoords).run((error, result) => {
                 document.getElementById('address-input').value = (error || !result.address) ? 'Không tìm thấy địa chỉ' : result.address.Match_addr;
+            });
+        }
+        
+        // FALLBACK: Nếu đang ở chế độ tra cứu và zoom cao, thử query trực tiếp
+        if (isQueryMode && map.getZoom() >= 17) {
+            queryFeaturesAtPoint(e.latlng, function(feature) {
+                if (feature && feature.properties) {
+                    console.log('📍 Fallback query found feature:', feature.properties);
+                    // Trigger parcelLayer click event manually
+                    parcelLayer.fire('click', {
+                        latlng: e.latlng,
+                        layer: { properties: feature.properties }
+                    });
+                }
             });
         }
     });

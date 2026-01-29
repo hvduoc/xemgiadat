@@ -139,20 +139,38 @@ console.log('🔄 Loading PMTilesAdapterV3.js v3.2.0 (build 2025-01-26T23:30Z)..
                 const x = coords.x;
                 const y = coords.y;
 
+                console.log(`🔄 Fetching tile ${z}/${x}/${y}...`);
+
                 return this._pmtilesSource.getZxy(z, x, y).then(function(result) {
                     if (!result || !result.data) {
                         // No tile data at this location - return empty layers
-                        console.debug(`📭 No tile at ${z}/${x}/${y}`);
+                        console.log(`📭 No tile data at ${z}/${x}/${y}`);
                         return { layers: [] };
                     }
 
+                    console.log(`📦 Tile ${z}/${x}/${y} data received: ${result.data.byteLength} bytes`);
+
                     // Parse the protobuf data using Pbf and VectorTile
                     try {
+                        // Check if Pbf and VectorTile are available
+                        if (typeof Pbf === 'undefined') {
+                            throw new Error('Pbf is not defined - library not loaded');
+                        }
+                        if (typeof VectorTile === 'undefined') {
+                            throw new Error('VectorTile is not defined - library not loaded');
+                        }
+
                         const pbf = new Pbf(result.data);
                         const vectorTile = new VectorTile(pbf);
 
                         // Normalize feature getters into actual instanced features
                         // (Same as VectorGrid.Protobuf does)
+                        let totalFeatures = 0;
+                        const layerNames = Object.keys(vectorTile.layers);
+                        
+                        // DEBUG: Log layer names for style matching
+                        console.log(`🏷️ Tile ${z}/${x}/${y} layer names:`, layerNames);
+                        
                         for (const layerName in vectorTile.layers) {
                             const layer = vectorTile.layers[layerName];
                             const feats = [];
@@ -164,16 +182,22 @@ console.log('🔄 Loading PMTilesAdapterV3.js v3.2.0 (build 2025-01-26T23:30Z)..
                             }
                             
                             layer.features = feats;
+                            totalFeatures += feats.length;
+                            
+                            // DEBUG: Log first feature sample
+                            if (feats.length > 0) {
+                                console.log(`🔹 Layer "${layerName}": ${feats.length} features, type=${feats[0].type}, extent=${layer.extent}`);
+                            }
                         }
 
-                        console.debug(`✅ Tile ${z}/${x}/${y} loaded: ${Object.keys(vectorTile.layers).length} layers`);
+                        console.log(`✅ Tile ${z}/${x}/${y} parsed: ${layerNames.length} layers, ${totalFeatures} features`);
                         return vectorTile;
                     } catch (error) {
-                        console.warn(`❌ Error parsing tile ${z}/${x}/${y}:`, error);
+                        console.error(`❌ Error parsing tile ${z}/${x}/${y}:`, error);
                         return { layers: [] };
                     }
                 }).catch(function(error) {
-                    console.warn(`❌ Error fetching tile ${z}/${x}/${y}:`, error);
+                    console.error(`❌ Error fetching tile ${z}/${x}/${y}:`, error);
                     return { layers: [] };
                 });
             },
