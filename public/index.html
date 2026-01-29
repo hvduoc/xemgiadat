@@ -1777,10 +1777,11 @@
     <script defer src="https://unpkg.com/pmtiles@3.0.6/dist/pmtiles.js"></script>
     
     <!-- Self-contained Pbf/VectorTile parser - NO EXTERNAL DEPS -->
-    <script defer src="js/lib/vectortile-parser.js"></script>
+    <!-- Cache-bust: 2026-01-29 to force CDN refresh -->
+    <script defer src="js/lib/vectortile-parser.js?v=20260129"></script>
     
     <!-- Our adapter that connects PMTiles to VectorGrid -->
-    <script defer src="js/adapters/PMTilesAdapterV3.js"></script>
+    <script defer src="js/adapters/PMTilesAdapterV3.js?v=20260129"></script>
     <script defer src="js/adapters/GeocodingAdapter.js"></script>
     <script defer src="js/adapters/FeatureFlagConfig.js"></script>
     
