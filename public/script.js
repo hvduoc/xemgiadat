@@ -146,35 +146,10 @@ let isGoogleDriveReady = false;
 let googleAuthInstance = null;
 
 // --- SERVICE INITIALIZATION ---
-// 🚀 PERFORMANCE: Firebase is now lazy loaded, init when ready
-let auth, db, storage;
-let firebaseInitialized = false;
-
-function initFirebase() {
-    if (firebaseInitialized) return;
-    if (typeof firebase === 'undefined') {
-        console.log('⏳ Waiting for Firebase SDK...');
-        return;
-    }
-    
-    firebase.initializeApp(firebaseConfig);
-    auth = firebase.auth();
-    db = firebase.firestore();
-    storage = firebase.storage();
-    firebaseInitialized = true;
-    console.log('✅ Firebase initialized');
-    
-    // Dispatch event for dependent code
-    window.dispatchEvent(new Event('firebase-initialized'));
-}
-
-// Try init immediately (if scripts loaded synchronously)
-if (typeof firebase !== 'undefined') {
-    initFirebase();
-} else {
-    // Wait for lazy loaded Firebase
-    window.addEventListener('firebase-ready', initFirebase);
-}
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+const storage = firebase.storage();
 const cachedGeojsonByMaXa = {};
 const frequentlyUsedXa = ["20194", "20195", "20197", "20198", "20200", "20203", "20206", "20207"]; 
 // Cập nhật danh sách các xã/phường có sẵn dữ liệu

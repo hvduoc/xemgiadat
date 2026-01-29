@@ -1487,34 +1487,18 @@
     <script defer src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
     <script defer src="https://unpkg.com/esri-leaflet-geocoder@3.1.4/dist/esri-leaflet-geocoder.js" crossorigin=""></script>
     
-    <!-- 🚀 LAZY LOAD: Firebase + non-critical libs loaded after page interactive -->
+    <!-- Firebase SDK - Must load BEFORE script.js (critical dependency) -->
+    <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/ui/4.8.1/firebase-ui-auth.js"></script>
+    
+    <!-- 🚀 LAZY LOAD: Non-critical libs loaded after page interactive -->
     <script>
         // Lazy load non-critical scripts after map renders
         window.addEventListener('load', function() {
             setTimeout(function() {
-                // Firebase scripts - only needed for auth/data
-                var firebaseScripts = [
-                    'https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js',
-                    'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js',
-                    'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js',
-                    'https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js',
-                    'https://www.gstatic.com/firebasejs/ui/4.8.1/firebase-ui-auth.js'
-                ];
-                
-                // Load Firebase sequentially (dependencies matter)
-                var loadNext = function(i) {
-                    if (i >= firebaseScripts.length) {
-                        // After Firebase loaded, dispatch event
-                        window.dispatchEvent(new Event('firebase-ready'));
-                        return;
-                    }
-                    var s = document.createElement('script');
-                    s.src = firebaseScripts[i];
-                    s.onload = function() { loadNext(i + 1); };
-                    document.body.appendChild(s);
-                };
-                loadNext(0);
-                
                 // Lazy load non-critical CSS
                 var lazyCss = [
                     'https://www.gstatic.com/firebasejs/ui/4.8.1/firebase-ui-auth.css',
