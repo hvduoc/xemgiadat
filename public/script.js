@@ -8128,24 +8128,23 @@ class PerformanceMonitor {
     }
     
     setupResourceTiming() {
-        if ('PerformanceObserver' in window) {
-            new PerformanceObserver((list) => {
-                for (const entry of list.getEntries()) {
-                    // Track slow resources
-                    if (entry.duration > 1000) { // Resources taking more than 1s
-                        console.warn('🐌 Slow resource:', {
-                            name: entry.name,
-                            duration: entry.duration,
-                            size: entry.transferSize || 0
-                        });
-                        
-                        // Report to analytics
-                        if (window.trackPerformance) {
-                            window.trackPerformance('slow_resource', entry.duration);
+        // DISABLED: Resource timing observer causes significant TBT increase
+        // due to processing all buffered resources on page load
+        // Only enable in debug mode if needed
+        if (window.location.search.includes('debug=perf')) {
+            if ('PerformanceObserver' in window) {
+                new PerformanceObserver((list) => {
+                    for (const entry of list.getEntries()) {
+                        // Track slow resources
+                        if (entry.duration > 3000) { // Only very slow resources (3s+)
+                            console.warn('🐌 Slow resource:', {
+                                name: entry.name,
+                                duration: entry.duration
+                            });
                         }
                     }
-                }
-            }).observe({ type: 'resource', buffered: true });
+                }).observe({ type: 'resource', buffered: false }); // Don't process buffered
+            }
         }
     }
     
@@ -8234,12 +8233,18 @@ class PerformanceMonitor {
     }
     
     startPerformanceObserver() {
+        // DISABLED in production: Long task observer itself causes overhead
+        // Enable only in debug mode: ?debug=perf
+        if (!window.location.search.includes('debug=perf')) {
+            return;
+        }
+        
         // Monitor long tasks (> 50ms)
         if ('PerformanceObserver' in window) {
             try {
                 new PerformanceObserver((list) => {
                     for (const entry of list.getEntries()) {
-                        if (entry.duration > 50) {
+                        if (entry.duration > 100) { // Increased threshold
                             console.warn('🔥 Long task detected:', {
                                 duration: entry.duration,
                                 startTime: entry.startTime
@@ -8248,7 +8253,7 @@ class PerformanceMonitor {
                             this.reportMetric('Long_Task', entry.duration);
                         }
                     }
-                }).observe({ type: 'longtask', buffered: true });
+                }).observe({ type: 'longtask', buffered: false }); // Don't process buffered
             } catch (error) {
                 console.log('Long task observer not supported');
             }
@@ -8435,17 +8440,20 @@ class PerformanceMonitor {
     }
 }
 
-// Initialize Performance Monitor
+// Initialize Performance Monitor - DEFERRED to reduce TBT
 let advancedPerformanceMonitor;
 document.addEventListener('DOMContentLoaded', function() {
-    advancedPerformanceMonitor = new PerformanceMonitor();
-    
-    // Make it available globally for debugging
-    window.advancedPerformanceMonitor = advancedPerformanceMonitor;
-    
-    // Add dashboard command
-    window.getPerformanceReport = () => performanceMonitor.getPerformanceReport();
-    window.getErrorReport = () => performanceMonitor.getErrorReport();
+    // Defer by 2 seconds to allow page to become interactive first
+    setTimeout(() => {
+        advancedPerformanceMonitor = new PerformanceMonitor();
+        
+        // Make it available globally for debugging
+        window.advancedPerformanceMonitor = advancedPerformanceMonitor;
+        
+        // Add dashboard command
+        window.getPerformanceReport = () => performanceMonitor.getPerformanceReport();
+        window.getErrorReport = () => performanceMonitor.getErrorReport();
+    }, 2000);
 });
 
 // ============================================================================
@@ -8938,18 +8946,22 @@ class UserBehaviorTracker {
     }
 }
 
-// Initialize User Behavior Tracker
+// Initialize User Behavior Tracker - DEFERRED to reduce TBT
 let userBehaviorTracker;
 document.addEventListener('DOMContentLoaded', function() {
-    userBehaviorTracker = new UserBehaviorTracker();
-    
-    // Make it available globally for debugging
-    window.userBehaviorTracker = userBehaviorTracker;
-    
-    // Add dashboard commands
-    window.getBehaviorSummary = () => userBehaviorTracker.getBehaviorSummary();
-    window.getHeatmapData = () => userBehaviorTracker.getHeatmapData();
-    window.getEngagementScore = () => userBehaviorTracker.getEngagementScore();
+    // Defer tracker initialization to after page becomes interactive
+    // This significantly reduces Total Blocking Time (TBT)
+    setTimeout(() => {
+        userBehaviorTracker = new UserBehaviorTracker();
+        
+        // Make it available globally for debugging
+        window.userBehaviorTracker = userBehaviorTracker;
+        
+        // Add dashboard commands
+        window.getBehaviorSummary = () => userBehaviorTracker.getBehaviorSummary();
+        window.getHeatmapData = () => userBehaviorTracker.getHeatmapData();
+        window.getEngagementScore = () => userBehaviorTracker.getEngagementScore();
+    }, 3000); // Defer by 3 seconds
     
     // Newsletter form functionality
     const newsletterForm = document.getElementById('newsletterForm');
