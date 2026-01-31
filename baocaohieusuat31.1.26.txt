@@ -1,0 +1,154 @@
+Thời gian tạo báo cáo: 16:12:09 31 thg 1, 2026
+https://xemgiadat.com/
+Hãy nhập một URL hợp lệ
+
+
+smartphone
+Di động
+
+computer
+Máy tính
+
+Khám phá nội dung người dùng thực tế của bạn đang trải nghiệm
+Không có dữ liệu
+
+Chẩn đoán các vấn đề về hiệu suất
+54
+Hiệu suất
+88
+Hỗ trợ tiếp cận
+92
+Phương pháp hay nhất
+92
+SEO
+54
+FCP
++0
+LCP
++1
+TBT
++26
+CLS
++25
+SI
++2
+Hiệu suất
+Các giá trị chỉ là ước tính và có thể thay đổi. Điểm hiệu quả được tính trực tiếp từ những chỉ số này.Xem máy tính.
+0–49
+50–89
+90–100
+Final Screenshot
+
+Các chỉ số
+Chế độ xem mở rộng
+First Contentful Paint
+6,7 giây
+Largest Contentful Paint
+8,2 giây
+Total Blocking Time
+230 mili giây
+Cumulative Layout Shift
+0
+Speed Index
+8,3 giây
+Captured at 16:12 GMT+7 31 thg 1, 2026
+Moto G Power mô phỏng with Lighthouse 13.0.1
+Phiên trang đơn
+Lượt tải trang đầu tiên
+Chế độ điều tiết mạng 4G chậm
+Using HeadlessChromium 137.0.7151.119 with lr
+Xem Biểu đồ dạng cây
+Screenshot
+Screenshot
+Screenshot
+Screenshot
+Screenshot
+Screenshot
+Screenshot
+Screenshot
+Hiển thị các lượt kiểm tra liên quan đến:
+
+All
+
+FCP
+
+LCP
+
+TBT
+
+CLS
+Thông tin chi tiết
+Sử dụng thời gian hữu dụng của bộ nhớ đệm hiệu quả Mức tiết kiệm ước tính: 327 KiB
+Phát hiện yêu cầu LCP
+Cây phần phụ thuộc mạng
+Hiển thị phông chữ Mức tiết kiệm ước tính: 20 mili giây
+Cải thiện việc phân phối hình ảnh Mức tiết kiệm ước tính: 155 KiB
+Yêu cầu chặn quá trình hiển thị
+JavaScript trùng lặp Mức tiết kiệm ước tính: 3 KiB
+Nguyên nhân làm thay đổi bố cục
+Bảng chi tiết về LCP (Nội dung lớn nhất hiển thị)
+bên thứ ba
+Những thông tin chi tiết này cũng có trong Bảng điều khiển hiệu suất của Chrome DevTools – hãy ghi lại dấu vết để xem thông tin chi tiết hơn.
+Chẩn đoán
+Giảm thời gian thực thi JavaScript 2,2 giây
+Giảm thiểu công việc theo chuỗi chính 4,0 giây
+Giảm JavaScript không dùng đến Mức tiết kiệm ước tính: 545 KiB
+Rút gọn JavaScript Mức tiết kiệm ước tính: 44 KiB
+Giảm CSS không dùng đến Mức tiết kiệm ước tính: 18 KiB
+Tránh các tài nguyên lớn trên mạng Tổng kích thước là 3.979 KiB
+Tránh những việc cần nhiều thời gian thực hiện trong chuỗi chính Phát hiện thấy 17 việc cần nhiều thời gian thực hiện
+Các thời điểm cụ thể và khoảng thời gian được ghi lại bằng API Thời gian người dùng 3 dấu thời gian người dùng
+Thông tin bổ sung về hiệu suất của ứng dụng. Những số liệu này không trực tiếp ảnh hưởng đến Điểm hiệu suất.
+Số lần kiểm tra đạt yêu cầu (9)
+Hiện
+88
+Hỗ trợ tiếp cận
+Các hoạt động kiểm tra này giúp xác định cơ hội cải thiện khả năng hỗ trợ tiếp cận của ứng dụng web. Các hoạt động này chỉ có thể tự động phát hiện một phần vấn đề và không đảm bảo khả năng hỗ trợ tiếp cận của ứng dụng web. Vì vậy, bạn nên kiểm tra cả theo cách thủ công.
+Tên và nhãn
+Các nút không có tên có thể tiếp cận được
+Đây là những cơ hội giúp cải thiện chức năng diễn giải ngữ nghĩa của các biện pháp kiểm soát trong ứng dụng của bạn. Điều này có thể nâng cao trải nghiệm cho những người dùng công nghệ hỗ trợ, chẳng hạn như trình đọc màn hình.
+Những phương pháp hay nhất
+[user-scalable="no"] được dùng trong phần tử <meta name="viewport"> hoặc thuộc tính [maximum-scale] nhỏ hơn 5.
+Tài liệu không có điểm mốc chính.
+Những mục này nêu bật các phương pháp hay nhất thường dùng cho hỗ trợ tiếp cận
+Các mục bổ sung cần kiểm tra theo cách thủ công (10)
+Hiện
+Các mục này nằm trong vùng không thể sử dụng công cụ kiểm tra tự động. Tìm hiểu thêm trong hướng dẫn của chúng tôi về cách đánh giá khả năng hỗ trợ tiếp cận.
+Số lần kiểm tra đạt yêu cầu (21)
+Hiện
+Không áp dụng (36)
+Hiện
+92
+Phương pháp hay nhất
+Trải nghiệm người dùng
+Phân phối hình ảnh có độ phân giải thấp
+Chung
+Đã ghi lỗi của trình duyệt vào bảng điều khiển
+Thư viện JavaScript phát hiện được
+Tin cậy và an toàn
+Đảm bảo CSP có khả năng chống lại hình thức tấn công thông qua XSS
+Sử dụng chính sách HSTS mạnh
+Đảm bảo tách biệt nguồn gốc theo cách phù hợp bằng COOP
+Giảm thiểu XSS dựa trên DOM bằng Trusted Types
+Số lần kiểm tra đạt yêu cầu (11)
+Hiện
+Không áp dụng (2)
+Hiện
+92
+SEO
+Các hoạt động kiểm tra này đảm bảo rằng trang của bạn tuân theo lời khuyên cơ bản về cách tối ưu hoá cho công cụ tìm kiếm. Có nhiều yếu tố bổ sung mà Lighthouse không xếp hạng ở đây có thể ảnh hưởng đến thứ hạng của bạn trong kết quả tìm kiếm, kể cả hiệu suất của Các chỉ số quan trọng về trang web. Tìm hiểu thêm Kiến thức thiết yếu về Google Tìm kiếm.
+Thu thập thông tin và lập chỉ mục
+robots.txt không hợp lệ Đã tìm thấy 1 lỗi
+Nếu định dạng của tệp robots.txt không đúng, thì trình thu thập thông tin có thể không hiểu được cách bạn muốn thu thập thông tin hoặc lập chỉ mục trang web của mình. Tìm hiểu thêm về tệp robots.txt.
+Line #
+Content
+Error
+29
+Content-Signal: search=yes,ai-train=no
+Unknown directive
+Để xuất hiện trong kết quả tìm kiếm, các trình thu thập thông tin cần quyền truy cập vào ứng dụng của bạn.
+Các mục bổ sung cần kiểm tra theo cách thủ công (1)
+Hiện
+Chạy những trình xác thực bổ sung này trên trang web của bạn để xem thêm các phương pháp hay nhất dành cho quy trình Tối ưu hóa cho công cụ tìm kiếm (SEO).
+Số lần kiểm tra đạt yêu cầu (9)
+Hiện

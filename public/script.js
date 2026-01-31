@@ -141,6 +141,11 @@ const IMGUR_CONFIG = {
     ]
 };
 
+// --- GLOBAL TIMEOUT VARIABLES ---
+// Declared early to avoid "Cannot access before initialization" errors
+let labelLoadTimeout = null;
+let zoomToastTimeout = null;
+
 // Global variables for Google Drive
 let isGoogleDriveReady = false;
 let googleAuthInstance = null;
@@ -3413,7 +3418,7 @@ async function showCommunityParcelInfo(parcelNumber, mapSheet) {
 
     // === PERFORMANCE OPTIMIZED LABEL SYSTEM ===
     let labelCache = new Map(); // Cache loaded labels by area
-    let labelLoadTimeout = null;
+    // labelLoadTimeout is declared globally at the top of the file
     const MAX_CACHE_SIZE = 3; // Giới hạn cache để tiết kiệm memory
     
     // Memory management function

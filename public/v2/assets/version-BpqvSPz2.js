@@ -1,0 +1,1 @@
+const t={version:"2.0.0",buildTime:(new Date).toISOString(),commit:{}.COMMIT_REF||"local",getFullVersion(){return`${this.version}-${this.commit.slice(0,7)}`},getTimestamp(){return this.buildTime}};export{t as BUILD_VERSION,t as default};

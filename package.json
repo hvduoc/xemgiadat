@@ -14,6 +14,7 @@
     "optimize": "npm run optimize:js && npm run optimize:css",
     "optimize:js": "echo 'Minifying JavaScript...' && terser public/script.js -o public/script.min.js -c -m",
     "optimize:css": "echo 'Minifying CSS...' && cleancss public/style.css -o public/style.min.css",
+    "optimize:images": "node scripts/optimize-images.js",
     "analyze": "echo \"File sizes:\" && Get-ChildItem public\\*.js, public\\*.css, public\\*.html -ErrorAction SilentlyContinue | Select-Object Name, @{N='Size_KB';E={[Math]::Round($_.Length/1KB)}} || dir public\\*.js public\\*.css public\\*.html",
     "performance": "echo 'Opening performance dashboard...' && start http://localhost:3000/performance.html"
   },
@@ -26,6 +27,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-legacy": "^5.0.0",
+    "sharp": "^0.34.5",
     "vite": "^5.4.21"
   }
 }

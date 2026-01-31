@@ -11,7 +11,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no, maximum-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="/images/favicon.png">
@@ -50,9 +50,9 @@
     <meta name="pi-network:image" content="https://xemgiadat.com/images/pi-network-preview.png">
     
         <!-- Build Version Meta Tags -->
-        <meta name="build-version" content="faea47b-1769417025243">
-        <meta name="build-time" content="2026-01-26T08:43:45.242Z">
-        <meta name="cache-version" content="faea47b-1769417025243">
+        <meta name="build-version" content="c01d5f5-1769862229262">
+        <meta name="build-time" content="2026-01-31T12:23:49.261Z">
+        <meta name="cache-version" content="c01d5f5-1769862229262">
     <meta name="twitter:title" content="Xem Giá Đất Đà Nẵng - Bản Đồ Giá Đất Chính Xác">
     <meta name="twitter:description" content="Bản đồ giá đất Đà Nẵng online, thông tin BDS chính xác, giao dịch minh bạch.">
     <meta name="twitter:image" content="https://xemgiadat.com/images/thumbnail.png">
@@ -138,6 +138,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://www.google-analytics.com">
     <link rel="preconnect" href="https://www.googletagmanager.com">
+    <link rel="preconnect" href="https://unpkg.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     
     <!-- DNS Prefetch -->
     <link rel="dns-prefetch" href="//firebase.googleapis.com">
@@ -152,9 +154,9 @@
     <link rel="preload" href="/script.js" as="script">
     
     <!-- CSS Stylesheets - Critical first, others deferred -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-    <!-- Non-critical CSS loaded async via JS below -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" media="print" onload="this.media='all'" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" fetchpriority="high" />
+    <!-- Non-critical CSS loaded async -->
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'" crossorigin="anonymous">
     <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"></noscript>
 
     <!-- Custom CSS for mobile optimizations and toast animations -->
@@ -948,14 +950,14 @@
     </div>
 
     <!-- Filter Toggle Button -->
-    <button id="toggle-filters" class="fixed top-20 left-4 z-[1000] bg-white/90 backdrop-blur-md w-10 h-10 rounded-full shadow-lg flex items-center justify-center hover:bg-white transition-all duration-200">
-        <i class="fas fa-filter text-gray-600"></i>
+    <button id="toggle-filters" class="fixed top-20 left-4 z-[1000] bg-white/90 backdrop-blur-md w-10 h-10 rounded-full shadow-lg flex items-center justify-center hover:bg-white transition-all duration-200" aria-label="Bật/tắt bộ lọc">
+        <i class="fas fa-filter text-gray-600" aria-hidden="true"></i>
     </button>
 
-    <div id="map"></div>
+    <main id="map" role="main" aria-label="Bản đồ giá đất Đà Nẵng"></main>
     
     <!-- ========== BOTTOM ACTION TOOLBAR ========== -->
-    <div id="action-toolbar" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-[1001] flex items-center bg-white/90 backdrop-blur-sm px-4 py-2 rounded-2xl shadow-lg border border-gray-200">
+    <nav id="action-toolbar" role="navigation" aria-label="Thanh công cụ chính" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-[1001] flex items-center bg-white/90 backdrop-blur-sm px-4 py-2 rounded-2xl shadow-lg border border-gray-200">
         <button id="list-btn" class="toolbar-btn-compact" aria-label="Xem danh sách BĐS">
             <i class="fa-solid fa-list"></i>
             <span>Danh sách</span>
@@ -969,10 +971,10 @@
             <span>Tra cứu</span>
         </button>
         <button id="guide-btn" title="Hướng dẫn sử dụng" class="toolbar-btn-compact" aria-label="Xem hướng dẫn">
-            <i class="fa-solid fa-question-circle"></i>
+            <i class="fa-solid fa-question-circle" aria-hidden="true"></i>
             <span>Hướng dẫn</span>
         </button>
-    </div>
+    </nav>
 
     <!-- ========== INFO PANEL (Parcel Details) ========== -->
     <div id="info-panel" class="fixed bottom-0 left-0 right-0 bg-white shadow-2xl rounded-t-2xl z-[1002] p-4 transform translate-y-full transition-transform duration-300 ease-out" style="max-height: 55vh; overflow-y: auto;">
