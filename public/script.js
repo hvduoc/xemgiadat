@@ -733,7 +733,42 @@ document.addEventListener('DOMContentLoaded', () => {
     const updateProfileBtn = document.getElementById('update-profile-btn');
     const logoutBtnMenu = document.getElementById('logout-btn-menu');
     const firebaseuiContainer = document.getElementById('firebaseui-auth-container');
-    const ui = new firebaseui.auth.AuthUI(auth);
+    
+    // 🔧 FIX: Safe FirebaseUI initialization with availability check
+    // FirebaseUI may not be loaded yet due to defer script loading race condition
+    let ui = null;
+    function initFirebaseUI() {
+        if (ui) return ui; // Already initialized
+        
+        if (typeof firebaseui === 'undefined' || !firebaseui.auth) {
+            console.warn('⚠️ FirebaseUI not yet loaded, will retry...');
+            return null;
+        }
+        
+        try {
+            ui = new firebaseui.auth.AuthUI(auth);
+            console.log('✅ FirebaseUI initialized successfully');
+            return ui;
+        } catch (err) {
+            console.error('❌ Failed to initialize FirebaseUI:', err);
+            return null;
+        }
+    }
+    
+    // Try to initialize immediately
+    initFirebaseUI();
+    
+    // If not available, retry when firebaseui loads (backup)
+    if (!ui) {
+        const checkInterval = setInterval(() => {
+            if (initFirebaseUI()) {
+                clearInterval(checkInterval);
+            }
+        }, 100);
+        // Stop checking after 10 seconds to avoid infinite loop
+        setTimeout(() => clearInterval(checkInterval), 10000);
+    }
+    
     const opacityControl = document.getElementById('opacity-control');
     const opacitySlider = document.getElementById('opacity-slider');
     const addLocationBtn = document.getElementById('add-location-btn');
@@ -2836,6 +2871,16 @@ async function showCommunityParcelInfo(parcelNumber, mapSheet) {
             console.error('❌ Firebase Auth not initialized!');
             alert('Hệ thống đăng nhập chưa sẵn sàng. Vui lòng tải lại trang.');
             return;
+        }
+        
+        // 🔧 FIX: Ensure FirebaseUI is initialized before using
+        if (!ui) {
+            initFirebaseUI();
+            if (!ui) {
+                console.error('❌ FirebaseUI not available!');
+                alert('Hệ thống đăng nhập chưa sẵn sàng. Vui lòng tải lại trang.');
+                return;
+            }
         }
         
         // Debug logging for production deployment differences
