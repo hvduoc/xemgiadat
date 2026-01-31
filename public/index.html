@@ -151,7 +151,7 @@
     <!-- 🚀 CRITICAL: Preload essential resources for faster FCP -->
     <link rel="preload" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" as="script">
     <link rel="preload" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" as="style">
-    <link rel="preload" href="/script.js" as="script">
+    <link rel="preload" href="/script.js?v=20260201a" as="script">
     
     <!-- CSS Stylesheets - Critical first, others deferred -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" fetchpriority="high" />
@@ -764,6 +764,31 @@
         };
         // Fallback: hide after 8 seconds max
         setTimeout(function() { window.hideLoadingSkeleton && window.hideLoadingSkeleton(); }, 8000);
+        
+        // 🔧 DEBUG: Find blocking elements - run window.findBlockingElements() in console
+        window.findBlockingElements = function() {
+            var buttons = [
+                document.getElementById('login-btn'),
+                document.getElementById('query-btn'),
+                document.getElementById('add-location-btn'),
+                document.getElementById('contact-info-btn'),
+                document.getElementById('locate-btn')
+            ];
+            buttons.forEach(function(btn) {
+                if (!btn) return;
+                var rect = btn.getBoundingClientRect();
+                var centerX = rect.left + rect.width / 2;
+                var centerY = rect.top + rect.height / 2;
+                var elementAtPoint = document.elementFromPoint(centerX, centerY);
+                console.log('Button:', btn.id, '| Element at point:', elementAtPoint ? elementAtPoint.id || elementAtPoint.tagName : 'none');
+                if (elementAtPoint !== btn && elementAtPoint) {
+                    console.warn('⚠️ BLOCKED! Button', btn.id, 'is covered by:', elementAtPoint);
+                    elementAtPoint.style.outline = '3px solid red';
+                }
+            });
+        };
+        // Auto-run after page load
+        setTimeout(function() { window.findBlockingElements && window.findBlockingElements(); }, 3000);
     </script>
 
     <!-- P0 FIX: Build Version Banner (development only, hidden in production CSS) -->
@@ -2109,7 +2134,7 @@
     
     <!-- Application Scripts: Defer to ensure DOM ready -->
     <script defer src="pinetwork.js"></script>
-    <script defer src="script.js"></script>
+    <script defer src="script.js?v=20260201a"></script>
     <script defer src="pwa-enhancements.js"></script>
     
     <!-- 💡 Performance Hint: Prefetch next page resources -->
