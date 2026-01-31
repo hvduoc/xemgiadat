@@ -25,14 +25,23 @@
 // Enhanced loading strategies for better user experience
 // =============================================================================
 
+// Debug mode - set to false in production to disable debug logs
+const DEBUG_MODE = window.location.hostname === 'localhost' || window.location.search.includes('debug=true');
+
 // =============================================================================
-// 🚨 DIAGNOSTIC: LEGACY APP BOOT CONFIRMATION
+// 🚨 DIAGNOSTIC: LEGACY APP BOOT CONFIRMATION (only in debug mode)
 // =============================================================================
-console.log('%c[LEGACY APP BOOTED]', 'background: #ff6b6b; color: white; padding: 4px 8px; font-weight: bold;');
-console.log('[LEGACY] File: script.js (9209 lines)');
-console.log('[LEGACY] Stack: Leaflet + Mapbox v4 + Firebase');
-console.log('[LEGACY] Entry: index.html at /');
-console.log('[LEGACY] Frozen: Do not edit without approval');
+if (DEBUG_MODE) {
+    console.log('%c[LEGACY APP BOOTED]', 'background: #ff6b6b; color: white; padding: 4px 8px; font-weight: bold;');
+    console.log('[LEGACY] File: script.js (9209 lines)');
+    console.log('[LEGACY] Stack: Leaflet + Mapbox v4 + Firebase');
+    console.log('[LEGACY] Entry: index.html at /');
+    console.log('[LEGACY] Frozen: Do not edit without approval');
+}
+
+// Debug log wrapper - only logs in DEBUG_MODE
+const debugLog = (...args) => { if (DEBUG_MODE) console.log(...args); };
+const debugWarn = (...args) => { if (DEBUG_MODE) console.warn(...args); };
 
 // Image lazy loading with Intersection Observer
 const initLazyLoading = () => {
@@ -209,7 +218,7 @@ async function getCachedAddress(lat, lng) {
     }
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🚀 DOM Content Loaded - Initializing app...');
+    if (DEBUG_MODE) console.log('🚀 DOM Content Loaded - Initializing app...');
     
     // Initialize performance monitoring
     simplePerformanceMonitor.mark('app-init-start');
@@ -4855,51 +4864,7 @@ window.verifyDangTinModal = function() {
     return report;
 };
 
-// === GLOBAL TOAST NOTIFICATION SYSTEM ===
-function showToast(message, type = 'info', duration = 3000) {
-    // Remove existing toast if any
-    const existingToast = document.querySelector('.toast-notification');
-    if (existingToast) {
-        existingToast.remove();
-    }
-
-    // Create toast element
-    const toast = document.createElement('div');
-    toast.className = `toast-notification fixed top-4 right-4 max-w-sm rounded-lg shadow-lg p-4 z-50 transform transition-all duration-300 translate-x-full`;
-    
-    // Set colors based on type
-    const typeClasses = {
-        success: 'bg-green-600 text-white',
-        error: 'bg-red-600 text-white',
-        warning: 'bg-yellow-600 text-white',
-        info: 'bg-blue-600 text-white'
-    };
-    
-    toast.className += ` ${typeClasses[type] || typeClasses.info}`;
-    toast.innerHTML = `
-        <div class="flex items-center">
-            <span class="flex-1">${message}</span>
-            <button onclick="this.parentElement.parentElement.remove()" class="ml-3 text-white hover:text-gray-200">
-                ✕
-            </button>
-        </div>
-    `;
-
-    document.body.appendChild(toast);
-
-    // Trigger animation
-    setTimeout(() => {
-        toast.classList.remove('translate-x-full');
-    }, 100);
-
-    // Auto remove after duration
-    setTimeout(() => {
-        if (toast.parentElement) {
-            toast.classList.add('translate-x-full');
-            setTimeout(() => toast.remove(), 300);
-        }
-    }, duration);
-}
+// NOTE: showToast already defined at line ~3353 - removed duplicate here
 
 // Load and Process Analytics Data
 async function loadAnalyticsData() {
@@ -6219,47 +6184,34 @@ function formatPortfolioDate(date) {
 // Alias for compatibility
 const formatDate = formatPortfolioDate;
 
-// Debug function to check button status
-function debugAnalyticsButton() {
-    const btn = document.getElementById('analytics-btn');
-    console.log('=== Analytics Button Debug ===');
-    console.log('Button element:', btn);
-    console.log('Button exists:', !!btn);
-    if (btn) {
-        console.log('Button onclick:', btn.onclick);
-        console.log('Button parent:', btn.parentElement);
-        console.log('Button style display:', window.getComputedStyle(btn).display);
-        console.log('Button style visibility:', window.getComputedStyle(btn).visibility);
-        console.log('Button disabled:', btn.disabled);
-        console.log('Button class:', btn.className);
-    }
-    console.log('=== End Debug ===');
-}
-
-// Manual test function
-function testAnalyticsButton() {
-    console.log('Testing analytics button click...');
-    const btn = document.getElementById('analytics-btn');
-    if (btn) {
-        console.log('Simulating click...');
-        
-        // Test what element is at the button's position
-        const rect = btn.getBoundingClientRect();
-        const centerX = rect.left + rect.width / 2;
-        const centerY = rect.top + rect.height / 2;
-        const elementAtPoint = document.elementFromPoint(centerX, centerY);
-        
-        console.log('Button position:', {x: centerX, y: centerY});
-        console.log('Element at button position:', elementAtPoint);
-        console.log('Is element the button?', elementAtPoint === btn);
-        console.log('Element ID:', elementAtPoint?.id);
-        console.log('Element classes:', elementAtPoint?.className);
-        
-        btn.click();
-        console.log('Button clicked programmatically');
-    } else {
-        console.error('Button not found for test');
-    }
+// Debug functions - only available in DEBUG_MODE (localhost or ?debug=true)
+if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) {
+    window.debugAnalyticsButton = function() {
+        const btn = document.getElementById('analytics-btn');
+        console.log('=== Analytics Button Debug ===');
+        console.log('Button element:', btn);
+        console.log('Button exists:', !!btn);
+        if (btn) {
+            console.log('Button onclick:', btn.onclick);
+            console.log('Button parent:', btn.parentElement);
+            console.log('Button style display:', window.getComputedStyle(btn).display);
+            console.log('Button style visibility:', window.getComputedStyle(btn).visibility);
+            console.log('Button disabled:', btn.disabled);
+            console.log('Button class:', btn.className);
+        }
+        console.log('=== End Debug ===');
+    };
+    
+    window.testAnalyticsButton = function() {
+        console.log('Testing analytics button click...');
+        const btn = document.getElementById('analytics-btn');
+        if (btn) {
+            btn.click();
+            console.log('Button clicked programmatically');
+        } else {
+            console.error('Button not found for test');
+        }
+    };
 }
 
 // ============================================================================= 
@@ -6956,167 +6908,38 @@ async function uploadToGoogleDrive(file, fileName, folderId) {
     };
 }
 
-// === GOOGLE DRIVE TEST & DEBUG FUNCTIONS ===
-
-// Test Google Drive connectivity
-window.testGoogleDriveConnection = async function() {
-    console.log('🧪 Testing Google Drive connection...');
-    
-    try {
-        // Test 1: API Initialization
-        console.log('📋 Test 1: Initializing Google Drive API...');
-        const initialized = await initializeGoogleDrive();
-        if (!initialized) {
-            throw new Error('Failed to initialize Google Drive API');
+// === GOOGLE DRIVE TEST & DEBUG FUNCTIONS (only in DEBUG_MODE) ===
+if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) {
+    // Test Google Drive connectivity
+    window.testGoogleDriveConnection = async function() {
+        console.log('🧪 Testing Google Drive connection...');
+        try {
+            const initialized = await initializeGoogleDrive();
+            if (!initialized) throw new Error('Failed to initialize');
+            await authenticateGoogleDrive();
+            const response = await gapi.client.drive.about.get({ fields: 'user,storageQuota' });
+            alert('✅ Google Drive test successful!');
+            return true;
+        } catch (error) {
+            console.error('❌ Google Drive test failed:', error);
+            alert(`❌ Google Drive test failed:\n${error.message}`);
+            return false;
         }
-        console.log('✅ Test 1 passed: API initialized');
-        
-        // Test 2: Authentication
-        console.log('📋 Test 2: Testing authentication...');
-        await authenticateGoogleDrive();
-        console.log('✅ Test 2 passed: Authentication successful');
-        
-        // Test 3: Basic API call
-        console.log('📋 Test 3: Testing basic API call...');
-        const response = await gapi.client.drive.about.get({
-            fields: 'user,storageQuota'
-        });
-        console.log('✅ Test 3 passed: API call successful');
-        console.log('👤 User:', response.result.user.displayName);
-        console.log('💾 Storage:', response.result.storageQuota);
-        
-        alert('✅ Google Drive connection test successful!\nCheck console for details.');
-        return true;
-        
-    } catch (error) {
-        console.error('❌ Google Drive test failed:', error);
-        alert(`❌ Google Drive test failed:\n${error.message}`);
-        return false;
-    }
-};
-
-// Test with localhost configuration
-window.testGoogleDriveWithLocalhost = async function() {
-    console.log('🧪 Testing Google Drive with localhost configuration...');
-    
-    // Temporary localhost config
-    const localhostConfig = {
-        apiKey: GOOGLE_CONFIG.apiKey,
-        clientId: "895990431722-7oeoa9vmib64n88g29omn5p6jgv7uqvn.apps.googleusercontent.com", 
-        discoveryDocs: GOOGLE_CONFIG.discoveryDocs,
-        scope: GOOGLE_CONFIG.scope
-        // Remove domain restrictions for localhost
     };
     
-    try {
-        console.log('🔧 Using localhost configuration...');
-        
-        // Reinitialize with localhost config
-        await gapi.client.init(localhostConfig);
-        
-        const authInstance = gapi.auth2.getAuthInstance();
-        if (!authInstance.isSignedIn.get()) {
-            console.log('🔑 Signing in...');
-            await authInstance.signIn();
-        }
-        
-        // Test API call
-        const response = await gapi.client.drive.about.get({
-            fields: 'user,storageQuota'
+    window.debugGoogleDriveStatus = function() {
+        console.log('🔍 Google Drive Status:', {
+            apiReady: isGoogleDriveReady,
+            gapiAvailable: typeof gapi !== 'undefined',
+            authInstance: !!googleAuthInstance,
+            domain: window.location.hostname
         });
-        
-        console.log('✅ Localhost test successful!');
-        console.log('👤 User:', response.result.user.displayName);
-        console.log('💾 Storage:', response.result.storageQuota);
-        
-        alert('✅ Localhost test successful! Google Drive API is working.');
-        return true;
-        
-    } catch (error) {
-        console.error('❌ Localhost test failed:', error);
-        alert(`❌ Localhost test failed:\n${error.message}`);
-        return false;
-    }
-};
-
-// Test Google Drive upload with a small test file
-window.testGoogleDriveUpload = async function() {
-    console.log('🧪 Testing Google Drive upload...');
-    
-    try {
-        // Create a small test file
-        const testData = 'Test file created by XemGiaDat';
-        const testFile = new Blob([testData], { type: 'text/plain' });
-        testFile.name = `test_${Date.now()}.txt`;
-        
-        // Test upload
-        const result = await uploadToGoogleDrive(testFile, testFile.name);
-        console.log('✅ Test upload successful:', result);
-        
-        alert(`✅ Test upload successful!\nFile ID: ${result.id}\nView: ${result.webViewLink}`);
-        return result;
-        
-    } catch (error) {
-        console.error('❌ Test upload failed:', error);
-        alert(`❌ Test upload failed:\n${error.message}`);
-        return false;
-    }
-};
-
-// Create a direct OAuth test with popup
-window.testGoogleOAuthDirect = async function() {
-    console.log('🧪 Testing Google OAuth with direct popup...');
-    
-    try {
-        const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
-            `client_id=${GOOGLE_CONFIG.clientId}&` +
-            `redirect_uri=${encodeURIComponent('https://xemgiadat.com')}&` +
-            `response_type=token&` +
-            `scope=${encodeURIComponent(GOOGLE_CONFIG.scope)}&` +
-            `include_granted_scopes=true&` +
-            `state=test123`;
-            
-        console.log('🔗 Auth URL:', authUrl);
-        
-        // Open popup
-        const popup = window.open(authUrl, 'googleAuth', 'width=500,height=600');
-        
-        alert('Check the popup window for Google authentication.\nThis is a direct OAuth test.');
-        
-    } catch (error) {
-        console.error('❌ Direct OAuth test failed:', error);
-        alert(`❌ Direct OAuth test failed:\n${error.message}`);
-    }
-};
-
-// Debug Google Drive status
-window.debugGoogleDriveStatus = function() {
-    console.log('🔍 Google Drive Debug Status:');
-    console.log('- API Ready:', isGoogleDriveReady);
-    console.log('- GAPI Available:', typeof gapi !== 'undefined');
-    console.log('- Auth Instance:', !!googleAuthInstance);
-    
-    if (googleAuthInstance) {
-        console.log('- Signed In:', googleAuthInstance.isSignedIn.get());
-        if (googleAuthInstance.isSignedIn.get()) {
-            const user = googleAuthInstance.currentUser.get();
-            console.log('- User:', user.getBasicProfile().getName());
-            console.log('- Auth Response:', user.getAuthResponse());
-        }
-    }
-    
-    console.log('- Config:', GOOGLE_CONFIG);
-    console.log('- Current Domain:', window.location.hostname);
-    
-    // Additional debug info
-    console.log('- Document referrer:', document.referrer);
-    console.log('- Window origin:', window.location.origin);
-    console.log('- Protocol:', window.location.protocol);
-};
+    };
+}
 
 // Upload portfolio images to Google Drive
 async function uploadPortfolioImagesToGoogleDrive(portfolioId, files) {
-    console.log('📤 Starting Google Drive upload for portfolio:', portfolioId);
+    if (DEBUG_MODE) console.log('📤 Starting Google Drive upload for portfolio:', portfolioId);
     
     try {
         // Authenticate first
@@ -9203,12 +9026,12 @@ if (document.readyState === 'loading') {
 window.viewBetaSignups = viewBetaSignups;
 
 // =============================================================================
-// 🔧 DEBUGGING HELPER FUNCTIONS FOR ĐĂNG TIN
+// 🔧 DEBUGGING HELPER FUNCTIONS FOR ĐĂNG TIN (only in DEBUG_MODE)
 // =============================================================================
-
-// Debug function for checking đăng tin system
-window.debugDangTin = function() {
-    console.log('🔍 ĐĂNG TIN SYSTEM DEBUG REPORT:');
+if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) {
+    // Debug function for checking đăng tin system
+    window.debugDangTin = function() {
+        console.log('🔍 ĐĂNG TIN SYSTEM DEBUG REPORT:');
     console.log('=====================================');
     
     console.log('🔐 AUTHENTICATION STATUS:');
@@ -9336,26 +9159,17 @@ window.testDangTin = function() {
         })
         .catch(error => {
             console.error('❌ TEST FAILED:', error);
-            console.error('💡 Error details:', {
-                code: error.code,
-                message: error.message
-            });
             return false;
         });
-};
+    };
 
-// Console helper instructions
-console.log('🔧 ĐĂNG TIN DEBUG HELPERS LOADED!');
-console.log('📋 Available commands:');
-console.log('├── debugDangTin() - Full system diagnostic');
-console.log('├── testDangTin() - Test posting functionality');
-console.log('└── viewBetaSignups() - View beta signup data');
-console.log('');
-console.log('💡 Usage: Open Console (F12) and type: debugDangTin()');
+    // Console helper instructions (only in debug mode)
+    console.log('🔧 ĐĂNG TIN DEBUG HELPERS LOADED!');
+    console.log('📋 Commands: debugDangTin(), testDangTin(), viewBetaSignups()');
+} // End DEBUG_MODE block
 
 
 // showCopyError uses the global showToast defined above
 function showCopyError(button) {
     showToast('Không thể sao chép. Vui lòng copy thủ công!', 'error', 3000);
 }
-// Note: showToast is already defined globally above (line ~4654)
