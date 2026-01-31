@@ -800,15 +800,15 @@ document.addEventListener('DOMContentLoaded', () => {
     closeAddPortfolioModal = document.getElementById('close-add-portfolio-modal');
     portfolioForm = document.getElementById('portfolio-form');
 
-    // Debug: Check if elements exist
-    console.log('🔍 Button elements check:', {
-        feedbackBtn: !!feedbackBtn,
-        feedbackModal: !!feedbackModal,
-        closeFeedbackModalBtn: !!closeFeedbackModalBtn,
-        adminBtn: !!adminBtn,
-        contactInfoBtn: !!contactInfoBtn,
-        contactInfoModal: !!contactInfoModal
-    });
+    // Debug: Check if critical elements exist (non-essential elements removed)
+    if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) {
+        console.log('🔍 Button elements check:', {
+            contactInfoBtn: !!contactInfoBtn,
+            contactInfoModal: !!contactInfoModal,
+            locateBtn: !!locateBtn,
+            loginBtn: !!loginBtn
+        });
+    }
 
     // === IMMEDIATE EVENT LISTENERS SETUP ===
     // Setup button event listeners immediately after DOM element declarations
@@ -833,11 +833,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     } else {
-        console.error('❌ Feedback elements not found:', {
-            feedbackBtn: !!feedbackBtn,
-            feedbackModal: !!feedbackModal,
-            closeFeedbackModalBtn: !!closeFeedbackModalBtn
-        });
+        // Feedback button removed from UI - feedback is now accessed via Contact modal
+        if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) {
+            console.log('ℹ️ Feedback accessed via Contact modal (feedback-btn removed)');
+        }
     }
 
     // Enhanced guide button with visual feedback
@@ -922,18 +921,18 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // NOTE: Event listener now handled in profile menu section (portfolio-menu-btn)
         
-        // Test button accessibility
-        console.log('🔍 Portfolio button properties:', {
-            id: portfolioBtn.id,
-            className: portfolioBtn.className,
-            style: portfolioBtn.style.cssText,
-            position: portfolioBtn.getBoundingClientRect(),
-            visible: portfolioBtn.offsetParent !== null,
-            zIndex: window.getComputedStyle(portfolioBtn).zIndex,
-            pointerEvents: window.getComputedStyle(portfolioBtn).pointerEvents
-        });
+        // Test button accessibility (debug only)
+        if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) {
+            console.log('🔍 Portfolio button properties:', {
+                id: portfolioBtn.id,
+                className: portfolioBtn.className,
+                visible: portfolioBtn.offsetParent !== null
+            });
+        }
     } else {
-        console.log('⚠️ Portfolio button not found - using menu item instead');
+        if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) {
+            console.log('⚠️ Portfolio button not found - using menu item instead');
+        }
     }
 
     if (closePortfolioModal) {
@@ -2185,50 +2184,48 @@ async function showCommunityParcelInfo(parcelNumber, mapSheet) {
 
     // Portfolio menu button handler
     const portfolioMenuBtn = document.getElementById('portfolio-menu-btn');
-    console.log('🔍 Portfolio menu button check:', {
-        element: portfolioMenuBtn,
-        exists: !!portfolioMenuBtn,
-        id: portfolioMenuBtn?.id,
-        className: portfolioMenuBtn?.className,
-        visible: portfolioMenuBtn?.offsetParent !== null,
-        zIndex: portfolioMenuBtn ? window.getComputedStyle(portfolioMenuBtn).zIndex : 'N/A',
-        pointerEvents: portfolioMenuBtn ? window.getComputedStyle(portfolioMenuBtn).pointerEvents : 'N/A'
-    });
+    if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) {
+        console.log('🔍 Portfolio menu button check:', {
+            exists: !!portfolioMenuBtn,
+            visible: portfolioMenuBtn?.offsetParent !== null
+        });
+    }
     
     if (portfolioMenuBtn) {
         portfolioMenuBtn.addEventListener('click', (e) => {
-            console.log('🎯 Portfolio menu item clicked!', {
-                event: e,
-                target: e.target,
-                currentTarget: e.currentTarget,
-                timestamp: new Date().toISOString()
-            });
+            if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) {
+                console.log('🎯 Portfolio menu item clicked!');
+            }
             e.preventDefault();
             e.stopPropagation();
             
             // Close the profile menu first
             profileMenu.classList.add('hidden');
-            console.log('✅ Profile menu closed');
+            if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) {
+                console.log('✅ Profile menu closed');
+            }
             
             // Then open portfolio modal
             try {
                 showPortfolioModal();
-                console.log('✅ Portfolio modal opened');
             } catch (error) {
                 console.error('❌ Error opening portfolio modal:', error);
                 alert('Có lỗi khi mở ví bất động sản. Vui lòng thử lại.');
             }
         });
         
-        // Test click programmatically
-        window.testPortfolioMenuClick = function() {
-            console.log('🧪 Testing portfolio menu click programmatically...');
-            portfolioMenuBtn.click();
-        };
-        
-        console.log('✅ Portfolio menu button event listener added');
+        // Test click programmatically (debug only)
+        if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) {
+            window.testPortfolioMenuClick = function() {
+                console.log('🧪 Testing portfolio menu click programmatically...');
+                portfolioMenuBtn.click();
+            };
+            console.log('✅ Portfolio menu button event listener added');
+        }
     } else {
-        console.error('❌ Portfolio menu button not found!');
+        if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) {
+            console.error('❌ Portfolio menu button not found!');
+        }
     }
 
     document.addEventListener('click', (event) => {
@@ -2453,25 +2450,33 @@ async function showCommunityParcelInfo(parcelNumber, mapSheet) {
         searchInput.value = '';
     });
 
-    closePanelBtn.addEventListener('click', hideInfoPanel);
-    togglePanelBtn.addEventListener('click', () => {
-        const isCollapsed = infoPanel.classList.toggle('is-collapsed');
-        const icon = togglePanelBtn.querySelector('i');
-        icon.classList.toggle('fa-chevron-down');
-        icon.classList.toggle('fa-chevron-up');
-        if (isCollapsed) {
-            actionToolbar.classList.remove('is-raised');
-            actionToolbar.classList.add('is-partially-raised');
-        } else {
-            actionToolbar.classList.remove('is-partially-raised');
-            actionToolbar.classList.add('is-raised');
-        }
-    });
+    if (closePanelBtn) {
+        closePanelBtn.addEventListener('click', hideInfoPanel);
+    }
+    if (togglePanelBtn && infoPanel && actionToolbar) {
+        togglePanelBtn.addEventListener('click', () => {
+            const isCollapsed = infoPanel.classList.toggle('is-collapsed');
+            const icon = togglePanelBtn.querySelector('i');
+            if (icon) {
+                icon.classList.toggle('fa-chevron-down');
+                icon.classList.toggle('fa-chevron-up');
+            }
+            if (isCollapsed) {
+                actionToolbar.classList.remove('is-raised');
+                actionToolbar.classList.add('is-partially-raised');
+            } else {
+                actionToolbar.classList.remove('is-partially-raised');
+                actionToolbar.classList.add('is-raised');
+            }
+        });
+    }
 
-    locateBtn.addEventListener('click', () => {
-        if (!navigator.geolocation) return alert('Trình duyệt của bạn không hỗ trợ định vị.');
-        map.locate({ setView: true, maxZoom: 16 });
-    });
+    if (locateBtn) {
+        locateBtn.addEventListener('click', () => {
+            if (!navigator.geolocation) return alert('Trình duyệt của bạn không hỗ trợ định vị.');
+            map.locate({ setView: true, maxZoom: 16 });
+        });
+    }
     map.on('locationfound', function(e) {
         if (userLocationMarker) map.removeLayer(userLocationMarker);
         const radius = e.accuracy / 2;
@@ -5606,75 +5611,15 @@ let selectedParcelData = null; // Lưu dữ liệu thửa đất được chọn
 let portfolioBtn, portfolioModal, closePortfolioModal, addPortfolioModal, closeAddPortfolioModal, portfolioForm;
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 Initializing all systems...');
+    // Note: Most initialization happens in the main DOMContentLoaded handler at line 220
+    // This secondary handler is for non-critical systems that can load after main app
     
-    // Initialize community contribution system
-    console.log('👥 Initializing community contribution system...');
-    setTimeout(() => {
-        try {
-            if (typeof window.initializeCommunityContribution === 'function') {
-                window.initializeCommunityContribution();
-                console.log('✅ Community contribution system initialized');
-            } else {
-                console.error('❌ initializeCommunityContribution is not available on window');
-            }
-        } catch (error) {
-            console.error('❌ Error initializing community system:', error);
-        }
-    }, 1000);
+    if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) {
+        console.log('🚀 Secondary initialization (non-critical systems)...');
+    }
     
-    // Initialize analytics system
-    console.log('📊 Initializing analytics system...');
-    setTimeout(() => {
-        try {
-            initializeAnalytics();
-            console.log('✅ Analytics system initialized');
-        } catch (error) {
-            console.error('❌ Error initializing analytics system:', error);
-        }
-    }, 1500);
-    
-    // Final verification after all systems loaded
-    setTimeout(() => {
-        console.log('🔍 Final system verification...');
-        
-        // Verify all modal functions are available
-        const requiredFunctions = [
-            'initializeCommunityContribution',
-            'openContributionModal', 
-            'closeContributionModal',
-            'openAnalyticsDashboard',
-            'closeAnalyticsDashboard'
-        ];
-        
-        requiredFunctions.forEach(funcName => {
-            if (typeof window[funcName] === 'function') {
-                console.log(`✅ ${funcName} is available on window`);
-            } else {
-                console.warn(`❌ ${funcName} is NOT available on window`);
-            }
-        });
-        
-        // Test all modal buttons
-        console.log('🧪 Testing modal buttons...');
-        const buttons = [
-            { id: 'analytics-btn', name: 'Analytics' },
-            { id: 'feedback-btn', name: 'Feedback' },
-            { id: 'contact-info-btn', name: 'Contact Info' }
-        ];
-        
-        buttons.forEach(button => {
-            const btn = document.getElementById(button.id);
-            if (btn) {
-                console.log(`✅ ${button.name} button found:`, btn);
-                console.log(`   - Classes: ${btn.className}`);
-                console.log(`   - Style display: ${btn.style.display}`);
-                console.log(`   - Visible: ${btn.offsetWidth > 0 && btn.offsetHeight > 0}`);
-            } else {
-                console.warn(`❌ ${button.name} button NOT found`);
-            }
-        });
-    }, 3000);
+    // Community contribution system is initialized in the main DOMContentLoaded
+    // No need to re-initialize here
 });
 
 // === PORTFOLIO MANAGEMENT FUNCTIONS ===
