@@ -2517,13 +2517,15 @@ async function showCommunityParcelInfo(parcelNumber, mapSheet) {
     });
 
     // KHẮC PHỤC: Logic thanh trượt độ trong suốt
-    opacitySlider.addEventListener('input', (e) => {
-        const newOpacity = parseFloat(e.target.value);
-        // Tạo một style mới chỉ với thuộc tính fillOpacity
-        const newStyle = { fillOpacity: newOpacity };
-        // Áp dụng style mới cho lớp bản đồ phân lô
-        parcelLayer.setStyle(newStyle);
-    });
+    if (opacitySlider) {
+        opacitySlider.addEventListener('input', (e) => {
+            const newOpacity = parseFloat(e.target.value);
+            // Tạo một style mới chỉ với thuộc tính fillOpacity
+            const newStyle = { fillOpacity: newOpacity };
+            // Áp dụng style mới cho lớp bản đồ phân lô
+            parcelLayer.setStyle(newStyle);
+        });
+    }
 
     map.on('overlayadd', e => {
         if (e.name === '🗺️ Bản đồ phân lô') opacityControl.classList.remove('hidden');
