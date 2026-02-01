@@ -147,6 +147,7 @@ self.addEventListener('activate', event => {
 - [x] `[VERIFY SW]` log on activate
 - [x] `skipWaiting()` for immediate activation
 - [x] `/v2/*` routes bypassed (network-first)
+- [x] **SW disabled by default** (enable only with `?sw=1`)
 
 ---
 
@@ -197,8 +198,14 @@ After Netlify deploy completes:
 - [ ] Run `.\scripts\verify-prod.ps1` from local machine
 - [ ] Check https://xemgiadat.com/health.txt shows new stamp
 - [ ] Open DevTools → Application → Service Workers
-  - [ ] Version shows new `CACHE_VERSION`
-  - [ ] Console shows `[VERIFY SW] Active version: ...`
+  - [ ] Confirm **no active SW** on `/` (default is disabled)
+  - [ ] Optional: add `?sw=1` to verify SW registers and activates
+- [ ] Hard refresh **10 times** on `/` and confirm UI is stable
+- [ ] Open `/` with `?debug=1` and confirm console logs:
+  - [ ] `[BIND_OK]` for critical buttons
+  - [ ] No `[RUNTIME_ERROR]`
+- [ ] Confirm `/tiles/` requests are 200 and **not** served by SW cache
+- [ ] If listings missing, confirm console shows `[LISTINGS_STATUS_COUNTS]` or Firestore error
 - [ ] Test https://xemgiadat.com/script.js returns JS (not HTML)
 - [ ] Test https://xemgiadat.com/v2/ loads map correctly
 - [ ] Test https://xemgiadat.com/?lat=16.05&lng=108.20 opens at correct location

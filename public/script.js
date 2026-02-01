@@ -26,7 +26,9 @@
 // =============================================================================
 
 // Debug mode - set to false in production to disable debug logs
-const DEBUG_MODE = window.location.hostname === 'localhost' || window.location.search.includes('debug=true');
+const DEBUG_PARAMS = new URLSearchParams(window.location.search);
+const DEBUG_MODE = window.location.hostname === 'localhost' || DEBUG_PARAMS.get('debug') === '1';
+const DEBUG_ALL_LISTINGS = DEBUG_MODE && DEBUG_PARAMS.get('allListings') === '1';
 
 // =============================================================================
 // 🚨 DIAGNOSTIC: LEGACY APP BOOT CONFIRMATION (only in debug mode)
@@ -42,6 +44,16 @@ if (DEBUG_MODE) {
 // Debug log wrapper - only logs in DEBUG_MODE
 const debugLog = (...args) => { if (DEBUG_MODE) console.log(...args); };
 const debugWarn = (...args) => { if (DEBUG_MODE) console.warn(...args); };
+
+// Runtime error instrumentation (debug only)
+if (DEBUG_MODE) {
+    window.addEventListener('error', (event) => {
+        console.error('[RUNTIME_ERROR]', event.message, event.error || event.filename);
+    });
+    window.addEventListener('unhandledrejection', (event) => {
+        console.error('[RUNTIME_ERROR]', event.reason);
+    });
+}
 
 // Image lazy loading with Intersection Observer
 const initLazyLoading = () => {
@@ -807,6 +819,23 @@ document.addEventListener('DOMContentLoaded', () => {
             contactInfoModal: !!contactInfoModal,
             locateBtn: !!locateBtn,
             loginBtn: !!loginBtn
+        });
+
+        const bindTargets = [
+            { id: 'login-btn', el: loginBtn, handler: 'auth-login' },
+            { id: 'query-btn', el: queryBtn, handler: 'enterQueryMode' },
+            { id: 'add-location-btn', el: addLocationBtn, handler: 'enterAddMode' },
+            { id: 'list-btn', el: listBtn, handler: 'toggleListModal' },
+            { id: 'locate-btn', el: locateBtn, handler: 'locateUser' },
+            { id: 'contact-info-btn', el: contactInfoBtn, handler: 'openContactModal' }
+        ];
+
+        bindTargets.forEach((t) => {
+            if (t.el) {
+                console.log('[BIND_OK]', t.id, t.handler);
+            } else {
+                console.warn('[BIND_MISSING]', t.id, t.handler);
+            }
         });
     }
 
@@ -2963,20 +2992,48 @@ async function showCommunityParcelInfo(parcelNumber, mapSheet) {
     firebaseuiContainer.addEventListener('click', (e) => { if (e.target === firebaseuiContainer) firebaseuiContainer.classList.add('hidden'); });
 
     // Load listings from Firestore
-    console.log('📋 Loading listings from Firestore...');
-    db.collection("listings").where("status", "==", "approved").orderBy("createdAt", "desc").onSnapshot((querySnapshot) => {
-        console.log('📋 Listings snapshot received:', querySnapshot.size, 'documents');
+    if (DEBUG_MODE) {
+        console.log('📋 Loading listings from Firestore...');
+    }
+
+    const ADMIN_UID = "FEpPWWT1EaTWQ9FOqBxWN5FeEJk1";
+    const isAdminForDiagnostics = firebase.auth().currentUser && firebase.auth().currentUser.uid === ADMIN_UID;
+    const useAllListings = DEBUG_ALL_LISTINGS && isAdminForDiagnostics;
+
+    if (DEBUG_MODE) {
+        console.log('[LISTINGS_QUERY]', {
+            mode: useAllListings ? 'ALL_STATUSES' : 'APPROVED_ONLY',
+            debug: DEBUG_MODE,
+            admin: isAdminForDiagnostics
+        });
+    }
+
+    const listingsQuery = useAllListings
+        ? db.collection("listings").orderBy("createdAt", "desc")
+        : db.collection("listings").where("status", "==", "approved").orderBy("createdAt", "desc");
+
+    listingsQuery.onSnapshot((querySnapshot) => {
+        if (DEBUG_MODE) {
+            console.log('📋 Listings snapshot received:', querySnapshot.size, 'documents');
+        }
+
+        const statusCounts = {};
         localListings = [];
         priceMarkers.clearLayers();
         const priceList = document.getElementById('price-list');
         priceList.innerHTML = '';
+
         if (querySnapshot.empty) {
-            console.log('📋 No approved listings found');
+            if (DEBUG_MODE) {
+                console.log('📋 No listings found for current query');
+            }
             priceList.innerHTML = '<p class="text-center text-gray-500 py-4">📭 Không có dữ liệu.</p>';
             return;
         }
+
         querySnapshot.forEach((doc) => {
             const item = { ...doc.data(), id: doc.id };
+            statusCounts[item.status || 'unknown'] = (statusCounts[item.status || 'unknown'] || 0) + 1;
             localListings.push(item);
             if (!item.lat || !item.lng) return;
 
@@ -2994,6 +3051,10 @@ async function showCommunityParcelInfo(parcelNumber, mapSheet) {
             };
             priceList.appendChild(listItem);
         });
+
+        if (DEBUG_MODE) {
+            console.log('[LISTINGS_STATUS_COUNTS]', statusCounts);
+        }
     }, (error) => {
         console.error('❌ Firestore listings error:', error);
         console.error('📋 Error code:', error.code);
