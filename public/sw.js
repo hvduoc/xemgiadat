@@ -19,7 +19,7 @@
 // =============================================================================
 
 // PHASE 3 FIX: Dynamic versioning - date-based to force cache bust on each deploy
-const CACHE_VERSION = '2026-01-29-pmtiles-hd-v1';
+const CACHE_VERSION = '2026-02-01-pmtiles-bypass';
 const CACHE_NAME = `xemgiadat-v${CACHE_VERSION}`;
 const OFFLINE_URL = '/offline.html';
 
@@ -64,7 +64,8 @@ const STATIC_ASSETS = [
 // Dynamic cache patterns
 const CACHE_PATTERNS = {
   images: /\.(png|jpg|jpeg|gif|webp|svg|ico)$/,
-  tiles: /\/tiles\//,
+  tiles: /\/tiles\/(?!.*\.pmtiles)/,  // Exclude .pmtiles files - too large for Cache API
+  pmtiles: /\.pmtiles$/,  // PMTiles bypass pattern
   parcels: /\/data\/parcels\//,
   api: /\/api\//,
   fonts: /\.(woff|woff2|ttf|eot)$/
@@ -144,6 +145,12 @@ self.addEventListener('fetch', event => {
   if (url.protocol === 'chrome-extension:') return;
   
   // Route to appropriate strategy
+  // CRITICAL: Bypass PMTiles completely - too large for Cache API (312MB)
+  if (isPMTilesRequest(url)) {
+    event.respondWith(fetch(request));
+    return;
+  }
+  
   if (isStaticAsset(url)) {
     event.respondWith(cacheFirstStrategy(request));
   } else if (isTileRequest(url)) {
@@ -226,6 +233,10 @@ function isStaticAsset(url) {
 
 function isTileRequest(url) {
   return CACHE_PATTERNS.tiles.test(url.pathname);
+}
+
+function isPMTilesRequest(url) {
+  return CACHE_PATTERNS.pmtiles.test(url.pathname);
 }
 
 function isParcelData(url) {
