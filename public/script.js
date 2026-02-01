@@ -2962,12 +2962,16 @@ async function showCommunityParcelInfo(parcelNumber, mapSheet) {
     });    // Debug button removed - login functionality now works properly
     firebaseuiContainer.addEventListener('click', (e) => { if (e.target === firebaseuiContainer) firebaseuiContainer.classList.add('hidden'); });
 
+    // Load listings from Firestore
+    console.log('📋 Loading listings from Firestore...');
     db.collection("listings").where("status", "==", "approved").orderBy("createdAt", "desc").onSnapshot((querySnapshot) => {
+        console.log('📋 Listings snapshot received:', querySnapshot.size, 'documents');
         localListings = [];
         priceMarkers.clearLayers();
         const priceList = document.getElementById('price-list');
         priceList.innerHTML = '';
         if (querySnapshot.empty) {
+            console.log('📋 No approved listings found');
             priceList.innerHTML = '<p class="text-center text-gray-500 py-4">📭 Không có dữ liệu.</p>';
             return;
         }
@@ -2990,6 +2994,10 @@ async function showCommunityParcelInfo(parcelNumber, mapSheet) {
             };
             priceList.appendChild(listItem);
         });
+    }, (error) => {
+        console.error('❌ Firestore listings error:', error);
+        console.error('📋 Error code:', error.code);
+        console.error('📋 Error message:', error.message);
     });
     
     // Đặt đoạn code này bên trong sự kiện 'DOMContentLoaded'
