@@ -383,6 +383,11 @@ function __XGD_bootApp() {
             touchZoom: 'center',      // Zoom to center on pinch (better UX)
             bounceAtZoomLimits: true  // Visual feedback when hitting zoom limit
         });
+
+        // 🚀 PERFORMANCE: Hide loading skeleton as soon as map reports load
+        window.map.once('load', () => {
+            if (window.hideLoadingSkeleton) window.hideLoadingSkeleton();
+        });
         
         console.log('[BOOT] Map initialized successfully');
         return true;
@@ -411,11 +416,6 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (DEBUG_MODE) console.log('[BOOT] Continuing with layer setup...');
             
-            // 🚀 PERFORMANCE: Hide loading skeleton once map container is ready
-            // This gives instant visual feedback before tiles load
-            requestAnimationFrame(() => {
-                if (window.hideLoadingSkeleton) window.hideLoadingSkeleton();
-            });
             const myAttribution = '© XemGiaDat | 📌 Dữ liệu tham khảo từ Sở TNMT Đà Nẵng. Không có giá trị pháp lý.';
     const googleStreets = L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',{ maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'], attribution: myAttribution + ' | © Google Maps' });
     const googleSat = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{ maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'], attribution: myAttribution + ' | © Google Satellite' });
@@ -452,6 +452,7 @@ document.addEventListener('DOMContentLoaded', () => {
         minZoom: 10,
         maxZoom: 20,                  // CHANGED: Match maxNativeZoom to fix click issues
         maxNativeZoom: 20,    // PMTiles có max zoom 20
+        cache: true,          // PMTiles caching enabled
         updateWhenIdle: true, // CHỈ update khi pan/zoom xong - GIẢM LAG
         updateWhenZooming: false, // KHÔNG update liên tục khi zoom
         keepBuffer: 2,        // Giữ ít tiles hơn để giảm memory
@@ -8603,6 +8604,8 @@ class UserBehaviorTracker {
         this.isActive = true;
         this.lastActivity = Date.now();
         this.heatmapData = [];
+        this.sampleRate = 0.2; // Reduce sampling to 20% for performance
+        this.lastMapMoveTracked = 0;
         
         this.init();
     }
@@ -8859,6 +8862,9 @@ class UserBehaviorTracker {
             });
             
             window.map.on('moveend', () => {
+                const now = Date.now();
+                if (now - this.lastMapMoveTracked < 1000) return;
+                this.lastMapMoveTracked = now;
                 const center = window.map.getCenter();
                 this.trackEvent('map_move', {
                     center: { lat: center.lat, lng: center.lng },
@@ -8923,6 +8929,9 @@ class UserBehaviorTracker {
     }
     
     trackEvent(type, data) {
+        if (Math.random() > this.sampleRate) {
+            return;
+        }
         const event = {
             type: type,
             data: data,

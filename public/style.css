@@ -177,9 +177,9 @@ img[data-loaded="true"] {
 
 /* Vertical Slider Styles */
 input[type=range][orient=vertical] {
-    writing-mode: bt-lr;
-    -webkit-appearance: slider-vertical;
-    appearance: slider-vertical;
+       writing-mode: vertical-rl;
+       -webkit-appearance: none;
+       appearance: none;
     width: 8px;
     height: 100px;
     padding: 0 5px;

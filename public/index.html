@@ -759,7 +759,7 @@
             }
         };
     </script>
-    <link rel="stylesheet" crossorigin href="/assets/main-CoB823_Y.css" fetchpriority="high">
+    <link rel="stylesheet" href="/style.css" fetchpriority="high">
 </head>
 <body class="relative overflow-hidden">
     <!-- 🚀 LOADING SKELETON - Shows instantly while scripts load -->
@@ -2131,73 +2131,21 @@
    
     <!-- 🚀 Optimized Script Loading Strategy -->
     
-    <!-- Leaflet Core - CDN First (Cloudflare) with Local Fallback -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.min.css" onerror="this.onerror=null;this.href='/lib/leaflet/leaflet.css';" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.min.js" onerror="window.__loadLocalLeaflet && window.__loadLocalLeaflet();"></script>
-    <script>
-    window.__loadLocalLeaflet = function () {
-        if (window.__leafletLocalLoaded) return;
-        window.__leafletLocalLoaded = true;
-        console.warn('⚠️ CDN Leaflet failed, loading local...');
-        var s = document.createElement('script');
-        s.src = '/lib/leaflet/leaflet.js';
-        document.head.appendChild(s);
-    };
-    if (typeof L === 'undefined') {
-        window.__loadLocalLeaflet();
-    }
-    </script>
+    <!-- Leaflet Core - CDN Only (Cloudflare, minified) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.min.css" crossorigin="anonymous" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.min.js" crossorigin="anonymous"></script>
     
-    <!-- Leaflet MarkerCluster - CDN First with Local Fallback -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.css" onerror="this.onerror=null;this.href='/lib/leaflet.markercluster/MarkerCluster.css';" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.css" onerror="this.onerror=null;this.href='/lib/leaflet.markercluster/MarkerCluster.Default.css';" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.min.js" onerror="window.__loadLocalMarkerCluster && window.__loadLocalMarkerCluster();"></script>
-    <script>
-    window.__loadLocalMarkerCluster = function () {
-        if (window.__markerClusterLocalLoaded) return;
-        window.__markerClusterLocalLoaded = true;
-        console.warn('⚠️ CDN MarkerCluster failed, loading local...');
-        var s = document.createElement('script');
-        s.src = '/lib/leaflet.markercluster/leaflet.markercluster.js';
-        document.head.appendChild(s);
-    };
-    if (typeof L !== 'undefined' && !L.markerClusterGroup) {
-        window.__loadLocalMarkerCluster();
-    }
-    </script>
+    <!-- Leaflet MarkerCluster - CDN Only (Cloudflare, minified) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.css" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.css" crossorigin="anonymous" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.min.js" crossorigin="anonymous"></script>
     
-    <!-- Esri Leaflet - CDN First with Local Fallback -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/esri-leaflet/3.0.10/esri-leaflet.min.js" onerror="window.__loadLocalEsri && window.__loadLocalEsri();"></script>
-    <script>
-    window.__loadLocalEsri = function () {
-        if (window.__esriLocalLoaded) return;
-        window.__esriLocalLoaded = true;
-        console.warn('⚠️ CDN Esri-Leaflet failed, loading local...');
-        var s = document.createElement('script');
-        s.src = '/lib/esri-leaflet/esri-leaflet.js';
-        document.head.appendChild(s);
-    };
-    if (typeof L !== 'undefined' && !L.esri) {
-        window.__loadLocalEsri();
-    }
-    </script>
+    <!-- Esri Leaflet - CDN Only -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/esri-leaflet/3.0.10/esri-leaflet.min.js" crossorigin="anonymous"></script>
     
-    <!-- Esri Leaflet Geocoder - CDN First with Local Fallback -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/esri-leaflet-geocoder/3.1.4/esri-leaflet-geocoder.min.css" onerror="this.onerror=null;this.href='/lib/esri-leaflet-geocoder/esri-leaflet-geocoder.css';" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/esri-leaflet-geocoder/3.1.4/esri-leaflet-geocoder.min.js" onerror="window.__loadLocalEsriGeocoder && window.__loadLocalEsriGeocoder();"></script>
-    <script>
-    window.__loadLocalEsriGeocoder = function () {
-        if (window.__esriGeocoderLocalLoaded) return;
-        window.__esriGeocoderLocalLoaded = true;
-        console.warn('⚠️ CDN Esri-Geocoder failed, loading local...');
-        var s = document.createElement('script');
-        s.src = '/lib/esri-leaflet-geocoder/esri-leaflet-geocoder.js';
-        document.head.appendChild(s);
-    };
-    if (typeof L !== 'undefined' && typeof L.esri !== 'undefined' && !L.esri.Geocoding) {
-        window.__loadLocalEsriGeocoder();
-    }
-    </script>
+    <!-- Esri Leaflet Geocoder - CDN Only -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/esri-leaflet-geocoder/3.1.4/esri-leaflet-geocoder.min.css" crossorigin="anonymous" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/esri-leaflet-geocoder/3.1.4/esri-leaflet-geocoder.min.js" crossorigin="anonymous"></script>
     
     <!-- Critical: Load with defer to ensure proper load order -->
     <script defer src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
