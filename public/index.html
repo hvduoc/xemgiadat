@@ -140,6 +140,11 @@
     <link rel="preconnect" href="https://www.googletagmanager.com">
     <link rel="preconnect" href="https://unpkg.com" crossorigin>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://tile.openstreetmap.org" crossorigin>
+    <link rel="preconnect" href="https://mt0.google.com" crossorigin>
+    <link rel="preconnect" href="https://mt1.google.com" crossorigin>
+    <link rel="preconnect" href="https://mt2.google.com" crossorigin>
+    <link rel="preconnect" href="https://mt3.google.com" crossorigin>
     
     <!-- DNS Prefetch -->
     <link rel="dns-prefetch" href="//firebase.googleapis.com">
@@ -151,7 +156,7 @@
     <!-- 🚀 CRITICAL: Preload essential resources for faster FCP -->
     <link rel="preload" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" as="script">
     <link rel="preload" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" as="style">
-    <link rel="preload" href="/script.js?v=20260201b" as="script">
+    <link rel="preload" href="/script.js?v=20260201c" as="script">
     
     <!-- CSS Stylesheets - Critical first, others deferred -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" fetchpriority="high" />
@@ -268,26 +273,23 @@
         
         .toolbar-btn-compact i {
             font-size: 18px !important;
+            pointer-events: none !important;
         }
         
         .toolbar-btn-compact span {
             font-size: 10px !important;
             font-weight: 600 !important;
+            pointer-events: none !important;
             letter-spacing: 0.3px !important;
         }
         
-        /* Query button highlight (primary CTA) */
-        #query-btn {
+        /* Active tool state - highlighted when in use */
+        .toolbar-btn-compact.active-tool {
             background: -webkit-linear-gradient(315deg, #3b82f6 0%, #2563eb 100%) !important;
             background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
             color: white !important;
-            -webkit-box-shadow: 0 2px 8px rgba(59,130,246,0.4) !important;
-            box-shadow: 0 2px 8px rgba(59,130,246,0.4) !important;
-        }
-        
-        #query-btn:active {
-            background: -webkit-linear-gradient(315deg, #2563eb 0%, #1d4ed8 100%) !important;
-            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.5) !important;
+            transform: scale(1.05) !important;
         }
         
         /* ========== RIGHT SIDEBAR (Quick Actions) ========== */
@@ -495,6 +497,12 @@
             display: none !important;
             visibility: hidden !important;
             opacity: 0 !important;
+        }
+        
+        /* ========== FIX BUTTON ICON CLICK BLOCKING ========== */
+        /* Ensure icons inside buttons don't block click events */
+        button i, button span {
+            pointer-events: none !important;
         }
     </style>
 
@@ -2143,7 +2151,7 @@
     
     <!-- Application Scripts: Defer to ensure DOM ready -->
     <script defer src="pinetwork.js"></script>
-    <script defer src="script.js?v=20260201b"></script>
+    <script defer src="script.js?v=20260201c"></script>
     <script defer src="pwa-enhancements.js"></script>
     
     <!-- 💡 Performance Hint: Prefetch next page resources -->

@@ -21,6 +21,20 @@
 */
 
 // =============================================================================
+// BOOT GUARD — Prevent multiple initializations (P0 FIX: Single source of truth)
+// =============================================================================
+if (window.__XGD_BOOT__ && window.__XGD_BOOT__.booted) {
+    console.warn('[BOOT] script.js loaded twice - skipping duplicate initialization');
+    throw new Error('XGD_DUPLICATE_BOOT');
+}
+window.__XGD_BOOT__ = window.__XGD_BOOT__ || {
+    booted: false,
+    bootErrors: [],
+    bootTime: null,
+    version: '20260201c'
+};
+
+// =============================================================================
 // PERFORMANCE OPTIMIZATION & LAZY LOADING SYSTEM
 // Enhanced loading strategies for better user experience
 // =============================================================================
@@ -29,6 +43,13 @@
 const DEBUG_PARAMS = new URLSearchParams(window.location.search);
 const DEBUG_MODE = window.location.hostname === 'localhost' || DEBUG_PARAMS.get('debug') === '1';
 const DEBUG_ALL_LISTINGS = DEBUG_MODE && DEBUG_PARAMS.get('allListings') === '1';
+const LITE_MODE = DEBUG_PARAMS.get('lite') === '1';
+
+// Log boot mode once
+console.log('[BOOT]', LITE_MODE ? 'LITE_MODE' : 'FULL_MODE', '| v' + window.__XGD_BOOT__.version);
+if (DEBUG_MODE) {
+    console.log('[MODE] Debug enabled', { debug: DEBUG_MODE, allListings: DEBUG_ALL_LISTINGS, lite: LITE_MODE });
+}
 
 // =============================================================================
 // 🚨 DIAGNOSTIC: LEGACY APP BOOT CONFIRMATION (only in debug mode)
@@ -44,6 +65,66 @@ if (DEBUG_MODE) {
 // Debug log wrapper - only logs in DEBUG_MODE
 const debugLog = (...args) => { if (DEBUG_MODE) console.log(...args); };
 const debugWarn = (...args) => { if (DEBUG_MODE) console.warn(...args); };
+
+// =============================================================================
+// P0 FIX: UTILITY FUNCTIONS FOR SAFE BINDING
+// =============================================================================
+
+/**
+ * bindOnce - Prevents double-binding event handlers
+ * Uses data-xgd-bound attribute to track if handler already attached
+ * @param {Element} el - DOM element
+ * @param {string} event - Event name (e.g., 'click')
+ * @param {Function} handler - Event handler function
+ * @param {string} handlerName - Unique name for this handler
+ * @returns {boolean} - true if bound, false if already bound
+ */
+function bindOnce(el, event, handler, handlerName) {
+    if (!el) {
+        if (DEBUG_MODE) console.warn('[BIND] Element not found for', handlerName);
+        return false;
+    }
+    const boundKey = `xgd-bound-${event}-${handlerName}`;
+    if (el.dataset[boundKey]) {
+        if (DEBUG_MODE) console.log('[BIND] Already bound:', handlerName);
+        return false;
+    }
+    el.addEventListener(event, handler);
+    el.dataset[boundKey] = '1';
+    if (DEBUG_MODE) console.log('[BIND] Bound:', handlerName);
+    return true;
+}
+
+/**
+ * Check if we're in lite mode - skip heavy modules
+ * Lite mode only loads: map + parcels + query + copy link + deep-link zoom
+ */
+function isLiteMode() {
+    return LITE_MODE === true;
+}
+
+/**
+ * Guard function for non-essential modules - skip in lite mode
+ */
+function initIfNotLite(moduleName, initFn) {
+    if (isLiteMode()) {
+        if (DEBUG_MODE) console.log('[LITE] Skipping:', moduleName);
+        return false;
+    }
+    try {
+        initFn();
+        if (DEBUG_MODE) console.log('[INIT_OK]', moduleName);
+        return true;
+    } catch (error) {
+        console.error('[INIT_ERR]', moduleName, error);
+        window.__XGD_BOOT__.bootErrors.push({
+            module: moduleName,
+            error: error.message,
+            time: Date.now()
+        });
+        return false;
+    }
+}
 
 // Runtime error instrumentation (debug only)
 if (DEBUG_MODE) {
@@ -229,26 +310,96 @@ async function getCachedAddress(lat, lng) {
         }
     }
 
-document.addEventListener('DOMContentLoaded', () => {
-    if (DEBUG_MODE) console.log('🚀 DOM Content Loaded - Initializing app...');
-    
-    // Initialize performance monitoring
-    simplePerformanceMonitor.mark('app-init-start');
-    
-    // Initialize performance optimizations
-    initPerformanceOptimizations();
+// =============================================================================
+// CENTRALIZED BOOT FUNCTION — All initialization happens here (ONCE)
+// =============================================================================
 
-    // --- MAP AND LAYERS INITIALIZATION ---
-    // FIXED: maxZoom = 20 to match PMTiles data, ensures click/query works at all zoom levels
-    window.map = L.map('map', { 
-        center: [16.054456, 108.202167], 
-        zoom: 13, 
-        zoomControl: false,
-        maxZoom: 20,              // Match PMTiles maxNativeZoom
-        tap: true,                // Better touch handling for iOS
-        touchZoom: 'center',      // Zoom to center on pinch (better UX)
-        bounceAtZoomLimits: true  // Visual feedback when hitting zoom limit
-    });
+// Helper: Guard secondary DOMContentLoaded handlers (skip if lite mode or already processed)
+function __XGD_guardedInit(initName, fn) {
+    // Skip if already booted (prevents secondary listener race conditions)
+    if (window.__XGD_BOOT__ && window.__XGD_BOOT__.booted) {
+        if (DEBUG_MODE) console.log('[SKIP]', initName, '(secondary listener after boot)');
+        return;
+    }
+    
+    if (LITE_MODE) {
+        if (DEBUG_MODE) console.log('[SKIP]', initName, '(lite mode)');
+        return;
+    }
+    try {
+        fn();
+        if (DEBUG_MODE) console.log('[INIT_OK]', initName);
+    } catch (error) {
+        console.error('[INIT_ERR]', initName, error);
+        window.__XGD_BOOT__.bootErrors.push({
+            phase: 'post-boot',
+            name: initName,
+            error: error.message,
+            time: Date.now()
+        });
+    }
+}
+
+// =============================================================================
+// P0 FIX: SINGLE BOOT ENTRY POINT — All map init happens HERE only
+// =============================================================================
+function __XGD_bootApp() {
+    if (window.__XGD_BOOT__.booted) {
+        console.warn('[BOOT] Already booted, skipping duplicate init');
+        return false;
+    }
+
+    window.__XGD_BOOT__.booted = true;
+    window.__XGD_BOOT__.bootTime = performance.now();
+    
+    try {
+        // Initialize performance monitoring
+        simplePerformanceMonitor.mark('app-init-start');
+        
+        // Initialize performance optimizations (lazy loading etc)
+        initPerformanceOptimizations();
+
+        // P0 FIX: Map initialization happens ONLY HERE
+        // Check if Leaflet is available
+        if (typeof L === 'undefined') {
+            throw new Error('Leaflet not loaded - check script order in index.html');
+        }
+        
+        // --- MAP AND LAYERS INITIALIZATION ---
+        // FIXED: maxZoom = 20 to match PMTiles data, ensures click/query works at all zoom levels
+        window.map = L.map('map', { 
+            center: [16.054456, 108.202167], 
+            zoom: 13, 
+            zoomControl: false,
+            maxZoom: 20,              // Match PMTiles maxNativeZoom
+            tap: true,                // Better touch handling for iOS
+            touchZoom: 'center',      // Zoom to center on pinch (better UX)
+            bounceAtZoomLimits: true  // Visual feedback when hitting zoom limit
+        });
+        
+        console.log('[BOOT] Map initialized successfully');
+        return true;
+        
+    } catch (error) {
+        console.error('[BOOT_ERR] Fatal error during boot:', error);
+        window.__XGD_BOOT__.bootErrors.push({
+            time: Date.now(),
+            error: error.message,
+            stack: error.stack
+        });
+        // Don't throw - let page degrade gracefully
+        return false;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    // P0 FIX: Single entry point - boot returns false if already booted
+    if (!__XGD_bootApp()) {
+        console.warn('[BOOT] Skipping duplicate DOMContentLoaded handler');
+        return;
+    }
+    
+    if (DEBUG_MODE) console.log('[BOOT] Continuing with layer setup...');
     
     // 🚀 PERFORMANCE: Hide loading skeleton once map container is ready
     // This gives instant visual feedback before tiles load
@@ -749,6 +900,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // 🔧 FIX: Safe FirebaseUI initialization with availability check
     // FirebaseUI may not be loaded yet due to defer script loading race condition
     let ui = null;
+    function ensureFirebaseUiCss() {
+        const existing = document.querySelector('link[href*="firebase-ui-auth.css"]');
+        if (existing) return;
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://www.gstatic.com/firebasejs/ui/4.8.1/firebase-ui-auth.css';
+        document.head.appendChild(link);
+        console.log('✅ FirebaseUI CSS injected');
+    }
     function initFirebaseUI() {
         if (ui) return ui; // Already initialized
         
@@ -1464,9 +1624,13 @@ document.addEventListener('DOMContentLoaded', () => {
     map.getContainer().classList.add('map-add-mode');
     addLocationBtn.classList.add('active-tool');
     const instructionText = document.getElementById('instruction-text');
-    instructionText.textContent = 'Nhấp vào bản đồ để chọn vị trí cần thêm.';
-    instructionBanner.classList.remove('hidden');
-    setTimeout(() => instructionBanner.classList.add('hidden'), 3500);
+    if (instructionText) {
+        instructionText.textContent = 'Nhấp vào bản đồ để chọn vị trí cần thêm.';
+    }
+    if (instructionBanner) {
+        instructionBanner.classList.remove('hidden');
+        setTimeout(() => instructionBanner.classList.add('hidden'), 3500);
+    }
     }
 
     function enterQueryMode() {
@@ -1475,9 +1639,13 @@ document.addEventListener('DOMContentLoaded', () => {
     map.getContainer().classList.add('map-query-mode');
     queryBtn.classList.add('active-tool');
     const instructionText = document.getElementById('instruction-text');
-    instructionText.textContent = 'Nhấp vào một thửa đất trên bản đồ để xem thông tin.';
-    instructionBanner.classList.remove('hidden');
-    setTimeout(() => instructionBanner.classList.add('hidden'), 3500);
+    if (instructionText) {
+        instructionText.textContent = 'Nhấp vào một thửa đất trên bản đồ để xem thông tin.';
+    }
+    if (instructionBanner) {
+        instructionBanner.classList.remove('hidden');
+        setTimeout(() => instructionBanner.classList.add('hidden'), 3500);
+    }
     }
 
     function clearAllToolbarStates() {
@@ -1494,7 +1662,7 @@ document.addEventListener('DOMContentLoaded', () => {
         map.getContainer().classList.remove('map-add-mode', 'map-query-mode');
         addLocationBtn.classList.remove('active-tool');
         queryBtn.classList.remove('active-tool');
-        instructionBanner.classList.add('hidden');
+        if (instructionBanner) instructionBanner.classList.add('hidden');
         if (tempMarker) {
             map.removeLayer(tempMarker);
             tempMarker = null;
@@ -2514,7 +2682,7 @@ async function showCommunityParcelInfo(parcelNumber, mapSheet) {
     map.on('locationerror', (e) => alert("Không thể lấy vị trí của bạn: " + e.message));
 
     map.on('click', function(e) {
-        searchResultsContainer.classList.add('hidden');
+        if (searchResultsContainer) searchResultsContainer.classList.add('hidden');
         hideInfoPanel();
         if (isAddMode) {
             if (!currentUser) {
@@ -2532,16 +2700,22 @@ async function showCommunityParcelInfo(parcelNumber, mapSheet) {
         
         // FALLBACK: Nếu đang ở chế độ tra cứu và zoom cao, thử query trực tiếp
         if (isQueryMode && map.getZoom() >= 17) {
-            queryFeaturesAtPoint(e.latlng, function(feature) {
-                if (feature && feature.properties) {
-                    console.log('📍 Fallback query found feature:', feature.properties);
-                    // Trigger parcelLayer click event manually
-                    parcelLayer.fire('click', {
-                        latlng: e.latlng,
-                        layer: { properties: feature.properties }
-                    });
-                }
-            });
+            if (parcelLayer && typeof parcelLayer.fire === 'function') {
+                queryFeaturesAtPoint(e.latlng, function(feature) {
+                    if (feature && feature.properties) {
+                        console.log('📍 Fallback query found feature:', feature.properties);
+                        // Trigger parcelLayer click event manually
+                        parcelLayer.fire('click', {
+                            latlng: e.latlng,
+                            layer: { properties: feature.properties }
+                        });
+                    }
+                });
+            } else if (typeof queryAndDisplayParcelByLatLng === 'function') {
+                queryAndDisplayParcelByLatLng(e.latlng.lat, e.latlng.lng);
+            } else {
+                console.warn('❌ Parcel query unavailable - parcel layer not ready');
+            }
         }
     });
 
@@ -2557,14 +2731,16 @@ async function showCommunityParcelInfo(parcelNumber, mapSheet) {
     }
 
     map.on('overlayadd', e => {
-        if (e.name === '🗺️ Bản đồ phân lô') opacityControl.classList.remove('hidden');
+        if (e.name === '🗺️ Bản đồ phân lô' && opacityControl) opacityControl.classList.remove('hidden');
     });
     map.on('overlayremove', e => {
-        if (e.name === '🗺️ Bản đồ phân lô') opacityControl.classList.add('hidden');
+        if (e.name === '🗺️ Bản đồ phân lô' && opacityControl) opacityControl.classList.add('hidden');
     });
 
-    if (map.hasLayer(parcelLayer)) opacityControl.classList.remove('hidden');
-    else opacityControl.classList.add('hidden');
+    if (opacityControl) {
+        if (map.hasLayer(parcelLayer)) opacityControl.classList.remove('hidden');
+        else opacityControl.classList.add('hidden');
+    }
 
     // Donate handlers already setup earlier - avoid duplicate
     // Note: copyBtn functionality is now handled in setupCopyFunctionality() function
@@ -2631,15 +2807,27 @@ async function showCommunityParcelInfo(parcelNumber, mapSheet) {
         e.preventDefault();
         e.stopPropagation();
         
+        console.log('👆 List button clicked!');
+        console.log('📋 listModal element:', listModal);
+        console.log('📋 Current visibility:', listModal ? listModal.classList.contains('hidden') : 'N/A');
+        
         // Toggle active state
         const isActive = listBtn.classList.contains('active-tool');
         clearAllToolbarStates();
         
         if (!isActive) {
             listBtn.classList.add('active-tool');
-            listModal.classList.remove('hidden');
+            if (listModal) {
+                listModal.classList.remove('hidden');
+                console.log('✅ List modal opened');
+            } else {
+                console.error('❌ listModal element not found!');
+            }
         } else {
-            listModal.classList.add('hidden');
+            if (listModal) {
+                listModal.classList.add('hidden');
+                console.log('✅ List modal closed');
+            }
         }
     });
     
@@ -2902,6 +3090,11 @@ async function showCommunityParcelInfo(parcelNumber, mapSheet) {
     });
 
     loginBtn.addEventListener('click', () => {
+        if (!firebaseuiContainer) {
+            alert('Hệ thống đăng nhập chưa sẵn sàng. Vui lòng tải lại trang.');
+            return;
+        }
+        ensureFirebaseUiCss();
         // Verify Firebase Auth is initialized
         if (!auth || !firebase.auth) {
             console.error('❌ Firebase Auth not initialized!');
@@ -5682,15 +5875,13 @@ let selectedParcelData = null; // Lưu dữ liệu thửa đất được chọn
 let portfolioBtn, portfolioModal, closePortfolioModal, addPortfolioModal, closeAddPortfolioModal, portfolioForm;
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Note: Most initialization happens in the main DOMContentLoaded handler at line 220
-    // This secondary handler is for non-critical systems that can load after main app
-    
-    if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) {
-        console.log('🚀 Secondary initialization (non-critical systems)...');
-    }
-    
-    // Community contribution system is initialized in the main DOMContentLoaded
-    // No need to re-initialize here
+    __XGD_guardedInit('portfolio-init', function() {
+        // Note: Most initialization happens in the main DOMContentLoaded handler
+        // This secondary handler is for non-critical systems that can load after main app
+        if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) {
+            console.log('[INIT_OK] portfolio-init (non-critical systems ready)');
+        }
+    });
 });
 
 // === PORTFOLIO MANAGEMENT FUNCTIONS ===
@@ -7192,6 +7383,10 @@ async function uploadPortfolioImagesToImgur(portfolioId, files) {
 // Initialize image upload when DOM is ready
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
+        if (window.__XGD_BOOT__ && window.__XGD_BOOT__.booted) {
+            if (DEBUG_MODE) console.log('[SKIP] initializeImageUpload (secondary listener)');
+            return;
+        }
         setTimeout(initializeImageUpload, 1000);
     });
 } else {
@@ -7452,6 +7647,10 @@ function addHapticFeedback() {
 
 // Initialize mobile optimizations when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
+    if (window.__XGD_BOOT__ && window.__XGD_BOOT__.booted) {
+        if (DEBUG_MODE) console.log('[SKIP] initializeMobileOptimizations (secondary listener)');
+        return;
+    }
     initializeMobileOptimizations();
 });
 
@@ -7825,6 +8024,10 @@ class AdvancedSearchManager {
 // Initialize Advanced Search Manager
 let advancedSearchManager;
 document.addEventListener('DOMContentLoaded', function() {
+    if (window.__XGD_BOOT__ && window.__XGD_BOOT__.booted) {
+        if (DEBUG_MODE) console.log('[SKIP] AdvancedSearchManager init (secondary listener)');
+        return;
+    }
     advancedSearchManager = new AdvancedSearchManager();
     
     // Make it available globally for debugging
@@ -7833,6 +8036,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Add CSS for search suggestions
 document.addEventListener('DOMContentLoaded', function() {
+    if (window.__XGD_BOOT__ && window.__XGD_BOOT__.booted) {
+        if (DEBUG_MODE) console.log('[SKIP] search-suggestions-styles (secondary listener)');
+        return;
+    }
     if (!document.getElementById('search-suggestions-styles')) {
         const style = document.createElement('style');
         style.id = 'search-suggestions-styles';
@@ -8038,6 +8245,10 @@ class PerformanceMonitor {
         
         // Mark when critical features are ready
         document.addEventListener('DOMContentLoaded', () => {
+            if (window.__XGD_BOOT__ && window.__XGD_BOOT__.booted) {
+                if (DEBUG_MODE) console.log('[SKIP] PerformanceMonitor markTime (secondary listener)');
+                return;
+            }
             this.markTime('dom_ready');
         });
         
@@ -8327,6 +8538,10 @@ class PerformanceMonitor {
 // Initialize Performance Monitor - DEFERRED to reduce TBT
 let advancedPerformanceMonitor;
 document.addEventListener('DOMContentLoaded', function() {
+    if (window.__XGD_BOOT__ && window.__XGD_BOOT__.booted) {
+        if (DEBUG_MODE) console.log('[SKIP] advancedPerformanceMonitor init (secondary listener)');
+        return;
+    }
     // Defer by 2 seconds to allow page to become interactive first
     setTimeout(() => {
         advancedPerformanceMonitor = new PerformanceMonitor();
@@ -8833,6 +9048,10 @@ class UserBehaviorTracker {
 // Initialize User Behavior Tracker - DEFERRED to reduce TBT
 let userBehaviorTracker;
 document.addEventListener('DOMContentLoaded', function() {
+    if (window.__XGD_BOOT__ && window.__XGD_BOOT__.booted) {
+        if (DEBUG_MODE) console.log('[SKIP] userBehaviorTracker init (secondary listener)');
+        return;
+    }
     // Defer tracker initialization to after page becomes interactive
     // This significantly reduces Total Blocking Time (TBT)
     setTimeout(() => {
@@ -9078,7 +9297,13 @@ const viewBetaSignups = async () => {
 
 // Initialize beta signup when DOM is ready
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initBetaSignup);
+    document.addEventListener('DOMContentLoaded', function() {
+        if (window.__XGD_BOOT__ && window.__XGD_BOOT__.booted) {
+            if (DEBUG_MODE) console.log('[SKIP] initBetaSignup (secondary listener)');
+            return;
+        }
+        initBetaSignup();
+    });
 } else {
     initBetaSignup();
 }

@@ -1,4 +1,6 @@
+# PMTiles fix build 2025-01-26T23:45Z
 [build]
+command = "npm ci && npm run build"
 publish = "public"
 functions = "netlify/functions"
 
@@ -25,10 +27,12 @@ functions = "netlify/functions"
   SITE_URL = "https://xemgiadat.com"
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# REDIRECTS - Order matters! More specific rules first, catch-all LAST
+# P0 FIX: STATIC ASSET PASS-THROUGH (MUST BE BEFORE SPA CATCH-ALL!)
+# These rules ensure real static files are served as-is, NOT rewritten to index.html
+# Order matters: more specific rules first, catch-all LAST
 # ═══════════════════════════════════════════════════════════════════════════════
 
-# --- SERVERLESS FUNCTIONS ---
+# --- SERVERLESS FUNCTIONS (highest priority) ---
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
@@ -44,17 +48,124 @@ functions = "netlify/functions"
   to = "/.netlify/functions/pi-verify"
   status = 200
 
-# --- STATIC ASSET PASS-THROUGH (MUST BE BEFORE SPA CATCH-ALL!) ---
+# --- EXPLICIT STATIC FILES ---
+[[redirects]]
+  from = "/og.html"
+  to = "/og.html"
+  status = 200
+
+[[redirects]]
+  from = "/health.txt"
+  to = "/health.txt"
+  status = 200
+
+# --- P0 FIX: PMTilesAdapterV3 explicit pass-through ---
+[[redirects]]
+  from = "/js/adapters/PMTilesAdapterV3.js"
+  to = "/js/adapters/PMTilesAdapterV3.js"
+  status = 200
+  force = true
+
+# --- P0 FIX: vectortile-parser.js explicit pass-through ---
+[[redirects]]
+  from = "/js/lib/vectortile-parser.js"
+  to = "/js/lib/vectortile-parser.js"
+  status = 200
+  force = true
+
+# --- P0 FIX: ASSET DIRECTORIES PASS-THROUGH ---
+# These MUST come before the SPA catch-all to prevent CSS/JS being served as HTML
+
+[[redirects]]
+  from = "/assets/*"
+  to = "/assets/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/v2/assets/*"
+  to = "/v2/assets/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/js/*"
+  to = "/js/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/css/*"
+  to = "/css/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/images/*"
+  to = "/images/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/tiles/*"
+  to = "/tiles/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/data/*"
+  to = "/data/:splat"
+  status = 200
+
+# --- V2 ROUTES ---
+[[redirects]]
+  from = "/v2/"
+  to = "/v2/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/v2/*"
+  to = "/v2/:splat"
+  status = 200
+
+# --- LEGACY REDIRECTS ---
+[[redirects]]
+  from = "/v2"
+  to = "/v2/"
+  status = 301
+
+[[redirects]]
+  from = "/v2.html"
+  to = "/v2/"
+  status = 301
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# P0 FIX: STATIC ASSET PASS-THROUGH (MUST BE BEFORE SPA CATCH-ALL!)
+# These rules ensure real static files are served as-is, NOT rewritten to index.html
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# --- JS FILES ---
 [[redirects]]
   from = "/js/*"
   to = "/js/:splat"
   status = 200
 
 [[redirects]]
+  from = "/js/adapters/*"
+  to = "/js/adapters/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/js/lib/*"
+  to = "/js/lib/:splat"
+  status = 200
+
+# --- CSS FILES ---
+[[redirects]]
   from = "/css/*"
   to = "/css/:splat"
   status = 200
 
+# --- ASSET DIRECTORIES ---
 [[redirects]]
   from = "/assets/*"
   to = "/assets/:splat"
@@ -65,37 +176,33 @@ functions = "netlify/functions"
   to = "/v2/assets/:splat"
   status = 200
 
+# --- TILES (PMTiles) ---
 [[redirects]]
   from = "/tiles/*"
   to = "/tiles/:splat"
   status = 200
 
+# --- IMAGES ---
 [[redirects]]
   from = "/images/*"
   to = "/images/:splat"
   status = 200
 
-# --- V2 APP ROUTING ---
-[[redirects]]
-  from = "/v2/*"
-  to = "/v2/:splat"
-  status = 200
-
-[[redirects]]
-  from = "/v2"
-  to = "/v2/"
-  status = 301
-
-# --- SPA FALLBACK - MUST BE LAST! ---
+# ═══════════════════════════════════════════════════════════════════════════════
+# SPA FALLBACK - MUST BE ABSOLUTE LAST!
+# Only routes that don't match above will fall through to index.html
+# ═══════════════════════════════════════════════════════════════════════════════
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# HEADERS
+# HEADERS CONFIGURATION
+# P0 FIX: NO immutable on /* or HTML files. Only fingerprinted assets get immutable.
 # ═══════════════════════════════════════════════════════════════════════════════
 
+# --- SECURITY HEADERS (apply to all) ---
 [[headers]]
   for = "/*"
   [headers.values]
@@ -103,37 +210,135 @@ functions = "netlify/functions"
     X-Content-Type-Options = "nosniff"
     X-XSS-Protection = "1; mode=block"
     Referrer-Policy = "strict-origin-when-cross-origin"
-
-[[headers]]
-  for = "/js/*"
-  [headers.values]
-    Content-Type = "text/javascript; charset=utf-8"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
+    # P0 FIX: Short cache, NO immutable on catch-all
     Cache-Control = "public, max-age=3600, must-revalidate"
 
+# --- HTML FILES: Never cache (avoid stale deployments) ---
 [[headers]]
-  for = "/js/adapters/*"
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+    Content-Type = "text/html; charset=utf-8"
+
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+    Content-Type = "text/html; charset=utf-8"
+
+[[headers]]
+  for = "/v2/index.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+    Content-Type = "text/html; charset=utf-8"
+
+# --- MANIFEST: Must stay fresh for PWA updates ---
+[[headers]]
+  for = "/manifest.json"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+    Content-Type = "application/manifest+json"
+
+# --- ROOT-LEVEL JS/CSS: P0 FIX - Short cache for non-fingerprinted files ---
+# script.js and style.css don't have hash fingerprints, so must revalidate frequently
+[[headers]]
+  for = "/script.js"
   [headers.values]
     Content-Type = "text/javascript; charset=utf-8"
     Cache-Control = "public, max-age=0, must-revalidate"
 
 [[headers]]
-  for = "/css/*"
+  for = "/style.css"
   [headers.values]
     Content-Type = "text/css; charset=utf-8"
-    Cache-Control = "public, max-age=86400, must-revalidate"
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# --- ADAPTER JS: Never cache (critical config, no fingerprinting) ---
+[[headers]]
+  for = "/js/adapters/*.js"
+  [headers.values]
+    Content-Type = "text/javascript; charset=utf-8"
+    Cache-Control = "public, max-age=0, must-revalidate"
 
 [[headers]]
-  for = "/assets/*"
+  for = "/*.js"
   [headers.values]
+    Content-Type = "text/javascript; charset=utf-8"
+    Cache-Control = "public, max-age=3600, must-revalidate"
+
+[[headers]]
+  for = "/*.css"
+  [headers.values]
+    Content-Type = "text/css; charset=utf-8"
+    Cache-Control = "public, max-age=3600, must-revalidate"
+
+# --- FINGERPRINTED ASSETS: Immutable (hash-busted) ---
+[[headers]]
+  for = "/assets/*.js"
+  [headers.values]
+    Content-Type = "text/javascript; charset=utf-8"
     Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/assets/*.css"
+  [headers.values]
+    Content-Type = "text/css; charset=utf-8"
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/v2/assets/*.js"
+  [headers.values]
+    Content-Type = "text/javascript; charset=utf-8"
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/v2/assets/*.css"
+  [headers.values]
+    Content-Type = "text/css; charset=utf-8"
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# --- SERVICE WORKER: Never cache ---
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# --- TILES ---
+[[headers]]
+  for = "/tiles/metadata.json"
+  [headers.values]
+    Content-Type = "application/json"
+    Cache-Control = "public, max-age=3600, must-revalidate"
+    Access-Control-Allow-Origin = "*"
+
+[[headers]]
+  for = "/tiles/*.pmtiles"
+  [headers.values]
+    Content-Type = "application/octet-stream"
+    Cache-Control = "public, max-age=86400, must-revalidate"
+    Access-Control-Allow-Origin = "*"
+    Accept-Ranges = "bytes"
 
 [[headers]]
   for = "/tiles/*"
   [headers.values]
-    Cache-Control = "public, max-age=604800"
+    Content-Type = "application/x-protobuf"
+    Cache-Control = "public, max-age=86400, must-revalidate"
     Access-Control-Allow-Origin = "*"
 
+# --- HEALTH CHECK ---
 [[headers]]
-  for = "/images/*"
+  for = "/health.txt"
   [headers.values]
-    Cache-Control = "public, max-age=86400"
+    Cache-Control = "public, max-age=0, must-revalidate"
+    Content-Type = "text/plain; charset=utf-8"
+
+# --- NETLIFY FUNCTIONS CORS ---
+[[headers]]
+  for = "/.netlify/functions/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "https://xemgiadat.com"
+    Access-Control-Allow-Methods = "GET, POST, OPTIONS"
+    Access-Control-Allow-Headers = "Content-Type, Authorization, X-Pi-Signature"

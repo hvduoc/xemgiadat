@@ -19,16 +19,23 @@
 // =============================================================================
 
 // PHASE 3 FIX: Dynamic versioning - date-based to force cache bust on each deploy
-const CACHE_VERSION = '2026-02-01-pmtiles-bypass';
+const CACHE_VERSION = '2026-02-01-p0-stability';
 const CACHE_NAME = `xemgiadat-v${CACHE_VERSION}`;
 const OFFLINE_URL = '/offline.html';
 
-// Assets to cache immediately
+// P0 FIX: Critical JS files that must ALWAYS use network-first to avoid stale code
+const NETWORK_FIRST_ASSETS = [
+  '/script.js',
+  '/style.css',
+  '/index.html',
+  '/js/adapters/PMTilesAdapterV3.js',
+  '/js/adapters/GeocodingAdapter.js',
+  '/js/adapters/FeatureFlagConfig.js'
+];
+
+// Assets to cache immediately (excluding critical JS)
 const STATIC_ASSETS = [
   '/',
-  '/index.html',
-  '/style.css',
-  '/script.js',
   '/maxa_list.js',
   '/manifest.json',
   '/offline.html',
@@ -46,7 +53,7 @@ const STATIC_ASSETS = [
   '/chinh-sach.html',
   '/guide.html',
   
-  // Adapters
+  // Adapters (non-critical)
   '/js/adapters/PMTilesAdapter.js',
   '/js/adapters/GeocodingAdapter.js',
   '/js/adapters/FeatureFlagConfig.js',
@@ -151,6 +158,12 @@ self.addEventListener('fetch', event => {
     return;
   }
   
+  // P0 FIX: Critical JS/CSS must use network-first to avoid stale code bugs
+  if (isNetworkFirstAsset(url)) {
+    event.respondWith(networkFirstStrategy(request));
+    return;
+  }
+  
   if (isStaticAsset(url)) {
     event.respondWith(cacheFirstStrategy(request));
   } else if (isTileRequest(url)) {
@@ -226,7 +239,14 @@ async function networkOnlyStrategy(request) {
 // UTILITY FUNCTIONS
 // =============================================================================
 
+// P0 FIX: Check if asset must use network-first to avoid stale code
+function isNetworkFirstAsset(url) {
+  return NETWORK_FIRST_ASSETS.some(asset => url.pathname === asset || url.pathname.endsWith(asset));
+}
+
 function isStaticAsset(url) {
+  // P0 FIX: Exclude network-first assets from static cache
+  if (isNetworkFirstAsset(url)) return false;
   return STATIC_ASSETS.some(asset => url.pathname === asset) ||
          CACHE_PATTERNS.fonts.test(url.pathname);
 }
