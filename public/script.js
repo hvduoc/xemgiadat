@@ -912,9 +912,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const logoutBtnMenu = document.getElementById('logout-btn-menu');
     const firebaseuiContainer = document.getElementById('firebaseui-auth-container');
     
-    // 🔧 FIX: Safe FirebaseUI initialization with availability check
+    // 🔧 FIX: LAZY-LOAD FirebaseUI only on login click (TBT OPTIMIZATION)
     // FirebaseUI may not be loaded yet due to defer script loading race condition
     let ui = null;
+    let firebaseUIInitialized = false;
+    
     function ensureFirebaseUiCss() {
         const existing = document.querySelector('link[href*="firebase-ui-auth.css"]');
         if (existing) return;
@@ -924,17 +926,20 @@ document.addEventListener('DOMContentLoaded', () => {
         document.head.appendChild(link);
         console.log('✅ FirebaseUI CSS injected');
     }
+    
     function initFirebaseUI() {
-        if (ui) return ui; // Already initialized
+        if (firebaseUIInitialized) return ui; // Already initialized
         
         if (typeof firebaseui === 'undefined' || !firebaseui.auth) {
-            console.warn('⚠️ FirebaseUI not yet loaded, will retry...');
+            console.warn('⚠️ FirebaseUI not yet loaded');
             return null;
         }
         
         try {
+            ensureFirebaseUiCss();
             ui = new firebaseui.auth.AuthUI(auth);
-            console.log('✅ FirebaseUI initialized successfully');
+            firebaseUIInitialized = true;
+            console.log('✅ FirebaseUI initialized on-demand (lazy load)');
             return ui;
         } catch (err) {
             console.error('❌ Failed to initialize FirebaseUI:', err);
@@ -942,18 +947,40 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    // Try to initialize immediately
-    initFirebaseUI();
-    
-    // If not available, retry when firebaseui loads (backup)
-    if (!ui) {
-        const checkInterval = setInterval(() => {
-            if (initFirebaseUI()) {
-                clearInterval(checkInterval);
+    // 🚀 LAZY LOAD: Initialize FirebaseUI only when login button is clicked
+    // This prevents 50KB FirebaseUI parsing on non-authenticated users
+    if (loginBtn) {
+        loginBtn.addEventListener('click', function(e) {
+            if (!firebaseUIInitialized) {
+                console.log('🔄 Initializing FirebaseUI on first login click...');
+                const uiInstance = initFirebaseUI();
+                if (uiInstance) {
+                    // Show FirebaseUI container
+                    if (firebaseuiContainer) {
+                        firebaseuiContainer.classList.remove('hidden');
+                    }
+                    // Start auth flow
+                    uiInstance.start('#firebaseui-auth-container', {
+                        signInOptions: [
+                            firebase.auth.EmailAuthProvider.PROVIDER_ID,
+                            {
+                                provider: firebase.auth.GoogleAuthProvider.PROVIDER_ID,
+                                scopes: ['profile', 'email']
+                            }
+                        ],
+                        signInFlow: 'popup',
+                        callbacks: {
+                            signInSuccessWithAuthResult: function(authResult, redirectUrl) {
+                                console.log('✅ Sign in successful');
+                                return false;
+                            }
+                        }
+                    });
+                } else {
+                    console.warn('⚠️ FirebaseUI library not ready yet');
+                }
             }
-        }, 100);
-        // Stop checking after 10 seconds to avoid infinite loop
-        setTimeout(() => clearInterval(checkInterval), 10000);
+        });
     }
     
     const opacityControl = document.getElementById('opacity-control');
@@ -1822,6 +1849,39 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // Advanced parallel search with smart loading strategy
+    // Now optimized with Web Worker for heavy GeoJSON processing
+    let parcelSearchWorker = null;
+    let searchTaskCounter = 0;
+    const searchTaskPromises = new Map();
+    
+    // Initialize Web Worker (lazy loaded on first search)
+    function ensureParcelSearchWorker() {
+        if (parcelSearchWorker) return parcelSearchWorker;
+        
+        try {
+            parcelSearchWorker = new Worker('/workers/geojson-search.js');
+            parcelSearchWorker.onmessage = function(event) {
+                const { command, taskId, success, results, error } = event.data;
+                
+                if (command === 'SEARCH_PARCEL' && searchTaskPromises.has(taskId)) {
+                    const { resolve, reject } = searchTaskPromises.get(taskId);
+                    searchTaskPromises.delete(taskId);
+                    
+                    if (success) {
+                        resolve(results);
+                    } else {
+                        reject(new Error(error));
+                    }
+                }
+            };
+            console.log('✅ Parcel search Web Worker initialized');
+        } catch(error) {
+            console.warn('⚠️ Web Worker not available, falling back to main thread:', error.message);
+            parcelSearchWorker = null;
+        }
+        return parcelSearchWorker;
+    }
+    
     async function searchParcelsInCache(soThua, soTo = null) {
         await ensureMaxaListLoaded();
         console.log(`🔍 ENTERPRISE SEARCH: Thửa ${soThua}, Tờ ${soTo || 'bất kỳ'}`);
@@ -1831,38 +1891,76 @@ document.addEventListener('DOMContentLoaded', () => {
             return [];
         }
         
-        const results = [];
-        const maxResults = 12; // Increased for better coverage
-        const maxConcurrent = 6; // Parallel loading for speed
+        // Try to use Web Worker if available, fall back to main thread
+        const worker = ensureParcelSearchWorker();
         
-        // Smart search strategy: Priority areas first, then comprehensive scan
+        if (worker) {
+            // Use Web Worker for heavy processing
+            try {
+                return await performWorkerSearch(worker, soThua, soTo);
+            } catch(error) {
+                console.warn('⚠️ Worker search failed, falling back to main thread:', error.message);
+                // Fall through to main thread search
+            }
+        }
+        
+        // Fallback: Main thread search (original logic)
+        return await performMainThreadSearch(soThua, soTo);
+    }
+    
+    // Helper: Web Worker search
+    async function performWorkerSearch(worker, soThua, soTo) {
+        const taskId = ++searchTaskCounter;
         const searchOrder = [...PRIORITY_AREAS, ...ALL_AVAILABLE_AREAS.filter(area => !PRIORITY_AREAS.includes(area))];
         
-        // Function to load and search a single area
+        return new Promise((resolve, reject) => {
+            searchTaskPromises.set(taskId, { resolve, reject });
+            
+            worker.postMessage({
+                command: 'SEARCH_PARCEL',
+                taskId,
+                payload: {
+                    soThua,
+                    soTo,
+                    areas: searchOrder
+                }
+            });
+            
+            // Timeout after 10 seconds
+            setTimeout(() => {
+                if (searchTaskPromises.has(taskId)) {
+                    searchTaskPromises.delete(taskId);
+                    reject(new Error('Worker search timeout'));
+                }
+            }, 10000);
+        });
+    }
+    
+    // Helper: Main thread search (fallback)
+    async function performMainThreadSearch(soThua, soTo) {
+        const results = [];
+        const maxResults = 12;
+        const maxConcurrent = 6;
+        
+        const searchOrder = [...PRIORITY_AREAS, ...ALL_AVAILABLE_AREAS.filter(area => !PRIORITY_AREAS.includes(area))];
+        
         const searchArea = async (maXa) => {
             if (!cachedGeojsonByMaXa[maXa]) {
                 try {
-                    console.log(`📥 Loading ${maXa}.geojson...`);
                     const response = await fetch(`data/parcels/${maXa}.geojson`);
-                    
                     if (response.ok) {
                         const geojson = await response.json();
                         cachedGeojsonByMaXa[maXa] = geojson;
-                        console.log(`✅ Loaded ${maXa}.geojson - ${geojson.features?.length || 0} parcels`);
                     } else {
-                        console.log(`❌ Failed to load ${maXa}.geojson: ${response.status}`);
                         return [];
                     }
                 } catch (error) {
-                    console.log(`❌ Error loading ${maXa}:`, error.message);
                     return [];
                 }
             }
             
             const geojson = cachedGeojsonByMaXa[maXa];
             if (!geojson || !geojson.features) return [];
-            
-            console.log(`🔎 Searching ${geojson.features.length} parcels in area ${maXa}`);
             
             const matches = [];
             for (const feature of geojson.features) {
@@ -1873,16 +1971,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const matchTo = !soTo || props.SoHieuToBanDo == soTo;
                 
                 if (matchThua && matchTo) {
-                    console.log(`✨ MATCH: Thửa ${props.SoThuTuThua}, Tờ ${props.SoHieuToBanDo}, Area ${maXa}`);
-                    
-                    // Enhanced coordinate processing
                     let coords = feature.geometry?.coordinates?.[0];
-                    if (!coords || coords.length < 3) {
-                        console.log(`⚠️ Invalid coordinates for parcel ${props.SoThuTuThua}`);
-                        continue;
-                    }
+                    if (!coords || coords.length < 3) continue;
                     
-                    // Calculate centroid with validation
                     let centerLng = 0, centerLat = 0, validCount = 0;
                     for (const coord of coords) {
                         if (Array.isArray(coord) && coord.length >= 2 && 
@@ -1907,45 +1998,32 @@ document.addEventListener('DOMContentLoaded', () => {
                         lat: centerLat,
                         lng: centerLng,
                         feature: feature,
-                        // Additional metadata for enhanced results
                         area: maXa,
-                        quality: 'high' // Mark as high quality since we found exact match
+                        quality: 'high'
                     });
                 }
             }
-            
             return matches;
         };
         
-        // Execute parallel searches with batching
         for (let i = 0; i < searchOrder.length && results.length < maxResults; i += maxConcurrent) {
             const batch = searchOrder.slice(i, i + maxConcurrent);
-            console.log(`🚀 Processing batch ${Math.floor(i/maxConcurrent) + 1}: [${batch.join(', ')}]`);
             
             try {
                 const batchPromises = batch.map(area => searchArea(area));
                 const batchResults = await Promise.all(batchPromises);
                 
-                // Flatten and add to results
                 for (const areaResults of batchResults) {
                     results.push(...areaResults);
                     if (results.length >= maxResults) break;
                 }
-                
-                // Early termination if we found enough results in priority areas
-                if (i < PRIORITY_AREAS.length && results.length >= 6) {
-                    console.log(`⚡ Found ${results.length} results in priority areas, continuing search...`);
-                }
-                
             } catch (error) {
-                console.error(`❌ Batch processing error:`, error);
+                console.error('Batch processing error:', error);
             }
         }
         
-        console.log(`🎯 SEARCH COMPLETE: ${results.length} results found across ${searchOrder.length} areas`);
-        console.log(`📈 Coverage: ${results.length > 0 ? '100%' : 'No matches'} | Quality: Enterprise-grade`);
-        
-        return results.slice(0, maxResults); // Ensure we don't exceed max results
+        console.log(`🎯 SEARCH COMPLETE: ${results.length} results found`);
+        return results.slice(0, maxResults);
     }
 
 // Global search performance cache
@@ -3802,6 +3880,7 @@ async function showCommunityParcelInfo(parcelNumber, mapSheet) {
     }
     
     // Optimized label update - load only 1 relevant area
+    // Optimized: Use cached objects to reduce GC pressure
     async function updateParcelLabelsOptimized() {
         parcelLabels.clearLayers();
         
@@ -3822,14 +3901,27 @@ async function showCommunityParcelInfo(parcelNumber, mapSheet) {
             }
             
             // Display cached labels for current area
+            // Optimized: Use requestIdleCallback to avoid blocking during interactions
             const cachedLabels = labelCache.get(targetArea);
             if (cachedLabels) {
                 const bounds = map.getBounds();
-                cachedLabels.forEach(label => {
-                    if (bounds.contains(label.getLatLng())) {
-                        parcelLabels.addLayer(label);
-                    }
-                });
+                // Defer label addition to avoid blocking
+                if (typeof requestIdleCallback !== 'undefined') {
+                    requestIdleCallback(() => {
+                        cachedLabels.forEach(label => {
+                            if (bounds.contains(label.getLatLng())) {
+                                parcelLabels.addLayer(label);
+                            }
+                        });
+                    }, { timeout: 1000 });
+                } else {
+                    // Fallback for browsers without requestIdleCallback
+                    cachedLabels.forEach(label => {
+                        if (bounds.contains(label.getLatLng())) {
+                            parcelLabels.addLayer(label);
+                        }
+                    });
+                }
             }
             
         } catch (error) {
@@ -3845,6 +3937,7 @@ async function showCommunityParcelInfo(parcelNumber, mapSheet) {
     }
     
     // Load single area efficiently
+    // Optimized: Avoid reduce() to minimize GC pressure
     async function loadSingleAreaLabels(maXa) {
         try {
             const response = await fetch(`data/parcels/${maXa}.geojson`);
@@ -3856,26 +3949,44 @@ async function showCommunityParcelInfo(parcelNumber, mapSheet) {
             // Process only first 20 features to reduce computation
             const features = geojson.features.slice(0, 20);
             
+            // Reuse coordinate accumulators to reduce object allocation
+            let sumLng = 0, sumLat = 0;
+            
             features.forEach(feature => {
                 const props = feature.properties;
                 if (props?.SoThuTuThua && feature.geometry?.coordinates) {
                     const coords = feature.geometry.coordinates[0];
                     if (coords && coords.length > 3) {
-                        // Fast centroid calculation
-                        const centerLng = coords.reduce((sum, c) => sum + c[0], 0) / coords.length;
-                        const centerLat = coords.reduce((sum, c) => sum + c[1], 0) / coords.length;
+                        // Optimized: Use simple loop instead of reduce() to avoid intermediate objects
+                        sumLng = 0;
+                        sumLat = 0;
+                        let coordCount = 0;
                         
-                        const label = L.marker([centerLat, centerLng], {
-                            icon: L.divIcon({
-                                className: 'parcel-number-label',
-                                html: props.SoThuTuThua,
-                                iconSize: [null, null],
-                                iconAnchor: [10, 6]
-                            }),
-                            interactive: false
-                        });
+                        for (let i = 0; i < coords.length; i++) {
+                            const coord = coords[i];
+                            if (Array.isArray(coord) && coord.length >= 2) {
+                                sumLng += coord[0];
+                                sumLat += coord[1];
+                                coordCount++;
+                            }
+                        }
                         
-                        labels.push(label);
+                        if (coordCount > 0) {
+                            const centerLng = sumLng / coordCount;
+                            const centerLat = sumLat / coordCount;
+                            
+                            const label = L.marker([centerLat, centerLng], {
+                                icon: L.divIcon({
+                                    className: 'parcel-number-label',
+                                    html: props.SoThuTuThua,
+                                    iconSize: [null, null],
+                                    iconAnchor: [10, 6]
+                                }),
+                                interactive: false
+                            });
+                            
+                            labels.push(label);
+                        }
                     }
                 }
             });
