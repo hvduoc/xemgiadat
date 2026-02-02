@@ -393,20 +393,23 @@ function __XGD_bootApp() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // P0 FIX: Single entry point - boot returns false if already booted
-    if (!__XGD_bootApp()) {
-        console.warn('[BOOT] Skipping duplicate DOMContentLoaded handler');
-        return;
-    }
-    
-    if (DEBUG_MODE) console.log('[BOOT] Continuing with layer setup...');
-    
-    // 🚀 PERFORMANCE: Hide loading skeleton once map container is ready
-    // This gives instant visual feedback before tiles load
+    // Defer heavy map boot until after first paint
     requestAnimationFrame(() => {
-        if (window.hideLoadingSkeleton) window.hideLoadingSkeleton();
-    });
-    const myAttribution = '© XemGiaDat | 📌 Dữ liệu tham khảo từ Sở TNMT Đà Nẵng. Không có giá trị pháp lý.';
+        requestAnimationFrame(() => {
+            // P0 FIX: Single entry point - boot returns false if already booted
+            if (!__XGD_bootApp()) {
+                console.warn('[BOOT] Skipping duplicate DOMContentLoaded handler');
+                return;
+            }
+            
+            if (DEBUG_MODE) console.log('[BOOT] Continuing with layer setup...');
+            
+            // 🚀 PERFORMANCE: Hide loading skeleton once map container is ready
+            // This gives instant visual feedback before tiles load
+            requestAnimationFrame(() => {
+                if (window.hideLoadingSkeleton) window.hideLoadingSkeleton();
+            });
+            const myAttribution = '© XemGiaDat | 📌 Dữ liệu tham khảo từ Sở TNMT Đà Nẵng. Không có giá trị pháp lý.';
     const googleStreets = L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',{ maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'], attribution: myAttribution + ' | © Google Maps' });
     const googleSat = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{ maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'], attribution: myAttribution + ' | © Google Satellite' });
     const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: myAttribution + ' | © OpenStreetMap' });
@@ -1752,18 +1755,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // === ENHANCED SEARCH SYSTEM WITH FULL COVERAGE ===
     
-    // Complete list of all available areas for comprehensive search
-    const ALL_AVAILABLE_AREAS = [
-        '20194', '20195', '20197', '20198', '20200', '20203', '20206', '20207', '20209', '20212',
-        '20215', '20218', '20221', '20224', '20225', '20227', '20230', '20233', '20236', '20239',
-        '20242', '20245', '20246', '20248', '20251', '20254', '20257', '20258', '20260', '20263',
-        '20266', '20269', '20272', '20275', '20278', '20281', '20284', '20285', '20287', '20290',
-        '20293', '20296', '20299', '20302', '20305', '20306', '20308', '20311', '20312', '20314',
-        '20317', '20320', '20323', '20326', '20329', '20332'
-    ];
-    
     // Prioritized search order - common areas first for better UX
     const PRIORITY_AREAS = ['20194', '20195', '20197', '20198', '20200', '20203', '20206', '20207'];
+    
+    // Complete list of all available areas for comprehensive search (lazy-loaded)
+    let ALL_AVAILABLE_AREAS = [];
+    let maxaListLoadPromise = null;
+    
+    async function ensureMaxaListLoaded() {
+        if (ALL_AVAILABLE_AREAS.length) return ALL_AVAILABLE_AREAS;
+        if (!maxaListLoadPromise) {
+            maxaListLoadPromise = fetch('/data/maxa_list.json', { cache: 'force-cache' })
+                .then(response => (response.ok ? response.json() : []))
+                .catch(() => [])
+                .then(list => {
+                    if (Array.isArray(list)) {
+                        ALL_AVAILABLE_AREAS = list.map(String);
+                    } else {
+                        ALL_AVAILABLE_AREAS = [];
+                    }
+                    if (!ALL_AVAILABLE_AREAS.length) {
+                        ALL_AVAILABLE_AREAS = [...PRIORITY_AREAS];
+                    }
+                    return ALL_AVAILABLE_AREAS;
+                });
+        }
+        return maxaListLoadPromise;
+    }
     
     // Parse Vietnamese parcel input formats with enhanced pattern matching
     function parseParcelQuery(query) {
@@ -1793,8 +1811,13 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Advanced parallel search with smart loading strategy
     async function searchParcelsInCache(soThua, soTo = null) {
+        await ensureMaxaListLoaded();
         console.log(`🔍 ENTERPRISE SEARCH: Thửa ${soThua}, Tờ ${soTo || 'bất kỳ'}`);
         console.log(`📊 Scanning ${ALL_AVAILABLE_AREAS.length} areas for comprehensive results...`);
+        if (!ALL_AVAILABLE_AREAS.length) {
+            console.warn('⚠️ Maxa list not available yet. Skipping parcel search.');
+            return [];
+        }
         
         const results = [];
         const maxResults = 12; // Increased for better coverage
@@ -1935,6 +1958,7 @@ const performSearch = async (query) => {
         return;
     }
     
+    await ensureMaxaListLoaded();
     searchResultsContainer.innerHTML = '<div class="p-4 text-center text-gray-500"><i class="fas fa-search animate-spin mr-2"></i>Đang tìm kiếm toàn bộ hệ thống...</div>';
     searchResultsContainer.classList.remove('hidden');
     
@@ -5047,6 +5071,8 @@ function goToStep2() {
             parcelLabels.clearLayers();
             clearTimeout(labelLoadTimeout);
         }
+    });
+        });
     });
 });
 

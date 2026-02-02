@@ -14,8 +14,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="/images/favicon.png">
-    <link rel="shortcut icon" type="image/png" href="/images/favicon.png">
+    <link rel="icon" type="image/webp" href="/images/favicon.webp">
+    <link rel="shortcut icon" type="image/webp" href="/images/favicon.webp">
     
     <!-- SEO Meta Tags -->
     <title>Xem Giá Đất Đà Nẵng - Bản Đồ Giá Đất Chính Xác Nhất 2025</title>
@@ -34,7 +34,7 @@
     <meta property="og:description" content="Nền tảng BĐS Đà Nẵng thế hệ mới. Dễ dàng tra cứu thông tin thửa đất, đồng thời đăng tin bán hoặc cho thuê siêu nhẹ chỉ trong vài giây. Hoàn toàn miễn phí." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://xemgiadat.com/" /> 
-    <meta property="og:image" content="https://xemgiadat.com/images/thumbnail.png" />
+    <meta property="og:image" content="https://xemgiadat.com/images/thumbnail.webp" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:site_name" content="Xem Giá Đất">
@@ -47,7 +47,7 @@
     <meta name="pi-network:app-id" content="xemgiadat_app">
     <meta name="pi-network:app-name" content="XemGiaDat - Xem Giá Đất Vietnam">
     <meta name="pi-network:description" content="Vietnamese Real Estate Price Platform with Pi Network Integration">
-    <meta name="pi-network:image" content="https://xemgiadat.com/images/pi-network-preview.png">
+    <meta name="pi-network:image" content="https://xemgiadat.com/images/pi-network-preview.webp">
     
         <!-- Build Version Meta Tags -->
         <meta name="build-version" content="c01d5f5-1769862229262">
@@ -55,7 +55,7 @@
         <meta name="cache-version" content="c01d5f5-1769862229262">
     <meta name="twitter:title" content="Xem Giá Đất Đà Nẵng - Bản Đồ Giá Đất Chính Xác">
     <meta name="twitter:description" content="Bản đồ giá đất Đà Nẵng online, thông tin BDS chính xác, giao dịch minh bạch.">
-    <meta name="twitter:image" content="https://xemgiadat.com/images/thumbnail.png">
+    <meta name="twitter:image" content="https://xemgiadat.com/images/thumbnail.webp">
     <meta name="twitter:site" content="@xemgiadat">
     
     <!-- Google Site Verification -->
@@ -69,8 +69,8 @@
         "name": "Xem Giá Đất",
         "description": "Nền tảng thông tin giá đất và bất động sản Đà Nẵng chính xác nhất",
         "url": "https://xemgiadat.com",
-        "logo": "https://xemgiadat.com/images/logo.png",
-        "image": "https://xemgiadat.com/images/thumbnail.png",
+        "logo": "https://xemgiadat.com/images/logo.webp",
+        "image": "https://xemgiadat.com/images/thumbnail.webp",
         "telephone": "+84-236-123-4567",
         "email": "info@xemgiadat.com",
         "address": {
@@ -114,7 +114,7 @@
             "name": "Xem Giá Đất",
             "logo": {
                 "@type": "ImageObject",
-                "url": "https://xemgiadat.com/images/logo.png"
+                "url": "https://xemgiadat.com/images/logo.webp"
             }
         },
         "potentialAction": {
@@ -138,6 +138,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://www.google-analytics.com">
     <link rel="preconnect" href="https://www.googletagmanager.com">
+    <link rel="preconnect" href="https://firestore.googleapis.com">
     <link rel="preconnect" href="https://unpkg.com" crossorigin>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="preconnect" href="https://tile.openstreetmap.org" crossorigin>
@@ -154,12 +155,12 @@
     <link rel="dns-prefetch" href="//tile.openstreetmap.org">
     
     <!-- 🚀 CRITICAL: Preload essential resources for faster FCP -->
-    <link rel="preload" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" as="script">
-    <link rel="preload" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" as="style">
+    <link rel="preload" href="/lib/leaflet/leaflet.js" as="script">
+    <link rel="preload" href="/lib/leaflet/leaflet.css" as="style">
     <link rel="preload" href="/script.js?v=20260201c" as="script">
     
     <!-- CSS Stylesheets - Critical first, others deferred -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" fetchpriority="high" />
+    <link rel="stylesheet" href="/lib/leaflet/leaflet.css" fetchpriority="high" />
     <!-- Non-critical CSS loaded async -->
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'" crossorigin="anonymous">
     <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"></noscript>
@@ -509,8 +510,6 @@
 
     <meta name="description" content="Nền tảng BĐS Đà Nẵng thế hệ mới. Dễ dàng tra cứu thông tin thửa đất, đồng thời đăng tin bán hoặc cho thuê siêu nhẹ chỉ trong vài giây. Hoàn toàn miễn phí.">
     
-    <script defer src="maxa_list.js"></script>
-    
     <!-- Tailwind CSS Production Build -->
 
     
@@ -524,9 +523,8 @@
         window.trackEvent = window.trackPortfolioEvent = window.trackSearchEvent = 
         window.trackMapEvent = window.trackUserJourney = window.trackPerformance = function(){};
         
-        // Load GA after page is interactive (reduces TBT by ~200ms)
-        if (document.readyState === 'complete') { loadGA(); }
-        else { window.addEventListener('load', function() { setTimeout(loadGA, 1000); }); }
+        // Load GA after window.onload + 2s (reduces TBT by ~200ms)
+        window.addEventListener('load', function() { setTimeout(loadGA, 2000); });
         
         function loadGA() {
             var s = document.createElement('script');
@@ -761,7 +759,7 @@
             }
         };
     </script>
-  <link rel="stylesheet" crossorigin href="/assets/main-CoB823_Y.css">
+    <link rel="stylesheet" crossorigin href="/assets/main-CoB823_Y.css" fetchpriority="high">
 </head>
 <body class="relative overflow-hidden">
     <!-- 🚀 LOADING SKELETON - Shows instantly while scripts load -->
@@ -1431,7 +1429,7 @@
                         <div class="p-4 bg-white space-y-4">
                             <!-- Founder Profile -->
                             <div class="text-center">
-                                <img src="/assets/your-avatar-C80wWt61.png" alt="Ảnh tác giả" class="w-16 h-16 rounded-full mx-auto mb-3 shadow-md border-2 border-green-200">
+                                <img src="/images/your-avatar.webp" alt="Ảnh tác giả" class="w-16 h-16 rounded-full mx-auto mb-3 shadow-md border-2 border-green-200">
                                 <h4 class="font-bold text-gray-800 mb-1">Huỳnh Văn Được</h4>
                                 <p class="text-xs text-gray-500 mb-3">Founder & Developer</p>
                                 <p class="text-gray-700 text-sm leading-relaxed">
@@ -1740,10 +1738,10 @@
         </div>
     </div>
 
-    <script defer src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-    <script defer src="https://unpkg.com/esri-leaflet@3.0.10/dist/esri-leaflet.js"></script>
-    <script defer src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
-    <script defer src="https://unpkg.com/esri-leaflet-geocoder@3.1.4/dist/esri-leaflet-geocoder.js" crossorigin=""></script>
+    <script defer src="/lib/leaflet/leaflet.js"></script>
+    <script defer src="/lib/esri-leaflet/esri-leaflet.js"></script>
+    <script defer src="/lib/leaflet.markercluster/leaflet.markercluster.js"></script>
+    <script defer src="/lib/esri-leaflet-geocoder/esri-leaflet-geocoder.js"></script>
     
     <!-- Firebase SDK - Must load BEFORE script.js (critical dependency) -->
     <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -1760,9 +1758,9 @@
                 // Lazy load non-critical CSS
                 var lazyCss = [
                     'https://www.gstatic.com/firebasejs/ui/4.8.1/firebase-ui-auth.css',
-                    'https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css',
-                    'https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css',
-                    'https://unpkg.com/esri-leaflet-geocoder@3.1.4/dist/esri-leaflet-geocoder.css',
+                    '/lib/leaflet.markercluster/MarkerCluster.css',
+                    '/lib/leaflet.markercluster/MarkerCluster.Default.css',
+                    '/lib/esri-leaflet-geocoder/esri-leaflet-geocoder.css',
                     'https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css'
                 ];
                 lazyCss.forEach(function(href) {
@@ -1779,19 +1777,21 @@
                     s.async = true;
                     document.body.appendChild(s);
                 });
-            }, 100); // Small delay to let map render first
+            }, 2000); // window.onload + 2s
         });
     </script>
     <!-- Facebook SDK - very low priority, load even later -->
     <script>
-        setTimeout(function() {
-            var fb = document.createElement('script');
-            fb.src = 'https://connect.facebook.net/vi_VN/sdk.js#xfbml=1&version=v19.0';
-            fb.async = true;
-            fb.defer = true;
-            fb.crossOrigin = 'anonymous';
-            document.body.appendChild(fb);
-        }, 3000);
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                var fb = document.createElement('script');
+                fb.src = 'https://connect.facebook.net/vi_VN/sdk.js#xfbml=1&version=v19.0';
+                fb.async = true;
+                fb.defer = true;
+                fb.crossOrigin = 'anonymous';
+                document.body.appendChild(fb);
+            }, 2000);
+        });
     </script>
 
     <!-- User Guide & Feedback Modal -->

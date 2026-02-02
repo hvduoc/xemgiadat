@@ -36,9 +36,23 @@ const NETWORK_FIRST_ASSETS = [
 // Assets to cache immediately (excluding critical JS)
 const STATIC_ASSETS = [
   '/',
-  '/maxa_list.js',
+  '/data/maxa_list.json',
+  '/data/search_index.json',
   '/manifest.json',
   '/offline.html',
+  
+  // Local library assets (Leaflet, plugins)
+  '/lib/leaflet/leaflet.js',
+  '/lib/leaflet/leaflet.css',
+  '/lib/leaflet/images/marker-icon.png',
+  '/lib/leaflet/images/marker-icon-2x.png',
+  '/lib/leaflet/images/marker-shadow.png',
+  '/lib/leaflet.markercluster/leaflet.markercluster.js',
+  '/lib/leaflet.markercluster/MarkerCluster.css',
+  '/lib/leaflet.markercluster/MarkerCluster.Default.css',
+  '/lib/esri-leaflet/esri-leaflet.js',
+  '/lib/esri-leaflet-geocoder/esri-leaflet-geocoder.js',
+  '/lib/esri-leaflet-geocoder/esri-leaflet-geocoder.css',
   
   // Admin
   '/admin.html',
