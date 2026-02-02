@@ -32,7 +32,7 @@
     },
     {
       "src": "/images/icon-144x144.png",
-      "sizes": "144x144",
+      "sizes": "40x40",
       "type": "image/png",
       "purpose": "maskable any"
     },

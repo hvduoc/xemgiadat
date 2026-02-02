@@ -35,6 +35,13 @@ window.__XGD_BOOT__ = window.__XGD_BOOT__ || {
 };
 
 // =============================================================================
+// Leaflet Icon Path Fix — ensure marker icons resolve from local lib path
+// =============================================================================
+if (window.L && window.L.Icon && window.L.Icon.Default) {
+    window.L.Icon.Default.imagePath = '/lib/leaflet/images/';
+}
+
+// =============================================================================
 // PERFORMANCE OPTIMIZATION & LAZY LOADING SYSTEM
 // Enhanced loading strategies for better user experience
 // =============================================================================
