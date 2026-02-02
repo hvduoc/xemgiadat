@@ -2131,6 +2131,49 @@
    
     <!-- 🚀 Optimized Script Loading Strategy -->
     
+    <!-- Leaflet Core - Local with CDN Fallback -->
+    <script src="/lib/leaflet/leaflet.js"></script>
+    <script>
+    // CDN Fallback: If Leaflet didn't load from local, load from Cloudflare
+    if (typeof L === 'undefined') {
+        console.warn('⚠️ Local Leaflet failed, loading from CDN...');
+        document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.min.js"><\/script>');
+    }
+    </script>
+    
+    <!-- Leaflet MarkerCluster - Local with CDN Fallback -->
+    <link rel="stylesheet" href="/lib/leaflet.markercluster/MarkerCluster.css" />
+    <link rel="stylesheet" href="/lib/leaflet.markercluster/MarkerCluster.Default.css" />
+    <script src="/lib/leaflet.markercluster/leaflet.markercluster.js"></script>
+    <script>
+    if (typeof L !== 'undefined' && !L.markerClusterGroup) {
+        console.warn('⚠️ Local MarkerCluster failed, loading from CDN...');
+        document.write('<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.css" />');
+        document.write('<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.css" />');
+        document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.min.js"><\/script>');
+    }
+    </script>
+    
+    <!-- Esri Leaflet - Local with CDN Fallback -->
+    <script src="/lib/esri-leaflet/esri-leaflet.js"></script>
+    <script>
+    if (typeof L !== 'undefined' && !L.esri) {
+        console.warn('⚠️ Local Esri-Leaflet failed, loading from CDN...');
+        document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/esri-leaflet/3.0.10/esri-leaflet.min.js"><\/script>');
+    }
+    </script>
+    
+    <!-- Esri Leaflet Geocoder - Local with CDN Fallback -->
+    <link rel="stylesheet" href="/lib/esri-leaflet-geocoder/esri-leaflet-geocoder.css" />
+    <script src="/lib/esri-leaflet-geocoder/esri-leaflet-geocoder.js"></script>
+    <script>
+    if (typeof L !== 'undefined' && typeof L.esri !== 'undefined' && !L.esri.Geocoding) {
+        console.warn('⚠️ Local Esri-Geocoder failed, loading from CDN...');
+        document.write('<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/esri-leaflet-geocoder/3.1.4/esri-leaflet-geocoder.min.css" />');
+        document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/esri-leaflet-geocoder/3.1.4/esri-leaflet-geocoder.min.js"><\/script>');
+    }
+    </script>
+    
     <!-- Critical: Load with defer to ensure proper load order -->
     <script defer src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
     
@@ -2153,6 +2196,21 @@
     <script defer src="pinetwork.js"></script>
     <script defer src="script.js?v=20260201c"></script>
     <script defer src="pwa-enhancements.js"></script>
+    
+    <!-- Emergency Fallback: Hide loading skeleton after 10s if map fails -->
+    <script>
+    setTimeout(function() {
+        var skeleton = document.getElementById('loading-skeleton');
+        if (skeleton && skeleton.style.display !== 'none') {
+            console.warn('⚠️ Map failed to load after 10s, hiding skeleton...');
+            skeleton.style.display = 'none';
+            var errorMsg = document.createElement('div');
+            errorMsg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(255,59,48,0.95);color:white;padding:20px 30px;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.3);text-align:center;z-index:10000;max-width:400px;';
+            errorMsg.innerHTML = '<div style="font-size:48px;margin-bottom:10px;">⚠️</div><h3 style="font-size:18px;font-weight:600;margin:0 0 8px 0;">Lỗi Tải Bản Đồ</h3><p style="font-size:14px;margin:0 0 15px 0;opacity:0.9;">Không thể tải thư viện bản đồ. Vui lòng thử lại sau.</p><button onclick="location.reload()" style="background:white;color:#FF3B30;border:none;padding:10px 20px;border-radius:8px;font-weight:600;cursor:pointer;font-size:14px;">🔄 Tải lại trang</button>';
+            document.body.appendChild(errorMsg);
+        }
+    }, 10000);
+    </script>
     
     <!-- 💡 Performance Hint: Prefetch next page resources -->
     <link rel="prefetch" href="/assets/admin-Bsp4HTaC.html">
