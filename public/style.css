@@ -175,11 +175,12 @@ img[data-loaded="true"] {
     cursor: help !important;
 }
 
-/* Vertical Slider Styles */
+/* Vertical Slider Styles - Fixed deprecated appearance */
 input[type=range][orient=vertical] {
        writing-mode: vertical-rl;
        -webkit-appearance: none;
        appearance: none;
+       /* ✅ Removed deprecated slider-vertical appearance - using standards-compliant none */
     width: 8px;
     height: 100px;
     padding: 0 5px;

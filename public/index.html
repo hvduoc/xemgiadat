@@ -775,7 +775,22 @@
         // Hide skeleton when map is ready (triggered from script.js)
         window.hideLoadingSkeleton = function() {
             var el = document.getElementById('loading-skeleton');
-            if (el) { el.style.opacity = '0'; setTimeout(function() { el.remove(); }, 300); }
+            if (el) { 
+                el.style.opacity = '0';
+                el.style.transition = 'opacity 0.3s ease-out';
+                // After opacity transition, remove display to allow interaction
+                setTimeout(function() {
+                    el.style.display = 'none';
+                    el.style.pointerEvents = 'none';
+                }, 300);
+                // Complete removal from DOM after visual transition
+                setTimeout(function() {
+                    if (el.parentNode) {
+                        el.parentNode.removeChild(el);
+                        console.log('[Skeleton] Removed from DOM - buttons unlocked');
+                    }
+                }, 400);
+            }
         };
         // Fallback: hide after 8 seconds max
         setTimeout(function() { window.hideLoadingSkeleton && window.hideLoadingSkeleton(); }, 8000);
@@ -1738,10 +1753,13 @@
         </div>
     </div>
 
-    <script defer src="/lib/leaflet/leaflet.js"></script>
-    <script defer src="/lib/esri-leaflet/esri-leaflet.js"></script>
-    <script defer src="/lib/leaflet.markercluster/leaflet.markercluster.js"></script>
-    <script defer src="/lib/esri-leaflet-geocoder/esri-leaflet-geocoder.js"></script>
+    <!-- ⚠️ LOCAL LIBRARY LOADING DISABLED - Using CDN only -->
+    <!-- Commented: Preventing SyntaxError from local lib issues -->
+    <!-- <script defer src="/lib/leaflet/leaflet.js"></script> -->
+    <!-- <script defer src="/lib/esri-leaflet/esri-leaflet.js"></script> -->
+    <!-- <script defer src="/lib/leaflet.markercluster/leaflet.markercluster.js"></script> -->
+    <!-- <script defer src="/lib/esri-leaflet-geocoder/esri-leaflet-geocoder.js"></script> -->
+    <!-- All libraries loaded from Cloudflare CDN (lines 2133-2157) -->
     
     <!-- Firebase SDK - Must load BEFORE script.js (critical dependency) -->
     <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>

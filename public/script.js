@@ -8482,6 +8482,12 @@ class PerformanceMonitor {
     }
     
     reportError(errorData) {
+        // 🚀 P0: Filter Resource loading errors to reduce noise
+        if (errorData && errorData.message && errorData.message.includes('Resource loading')) {
+            console.debug('[ErrorTracker] Filtered Resource loading error');
+            return; // Skip reporting resource errors
+        }
+        
         console.error('📛 Error tracked:', errorData);
         
         // Report to Google Analytics
@@ -8492,7 +8498,19 @@ class PerformanceMonitor {
         // Store error for analysis
         try {
             const stored = localStorage.getItem('xemgiadat_error_log') || '[]';
-            const errors = JSON.parse(stored);
+            let errors = JSON.parse(stored);
+            
+            // 🚀 P0: Filter duplicate errors (same message within last 5 items)
+            const lastErrors = errors.slice(-3);
+            const isDuplicate = lastErrors.some(err => 
+                err && err.message === errorData.message && 
+                (Date.now() - err.timestamp) < 5000
+            );
+            
+            if (isDuplicate) {
+                console.debug('[ErrorTracker] Duplicate filtered (same message <5s)');
+                return; // Skip duplicate errors
+            }
             
             errors.push({
                 ...errorData,
@@ -8501,9 +8519,9 @@ class PerformanceMonitor {
                 url: window.location.href
             });
             
-            // Keep only last 100 errors
-            if (errors.length > 100) {
-                errors.splice(0, errors.length - 100);
+            // Keep only last 50 errors (reduced from 100)
+            if (errors.length > 50) {
+                errors.splice(0, errors.length - 50);
             }
             
             localStorage.setItem('xemgiadat_error_log', JSON.stringify(errors));
