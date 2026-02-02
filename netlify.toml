@@ -1,6 +1,6 @@
 # PMTiles fix build 2025-01-26T23:45Z
 [build]
-command = "npm ci && npm run build"
+command = "node scripts/stamp-build.mjs"
 publish = "public"
 functions = "netlify/functions"
 
