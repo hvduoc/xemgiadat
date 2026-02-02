@@ -379,6 +379,8 @@ function __XGD_bootApp() {
             zoom: 13, 
             zoomControl: false,
             maxZoom: 20,              // Match PMTiles maxNativeZoom
+            zoomSnap: 0.5,            // Smoother zoom steps on mobile
+            wheelDebounceTime: 100,   // Reduce wheel jitter for touchpads/mouse
             tap: true,                // Better touch handling for iOS
             touchZoom: 'center',      // Zoom to center on pinch (better UX)
             bounceAtZoomLimits: true  // Visual feedback when hitting zoom limit
@@ -387,6 +389,8 @@ function __XGD_bootApp() {
         // 🚀 PERFORMANCE: Hide loading skeleton as soon as map reports load
         window.map.once('load', () => {
             if (window.hideLoadingSkeleton) window.hideLoadingSkeleton();
+            window.__XGD_MAP_READY__ = true;
+            window.dispatchEvent(new Event('xgd:map-ready'));
         });
         
         console.log('[BOOT] Map initialized successfully');
@@ -8499,6 +8503,12 @@ class PerformanceMonitor {
         try {
             const stored = localStorage.getItem('xemgiadat_error_log') || '[]';
             let errors = JSON.parse(stored);
+
+            // 🚀 P0: Clear error log when it grows beyond 20 items
+            if (errors.length >= 20) {
+                localStorage.removeItem('xemgiadat_error_log');
+                errors = [];
+            }
             
             // 🚀 P0: Filter duplicate errors (same message within last 5 items)
             const lastErrors = errors.slice(-3);
@@ -8519,9 +8529,9 @@ class PerformanceMonitor {
                 url: window.location.href
             });
             
-            // Keep only last 50 errors (reduced from 100)
-            if (errors.length > 50) {
-                errors.splice(0, errors.length - 50);
+            // Keep only last 20 errors
+            if (errors.length > 20) {
+                errors.splice(0, errors.length - 20);
             }
             
             localStorage.setItem('xemgiadat_error_log', JSON.stringify(errors));

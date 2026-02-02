@@ -215,6 +215,22 @@ functions = "netlify/functions"
     # P0 FIX: Short cache, NO immutable on catch-all
     Cache-Control = "public, max-age=3600, must-revalidate"
 
+# Ensure proper compression negotiation for text assets
+[[headers]]
+  for = "/*.js"
+  [headers.values]
+    Vary = "Accept-Encoding"
+
+[[headers]]
+  for = "/*.css"
+  [headers.values]
+    Vary = "Accept-Encoding"
+
+[[headers]]
+  for = "/*.json"
+  [headers.values]
+    Vary = "Accept-Encoding"
+
 # --- HTML FILES: Never cache (avoid stale deployments) ---
 [[headers]]
   for = "/*.html"

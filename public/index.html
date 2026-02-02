@@ -155,7 +155,7 @@
     <link rel="dns-prefetch" href="//tile.openstreetmap.org">
     
     <!-- 🚀 CRITICAL: Preload essential resources for faster FCP -->
-    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.min.js" as="script" crossorigin="anonymous">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.min.js" as="script" fetchpriority="high" crossorigin="anonymous">
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.min.css" as="style" crossorigin="anonymous">
     <link rel="preload" href="/script.js?v=20260201c" as="script">
     
@@ -515,17 +515,14 @@
     
     <meta property="fb:app_id" content="754800037069626" />
     
-    <!-- Google Analytics 4 - DEFERRED for better TBT -->
+    <!-- Google Analytics 4 - EXTREME LAZY LOAD (map-ready + 5s OR first click) -->
     <script>
         // Stub functions available immediately (no-op until GA loads)
         window.dataLayer = window.dataLayer || [];
         window.gtag = function(){dataLayer.push(arguments);};
         window.trackEvent = window.trackPortfolioEvent = window.trackSearchEvent = 
         window.trackMapEvent = window.trackUserJourney = window.trackPerformance = function(){};
-        
-        // Load GA after window.onload + 2s (reduces TBT by ~200ms)
-        window.addEventListener('load', function() { setTimeout(loadGA, 2000); });
-        
+
         function loadGA() {
             var s = document.createElement('script');
             s.src = 'https://www.googletagmanager.com/gtag/js?id=G-XT932D9N1N';
@@ -533,7 +530,7 @@
             s.onload = function() {
                 gtag('js', new Date());
                 gtag('config', 'G-XT932D9N1N', { send_page_view: true });
-                
+
                 // Real tracking functions
                 window.trackEvent = function(name, p) { gtag('event', name, p || {}); };
                 window.trackPortfolioEvent = function(a, d) { gtag('event', 'portfolio_action', {event_label: a}); };
@@ -544,6 +541,23 @@
             };
             document.head.appendChild(s);
         }
+
+        (function deferGAUntilMapReadyOrClick() {
+            var loaded = false;
+            function loadOnce() {
+                if (loaded) return;
+                loaded = true;
+                loadGA();
+            }
+
+            // Map ready + 5s
+            window.addEventListener('xgd:map-ready', function() {
+                setTimeout(loadOnce, 5000);
+            }, { once: true });
+
+            // First user click
+            window.addEventListener('click', loadOnce, { once: true, passive: true });
+        })();
     </script>
     
     <!-- PWA Manifest -->
@@ -1761,13 +1775,6 @@
     <!-- <script defer src="/lib/esri-leaflet-geocoder/esri-leaflet-geocoder.js"></script> -->
     <!-- All libraries loaded from Cloudflare CDN (lines 2133-2157) -->
     
-    <!-- Firebase SDK - Must load BEFORE script.js (critical dependency) -->
-    <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-    <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-    <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-    <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
-    <script defer src="https://www.gstatic.com/firebasejs/ui/4.8.1/firebase-ui-auth.js"></script>
-    
     <!-- 🚀 LAZY LOAD: Non-critical libs loaded after page interactive -->
     <script>
         // Lazy load non-critical scripts after map renders
@@ -1798,18 +1805,27 @@
             }, 2000); // window.onload + 2s
         });
     </script>
-    <!-- Facebook SDK - very low priority, load even later -->
+    <!-- Facebook SDK - EXTREME LAZY LOAD (map-ready + 5s OR first click) -->
     <script>
-        window.addEventListener('load', function() {
-            setTimeout(function() {
+        (function deferFacebookSdk() {
+            var loaded = false;
+            function loadFB() {
+                if (loaded) return;
+                loaded = true;
                 var fb = document.createElement('script');
                 fb.src = 'https://connect.facebook.net/vi_VN/sdk.js#xfbml=1&version=v19.0';
                 fb.async = true;
                 fb.defer = true;
                 fb.crossOrigin = 'anonymous';
                 document.body.appendChild(fb);
-            }, 2000);
-        });
+            }
+
+            window.addEventListener('xgd:map-ready', function() {
+                setTimeout(loadFB, 5000);
+            }, { once: true });
+
+            window.addEventListener('click', loadFB, { once: true, passive: true });
+        })();
     </script>
 
     <!-- User Guide & Feedback Modal -->
@@ -2151,7 +2167,7 @@
     
     <!-- Leaflet Core - CDN Only (Cloudflare, minified) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.min.css" crossorigin="anonymous" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.min.js" fetchpriority="high" crossorigin="anonymous"></script>
     
     <!-- Leaflet MarkerCluster - CDN Only (Cloudflare, minified) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.css" crossorigin="anonymous" />
@@ -2183,6 +2199,13 @@
     <script defer src="js/adapters/GeocodingAdapter.js"></script>
     <script defer src="js/adapters/FeatureFlagConfig.js"></script>
     
+    <!-- Firebase SDK - Must load BEFORE script.js (critical dependency) -->
+    <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/ui/4.8.1/firebase-ui-auth.js"></script>
+
     <!-- Application Scripts: Defer to ensure DOM ready -->
     <script defer src="pinetwork.js"></script>
     <script defer src="script.js?v=20260201c"></script>

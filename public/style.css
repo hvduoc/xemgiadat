@@ -175,6 +175,11 @@ img[data-loaded="true"] {
     cursor: help !important;
 }
 
+/* Leaflet default icon path override */
+.leaflet-default-icon-path {
+    background-image: url(lib/leaflet/images/marker-icon.png);
+}
+
 /* Vertical Slider Styles - Fixed deprecated appearance */
 input[type=range][orient=vertical] {
        writing-mode: vertical-rl;
