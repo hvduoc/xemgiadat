@@ -9640,3 +9640,191 @@ window.testDangTin = function() {
 function showCopyError(button) {
     showToast('Không thể sao chép. Vui lòng copy thủ công!', 'error', 3000);
 }
+
+// =============================================================================
+// 📱 MOBILE UX ENHANCEMENTS - Bottom Sheet & Haptic Feedback
+// =============================================================================
+
+/**
+ * Haptic Feedback - Simple vibration for touch interactions
+ * Works on most modern mobile browsers
+ */
+function triggerHaptic(duration = 10) {
+    if (navigator.vibrate) {
+        navigator.vibrate(duration);
+    }
+}
+
+/**
+ * Bottom Sheet Swipe Gesture Handler
+ * Allows users to drag info panel up/down
+ */
+(function initBottomSheet() {
+    const panel = document.getElementById('info-panel');
+    if (!panel) return;
+    
+    const dragHandle = panel.querySelector('.drag-handle');
+    if (!dragHandle) return;
+    
+    let startY = 0;
+    let currentY = 0;
+    let isDragging = false;
+    let panelHeight = 0;
+    
+    dragHandle.addEventListener('touchstart', (e) => {
+        isDragging = true;
+        startY = e.touches[0].clientY;
+        panelHeight = panel.offsetHeight;
+        panel.style.transition = 'none';
+        triggerHaptic(5);
+    }, { passive: true });
+    
+    dragHandle.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+        
+        currentY = e.touches[0].clientY;
+        const deltaY = currentY - startY;
+        
+        // Only allow dragging down (positive deltaY)
+        if (deltaY > 0) {
+            const newTransform = `translateY(${deltaY}px)`;
+            panel.style.transform = newTransform;
+        }
+    }, { passive: true });
+    
+    dragHandle.addEventListener('touchend', (e) => {
+        if (!isDragging) return;
+        
+        isDragging = false;
+        panel.style.transition = '';
+        
+        const deltaY = currentY - startY;
+        
+        // If dragged down more than 100px, close panel
+        if (deltaY > 100) {
+            hideInfoPanel();
+            triggerHaptic(15);
+        } else {
+            // Snap back to original position
+            panel.style.transform = 'translateY(0)';
+        }
+    });
+})();
+
+/**
+ * Map Controls Group - Zoom & Locate buttons
+ */
+(function initMapControls() {
+    // Zoom in
+    const zoomInBtn = document.getElementById('zoom-in-btn');
+    if (zoomInBtn) {
+        zoomInBtn.addEventListener('click', () => {
+            map.zoomIn();
+            triggerHaptic(10);
+        });
+    }
+    
+    // Zoom out
+    const zoomOutBtn = document.getElementById('zoom-out-btn');
+    if (zoomOutBtn) {
+        zoomOutBtn.addEventListener('click', () => {
+            map.zoomOut();
+            triggerHaptic(10);
+        });
+    }
+    
+    // Locate button in control group
+    const locateControlBtn = document.getElementById('locate-control-btn');
+    if (locateControlBtn) {
+        locateControlBtn.addEventListener('click', () => {
+            triggerHaptic(15);
+            // Use existing locate function
+            if (typeof locateUser === 'function') {
+                locateUser();
+            } else {
+                // Fallback: try to get current position
+                if (navigator.geolocation) {
+                    locateControlBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            const { latitude, longitude } = position.coords;
+                            map.setView([latitude, longitude], 17);
+                            L.marker([latitude, longitude])
+                                .addTo(map)
+                                .bindPopup('Vị trí của bạn')
+                                .openPopup();
+                            locateControlBtn.innerHTML = '<i class="fa-solid fa-location-crosshairs"></i>';
+                            showToast('✅ Đã tìm thấy vị trí của bạn', 'success', 2000);
+                        },
+                        (error) => {
+                            locateControlBtn.innerHTML = '<i class="fa-solid fa-location-crosshairs"></i>';
+                            showToast('❌ Không thể xác định vị trí', 'error', 3000);
+                        }
+                    );
+                }
+            }
+        });
+    }
+    
+    // Layers button
+    const layersBtn = document.getElementById('layers-btn');
+    if (layersBtn) {
+        layersBtn.addEventListener('click', () => {
+            triggerHaptic(10);
+            // Toggle layers control visibility
+            const layersControl = document.querySelector('.leaflet-control-layers');
+            if (layersControl) {
+                layersControl.classList.toggle('leaflet-control-layers-expanded');
+            }
+        });
+    }
+})();
+
+/**
+ * Add haptic feedback to all toolbar buttons
+ */
+(function addHapticToToolbar() {
+    const toolbarButtons = document.querySelectorAll('#action-toolbar button, .toolbar-btn-compact');
+    toolbarButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            triggerHaptic(10);
+        });
+    });
+})();
+
+/**
+ * Keyboard Visibility Handler
+ * Adjust map view when keyboard appears on mobile
+ */
+(function handleKeyboardVisibility() {
+    const searchInput = document.getElementById('search-input');
+    if (!searchInput) return;
+    
+    // Store original map center
+    let originalCenter = null;
+    
+    searchInput.addEventListener('focus', () => {
+        // Save current center
+        originalCenter = map.getCenter();
+        
+        // On small screens, pan map up slightly
+        if (window.innerHeight < 700) {
+            setTimeout(() => {
+                const currentCenter = map.getCenter();
+                map.panBy([0, -100]); // Pan up 100px
+            }, 300);
+        }
+    });
+    
+    searchInput.addEventListener('blur', () => {
+        // Restore original center when keyboard closes
+        if (originalCenter) {
+            setTimeout(() => {
+                map.panTo(originalCenter);
+                originalCenter = null;
+            }, 100);
+        }
+    });
+})();
+
+console.log('✅ Mobile UX enhancements loaded: Bottom sheet swipe, Haptic feedback, Control group');

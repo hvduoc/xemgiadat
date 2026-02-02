@@ -386,8 +386,12 @@
         }
         
         /* ========== LEAFLET CONTROLS ========== */
+        /* Hide default Leaflet zoom control - using custom control group */
+        .leaflet-control-zoom {
+            display: none !important;
+        }
+        
         .leaflet-control-layers-toggle,
-        .leaflet-control-zoom a,
         .leaflet-bar a {
             width: 44px !important;
             height: 44px !important;
@@ -395,15 +399,11 @@
             font-size: 18px !important;
         }
         
-        .leaflet-control-zoom {
-            border-radius: 12px !important;
-            overflow: hidden !important;
-            -webkit-box-shadow: 0 2px 12px rgba(0,0,0,0.15) !important;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.15) !important;
-        }
-        
         .leaflet-control-layers {
             border-radius: 12px !important;
+            right: 12px !important;
+            top: auto !important;
+            bottom: 180px !important;
         }
         
         /* ========== MOBILE-SPECIFIC ========== */
@@ -942,6 +942,22 @@
         <i class="fas fa-filter text-gray-600" aria-hidden="true"></i>
     </button>
 
+    <!-- ========== MAP CONTROLS GROUP (Right Side) ========== -->
+    <div class="map-controls-group">
+        <button id="locate-control-btn" class="map-control-btn" title="Tìm vị trí của tôi" aria-label="Định vị">
+            <i class="fa-solid fa-location-crosshairs"></i>
+        </button>
+        <button id="zoom-in-btn" class="map-control-btn" title="Phóng to" aria-label="Phóng to">
+            <i class="fa-solid fa-plus"></i>
+        </button>
+        <button id="zoom-out-btn" class="map-control-btn" title="Thu nhỏ" aria-label="Thu nhỏ">
+            <i class="fa-solid fa-minus"></i>
+        </button>
+        <button id="layers-btn" class="map-control-btn" title="Lớp bản đồ" aria-label="Chọn lớp bản đồ">
+            <i class="fa-solid fa-layer-group"></i>
+        </button>
+    </div>
+
     <main id="map" role="main" aria-label="Bản đồ giá đất Đà Nẵng"></main>
     
     <!-- ========== BOTTOM ACTION TOOLBAR ========== -->
@@ -966,8 +982,8 @@
 
     <!-- ========== INFO PANEL (Parcel Details) ========== -->
     <div id="info-panel" class="fixed bottom-0 left-0 right-0 bg-white shadow-2xl rounded-t-2xl z-[1002] p-4 transform translate-y-full transition-transform duration-300 ease-out" style="max-height: 55vh; overflow-y: auto;">
-        <!-- Drag handle for mobile -->
-        <div class="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-3 cursor-grab active:cursor-grabbing"></div>
+        <!-- Drag handle for mobile swipe -->
+        <div class="drag-handle"></div>
         
         <div class="flex justify-between items-center mb-3">
             <h3 id="panel-title" class="text-base font-bold text-gray-800">Thông tin</h3>
