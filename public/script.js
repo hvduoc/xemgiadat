@@ -454,6 +454,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const vectorTileOptions = {
         rendererFactory: L.canvas.tile, // Canvas nhanh hơn SVG rất nhiều
         interactive: true,
+        pane: 'overlayPane',  // CRITICAL: Force parcel layer to overlayPane (z-index 600)
         minZoom: 10,
         maxZoom: 20,                  // CHANGED: Match maxNativeZoom to fix click issues
         maxNativeZoom: 20,    // PMTiles có max zoom 20
@@ -468,31 +469,39 @@ document.addEventListener('DOMContentLoaded', () => {
             'default': function(properties, zoom) {
                 if (zoom >= 17) {
                     return {
-                        color: '#6B7280', // Gray-500 - rõ hơn ở zoom cận
-                        weight: 1,
-                        fill: false,
-                        opacity: 0.8
+                        color: '#EF4444', // Red-500 - RÕ RỆT để debug
+                        weight: 2,
+                        fill: true,
+                        fillColor: '#EF4444',
+                        fillOpacity: 0.2,
+                        opacity: 1
                     };
                 } else if (zoom >= 15) {
                     return {
-                        color: '#9CA3AF', // Gray-400
-                        weight: 0.8,
-                        fill: false,
-                        opacity: 0.7
+                        color: '#F59E0B', // Amber-500 - Dễ nhìn
+                        weight: 1.5,
+                        fill: true,
+                        fillColor: '#F59E0B',
+                        fillOpacity: 0.15,
+                        opacity: 0.9
                     };
                 } else if (zoom >= 13) {
                     return {
-                        color: '#9CA3AF', // Gray-400
-                        weight: 0.6,
-                        fill: false,
-                        opacity: 0.6
+                        color: '#3B82F6', // Blue-500 - Nổi bật
+                        weight: 1,
+                        fill: true,
+                        fillColor: '#3B82F6',
+                        fillOpacity: 0.1,
+                        opacity: 0.8
                     };
                 } else {
                     return {
-                        color: '#D1D5DB', // Gray-300 - nhạt hơn ở zoom xa
-                        weight: 0.4,
-                        fill: false,
-                        opacity: 0.5
+                        color: '#10B981', // Green-500 - Khác biệt
+                        weight: 0.8,
+                        fill: true,
+                        fillColor: '#10B981',
+                        fillOpacity: 0.08,
+                        opacity: 0.7
                     };
                 }
             },
@@ -500,31 +509,39 @@ document.addEventListener('DOMContentLoaded', () => {
             'danang_full': function(properties, zoom) {
                 if (zoom >= 17) {
                     return {
-                        color: '#6B7280',
-                        weight: 1,
-                        fill: false,
-                        opacity: 0.8
+                        color: '#EF4444',
+                        weight: 2,
+                        fill: true,
+                        fillColor: '#EF4444',
+                        fillOpacity: 0.2,
+                        opacity: 1
                     };
                 } else if (zoom >= 15) {
                     return {
-                        color: '#9CA3AF',
-                        weight: 0.8,
-                        fill: false,
-                        opacity: 0.7
+                        color: '#F59E0B',
+                        weight: 1.5,
+                        fill: true,
+                        fillColor: '#F59E0B',
+                        fillOpacity: 0.15,
+                        opacity: 0.9
                     };
                 } else if (zoom >= 13) {
                     return {
-                        color: '#9CA3AF',
-                        weight: 0.6,
-                        fill: false,
-                        opacity: 0.6
+                        color: '#3B82F6',
+                        weight: 1,
+                        fill: true,
+                        fillColor: '#3B82F6',
+                        fillOpacity: 0.1,
+                        opacity: 0.8
                     };
                 } else {
                     return {
-                        color: '#D1D5DB',
-                        weight: 0.4,
-                        fill: false,
-                        opacity: 0.5
+                        color: '#10B981',
+                        weight: 0.8,
+                        fill: true,
+                        fillColor: '#10B981',
+                        fillOpacity: 0.08,
+                        opacity: 0.7
                     };
                 }
             }
@@ -585,15 +602,26 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Assign to parcelLayer and add to map
             parcelLayer = layer;
+            
+            // FORCE parcel layer to be visible by default
             if (map && !map.hasLayer(parcelLayer)) {
                 parcelLayer.addTo(map);
-                console.log('✅ Parcel layer added to map');
+                console.log('✅ Parcel layer added to map (DEFAULT ENABLED)');
             }
             
             // Add to overlay maps for custom layer panel
             if (window._overlayMaps) {
                 window._overlayMaps["🗺️ Bản đồ phân lô"] = parcelLayer;
                 console.log('✅ Parcel layer added to overlay maps');
+                
+                // Force parcel layer to be active in layer panel UI
+                setTimeout(() => {
+                    const parcelGridItem = document.querySelector('#overlay-layers-grid button[title*="Bản đồ phân lô"]');
+                    if (parcelGridItem) {
+                        parcelGridItem.classList.add('active');
+                        console.log('✅ Parcel layer marked as active in UI');
+                    }
+                }, 500);
             }
             
         } catch (err) {
@@ -2219,6 +2247,8 @@ function displaySearchResults(html) {
     }
     searchResultsContainer.innerHTML = html;
     searchResultsContainer.classList.remove('hidden');
+    searchResultsContainer.style.display = 'block'; // Force display
+    console.log('✅ Search results displayed:', html.length, 'chars');
 }
 
 // Helper function to get area name from code
