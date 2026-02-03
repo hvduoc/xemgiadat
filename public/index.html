@@ -958,23 +958,17 @@
         </button>
     </div>
     
-    <!-- ========== CUSTOM LAYER PANEL ========== -->
+    <!-- ========== CUSTOM LAYER PANEL (GRID) ========== -->
     <div id="layer-panel" class="layer-panel hidden">
         <div class="layer-panel-header">
-            <h4 class="text-sm font-semibold text-gray-700">Lớp bản đồ</h4>
-            <button id="close-layer-panel" class="text-gray-400 hover:text-gray-600">
-                <i class="fas fa-times"></i>
+            <span class="text-xs font-semibold text-gray-700">Lớp</span>
+            <button id="close-layer-panel" class="text-gray-400 hover:text-gray-600 text-sm" title="Đóng">
+                ✕
             </button>
         </div>
         <div class="layer-panel-content">
-            <div class="layer-section">
-                <h5 class="text-xs font-medium text-gray-500 mb-2">Bản đồ nền</h5>
-                <div id="base-layers-list"></div>
-            </div>
-            <div class="layer-section">
-                <h5 class="text-xs font-medium text-gray-500 mb-2">Lớp phủ</h5>
-                <div id="overlay-layers-list"></div>
-            </div>
+            <div id="base-layers-grid" class="layers-grid"></div>
+            <div id="overlay-layers-grid" class="layers-grid mt-2"></div>
         </div>
     </div>
 
@@ -1005,19 +999,15 @@
         <!-- Drag handle for mobile swipe -->
         <div class="drag-handle"></div>
         
-        <div class="flex justify-between items-center mb-3">
-            <h3 id="panel-title" class="text-base font-bold text-gray-800">Thông tin</h3>
-            <div class="flex items-center">
-                <button id="toggle-panel-btn" class="panel-header-btn" title="Thu gọn/Mở rộng">
-                    <i class="fas fa-chevron-down text-lg"></i>
-                </button>
-                <button id="close-panel-btn" class="panel-header-btn" title="Đóng">
-                    <i class="fas fa-times text-2xl"></i>
-                </button>
+        <div class="panel-header-compact">
+            <h3 id="panel-title" class="text-sm font-bold text-gray-800">Thông tin</h3>
+            <div class="panel-header-icons">
+                <button id="toggle-panel-btn" class="panel-header-icon" title="Thu gọn">−</button>
+                <button id="close-panel-btn" class="panel-header-icon" title="Đóng">✕</button>
             </div>
         </div>
         
-        <div id="panel-content" class="space-y-3 text-gray-700">
+        <div id="panel-content" class="panel-content-compact text-gray-700">
 
         </div>
     </div>

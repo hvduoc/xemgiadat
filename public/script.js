@@ -9800,23 +9800,35 @@ function triggerHaptic(duration = 10) {
  * Initialize Custom Layer Panel
  */
 function initLayerPanel() {
-    const baseLayersList = document.getElementById('base-layers-list');
-    const overlayLayersList = document.getElementById('overlay-layers-list');
+    const baseLayersGrid = document.getElementById('base-layers-grid');
+    const overlayLayersGrid = document.getElementById('overlay-layers-grid');
     
-    if (!baseLayersList || !overlayLayersList) return;
+    if (!baseLayersGrid || !overlayLayersGrid) return;
     
-    // Populate base maps
+    // Icon mapping for layers
+    const layerIcons = {
+        'Google Satellite': '🛰️',
+        'Google Streets': '🗺️',
+        'OpenStreetMap': '🌍',
+        '🏷️ Parcel labels': '🏷️',
+        '🗺️ Bản đồ phân lô': '📍'
+    };
+    
+    // Populate base maps as grid
     if (window._baseMaps) {
-        baseLayersList.innerHTML = '';
+        baseLayersGrid.innerHTML = '';
         Object.keys(window._baseMaps).forEach(name => {
             const layer = window._baseMaps[name];
             const isActive = window._currentBaseLayer === name;
+            const icon = layerIcons[name] || '🗺️';
             
-            const item = document.createElement('div');
-            item.className = `layer-item ${isActive ? 'active' : ''}`;
+            const item = document.createElement('button');
+            item.className = `layer-grid-item ${isActive ? 'active' : ''}`;
+            item.setAttribute('type', 'button');
+            item.setAttribute('title', name);
             item.innerHTML = `
-                <input type="radio" name="base-layer" value="${name}" ${isActive ? 'checked' : ''} id="base-${name}">
-                <label for="base-${name}">${name}</label>
+                <div class="layer-grid-item-icon">${icon}</div>
+                <div class="layer-grid-item-label">${name}</div>
             `;
             
             item.addEventListener('click', () => {
@@ -9830,37 +9842,44 @@ function initLayerPanel() {
                 window._currentBaseLayer = name;
                 
                 // Update UI
-                document.querySelectorAll('.layer-item input[name="base-layer"]').forEach(input => {
-                    input.parentElement.classList.toggle('active', input.value === name);
+                document.querySelectorAll('#base-layers-grid .layer-grid-item').forEach(btn => {
+                    btn.classList.toggle('active', btn.getAttribute('title') === name);
                 });
                 
-                triggerHaptic(10);
+                // Close layer panel after selection
+                const layerPanel = document.getElementById('layer-panel');
+                if (layerPanel) {
+                    layerPanel.classList.add('hidden');
+                }
+                
+                triggerHaptic(20);
             });
             
-            baseLayersList.appendChild(item);
+            baseLayersGrid.appendChild(item);
         });
     }
     
-    // Populate overlay maps
+    // Populate overlay maps as grid
     if (window._overlayMaps) {
-        overlayLayersList.innerHTML = '';
+        overlayLayersGrid.innerHTML = '';
         Object.keys(window._overlayMaps).forEach(name => {
             const layer = window._overlayMaps[name];
             const isActive = map.hasLayer(layer);
+            const icon = layerIcons[name] || '📌';
             
-            const item = document.createElement('div');
-            item.className = `layer-item ${isActive ? 'active' : ''}`;
+            const item = document.createElement('button');
+            item.className = `layer-grid-item ${isActive ? 'active' : ''}`;
+            item.setAttribute('type', 'button');
+            item.setAttribute('title', name);
             item.innerHTML = `
-                <input type="checkbox" value="${name}" ${isActive ? 'checked' : ''} id="overlay-${name}">
-                <label for="overlay-${name}">${name}</label>
+                <div class="layer-grid-item-icon">${icon}</div>
+                <div class="layer-grid-item-label">${name}</div>
             `;
             
             item.addEventListener('click', () => {
-                const checkbox = item.querySelector('input');
-                const isChecked = !checkbox.checked;
-                checkbox.checked = isChecked;
+                const isNowActive = !item.classList.contains('active');
                 
-                if (isChecked) {
+                if (isNowActive) {
                     if (!map.hasLayer(layer)) layer.addTo(map);
                     item.classList.add('active');
                 } else {
@@ -9868,10 +9887,10 @@ function initLayerPanel() {
                     item.classList.remove('active');
                 }
                 
-                triggerHaptic(10);
+                triggerHaptic(15);
             });
             
-            overlayLayersList.appendChild(item);
+            overlayLayersGrid.appendChild(item);
         });
     }
 }
