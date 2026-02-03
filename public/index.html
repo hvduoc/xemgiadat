@@ -942,8 +942,8 @@
         <i class="fas fa-filter text-gray-600" aria-hidden="true"></i>
     </button>
 
-    <!-- ========== MAP CONTROLS GROUP (Right Side) ========== -->
-    <div class="map-controls-group">
+    <!-- ========== MAP CONTROLS VERTICAL (Right Side) ========== -->
+    <div id="map-controls-vertical" class="map-controls-group">
         <button id="locate-control-btn" class="map-control-btn" title="Tìm vị trí của tôi" aria-label="Định vị">
             <i class="fa-solid fa-location-crosshairs"></i>
         </button>
@@ -956,6 +956,26 @@
         <button id="layers-btn" class="map-control-btn" title="Lớp bản đồ" aria-label="Chọn lớp bản đồ">
             <i class="fa-solid fa-layer-group"></i>
         </button>
+    </div>
+    
+    <!-- ========== CUSTOM LAYER PANEL ========== -->
+    <div id="layer-panel" class="layer-panel hidden">
+        <div class="layer-panel-header">
+            <h4 class="text-sm font-semibold text-gray-700">Lớp bản đồ</h4>
+            <button id="close-layer-panel" class="text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="layer-panel-content">
+            <div class="layer-section">
+                <h5 class="text-xs font-medium text-gray-500 mb-2">Bản đồ nền</h5>
+                <div id="base-layers-list"></div>
+            </div>
+            <div class="layer-section">
+                <h5 class="text-xs font-medium text-gray-500 mb-2">Lớp phủ</h5>
+                <div id="overlay-layers-list"></div>
+            </div>
+        </div>
     </div>
 
     <main id="map" role="main" aria-label="Bản đồ giá đất Đà Nẵng"></main>
@@ -1029,13 +1049,6 @@
                 </a>
             </div>
         </div>
-        <!-- Merged: Contact + Feedback into single Help button -->
-        <button id="contact-info-btn" title="Hỗ trợ & Góp ý" class="bg-white text-gray-700 w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100 transition active:scale-95" aria-label="Hỗ trợ">
-            <i class="fa-solid fa-headset text-xl"></i>
-        </button>
-        <button id="locate-btn" title="Tìm vị trí của tôi" class="bg-blue-500 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-blue-600 transition active:scale-95" aria-label="Định vị">
-            <i class="fa-solid fa-location-crosshairs text-xl"></i>
-        </button>
     </div>
     
     <!-- FIXED: Modal now has 3-section layout (header/body flex-1/footer) to keep CTA always visible on mobile -->

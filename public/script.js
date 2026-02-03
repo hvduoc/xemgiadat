@@ -377,13 +377,14 @@ function __XGD_bootApp() {
         window.map = L.map('map', { 
             center: [16.054456, 108.202167], 
             zoom: 13, 
-            zoomControl: false,
-            maxZoom: 20,              // Match PMTiles maxNativeZoom
-            zoomSnap: 0.5,            // Smoother zoom steps on mobile
-            wheelDebounceTime: 100,   // Reduce wheel jitter for touchpads/mouse
-            tap: true,                // Better touch handling for iOS
-            touchZoom: 'center',      // Zoom to center on pinch (better UX)
-            bounceAtZoomLimits: true  // Visual feedback when hitting zoom limit
+            zoomControl: false,           // Ẩn zoom control mặc định
+            attributionControl: false,    // Ẩn attribution control mặc định
+            maxZoom: 20,                  // Match PMTiles maxNativeZoom
+            zoomSnap: 0.5,                // Smoother zoom steps on mobile
+            wheelDebounceTime: 100,       // Reduce wheel jitter for touchpads/mouse
+            tap: true,                    // Better touch handling for iOS
+            touchZoom: 'center',          // Zoom to center on pinch (better UX)
+            bounceAtZoomLimits: true      // Visual feedback when hitting zoom limit
         });
 
         // 🚀 PERFORMANCE: Hide loading skeleton as soon as map reports load
@@ -820,22 +821,23 @@ document.addEventListener('DOMContentLoaded', () => {
     // Add parcel labels layer (empty initially, will be populated when tiles load)
     parcelLabels.addTo(map);
     
-    // Base maps for layer control (parcelLayer will be added when ready via createParcelLayer)
+    // Base maps for custom layer control
     const baseMaps = { "Ảnh vệ tinh": googleSat, "Bản đồ đường": googleStreets, "OpenStreetMap": osmLayer };
     
-    // Create layer control - parcel layer will be added to overlays dynamically when ready
+    // Overlay maps for custom layer control
     const overlayMaps = { 
         "🏷️ Số thửa": parcelLabels 
     };
-    const layerControl = L.control.layers(baseMaps, overlayMaps, { position: 'bottomright' }).addTo(map);
     
-    // Store layerControl globally so createParcelLayer can add parcel layer to it
-    window._layerControl = layerControl;
+    // Store maps globally for custom layer panel
+    window._baseMaps = baseMaps;
+    window._overlayMaps = overlayMaps;
+    window._currentBaseLayer = 'OpenStreetMap';
     
-    // Add parcel layer to layer control if it was created before layerControl
+    // Add parcel layer to overlay maps when ready
     if (parcelLayer && typeof parcelLayer.addTo === 'function') {
-        layerControl.addOverlay(parcelLayer, "🗺️ Bản đồ phân lô");
-        console.log('✅ Parcel layer added to layer control (after control created)');
+        window._overlayMaps["🗺️ Bản đồ phân lô"] = parcelLayer;
+        console.log('✅ Parcel layer added to overlay maps');
     }
     
     // Tối ưu: Performance-focused event handling
@@ -9766,19 +9768,113 @@ function triggerHaptic(duration = 10) {
         });
     }
     
-    // Layers button
+    // Layers button - Toggle custom layer panel
     const layersBtn = document.getElementById('layers-btn');
-    if (layersBtn) {
+    const layerPanel = document.getElementById('layer-panel');
+    const closeLayerPanel = document.getElementById('close-layer-panel');
+    
+    if (layersBtn && layerPanel) {
         layersBtn.addEventListener('click', () => {
             triggerHaptic(10);
-            // Toggle layers control visibility
-            const layersControl = document.querySelector('.leaflet-control-layers');
-            if (layersControl) {
-                layersControl.classList.toggle('leaflet-control-layers-expanded');
+            layerPanel.classList.toggle('hidden');
+            layersBtn.classList.toggle('active');
+            
+            // Initialize layer panel if not done yet
+            if (!window._layerPanelInitialized) {
+                initLayerPanel();
+                window._layerPanelInitialized = true;
             }
         });
+        
+        if (closeLayerPanel) {
+            closeLayerPanel.addEventListener('click', () => {
+                layerPanel.classList.add('hidden');
+                layersBtn.classList.remove('active');
+                triggerHaptic(10);
+            });
+        }
     }
 })();
+
+/**
+ * Initialize Custom Layer Panel
+ */
+function initLayerPanel() {
+    const baseLayersList = document.getElementById('base-layers-list');
+    const overlayLayersList = document.getElementById('overlay-layers-list');
+    
+    if (!baseLayersList || !overlayLayersList) return;
+    
+    // Populate base maps
+    if (window._baseMaps) {
+        baseLayersList.innerHTML = '';
+        Object.keys(window._baseMaps).forEach(name => {
+            const layer = window._baseMaps[name];
+            const isActive = window._currentBaseLayer === name;
+            
+            const item = document.createElement('div');
+            item.className = `layer-item ${isActive ? 'active' : ''}`;
+            item.innerHTML = `
+                <input type="radio" name="base-layer" value="${name}" ${isActive ? 'checked' : ''} id="base-${name}">
+                <label for="base-${name}">${name}</label>
+            `;
+            
+            item.addEventListener('click', () => {
+                // Remove old base layer
+                Object.values(window._baseMaps).forEach(l => {
+                    if (map.hasLayer(l)) map.removeLayer(l);
+                });
+                
+                // Add new base layer
+                layer.addTo(map);
+                window._currentBaseLayer = name;
+                
+                // Update UI
+                document.querySelectorAll('.layer-item input[name="base-layer"]').forEach(input => {
+                    input.parentElement.classList.toggle('active', input.value === name);
+                });
+                
+                triggerHaptic(10);
+            });
+            
+            baseLayersList.appendChild(item);
+        });
+    }
+    
+    // Populate overlay maps
+    if (window._overlayMaps) {
+        overlayLayersList.innerHTML = '';
+        Object.keys(window._overlayMaps).forEach(name => {
+            const layer = window._overlayMaps[name];
+            const isActive = map.hasLayer(layer);
+            
+            const item = document.createElement('div');
+            item.className = `layer-item ${isActive ? 'active' : ''}`;
+            item.innerHTML = `
+                <input type="checkbox" value="${name}" ${isActive ? 'checked' : ''} id="overlay-${name}">
+                <label for="overlay-${name}">${name}</label>
+            `;
+            
+            item.addEventListener('click', () => {
+                const checkbox = item.querySelector('input');
+                const isChecked = !checkbox.checked;
+                checkbox.checked = isChecked;
+                
+                if (isChecked) {
+                    if (!map.hasLayer(layer)) layer.addTo(map);
+                    item.classList.add('active');
+                } else {
+                    if (map.hasLayer(layer)) map.removeLayer(layer);
+                    item.classList.remove('active');
+                }
+                
+                triggerHaptic(10);
+            });
+            
+            overlayLayersList.appendChild(item);
+        });
+    }
+}
 
 /**
  * Add haptic feedback to all toolbar buttons
