@@ -479,7 +479,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderer: L.canvas(), // Force Canvas renderer to avoid SVG issues on mobile
         interactive: true,
         pane: 'overlayPane',  // CRITICAL: Force parcel layer to overlayPane (z-index 600)
-        minZoom: 10,
+        minZoom: 15,          // Only render parcels from zoom 15+
         maxZoom: 20,                  // CHANGED: Match maxNativeZoom to fix click issues
         maxNativeZoom: 20,    // PMTiles có max zoom 20
         cache: true,          // PMTiles caching enabled
@@ -487,87 +487,36 @@ document.addEventListener('DOMContentLoaded', () => {
         updateWhenZooming: false, // KHÔNG update liên tục khi zoom
         keepBuffer: 2,        // Giữ ít tiles hơn để giảm memory
         tolerance: 3,         // Simplify geometry - QUAN TRỌNG cho performance
+        smoothFactor: 1,      // Anti-aliasing for smoother parcel edges
         getFeatureId: feature => feature.properties.OBJECTID,
         vectorTileLayerStyles: {
             // PMTiles mới dùng layer name 'default'
             'default': function(properties, zoom) {
-                if (zoom >= 17) {
-                    return {
-                        color: '#EF4444', // Red-500 - RÕ RỆT để debug
-                        weight: 2,
-                        fill: true,
-                        fillColor: '#EF4444',
-                        fillOpacity: 0.2,
-                        opacity: 1
-                    };
-                } else if (zoom >= 15) {
-                    return {
-                        color: '#F59E0B', // Amber-500 - Dễ nhìn
-                        weight: 1.5,
-                        fill: true,
-                        fillColor: '#F59E0B',
-                        fillOpacity: 0.15,
-                        opacity: 0.9
-                    };
-                } else if (zoom >= 13) {
-                    return {
-                        color: '#3B82F6', // Blue-500 - Nổi bật
-                        weight: 1,
-                        fill: true,
-                        fillColor: '#3B82F6',
-                        fillOpacity: 0.1,
-                        opacity: 0.8
-                    };
-                } else {
-                    return {
-                        color: '#10B981', // Green-500 - Khác biệt
-                        weight: 0.8,
-                        fill: true,
-                        fillColor: '#10B981',
-                        fillOpacity: 0.08,
-                        opacity: 0.7
-                    };
+                if (zoom < 15) {
+                    return { opacity: 0, fillOpacity: 0, weight: 0 };
                 }
+                return {
+                    color: '#4B5563',       // Elegant gray
+                    weight: 0.5,            // Hairline
+                    fill: true,
+                    fillColor: '#F3F4F6',
+                    fillOpacity: 0.1,
+                    opacity: 1
+                };
             },
             // Giữ danang_full cho backward compatibility
             'danang_full': function(properties, zoom) {
-                if (zoom >= 17) {
-                    return {
-                        color: '#EF4444',
-                        weight: 2,
-                        fill: true,
-                        fillColor: '#EF4444',
-                        fillOpacity: 0.2,
-                        opacity: 1
-                    };
-                } else if (zoom >= 15) {
-                    return {
-                        color: '#F59E0B',
-                        weight: 1.5,
-                        fill: true,
-                        fillColor: '#F59E0B',
-                        fillOpacity: 0.15,
-                        opacity: 0.9
-                    };
-                } else if (zoom >= 13) {
-                    return {
-                        color: '#3B82F6',
-                        weight: 1,
-                        fill: true,
-                        fillColor: '#3B82F6',
-                        fillOpacity: 0.1,
-                        opacity: 0.8
-                    };
-                } else {
-                    return {
-                        color: '#10B981',
-                        weight: 0.8,
-                        fill: true,
-                        fillColor: '#10B981',
-                        fillOpacity: 0.08,
-                        opacity: 0.7
-                    };
+                if (zoom < 15) {
+                    return { opacity: 0, fillOpacity: 0, weight: 0 };
                 }
+                return {
+                    color: '#4B5563',
+                    weight: 0.5,
+                    fill: true,
+                    fillColor: '#F3F4F6',
+                    fillOpacity: 0.1,
+                    opacity: 1
+                };
             }
         }
     };
@@ -1369,7 +1318,9 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         </div>`;
 
-        infoPanel.classList.add('is-open');
+        requestAnimationFrame(() => {
+            infoPanel.classList.add('is-open');
+        });
         
         // Raise action toolbar if available
         if (actionToolbar) {
@@ -9182,7 +9133,9 @@ class UserBehaviorTracker {
             window.trackUserBehavior(type, data);
         }
         
-        console.log('👤 User Event:', type, data);
+        if (type !== 'time_checkpoint') {
+            console.log('👤 User Event:', type, data);
+        }
         
         // Keep only recent interactions (last 500)
         if (this.interactions.length > 500) {
