@@ -154,12 +154,38 @@
     
     <!-- 🚀 CRITICAL: Preload essential resources for faster FCP -->
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.min.js" as="script" fetchpriority="high" crossorigin="anonymous">
-    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.min.css" as="style" crossorigin="anonymous">
     <link rel="preload" href="/script.js?v=20260203_FIX" as="script">
     
-    <!-- CSS Stylesheets - Critical first, others deferred -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.min.css" fetchpriority="high" crossorigin="anonymous" />
-    <!-- Non-critical CSS loaded async -->
+    <!-- 🎨 CRITICAL CSS INLINE - Map Frame + Toolbar (reduces render-blocking CSS) -->
+    <style>
+        /* Critical: Map container + Safe areas */
+        #map{position:fixed!important;top:0;left:0;right:0;bottom:0;padding-bottom:80px;padding-bottom:calc(72px + env(safe-area-inset-bottom,0px) + 8px);}
+        
+        /* Critical: Bottom Toolbar */
+        #action-toolbar{position:fixed!important;left:50%!important;transform:translateX(-50%)!important;bottom:12px!important;bottom:calc(env(safe-area-inset-bottom,0px) + 12px)!important;padding:8px 16px!important;gap:8px!important;background:rgba(255,255,255,0.95)!important;backdrop-filter:blur(20px) saturate(180%)!important;border:1px solid rgba(0,0,0,0.08)!important;box-shadow:0 4px 24px rgba(0,0,0,0.12),0 0 0 1px rgba(255,255,255,0.5) inset!important;z-index:1001!important;display:flex;flex-direction:row;align-items:center;border-radius:16px;}
+        
+        /* Critical: Toolbar buttons */
+        .toolbar-btn-compact{min-width:48px!important;min-height:48px!important;padding:8px 12px!important;border-radius:12px!important;font-size:13px!important;font-weight:500!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:2px!important;transition:all 0.2s ease!important;}
+        .toolbar-btn-compact:active{transform:scale(0.95)!important;background:rgba(0,0,0,0.05)!important;}
+        .toolbar-btn-compact i{font-size:18px!important;}
+        .toolbar-btn-compact span{font-size:10px!important;font-weight:600!important;}
+        
+        /* Critical: Right Sidebar */
+        #right-sidebar{position:absolute!important;top:16px!important;top:calc(env(safe-area-inset-top,0px) + 16px)!important;right:12px!important;z-index:1000!important;display:flex!important;flex-direction:column!important;align-items:center!important;gap:12px!important;}
+        #right-sidebar>button{width:48px!important;height:48px!important;box-shadow:0 2px 12px rgba(0,0,0,0.15)!important;border:1px solid rgba(255,255,255,0.8)!important;border-radius:50%;}
+        
+        /* Critical: Loading skeleton */
+        #loading-skeleton{position:fixed;top:0;left:0;right:0;bottom:0;background:#f3f4f6;z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;}
+        
+        /* Critical: Hide utility classes */
+        .hidden{display:none!important;}
+        .flex{display:flex!important;}
+    </style>
+    
+    <!-- CSS Stylesheets - Non-critical loaded async -->
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'" crossorigin="anonymous">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.min.css" crossorigin="anonymous"></noscript>
+    
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'" crossorigin="anonymous">
     <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"></noscript>
 
