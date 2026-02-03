@@ -588,11 +588,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (map && !map.hasLayer(parcelLayer)) {
                 parcelLayer.addTo(map);
                 console.log('✅ Parcel layer added to map');
-                
-                // Add to layer control if available
-                if (window._layerControl) {
-                    window._layerControl.addOverlay(parcelLayer, "🗺️ Bản đồ phân lô");
-                }
+            }
+            
+            // Add to overlay maps for custom layer panel
+            if (window._overlayMaps) {
+                window._overlayMaps["🗺️ Bản đồ phân lô"] = parcelLayer;
+                console.log('✅ Parcel layer added to overlay maps');
             }
             
         } catch (err) {
@@ -1251,9 +1252,20 @@ document.addEventListener('DOMContentLoaded', () => {
     window.openStreetView = (lat, lng) => window.open(`http://maps.google.com/?q=&layer=c&cbll=${lat},${lng}`, '_blank');
 
     function showInfoPanel(title, props, lat, lng) {
+        // Null safety check
+        if (!infoPanel || !panelTitle || !panelContent || !togglePanelBtn) {
+            console.error('❌ Info panel elements not found. Cannot display info.');
+            return;
+        }
         
+        // Remove collapsed state
         infoPanel.classList.remove('is-collapsed');
-        togglePanelBtn.querySelector('i').classList.replace('fa-chevron-up', 'fa-chevron-down');
+        
+        // Update toggle button icon (text-based now, not <i> tag)
+        if (togglePanelBtn) {
+            togglePanelBtn.textContent = '−'; // Collapse icon
+            togglePanelBtn.title = 'Thu gọn';
+        }
 
         panelTitle.textContent = title;
         const soTo = props['Số hiệu tờ bản đồ'] ?? 'N/A';
@@ -1306,7 +1318,11 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>`;
 
         infoPanel.classList.add('is-open');
-        actionToolbar.classList.add('is-raised');
+        
+        // Raise action toolbar if available
+        if (actionToolbar) {
+            actionToolbar.classList.add('is-raised');
+        }
     }
 
     // Quick function to show parcel info from search results
@@ -1504,13 +1520,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function hideInfoPanel() {
+        if (!infoPanel) return;
+        
         infoPanel.classList.remove('is-open');
-        actionToolbar.classList.remove('is-raised', 'is-partially-raised');
-        if (highlightedFeature) {
+        
+        if (actionToolbar) {
+            actionToolbar.classList.remove('is-raised', 'is-partially-raised');
+        }
+        
+        if (highlightedFeature && parcelLayer && typeof parcelLayer.resetFeatureStyle === 'function') {
             parcelLayer.resetFeatureStyle(highlightedFeature);
             highlightedFeature = null;
         }
-        dimensionMarkers.clearLayers();
+        
+        if (dimensionMarkers && typeof dimensionMarkers.clearLayers === 'function') {
+            dimensionMarkers.clearLayers();
+        }
     }
 
     function vectorTileFeatureToGeoJSON(layer) {
@@ -2035,6 +2060,11 @@ const maxCacheSize = 100;
 
 // Enhanced search with caching and fuzzy matching
 const performSearch = async (query) => {
+    if (!searchResultsContainer) {
+        console.error('❌ Search results container not found');
+        return;
+    }
+    
     if (!query) {
         searchResultsContainer.innerHTML = '';
         searchResultsContainer.classList.add('hidden');
@@ -2183,6 +2213,10 @@ const performSearch = async (query) => {
 
 // Helper function to display search results
 function displaySearchResults(html) {
+    if (!searchResultsContainer) {
+        console.error('❌ Search results container not found');
+        return;
+    }
     searchResultsContainer.innerHTML = html;
     searchResultsContainer.classList.remove('hidden');
 }
@@ -2769,15 +2803,16 @@ async function showCommunityParcelInfo(parcelNumber, mapSheet) {
     if (togglePanelBtn && infoPanel && actionToolbar) {
         togglePanelBtn.addEventListener('click', () => {
             const isCollapsed = infoPanel.classList.toggle('is-collapsed');
-            const icon = togglePanelBtn.querySelector('i');
-            if (icon) {
-                icon.classList.toggle('fa-chevron-down');
-                icon.classList.toggle('fa-chevron-up');
-            }
+            
+            // Update text icon (no longer <i> tag)
             if (isCollapsed) {
+                togglePanelBtn.textContent = '+'; // Expand icon
+                togglePanelBtn.title = 'Mở rộng';
                 actionToolbar.classList.remove('is-raised');
                 actionToolbar.classList.add('is-partially-raised');
             } else {
+                togglePanelBtn.textContent = '−'; // Collapse icon
+                togglePanelBtn.title = 'Thu gọn';
                 actionToolbar.classList.remove('is-partially-raised');
                 actionToolbar.classList.add('is-raised');
             }

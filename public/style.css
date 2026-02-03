@@ -347,6 +347,15 @@ img[data-loaded="true"] {
     width: 100vw;
 }
 
+/* Leaflet Pane Z-Index Fix - Ensure parcel layer is visible */
+.leaflet-overlay-pane {
+    z-index: 400 !important;
+}
+
+.leaflet-tile-pane {
+    z-index: 200 !important;
+}
+
 /* Leaflet Customizations */
 .leaflet-popup-content-wrapper { 
     border-radius: 8px;
