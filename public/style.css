@@ -3838,7 +3838,7 @@ div.absolute.top-4.right-4 {
     opacity: 1 !important;
 }
 #beta-signup-btn { z-index: 1000 !important; }
-#action-toolbar { z-index: 1001 !important; }
+#action-toolbar { z-index: 2000 !important; }  /* CRITICAL: Above map to prevent overlap */
 #info-panel { z-index: 1002 !important; }
 /* Profile menu should be highest to avoid being covered */
 #profile-menu { z-index: 2000 !important; }

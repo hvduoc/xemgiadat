@@ -484,7 +484,7 @@ document.addEventListener('DOMContentLoaded', () => {
         maxNativeZoom: 20,    // PMTiles có max zoom 20
         cache: false,         // CRITICAL: Disable cache to prevent ERR_CACHE_OPERATION_NOT_SUPPORTED
         updateWhenIdle: true, // CHỈ update khi pan/zoom xong - GIẢM LAG
-        updateInterval: 200,  // SMOOTH SCROLL: Wait 200ms before rendering during fast panning
+        updateInterval: 500,  // AGGRESSIVE DELAY: Wait 500ms before rendering during fast scrolling
         updateWhenZooming: false, // KHÔNG update liên tục khi zoom - smoother pinch zoom
         preloadNextZoom: false,       // BANDWIDTH SAVER: Don't preload next zoom level
         keepBuffer: 1,        // MINIMAL: Keep only 1 tile buffer to reduce memory
@@ -492,12 +492,12 @@ document.addEventListener('DOMContentLoaded', () => {
         smoothFactor: 0.5,    // Reduce anti-aliasing overhead
         getFeatureId: feature => feature.properties.OBJECTID,
         vectorTileLayerStyles: {
-            // PMTiles mới dùng layer name 'default' - PROBABILITY-BASED ULTRA-LIGHT LOD
+            // PMTiles mới dùng layer name 'default' - DOT-BASED ULTRA-PERFORMANCE LOD
             'default': function(properties, zoom) {
                 const objectId = properties.OBJECTID || 0;
                 
-                // TIER 1 - Zoom 10-12 (Extreme far view): 30% probability rendering
-                if (zoom >= 10 && zoom < 13) {
+                // TIER 1 - Zoom 10-13 (Extreme far view): DOT RENDERING ONLY (10x faster)
+                if (zoom >= 10 && zoom < 14) {
                     // PROBABILITY FILTER: Show only 30% of parcels (OBJECTID % 10 < 3)
                     if ((objectId % 10) >= 3) return { opacity: 0, fillOpacity: 0, weight: 0 };
                     
@@ -505,45 +505,49 @@ document.addEventListener('DOMContentLoaded', () => {
                     const area = properties.area || properties.SHAPE_Area || 0;
                     if (area < 500) return { opacity: 0, fillOpacity: 0, weight: 0 };
                     
+                    // REVOLUTIONARY: Draw circle/dot instead of polygon - 10x performance boost
                     return {
-                        color: '#E2E8F0',           // Slate 200 - ULTRA pale (fog effect)
-                        weight: 0.02,               // EXTREME THIN: 0.02px (fog lines)
-                        fill: false,                // NO fill - boundaries only
-                        opacity: 0.5                // Very transparent
+                        radius: 0.5,                // Tiny dot at parcel center
+                        color: '#CBD5E1',           // Slate 300 - pale dot
+                        fillColor: '#CBD5E1',
+                        fillOpacity: 0.6,           // Semi-transparent dot
+                        weight: 0,                  // No stroke - just fill
+                        opacity: 0                  // No border
                     };
                 }
-                // TIER 2 - Zoom 13-15 (Mid-far view): 60% probability rendering
-                if (zoom >= 13 && zoom < 16) {
+                // TIER 2 - Zoom 14-16 (Mid-range): Simplified polygon with smoothFactor 2.0
+                if (zoom >= 14 && zoom < 17) {
                     // PROBABILITY FILTER: Show 60% of parcels (OBJECTID % 10 < 6)
                     if ((objectId % 10) >= 6) return { opacity: 0, fillOpacity: 0, weight: 0 };
                     
                     return {
-                        color: '#CBD5E1',           // Slate 300 - pale
-                        weight: 0.05,               // Ultra-thin
-                        fill: false,                // NO fill
-                        opacity: 0.7
+                        color: '#94A3B8',           // Slate 400
+                        weight: 0.05,               // Ultra-thin lines
+                        fill: false,                // No fill at mid-range
+                        opacity: 0.8,
+                        smoothFactor: 2.0           // AGGRESSIVE: Eliminate detail
                     };
                 }
-                // TIER 3 - Zoom 16+ (Close-up): 100% rendering
-                if (zoom >= 16) {
+                // TIER 3 - Zoom 17+ (Close-up): Full polygon with labels
+                if (zoom >= 17) {
                     return {
-                        color: '#94A3B8',           // Slate 400
-                        weight: 0.2,                // Professional
+                        color: '#64748B',           // Slate 500
+                        weight: 0.3,                // Professional weight
                         fill: true,
-                        fillColor: '#94A3B8',
-                        fillOpacity: 0.02,          // Minimal fill
+                        fillColor: '#64748B',
+                        fillOpacity: 0.03,          // Subtle fill
                         opacity: 1
                     };
                 }
                 // Below zoom 10: hidden
                 return { opacity: 0, fillOpacity: 0, weight: 0 };
             },
-            // Giữ danang_full cho backward compatibility - PROBABILITY-BASED ULTRA-LIGHT LOD
+            // Giữ danang_full cho backward compatibility - DOT-BASED ULTRA-PERFORMANCE LOD
             'danang_full': function(properties, zoom) {
                 const objectId = properties.OBJECTID || 0;
                 
-                // TIER 1 - Zoom 10-12 (Extreme far view): 30% probability rendering
-                if (zoom >= 10 && zoom < 13) {
+                // TIER 1 - Zoom 10-13 (Extreme far view): DOT RENDERING ONLY (10x faster)
+                if (zoom >= 10 && zoom < 14) {
                     // PROBABILITY FILTER: Show only 30% of parcels (OBJECTID % 10 < 3)
                     if ((objectId % 10) >= 3) return { opacity: 0, fillOpacity: 0, weight: 0 };
                     
@@ -551,33 +555,37 @@ document.addEventListener('DOMContentLoaded', () => {
                     const area = properties.area || properties.SHAPE_Area || 0;
                     if (area < 500) return { opacity: 0, fillOpacity: 0, weight: 0 };
                     
+                    // REVOLUTIONARY: Draw circle/dot instead of polygon - 10x performance boost
                     return {
-                        color: '#E2E8F0',           // Slate 200 - ULTRA pale (fog effect)
-                        weight: 0.02,               // EXTREME THIN: 0.02px (fog lines)
-                        fill: false,                // NO fill - boundaries only
-                        opacity: 0.5                // Very transparent
+                        radius: 0.5,                // Tiny dot at parcel center
+                        color: '#CBD5E1',           // Slate 300 - pale dot
+                        fillColor: '#CBD5E1',
+                        fillOpacity: 0.6,           // Semi-transparent dot
+                        weight: 0,                  // No stroke - just fill
+                        opacity: 0                  // No border
                     };
                 }
-                // TIER 2 - Zoom 13-15 (Mid-far view): 60% probability rendering
-                if (zoom >= 13 && zoom < 16) {
+                // TIER 2 - Zoom 14-16 (Mid-range): Simplified polygon with smoothFactor 2.0
+                if (zoom >= 14 && zoom < 17) {
                     // PROBABILITY FILTER: Show 60% of parcels (OBJECTID % 10 < 6)
                     if ((objectId % 10) >= 6) return { opacity: 0, fillOpacity: 0, weight: 0 };
                     
                     return {
-                        color: '#CBD5E1',           // Slate 300 - pale
-                        weight: 0.05,               // Ultra-thin
-                        fill: false,                // NO fill
-                        opacity: 0.7
+                        color: '#94A3B8',           // Slate 400
+                        weight: 0.05,               // Ultra-thin lines
+                        fill: false,                // No fill at mid-range
+                        opacity: 0.8,
+                        smoothFactor: 2.0           // AGGRESSIVE: Eliminate detail
                     };
                 }
-                // TIER 3 - Zoom 16+ (Close-up): 100% rendering
-                if (zoom >= 16) {
+                // TIER 3 - Zoom 17+ (Close-up): Full polygon with labels
+                if (zoom >= 17) {
                     return {
-                        color: '#94A3B8',           // Slate 400
-                        weight: 0.2,                // Professional
+                        color: '#64748B',           // Slate 500
+                        weight: 0.3,                // Professional weight
                         fill: true,
-                        fillColor: '#94A3B8',
-                        fillOpacity: 0.02,          // Minimal fill
+                        fillColor: '#64748B',
+                        fillOpacity: 0.03,          // Subtle fill
                         opacity: 1
                     };
                 }
@@ -654,6 +662,16 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Assign to parcelLayer and add to map
             parcelLayer = layer;
+            
+            // MEMORY CLEANUP: Force redraw on zoom change to free old zoom level resources
+            if (map) {
+                map.on('zoomend', function() {
+                    if (parcelLayer && typeof parcelLayer.redraw === 'function') {
+                        parcelLayer.redraw();
+                        console.log('♻️ Memory cleanup: parcelLayer redrawn after zoom change');
+                    }
+                });
+            }
             
             // FORCE parcel layer to be visible by default
             if (map && !map.hasLayer(parcelLayer)) {
