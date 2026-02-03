@@ -469,6 +469,7 @@
         #loading-skeleton {
             background: -webkit-linear-gradient(315deg, #f8fafc 0%, #e2e8f0 100%) !important;
             background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%) !important;
+            pointer-events: none !important;  /* CRITICAL: Ensure skeleton never blocks clicks */
         }
         
         /* ========== LANDSCAPE MODE ========== */
@@ -515,6 +516,10 @@
     
     <!-- Google Analytics 4 - EXTREME LAZY LOAD (map-ready + 5s OR first click) -->
     <script>
+        // PERFORMANCE: Mark DOM ready point
+        if (window.performance && window.performance.mark) {
+            performance.mark('dom_ready');
+        }
         // Stub functions available immediately (no-op until GA loads)
         window.dataLayer = window.dataLayer || [];
         window.gtag = function(){dataLayer.push(arguments);};
@@ -784,40 +789,39 @@
         <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
     </div>
     <script>
-        // Remove skeleton when map is ready (triggered from script.js)
+        // AGGRESSIVE SKELETON REMOVAL - Zero block guarantee
         window.hideLoadingSkeleton = function() {
             var el = document.getElementById('loading-skeleton');
             if (el) {
-                // Immediate removal from DOM (no delay)
                 try {
-                    el.style.opacity = '0';
-                    el.style.transition = 'opacity 0.3s ease-out';
-                    setTimeout(function() {
-                        if (el && el.parentNode) {
-                            el.parentNode.removeChild(el);
-                            el = null;  // Clear reference
-                            console.log('[Skeleton] Completely removed from DOM');
-                        }
-                    }, 350);  // After transition completes
-                } catch (e) {
-                    console.warn('[Skeleton] Error during removal:', e);
-                    // Force remove if any error
-                    if (el && el.parentNode) {
+                    // IMMEDIATE: Set display none + remove to block interaction instantly
+                    el.style.display = 'none';
+                    el.style.visibility = 'hidden';
+                    el.style.pointerEvents = 'none';
+                    // CONCURRENT: Remove from DOM immediately
+                    if (el.parentNode) {
                         el.parentNode.removeChild(el);
+                    }
+                    console.log('[Skeleton] ✓ ZERO BLOCK - Completely removed from DOM');
+                } catch (e) {
+                    console.warn('[Skeleton] Removal error:', e);
+                    // Force fallback removal
+                    try {
+                        if (el.parentNode) el.parentNode.removeChild(el);
+                    } catch (e2) {
+                        console.error('[Skeleton] Critical removal failure:', e2);
                     }
                 }
             }
         };
-        // Aggressive fallback: force remove after 5 seconds
+        // FAIL-SAFE: Aggressive check at 3s (faster than previous 5s)
         setTimeout(function() {
-            window.hideLoadingSkeleton && window.hideLoadingSkeleton();
-            // Double-check removal
             var skelCheck = document.getElementById('loading-skeleton');
-            if (skelCheck && skelCheck.parentNode) {
-                skelCheck.parentNode.removeChild(skelCheck);
-                console.log('[Skeleton] Force removed on fallback');
+            if (skelCheck) {
+                console.warn('[Skeleton] Still in DOM at 3s - force removing');
+                if (skelCheck.parentNode) skelCheck.parentNode.removeChild(skelCheck);
             }
-        }, 5000);
+        }, 3000);
         
         // 🔧 DEBUG: Find blocking elements - run window.findBlockingElements() in console
         window.findBlockingElements = function() {
