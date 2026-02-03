@@ -479,10 +479,10 @@ document.addEventListener('DOMContentLoaded', () => {
         renderer: L.canvas(), // Force Canvas renderer to avoid SVG issues on mobile
         interactive: true,
         pane: 'overlayPane',  // CRITICAL: Force parcel layer to overlayPane (z-index 600)
-        minZoom: 15,          // Only render parcels from zoom 15+
+        minZoom: 12,          // Expand display range to zoom 12 for better overview
         maxZoom: 20,                  // CHANGED: Match maxNativeZoom to fix click issues
         maxNativeZoom: 20,    // PMTiles có max zoom 20
-        cache: true,          // PMTiles caching enabled
+        useWorker: true,      // Use Web Worker for PMTiles processing (fixes ERR_CACHE_OPERATION_NOT_SUPPORTED)
         updateWhenIdle: true, // CHỈ update khi pan/zoom xong - GIẢM LAG
         updateWhenZooming: false, // KHÔNG update liên tục khi zoom
         keepBuffer: 2,        // Giữ ít tiles hơn để giảm memory
@@ -492,31 +492,57 @@ document.addEventListener('DOMContentLoaded', () => {
         vectorTileLayerStyles: {
             // PMTiles mới dùng layer name 'default'
             'default': function(properties, zoom) {
-                if (zoom < 15) {
-                    return { opacity: 0, fillOpacity: 0, weight: 0 };
+                // Zoom 12-14: faint hairline only (show boundary without obscuring map)
+                if (zoom >= 12 && zoom < 15) {
+                    return {
+                        color: '#9CA3AF',       // Muted gray
+                        weight: 0.1,            // Super thin
+                        fill: true,
+                        fillColor: '#9CA3AF',
+                        fillOpacity: 0,         // No fill - boundary only
+                        opacity: 0.6            // Slightly transparent
+                    };
                 }
-                return {
-                    color: '#4B5563',       // Elegant gray
-                    weight: 0.5,            // Hairline
-                    fill: true,
-                    fillColor: '#F3F4F6',
-                    fillOpacity: 0.1,
-                    opacity: 1
-                };
+                // Zoom 15+: professional detailed styling
+                if (zoom >= 15) {
+                    return {
+                        color: '#4B5563',       // Elegant gray
+                        weight: 0.4,            // Thin professional weight
+                        fill: true,
+                        fillColor: '#F3F4F6',
+                        fillOpacity: 0.05,      // Very subtle fill
+                        opacity: 1
+                    };
+                }
+                // Below zoom 12: hidden
+                return { opacity: 0, fillOpacity: 0, weight: 0 };
             },
             // Giữ danang_full cho backward compatibility
             'danang_full': function(properties, zoom) {
-                if (zoom < 15) {
-                    return { opacity: 0, fillOpacity: 0, weight: 0 };
+                // Zoom 12-14: faint hairline only (show boundary without obscuring map)
+                if (zoom >= 12 && zoom < 15) {
+                    return {
+                        color: '#9CA3AF',       // Muted gray
+                        weight: 0.1,            // Super thin
+                        fill: true,
+                        fillColor: '#9CA3AF',
+                        fillOpacity: 0,         // No fill - boundary only
+                        opacity: 0.6            // Slightly transparent
+                    };
                 }
-                return {
-                    color: '#4B5563',
-                    weight: 0.5,
-                    fill: true,
-                    fillColor: '#F3F4F6',
-                    fillOpacity: 0.1,
-                    opacity: 1
-                };
+                // Zoom 15+: professional detailed styling
+                if (zoom >= 15) {
+                    return {
+                        color: '#4B5563',       // Elegant gray
+                        weight: 0.4,            // Thin professional weight
+                        fill: true,
+                        fillColor: '#F3F4F6',
+                        fillOpacity: 0.05,      // Very subtle fill
+                        opacity: 1
+                    };
+                }
+                // Below zoom 12: hidden
+                return { opacity: 0, fillOpacity: 0, weight: 0 };
             }
         }
     };
