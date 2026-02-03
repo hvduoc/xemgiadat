@@ -528,14 +528,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         smoothFactor: 2.0           // AGGRESSIVE: Eliminate detail
                     };
                 }
-                // TIER 3 - Zoom 17+ (Close-up): Full polygon with labels
+                // TIER 3 - Zoom 17+ (Close-up): SHARP & CLEAR boundaries
                 if (zoom >= 17) {
                     return {
-                        color: '#64748B',           // Slate 500
-                        weight: 0.3,                // Professional weight
+                        color: '#334155',           // Slate 700 - DARK & BOLD for satellite contrast
+                        weight: 0.8,                // SHARP: 0.8px for clear boundaries
                         fill: true,
-                        fillColor: '#64748B',
-                        fillOpacity: 0.03,          // Subtle fill
+                        fillColor: '#334155',
+                        fillOpacity: 0.1,           // Solid presence but see-through
                         opacity: 1
                     };
                 }
@@ -578,14 +578,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         smoothFactor: 2.0           // AGGRESSIVE: Eliminate detail
                     };
                 }
-                // TIER 3 - Zoom 17+ (Close-up): Full polygon with labels
+                // TIER 3 - Zoom 17+ (Close-up): SHARP & CLEAR boundaries
                 if (zoom >= 17) {
                     return {
-                        color: '#64748B',           // Slate 500
-                        weight: 0.3,                // Professional weight
+                        color: '#334155',           // Slate 700 - DARK & BOLD for satellite contrast
+                        weight: 0.8,                // SHARP: 0.8px for clear boundaries
                         fill: true,
-                        fillColor: '#64748B',
-                        fillOpacity: 0.03,          // Subtle fill
+                        fillColor: '#334155',
+                        fillOpacity: 0.1,           // Solid presence but see-through
                         opacity: 1
                     };
                 }
@@ -667,9 +667,37 @@ document.addEventListener('DOMContentLoaded', () => {
             if (map) {
                 map.on('zoomend', function() {
                     if (parcelLayer && typeof parcelLayer.redraw === 'function') {
-                        parcelLayer.redraw();
-                        console.log('♻️ Memory cleanup: parcelLayer redrawn after zoom change');
+                        // Use requestAnimationFrame to prevent blocking UI interactions
+                        requestAnimationFrame(() => {
+                            parcelLayer.redraw();
+                            console.log('♻️ Memory cleanup: parcelLayer redrawn after zoom change');
+                        });
                     }
+                });
+                
+                // INTERACTION PRIORITY: Pause rendering when user interacts
+                let renderDelayTimer = null;
+                const pauseRendering = () => {
+                    if (renderDelayTimer) clearTimeout(renderDelayTimer);
+                    renderDelayTimer = setTimeout(() => {
+                        if (parcelLayer && typeof parcelLayer.redraw === 'function') {
+                            requestAnimationFrame(() => parcelLayer.redraw());
+                        }
+                    }, 1000);  // Delay 1000ms after interaction
+                };
+                
+                // Pause when search input is focused
+                const searchInput = document.getElementById('search-input');
+                if (searchInput) {
+                    searchInput.addEventListener('focus', pauseRendering);
+                    searchInput.addEventListener('input', pauseRendering);
+                }
+                
+                // Pause when action toolbar buttons are clicked
+                const toolbarBtns = document.querySelectorAll('#action-toolbar button');
+                toolbarBtns.forEach(btn => {
+                    btn.addEventListener('click', pauseRendering);
+                    btn.addEventListener('touchstart', pauseRendering);
                 });
             }
             
@@ -10040,6 +10068,18 @@ function initLayerPanel() {
 (function addHapticToToolbar() {
     const toolbarButtons = document.querySelectorAll('#action-toolbar button, .toolbar-btn-compact');
     toolbarButtons.forEach(btn => {
+        // Add touchstart for 300ms delay reduction on mobile (iPhone)
+        btn.addEventListener('touchstart', (e) => {
+            triggerHaptic(10);
+            // Prevent click event to avoid double-firing
+            e.preventDefault();
+            // Manually trigger click logic if button has it
+            if (btn.onclick) {
+                btn.onclick(e);
+            }
+        }, { passive: false });
+        
+        // Keep click for desktop
         btn.addEventListener('click', () => {
             triggerHaptic(10);
         });
