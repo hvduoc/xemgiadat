@@ -387,6 +387,29 @@ function __XGD_bootApp() {
             bounceAtZoomLimits: true      // Visual feedback when hitting zoom limit
         });
 
+        // DOM Check - info-panel
+        console.log('DOM Check - info-panel:', document.getElementById('info-panel'));
+        if (!document.getElementById('info-panel')) {
+            console.warn('⚠️ info-panel missing. Recreating at runtime...');
+            const panel = document.createElement('div');
+            panel.id = 'info-panel';
+            panel.className = 'fixed bottom-0 left-0 right-0 bg-white shadow-2xl rounded-t-2xl z-[1002] p-4 transform translate-y-full transition-transform duration-300 ease-out';
+            panel.style.maxHeight = '55vh';
+            panel.style.overflowY = 'auto';
+            panel.innerHTML = `
+                <div class="drag-handle"></div>
+                <div class="panel-header-compact">
+                    <h3 id="panel-title" class="text-sm font-bold text-gray-800">Thông tin</h3>
+                    <div class="panel-header-icons">
+                        <button id="toggle-panel-btn" class="panel-header-icon" title="Thu gọn">−</button>
+                        <button id="close-panel-btn" class="panel-header-icon" title="Đóng">✕</button>
+                    </div>
+                </div>
+                <div id="panel-content" class="panel-content-compact text-gray-700"></div>
+            `;
+            document.body.appendChild(panel);
+        }
+
         // 🚀 PERFORMANCE: Hide loading skeleton as soon as map reports load
         window.map.once('load', () => {
             if (window.hideLoadingSkeleton) window.hideLoadingSkeleton();
@@ -453,6 +476,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // FIXED: maxZoom = 20 to match PMTiles data, prevents click issues at over-zoom
     const vectorTileOptions = {
         rendererFactory: L.canvas.tile, // Canvas nhanh hơn SVG rất nhiều
+        renderer: L.canvas(), // Force Canvas renderer to avoid SVG issues on mobile
         interactive: true,
         pane: 'overlayPane',  // CRITICAL: Force parcel layer to overlayPane (z-index 600)
         minZoom: 10,
