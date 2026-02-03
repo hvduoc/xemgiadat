@@ -484,83 +484,100 @@ document.addEventListener('DOMContentLoaded', () => {
         maxNativeZoom: 20,    // PMTiles có max zoom 20
         cache: false,         // CRITICAL: Disable cache to prevent ERR_CACHE_OPERATION_NOT_SUPPORTED
         updateWhenIdle: true, // CHỈ update khi pan/zoom xong - GIẢM LAG
+        updateInterval: 200,  // SMOOTH SCROLL: Wait 200ms before rendering during fast panning
         updateWhenZooming: false, // KHÔNG update liên tục khi zoom - smoother pinch zoom
         preloadNextZoom: false,       // BANDWIDTH SAVER: Don't preload next zoom level
         keepBuffer: 1,        // MINIMAL: Keep only 1 tile buffer to reduce memory
-        tolerance: 5,         // AGGRESSIVE: Simplify geometry heavily - CRITICAL for performance
+        tolerance: 10,        // EXTREME: Aggressive geometry simplification at zoom < 15
         smoothFactor: 0.5,    // Reduce anti-aliasing overhead
         getFeatureId: feature => feature.properties.OBJECTID,
         vectorTileLayerStyles: {
-            // PMTiles mới dùng layer name 'default' - 4-tier ULTRA-LIGHT LOD
+            // PMTiles mới dùng layer name 'default' - PROBABILITY-BASED ULTRA-LIGHT LOD
             'default': function(properties, zoom) {
-                // TIER 1 - Zoom 10-13 (Extreme far view): Ultra-minimal rendering
-                if (zoom >= 10 && zoom < 14) {
-                    // FILTER: Hide small parcels to reduce draw calls
+                const objectId = properties.OBJECTID || 0;
+                
+                // TIER 1 - Zoom 10-12 (Extreme far view): 30% probability rendering
+                if (zoom >= 10 && zoom < 13) {
+                    // PROBABILITY FILTER: Show only 30% of parcels (OBJECTID % 10 < 3)
+                    if ((objectId % 10) >= 3) return { opacity: 0, fillOpacity: 0, weight: 0 };
+                    
+                    // Additional area filter for remaining 30%
                     const area = properties.area || properties.SHAPE_Area || 0;
-                    if (area < 500) return { opacity: 0, fillOpacity: 0, weight: 0 };  // Hide tiny parcels
+                    if (area < 500) return { opacity: 0, fillOpacity: 0, weight: 0 };
                     
                     return {
-                        color: '#CBD5E1',           // Slate 300 - very pale
-                        weight: 0.05,               // ULTRA-THIN: 0.05px
+                        color: '#E2E8F0',           // Slate 200 - ULTRA pale (fog effect)
+                        weight: 0.02,               // EXTREME THIN: 0.02px (fog lines)
                         fill: false,                // NO fill - boundaries only
-                        opacity: 0.7                // Slightly transparent
+                        opacity: 0.5                // Very transparent
                     };
                 }
-                // TIER 2 - Zoom 14-16 (Mid-range): Light lines, no fill
-                if (zoom >= 14 && zoom < 17) {
+                // TIER 2 - Zoom 13-15 (Mid-far view): 60% probability rendering
+                if (zoom >= 13 && zoom < 16) {
+                    // PROBABILITY FILTER: Show 60% of parcels (OBJECTID % 10 < 6)
+                    if ((objectId % 10) >= 6) return { opacity: 0, fillOpacity: 0, weight: 0 };
+                    
                     return {
-                        color: '#94A3B8',           // Slate 400 - light gray
-                        weight: 0.1,                // Thin: 0.1px
-                        fill: false,                // NO fill - boundary only
-                        opacity: 1
+                        color: '#CBD5E1',           // Slate 300 - pale
+                        weight: 0.05,               // Ultra-thin
+                        fill: false,                // NO fill
+                        opacity: 0.7
                     };
                 }
-                // TIER 3 - Zoom 17-20 (Close-up): Professional detail
-                if (zoom >= 17) {
+                // TIER 3 - Zoom 16+ (Close-up): 100% rendering
+                if (zoom >= 16) {
                     return {
-                        color: '#64748B',           // Slate 500 - medium gray
-                        weight: 0.3,                // Professional: 0.3px
+                        color: '#94A3B8',           // Slate 400
+                        weight: 0.2,                // Professional
                         fill: true,
-                        fillColor: '#64748B',
-                        fillOpacity: 0.03,          // Minimal fill (3%)
+                        fillColor: '#94A3B8',
+                        fillOpacity: 0.02,          // Minimal fill
                         opacity: 1
                     };
                 }
                 // Below zoom 10: hidden
                 return { opacity: 0, fillOpacity: 0, weight: 0 };
             },
-            // Giữ danang_full cho backward compatibility - same 4-tier ULTRA-LIGHT LOD
+            // Giữ danang_full cho backward compatibility - PROBABILITY-BASED ULTRA-LIGHT LOD
             'danang_full': function(properties, zoom) {
-                // TIER 1 - Zoom 10-13 (Extreme far view): Ultra-minimal rendering
-                if (zoom >= 10 && zoom < 14) {
-                    // FILTER: Hide small parcels to reduce draw calls
+                const objectId = properties.OBJECTID || 0;
+                
+                // TIER 1 - Zoom 10-12 (Extreme far view): 30% probability rendering
+                if (zoom >= 10 && zoom < 13) {
+                    // PROBABILITY FILTER: Show only 30% of parcels (OBJECTID % 10 < 3)
+                    if ((objectId % 10) >= 3) return { opacity: 0, fillOpacity: 0, weight: 0 };
+                    
+                    // Additional area filter for remaining 30%
                     const area = properties.area || properties.SHAPE_Area || 0;
-                    if (area < 500) return { opacity: 0, fillOpacity: 0, weight: 0 };  // Hide tiny parcels
+                    if (area < 500) return { opacity: 0, fillOpacity: 0, weight: 0 };
                     
                     return {
-                        color: '#CBD5E1',           // Slate 300 - very pale
-                        weight: 0.05,               // ULTRA-THIN: 0.05px
+                        color: '#E2E8F0',           // Slate 200 - ULTRA pale (fog effect)
+                        weight: 0.02,               // EXTREME THIN: 0.02px (fog lines)
                         fill: false,                // NO fill - boundaries only
-                        opacity: 0.7                // Slightly transparent
+                        opacity: 0.5                // Very transparent
                     };
                 }
-                // TIER 2 - Zoom 14-16 (Mid-range): Light lines, no fill
-                if (zoom >= 14 && zoom < 17) {
+                // TIER 2 - Zoom 13-15 (Mid-far view): 60% probability rendering
+                if (zoom >= 13 && zoom < 16) {
+                    // PROBABILITY FILTER: Show 60% of parcels (OBJECTID % 10 < 6)
+                    if ((objectId % 10) >= 6) return { opacity: 0, fillOpacity: 0, weight: 0 };
+                    
                     return {
-                        color: '#94A3B8',           // Slate 400 - light gray
-                        weight: 0.1,                // Thin: 0.1px
-                        fill: false,                // NO fill - boundary only
-                        opacity: 1
+                        color: '#CBD5E1',           // Slate 300 - pale
+                        weight: 0.05,               // Ultra-thin
+                        fill: false,                // NO fill
+                        opacity: 0.7
                     };
                 }
-                // TIER 3 - Zoom 17-20 (Close-up): Professional detail
-                if (zoom >= 17) {
+                // TIER 3 - Zoom 16+ (Close-up): 100% rendering
+                if (zoom >= 16) {
                     return {
-                        color: '#64748B',           // Slate 500 - medium gray
-                        weight: 0.3,                // Professional: 0.3px
+                        color: '#94A3B8',           // Slate 400
+                        weight: 0.2,                // Professional
                         fill: true,
-                        fillColor: '#64748B',
-                        fillOpacity: 0.03,          // Minimal fill (3%)
+                        fillColor: '#94A3B8',
+                        fillOpacity: 0.02,          // Minimal fill
                         opacity: 1
                     };
                 }
