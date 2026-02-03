@@ -5515,9 +5515,6 @@ function goToStep2() {
             clearTimeout(labelLoadTimeout);
         }
     });
-        });
-    });
-});
 
 // Initialize community contribution system after DOM is loaded
 // Moved to end of file to ensure all functions are defined
