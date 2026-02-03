@@ -476,90 +476,95 @@ document.addEventListener('DOMContentLoaded', () => {
     // FIXED: maxZoom = 20 to match PMTiles data, prevents click issues at over-zoom
     const vectorTileOptions = {
         rendererFactory: L.canvas.tile, // Canvas nhanh hơn SVG rất nhiều
-        renderer: L.canvas({ padding: 0.5, tolerance: 5 }), // FORCED Canvas with optimal settings
+        renderer: L.canvas({ padding: 0.1 }), // HIGH-PERFORMANCE: Minimal padding for speed
         interactive: true,
         pane: 'overlayPane',  // CRITICAL: Force parcel layer to overlayPane (z-index 600)
-        minZoom: 12,          // Expand display range to zoom 12 for better overview
+        minZoom: 10,          // ULTRA-LIGHT: Start from zoom 10 with minimal rendering
         maxZoom: 20,                  // CHANGED: Match maxNativeZoom to fix click issues
         maxNativeZoom: 20,    // PMTiles có max zoom 20
         cache: false,         // CRITICAL: Disable cache to prevent ERR_CACHE_OPERATION_NOT_SUPPORTED
         updateWhenIdle: true, // CHỈ update khi pan/zoom xong - GIẢM LAG
         updateWhenZooming: false, // KHÔNG update liên tục khi zoom - smoother pinch zoom
-        keepBuffer: 2,        // Giữ ít tiles hơn để giảm memory
-        tolerance: 3,         // Simplify geometry - QUAN TRỌNG cho performance
-        smoothFactor: 1,      // Anti-aliasing for smoother parcel edges
+        preloadNextZoom: false,       // BANDWIDTH SAVER: Don't preload next zoom level
+        keepBuffer: 1,        // MINIMAL: Keep only 1 tile buffer to reduce memory
+        tolerance: 5,         // AGGRESSIVE: Simplify geometry heavily - CRITICAL for performance
+        smoothFactor: 0.5,    // Reduce anti-aliasing overhead
         getFeatureId: feature => feature.properties.OBJECTID,
         vectorTileLayerStyles: {
-            // PMTiles mới dùng layer name 'default' - 3-tier LOD
+            // PMTiles mới dùng layer name 'default' - 4-tier ULTRA-LIGHT LOD
             'default': function(properties, zoom) {
-                // TIER 1 - Zoom 12-14 (Far view): Ultra-thin boundary only
-                if (zoom >= 12 && zoom < 15) {
+                // TIER 1 - Zoom 10-13 (Extreme far view): Ultra-minimal rendering
+                if (zoom >= 10 && zoom < 14) {
+                    // FILTER: Hide small parcels to reduce draw calls
+                    const area = properties.area || properties.SHAPE_Area || 0;
+                    if (area < 500) return { opacity: 0, fillOpacity: 0, weight: 0 };  // Hide tiny parcels
+                    
                     return {
-                        color: '#94a3b8',           // Slate 400 - subtle gray
-                        weight: 0.1,                // Super thin: 0.1px
-                        fill: false,                // NO fill at overview level
+                        color: '#CBD5E1',           // Slate 300 - very pale
+                        weight: 0.05,               // ULTRA-THIN: 0.05px
+                        fill: false,                // NO fill - boundaries only
+                        opacity: 0.7                // Slightly transparent
+                    };
+                }
+                // TIER 2 - Zoom 14-16 (Mid-range): Light lines, no fill
+                if (zoom >= 14 && zoom < 17) {
+                    return {
+                        color: '#94A3B8',           // Slate 400 - light gray
+                        weight: 0.1,                // Thin: 0.1px
+                        fill: false,                // NO fill - boundary only
                         opacity: 1
                     };
                 }
-                // TIER 2 - Zoom 15-16 (Medium view): Thin lines + subtle fill
-                if (zoom >= 15 && zoom < 17) {
-                    return {
-                        color: '#64748b',           // Slate 500 - medium gray
-                        weight: 0.3,                // Thin: 0.3px
-                        fill: true,
-                        fillColor: '#64748b',
-                        fillOpacity: 0.03,          // Very subtle fill (3%)
-                        opacity: 1
-                    };
-                }
-                // TIER 3 - Zoom 17+ (Close-up): Professional detailed view
+                // TIER 3 - Zoom 17-20 (Close-up): Professional detail
                 if (zoom >= 17) {
                     return {
-                        color: '#475569',           // Slate 700 - darker gray
-                        weight: 0.5,                // Professional: 0.5px
+                        color: '#64748B',           // Slate 500 - medium gray
+                        weight: 0.3,                // Professional: 0.3px
                         fill: true,
-                        fillColor: '#475569',
-                        fillOpacity: 0.07,          // Moderate fill (7%)
+                        fillColor: '#64748B',
+                        fillOpacity: 0.03,          // Minimal fill (3%)
                         opacity: 1
                     };
                 }
-                // Below zoom 12: hidden
+                // Below zoom 10: hidden
                 return { opacity: 0, fillOpacity: 0, weight: 0 };
             },
-            // Giữ danang_full cho backward compatibility - same 3-tier LOD
+            // Giữ danang_full cho backward compatibility - same 4-tier ULTRA-LIGHT LOD
             'danang_full': function(properties, zoom) {
-                // TIER 1 - Zoom 12-14 (Far view): Ultra-thin boundary only
-                if (zoom >= 12 && zoom < 15) {
+                // TIER 1 - Zoom 10-13 (Extreme far view): Ultra-minimal rendering
+                if (zoom >= 10 && zoom < 14) {
+                    // FILTER: Hide small parcels to reduce draw calls
+                    const area = properties.area || properties.SHAPE_Area || 0;
+                    if (area < 500) return { opacity: 0, fillOpacity: 0, weight: 0 };  // Hide tiny parcels
+                    
                     return {
-                        color: '#94a3b8',           // Slate 400 - subtle gray
-                        weight: 0.1,                // Super thin: 0.1px
-                        fill: false,                // NO fill at overview level
+                        color: '#CBD5E1',           // Slate 300 - very pale
+                        weight: 0.05,               // ULTRA-THIN: 0.05px
+                        fill: false,                // NO fill - boundaries only
+                        opacity: 0.7                // Slightly transparent
+                    };
+                }
+                // TIER 2 - Zoom 14-16 (Mid-range): Light lines, no fill
+                if (zoom >= 14 && zoom < 17) {
+                    return {
+                        color: '#94A3B8',           // Slate 400 - light gray
+                        weight: 0.1,                // Thin: 0.1px
+                        fill: false,                // NO fill - boundary only
                         opacity: 1
                     };
                 }
-                // TIER 2 - Zoom 15-16 (Medium view): Thin lines + subtle fill
-                if (zoom >= 15 && zoom < 17) {
-                    return {
-                        color: '#64748b',           // Slate 500 - medium gray
-                        weight: 0.3,                // Thin: 0.3px
-                        fill: true,
-                        fillColor: '#64748b',
-                        fillOpacity: 0.03,          // Very subtle fill (3%)
-                        opacity: 1
-                    };
-                }
-                // TIER 3 - Zoom 17+ (Close-up): Professional detailed view
+                // TIER 3 - Zoom 17-20 (Close-up): Professional detail
                 if (zoom >= 17) {
                     return {
-                        color: '#475569',           // Slate 700 - darker gray
-                        weight: 0.5,                // Professional: 0.5px
+                        color: '#64748B',           // Slate 500 - medium gray
+                        weight: 0.3,                // Professional: 0.3px
                         fill: true,
-                        fillColor: '#475569',
-                        fillOpacity: 0.07,          // Moderate fill (7%)
+                        fillColor: '#64748B',
+                        fillOpacity: 0.03,          // Minimal fill (3%)
                         opacity: 1
                     };
                 }
-                // Below zoom 12: hidden
+                // Below zoom 10: hidden
                 return { opacity: 0, fillOpacity: 0, weight: 0 };
             }
         }
@@ -614,6 +619,19 @@ document.addEventListener('DOMContentLoaded', () => {
             layer.on('tileerror', function(e) {
                 if (e.error && !e.error.message?.includes('404')) {
                     console.warn('Lỗi tải vector tile:', e.error);
+                }
+            });
+            
+            // AGGRESSIVE: Remove skeleton on first tile load event
+            layer.once('tileload', function() {
+                const skelEl = document.getElementById('loading-skeleton');
+                if (skelEl) {
+                    try {
+                        skelEl.remove();
+                        console.log('✅ Skeleton removed on first tile load');
+                    } catch (e) {
+                        console.warn('[Skeleton] Error removing:', e);
+                    }
                 }
             });
             
