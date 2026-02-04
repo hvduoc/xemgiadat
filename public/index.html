@@ -50,9 +50,9 @@
     <meta name="pi-network:image" content="https://xemgiadat.com/images/pi-network-preview.webp">
     
         <!-- Build Version Meta Tags -->
-        <meta name="build-version" content="17b34e8-1770202315495">
-        <meta name="build-time" content="2026-02-04T10:51:55.494Z">
-        <meta name="cache-version" content="17b34e8-1770202315495">
+        <meta name="build-version" content="755ff8d-1770203785689">
+        <meta name="build-time" content="2026-02-04T11:16:25.689Z">
+        <meta name="cache-version" content="755ff8d-1770203785689">
     <meta name="twitter:title" content="Xem Giá Đất Đà Nẵng - Bản Đồ Giá Đất Chính Xác">
     <meta name="twitter:description" content="Bản đồ giá đất Đà Nẵng online, thông tin BDS chính xác, giao dịch minh bạch.">
     <meta name="twitter:image" content="https://xemgiadat.com/images/thumbnail.webp">
@@ -2274,7 +2274,6 @@
 
     <!-- Application Scripts: Defer to ensure DOM ready -->
     <script defer src="pinetwork.js?v=20260204_FINAL_V1"></script>
-    <script defer src="script.js?v=20260204_FINAL_V1"></script>
     <script defer src="pwa-enhancements.js?v=20260204_FINAL_V1"></script>
     
     <!-- Emergency Fallback: Hide loading skeleton after 10s if map fails -->
@@ -2331,18 +2330,15 @@
         console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     };
     
-    // Auto-run verification after 2 seconds
-    setTimeout(function() {
-        if (window.verifyHotfixes) {
-            window.verifyHotfixes();
-        }
-    }, 2000);
+    // Note: Call window.verifyHotfixes() in console manually if needed
     </script>
     
     <!-- 💡 Performance Hint: Prefetch next page resources -->
     <link rel="prefetch" href="/assets/admin-Bsp4HTaC.html">
     <link rel="prefetch" href="/assets/guide-B7nbgJxT.html">
 
+    <!-- 🚀 CRITICAL: Main application script loaded LAST to ensure all modules ready -->
+    <script defer src="script.js?v=20260204_FINAL_V1"></script>
 
 </body>
 </html>

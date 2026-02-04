@@ -233,16 +233,32 @@ async function getCachedAddress(lat, lng) {
         }
 
         // 🚀 PERFORMANCE: Hide loading skeleton as soon as map reports load
-        window.map.once('load', () => {
-            if (window.hideLoadingSkeleton) window.hideLoadingSkeleton();
-            window.__XGD_MAP_READY__ = true;
-            window.dispatchEvent(new Event('xgd:map-ready'));
-            
-            // 🚀 LAZY LOAD: Initialize non-critical modules after map is ready
-            requestIdleCallback(() => {
-                loadDeferredModules();
-            }, { timeout: 2000 });
-        });
+        // 🔴 CRITICAL FIX: Create map if it doesn't exist yet
+        if (!window.map) {
+            console.log('[BOOT] Initializing Leaflet map...');
+            window.map = L.map('map', {
+                center: [16.0544, 108.2022],  // Da Nang center
+                zoom: 13,
+                layers: [googleStreets],
+                zoomControl: true,
+                attributionControl: true
+            });
+            console.log('[BOOT] ✅ Leaflet map created:', window.map);
+        }
+        
+        // Attach load listener to hide skeleton
+        if (window.map) {
+            window.map.once('load', () => {
+                if (window.hideLoadingSkeleton) window.hideLoadingSkeleton();
+                window.__XGD_MAP_READY__ = true;
+                window.dispatchEvent(new Event('xgd:map-ready'));
+                
+                // 🚀 LAZY LOAD: Initialize non-critical modules after map is ready
+                requestIdleCallback(() => {
+                    loadDeferredModules();
+                }, { timeout: 2000 });
+            });
+        }
         
         console.log('[BOOT] Map initialized successfully');
         return true;
