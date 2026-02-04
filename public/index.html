@@ -50,9 +50,9 @@
     <meta name="pi-network:image" content="https://xemgiadat.com/images/pi-network-preview.webp">
     
         <!-- Build Version Meta Tags -->
-        <meta name="build-version" content="908a4fe-1770197509750">
-        <meta name="build-time" content="2026-02-04T09:31:49.750Z">
-        <meta name="cache-version" content="908a4fe-1770197509750">
+        <meta name="build-version" content="26f7ee0-1770197620311">
+        <meta name="build-time" content="2026-02-04T09:33:40.310Z">
+        <meta name="cache-version" content="26f7ee0-1770197620311">
     <meta name="twitter:title" content="Xem Giá Đất Đà Nẵng - Bản Đồ Giá Đất Chính Xác">
     <meta name="twitter:description" content="Bản đồ giá đất Đà Nẵng online, thông tin BDS chính xác, giao dịch minh bạch.">
     <meta name="twitter:image" content="https://xemgiadat.com/images/thumbnail.webp">
@@ -2290,6 +2290,48 @@
             document.body.appendChild(errorMsg);
         }
     }, 10000);
+    
+    // 🔧 HOTFIX VERIFICATION: Check if hotfixes loaded correctly
+    window.verifyHotfixes = function() {
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('🔧 HOTFIX VERIFICATION RESULTS');
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        
+        var checks = {
+            '__XGD_bootApp defined': typeof window.__XGD_bootApp === 'function',
+            '__XGD_guardedInit defined': typeof window.__XGD_guardedInit === 'function',
+            'window.__XGD_BOOT__.booted': window.__XGD_BOOT__ && window.__XGD_BOOT__.booted,
+            'window.map exists': typeof window.map === 'object',
+            'window.map.on is function': window.map && typeof window.map.on === 'function',
+            'window.__XGD_MAP_READY__': window.__XGD_MAP_READY__ === true,
+            'No boot errors': window.__XGD_BOOT__ && window.__XGD_BOOT__.bootErrors && window.__XGD_BOOT__.bootErrors.length === 0
+        };
+        
+        var passed = 0, failed = 0;
+        for (var key in checks) {
+            var result = checks[key];
+            var icon = result ? '✅' : '❌';
+            console.log(icon + ' ' + key + ':', result);
+            if (result) passed++;
+            else failed++;
+        }
+        
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('SUMMARY: ' + passed + ' passed, ' + failed + ' failed');
+        if (failed === 0) {
+            console.log('🎉 ALL HOTFIXES VERIFIED - Site is working correctly!');
+        } else {
+            console.log('⚠️  Some checks failed - please report these results');
+        }
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    };
+    
+    // Auto-run verification after 2 seconds
+    setTimeout(function() {
+        if (window.verifyHotfixes) {
+            window.verifyHotfixes();
+        }
+    }, 2000);
     </script>
     
     <!-- 💡 Performance Hint: Prefetch next page resources -->
