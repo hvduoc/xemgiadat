@@ -59,7 +59,38 @@ function __XGD_bootApp() {
         console.log('[__XGD_bootApp] Bootstrap started at', new Date().toISOString());
     }
     
-    return true;
+    try {
+        // 🚀 CRITICAL: Create Leaflet map instance
+        if (!window.map) {
+            console.log('[BOOT] Initializing Leaflet map...');
+            window.map = L.map('map', {
+                center: [16.0544, 108.2022],
+                zoom: 13,
+                layers: [googleStreets],
+                zoomControl: true,
+                attributionControl: true
+            });
+            console.log('[BOOT] ✅ Leaflet map created:', window.map);
+        }
+        
+        // Hide skeleton when map loads
+        if (window.map) {
+            window.map.once('load', () => {
+                if (window.hideLoadingSkeleton) window.hideLoadingSkeleton();
+                window.__XGD_MAP_READY__ = true;
+                window.dispatchEvent(new Event('xgd:map-ready'));
+            });
+        }
+        
+        return true;
+    } catch (error) {
+        console.error('[BOOT_ERR]', error);
+        window.__XGD_BOOT__.bootErrors.push({
+            time: Date.now(),
+            error: error.message
+        });
+        return false;
+    }
 }
 
 /**
