@@ -203,6 +203,14 @@ async function getCachedAddress(lat, lng) {
     async function uploadPortfolioImages(portfolioId, userId) {
         return window.PortfolioManager?.uploadPortfolioImages?.(portfolioId, userId) ?? [];
     }
+
+// =============================================================================
+// 🚨 CRITICAL: TILE LAYER DEFINITIONS (must be defined before boot)
+// =============================================================================
+const myAttribution = '© XemGiaDat | 📌 Dữ liệu tham khảo từ Sở TNMT Đà Nẵng. Không có giá trị pháp lý.';
+const googleStreets = L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',{ maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'], attribution: myAttribution + ' | © Google Maps' });
+const googleSat = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{ maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'], attribution: myAttribution + ' | © Google Satellite' });
+const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: myAttribution + ' | © OpenStreetMap' });
             wheelDebounceTime: 100,       // Reduce wheel jitter for touchpads/mouse
             tap: true,                    // Better touch handling for iOS
             touchZoom: 'center',          // Zoom to center on pinch (better UX)
@@ -287,10 +295,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (DEBUG_MODE) console.log('[BOOT] Continuing with layer setup...');
             
-            const myAttribution = '© XemGiaDat | 📌 Dữ liệu tham khảo từ Sở TNMT Đà Nẵng. Không có giá trị pháp lý.';
-    const googleStreets = L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',{ maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'], attribution: myAttribution + ' | © Google Maps' });
-    const googleSat = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{ maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'], attribution: myAttribution + ' | © Google Satellite' });
-    const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: myAttribution + ' | © OpenStreetMap' });
+            // Tile layers already defined globally above
 
     // --- KHẮC PHỤC & TỐI ƯU: TÍCH HỢP BẢN ĐỒ PHÂN LÔ TỪ MAPBOX ---
 

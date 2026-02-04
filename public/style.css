@@ -3586,6 +3586,15 @@ div.absolute.top-4.right-4 button:active {
     }
 }
 
+/* 🚨 CRITICAL: Hide beta signup modal permanently */
+#beta-signup-modal {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    opacity: 0 !important;
+    z-index: -9999 !important;
+}
+
 /* Form Modal Container - Professional Design */
 #form-modal > div {
     background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;
