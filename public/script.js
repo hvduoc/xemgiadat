@@ -34,6 +34,9 @@ window.__XGD_BOOT__ = window.__XGD_BOOT__ || {
     version: '20260201c'
 };
 
+// CRITICAL: Map not ready on initial load - set false until map fully initializes
+window.__XGD_MAP_READY__ = false;
+
 // =============================================================================
 // 🔧 HOTFIX: Define Missing Bootstrap Functions
 // =============================================================================
@@ -4449,16 +4452,27 @@ let analyticsData = {
 
 // Universal modal management functions to prevent display conflicts
 function showModal(el) { 
-    if (el) { 
-        el.style.display = 'flex'; 
-        el.classList.remove('hidden'); 
-    } 
+    if (!el) return;
+    
+    // 🔴 CRITICAL FIX: form-modal must NEVER be force-shown by inline styles
+    // It has display: none !important in CSS and must stay that way
+    if (el.id === 'form-modal') {
+        console.warn('[showModal] ⚠️ BLOCKED: form-modal cannot be shown via inline style override');
+        return;
+    }
+    
+    el.style.display = 'flex'; 
+    el.classList.remove('hidden');
+    el.style.visibility = 'visible';
+    el.style.pointerEvents = 'auto';
 }
 
 function hideModal(el) { 
     if (el) { 
         el.classList.add('hidden'); 
-        el.style.display = 'none'; 
+        el.style.display = 'none';
+        el.style.visibility = 'hidden';
+        el.style.pointerEvents = 'none';
     } 
 }
 

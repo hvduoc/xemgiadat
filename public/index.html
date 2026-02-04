@@ -50,9 +50,9 @@
     <meta name="pi-network:image" content="https://xemgiadat.com/images/pi-network-preview.webp">
     
         <!-- Build Version Meta Tags -->
-        <meta name="build-version" content="26f7ee0-1770197620311">
-        <meta name="build-time" content="2026-02-04T09:33:40.310Z">
-        <meta name="cache-version" content="26f7ee0-1770197620311">
+        <meta name="build-version" content="17b34e8-1770202315495">
+        <meta name="build-time" content="2026-02-04T10:51:55.494Z">
+        <meta name="cache-version" content="17b34e8-1770202315495">
     <meta name="twitter:title" content="Xem Giá Đất Đà Nẵng - Bản Đồ Giá Đất Chính Xác">
     <meta name="twitter:description" content="Bản đồ giá đất Đà Nẵng online, thông tin BDS chính xác, giao dịch minh bạch.">
     <meta name="twitter:image" content="https://xemgiadat.com/images/thumbnail.webp">
@@ -2273,17 +2273,22 @@
     <script defer src="js/optimization-module.js"></script>
 
     <!-- Application Scripts: Defer to ensure DOM ready -->
-    <script defer src="pinetwork.js"></script>
-    <script defer src="script.js?v=20260204_HOTFIX_1"></script>
-    <script defer src="pwa-enhancements.js"></script>
+    <script defer src="pinetwork.js?v=20260204_FINAL_V1"></script>
+    <script defer src="script.js?v=20260204_FINAL_V1"></script>
+    <script defer src="pwa-enhancements.js?v=20260204_FINAL_V1"></script>
     
     <!-- Emergency Fallback: Hide loading skeleton after 10s if map fails -->
     <script>
     setTimeout(function() {
         var skeleton = document.getElementById('loading-skeleton');
         if (skeleton && skeleton.style.display !== 'none') {
-            console.warn('⚠️ Map failed to load after 10s, hiding skeleton...');
-            skeleton.style.display = 'none';
+            console.warn('⚠️ Map failed to load after 10s, removing skeleton...');
+            // CRITICAL: Complete removal, not just hidden
+            if (skeleton.parentNode) {
+                skeleton.parentNode.removeChild(skeleton);
+            }
+            skeleton.remove && skeleton.remove();  // Fallback modern API
+            
             var errorMsg = document.createElement('div');
             errorMsg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(255,59,48,0.95);color:white;padding:20px 30px;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.3);text-align:center;z-index:10000;max-width:400px;';
             errorMsg.innerHTML = '<div style="font-size:48px;margin-bottom:10px;">⚠️</div><h3 style="font-size:18px;font-weight:600;margin:0 0 8px 0;">Lỗi Tải Bản Đồ</h3><p style="font-size:14px;margin:0 0 15px 0;opacity:0.9;">Không thể tải thư viện bản đồ. Vui lòng thử lại sau.</p><button onclick="location.reload()" style="background:white;color:#FF3B30;border:none;padding:10px 20px;border-radius:8px;font-weight:600;cursor:pointer;font-size:14px;">🔄 Tải lại trang</button>';
