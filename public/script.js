@@ -35,6 +35,56 @@ window.__XGD_BOOT__ = window.__XGD_BOOT__ || {
 };
 
 // =============================================================================
+// 🔧 HOTFIX: Define Missing Bootstrap Functions
+// =============================================================================
+
+/**
+ * __XGD_bootApp - Main application bootstrap function
+ * Prevents duplicate initialization with boot guard
+ * Returns true if boot successful, false if already booted
+ */
+function __XGD_bootApp() {
+    if (window.__XGD_BOOT__.booted) {
+        console.log('[BOOT] Already booted, skipping');
+        return false;
+    }
+    
+    window.__XGD_BOOT__.booted = true;
+    window.__XGD_BOOT__.bootTime = Date.now();
+    
+    if (DEBUG_MODE) {
+        console.log('[__XGD_bootApp] Bootstrap started at', new Date().toISOString());
+    }
+    
+    return true;
+}
+
+/**
+ * __XGD_guardedInit - Safe initialization wrapper for non-critical modules
+ * Wraps secondary initialization in error handler
+ * @param {string} moduleName - Name of module being initialized
+ * @param {Function} initFn - Initialization function to safely call
+ */
+function __XGD_guardedInit(moduleName, initFn) {
+    try {
+        if (typeof initFn === 'function') {
+            initFn();
+            if (DEBUG_MODE) {
+                console.log(`[INIT_OK] ${moduleName}`);
+            }
+        }
+    } catch (error) {
+        console.warn(`[INIT_WARN] ${moduleName} failed:`, error.message);
+        window.__XGD_BOOT__.bootErrors.push({
+            module: moduleName,
+            error: error.message,
+            time: Date.now()
+        });
+        // Don't throw - allow page to continue
+    }
+}
+
+// =============================================================================
 // Leaflet Icon Path Fix — ensure marker icons resolve from local lib path
 // =============================================================================
 if (window.L && window.L.Icon && window.L.Icon.Default) {
@@ -7802,33 +7852,57 @@ class UserBehaviorTracker {
     }
     
     setupMapInteractions() {
-        // Track map interactions if Leaflet map exists
-        if (window.map) {
-            window.map.on('zoomend', () => {
-                this.trackEvent('map_zoom', {
-                    zoom: window.map.getZoom(),
-                    timestamp: Date.now()
-                });
-            });
+        // Track map interactions - wait for map to be ready
+        const setupMapTracking = () => {
+            if (!window.map) {
+                console.warn('[UserBehaviorTracker] Map not ready, retrying...');
+                setTimeout(setupMapTracking, 500);
+                return;
+            }
             
-            window.map.on('moveend', () => {
-                const now = Date.now();
-                if (now - this.lastMapMoveTracked < 1000) return;
-                this.lastMapMoveTracked = now;
-                const center = window.map.getCenter();
-                this.trackEvent('map_move', {
-                    center: { lat: center.lat, lng: center.lng },
-                    zoom: window.map.getZoom(),
-                    timestamp: Date.now()
-                });
-            });
-            
-            window.map.on('click', (event) => {
-                this.trackEvent('map_click', {
-                    coordinates: { lat: event.latlng.lat, lng: event.latlng.lng },
-                    timestamp: Date.now()
-                });
-            });
+            try {
+                if (typeof window.map.on === 'function') {
+                    window.map.on('zoomend', () => {
+                        this.trackEvent('map_zoom', {
+                            zoom: window.map.getZoom(),
+                            timestamp: Date.now()
+                        });
+                    });
+                    
+                    window.map.on('moveend', () => {
+                        const now = Date.now();
+                        if (now - this.lastMapMoveTracked < 1000) return;
+                        this.lastMapMoveTracked = now;
+                        const center = window.map.getCenter();
+                        this.trackEvent('map_move', {
+                            center: { lat: center.lat, lng: center.lng },
+                            zoom: window.map.getZoom(),
+                            timestamp: Date.now()
+                        });
+                    });
+                    
+                    window.map.on('click', (event) => {
+                        this.trackEvent('map_click', {
+                            coordinates: { lat: event.latlng.lat, lng: event.latlng.lng },
+                            timestamp: Date.now()
+                        });
+                    });
+                    
+                    console.log('[UserBehaviorTracker] Map interactions ready');
+                } else {
+                    console.warn('[UserBehaviorTracker] map.on is not a function');
+                }
+            } catch (error) {
+                console.error('[UserBehaviorTracker] Error setting up map tracking:', error);
+            }
+        };
+        
+        // If map ready event already fired, setup immediately
+        if (window.__XGD_MAP_READY__ || (window.map && typeof window.map.on === 'function')) {
+            setupMapTracking();
+        } else {
+            // Otherwise wait for xgd:map-ready event
+            window.addEventListener('xgd:map-ready', setupMapTracking, { once: true });
         }
     }
     

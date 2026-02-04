@@ -3546,6 +3546,7 @@ div.absolute.top-4.right-4 button:active {
    ============================================================================= */
 
 #form-modal {
+    display: none !important;
     position: fixed !important;
     top: 0 !important;
     left: 0 !important;
