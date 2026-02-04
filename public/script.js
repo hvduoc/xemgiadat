@@ -264,6 +264,9 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 const storage = firebase.storage();
+window.auth = auth;
+window.db = db;
+window.storage = storage;
 const cachedGeojsonByMaXa = {};
 const frequentlyUsedXa = ["20194", "20195", "20197", "20198", "20200", "20203", "20206", "20207"]; 
 // Cập nhật danh sách các xã/phường có sẵn dữ liệu
@@ -1079,74 +1082,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const logoutBtnMenu = document.getElementById('logout-btn-menu');
     const firebaseuiContainer = document.getElementById('firebaseui-auth-container');
     
-    // 🔧 FIX: LAZY-LOAD FirebaseUI only on login click (TBT OPTIMIZATION)
-    // FirebaseUI may not be loaded yet due to defer script loading race condition
-    let ui = null;
-    let firebaseUIInitialized = false;
-    
-    function ensureFirebaseUiCss() {
-        const existing = document.querySelector('link[href*="firebase-ui-auth.css"]');
-        if (existing) return;
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = 'https://www.gstatic.com/firebasejs/ui/4.8.1/firebase-ui-auth.css';
-        document.head.appendChild(link);
-        console.log('✅ FirebaseUI CSS injected');
+    if (window.AuthService) {
+        window.AuthService.initAuthStateHandlers({
+            loginBtn,
+            userProfileDiv,
+            firebaseuiContainer,
+            addLocationBtn,
+            loadUserPortfolio,
+            exitAllModes
+        });
+    } else {
+        console.warn('⚠️ AuthService not loaded yet');
     }
-    
-    function initFirebaseUI() {
-        if (firebaseUIInitialized) return ui; // Already initialized
-        
-        if (typeof firebaseui === 'undefined' || !firebaseui.auth) {
-            console.warn('⚠️ FirebaseUI not yet loaded');
-            return null;
-        }
-        
-        try {
-            ensureFirebaseUiCss();
-            ui = new firebaseui.auth.AuthUI(auth);
-            firebaseUIInitialized = true;
-            console.log('✅ FirebaseUI initialized on-demand (lazy load)');
-            return ui;
-        } catch (err) {
-            console.error('❌ Failed to initialize FirebaseUI:', err);
-            return null;
-        }
-    }
-    
-    // 🚀 LAZY LOAD: Initialize FirebaseUI only when login button is clicked
-    // This prevents 50KB FirebaseUI parsing on non-authenticated users
+
     if (loginBtn) {
-        loginBtn.addEventListener('click', function(e) {
-            if (!firebaseUIInitialized) {
-                console.log('🔄 Initializing FirebaseUI on first login click...');
-                const uiInstance = initFirebaseUI();
-                if (uiInstance) {
-                    // Show FirebaseUI container
-                    if (firebaseuiContainer) {
-                        firebaseuiContainer.classList.remove('hidden');
-                    }
-                    // Start auth flow
-                    uiInstance.start('#firebaseui-auth-container', {
-                        signInOptions: [
-                            firebase.auth.EmailAuthProvider.PROVIDER_ID,
-                            {
-                                provider: firebase.auth.GoogleAuthProvider.PROVIDER_ID,
-                                scopes: ['profile', 'email']
-                            }
-                        ],
-                        signInFlow: 'popup',
-                        callbacks: {
-                            signInSuccessWithAuthResult: function(authResult, redirectUrl) {
-                                console.log('✅ Sign in successful');
-                                return false;
-                            }
-                        }
-                    });
-                } else {
-                    console.warn('⚠️ FirebaseUI library not ready yet');
-                }
+        loginBtn.addEventListener('click', async () => {
+            if (!window.AuthService) {
+                console.error('❌ AuthService not available');
+                alert('Hệ thống đăng nhập chưa sẵn sàng. Vui lòng tải lại trang.');
+                return;
             }
+            await window.AuthService.showLoginUI(firebaseuiContainer);
         });
     }
     
@@ -3479,143 +3435,7 @@ async function showCommunityParcelInfo(parcelNumber, mapSheet) {
         }
     });
 
-    auth.onAuthStateChanged(async (user) => {
-        const ADMIN_UID = "FEpPWWT1EaTWQ9FOqBxWN5FeEJk1";
-        const adminBtn = document.getElementById('admin-btn');
-        
-        console.log('🔐 Auth state changed:', { 
-            userExists: !!user, 
-            userUID: user?.uid, 
-            isAdmin: user?.uid === ADMIN_UID,
-            adminBtnExists: !!adminBtn 
-        });
-        
-        if (user) {
-            currentUser = user;
-            const userRef = db.collection("users").doc(user.uid);
-            const doc = await userRef.get();
-            if (!doc.exists) {
-                await userRef.set({
-                    displayName: user.displayName || "", email: user.email || "", phone: "", contactFacebook: "", createdAt: firebase.firestore.FieldValue.serverTimestamp(), updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-            }
-            
-            // Load user portfolio when logged in
-            await loadUserPortfolio();
-            
-            // Show admin button if user is admin OR if running on localhost for testing
-            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-            if (user.uid === ADMIN_UID || isLocalhost) {
-                console.log('👑 Showing admin button (admin user or localhost)');
-                // Dynamically inject admin button if not exists
-                let adminBtn = document.getElementById('admin-btn');
-                if (!adminBtn) {
-                    const sidebar = document.getElementById('right-sidebar');
-                    if (sidebar) {
-                        adminBtn = document.createElement('button');
-                        adminBtn.id = 'admin-btn';
-                        adminBtn.title = 'Quản trị hệ thống';
-                        adminBtn.className = 'bg-red-600 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-red-700 transition active:scale-95';
-                        adminBtn.setAttribute('aria-label', 'Trang quản trị');
-                        adminBtn.innerHTML = '<i class="fa-solid fa-cog text-xl"></i>';
-                        adminBtn.addEventListener('click', () => window.location.href = '/admin.html');
-                        sidebar.appendChild(adminBtn);
-                        console.log('✅ Admin button injected');
-                    }
-                } else {
-                    adminBtn.style.display = 'flex';
-                }
-            }
-            
-            firebaseuiContainer.classList.add('hidden');
-            loginBtn.classList.add('hidden');
-            userProfileDiv.classList.remove('hidden');
-            userProfileDiv.classList.add('flex');
-            document.getElementById('user-avatar').src = user.photoURL || 'https://placehold.co/40x40/e2e8f0/64748b?text=A';
-            addLocationBtn.disabled = false;
-        } else {
-            currentUser = null;
-            userPortfolio = []; // Clear portfolio when logged out
-            if (adminBtn) adminBtn.style.display = 'none';
-            loginBtn.classList.remove('hidden');
-            userProfileDiv.classList.add('hidden');
-            userProfileDiv.classList.remove('flex');
-            exitAllModes();
-            addLocationBtn.disabled = true;
-        }
-    });
-
-    loginBtn.addEventListener('click', async () => {
-        // 🚀 LAZY LOAD: Load Firebase Auth module on-demand
-        if (!window.__firebaseAuthModule) {
-            try {
-                const module = await import('/js/modules/firebase-auth.js');
-                window.__firebaseAuthModule = module;
-                await module.showLoginUI();
-            } catch (error) {
-                console.error('❌ Failed to load auth module:', error);
-                alert('Không thể tải hệ thống đăng nhập. Vui lòng thử lại.');
-            }
-            return;
-        }
-        
-        // Module already loaded, just show UI
-        await window.__firebaseAuthModule.showLoginUI();
-    });
-        
-        // Log container status after changes
-        console.log('📱 Container after show:', {
-            classes: firebaseuiContainer.className,
-            style: firebaseuiContainer.style.cssText,
-            computedDisplay: window.getComputedStyle(firebaseuiContainer).display,
-            rect: firebaseuiContainer.getBoundingClientRect()
-        });
-        
-        // Force popup flow for all devices to avoid page redirect
-        const signInFlow = 'popup';
-        
-        console.log('🔧 Auth config:', { 
-            isMobile: window.innerWidth <= 640,
-            userAgent: navigator.userAgent,
-            signInFlow: signInFlow,
-            hostname: window.location.hostname
-        });
-        
-        try {
-            ui.start('#firebaseui-widget', { 
-                signInFlow: signInFlow,
-                signInOptions: [ 
-                    {
-                        provider: firebase.auth.GoogleAuthProvider.PROVIDER_ID,
-                        customParameters: {
-                            prompt: 'select_account'
-                        }
-                    },
-                    firebase.auth.EmailAuthProvider.PROVIDER_ID 
-                ], 
-                callbacks: { 
-                    signInSuccessWithAuthResult: () => { 
-                        console.log('✅ Sign in success!');
-                        firebaseuiContainer.classList.add('hidden');
-                        firebaseuiContainer.style.display = 'none';
-                        return false; // Prevent redirect
-                    },
-                    signInFailure: (error) => {
-                        console.error('❌ Sign in failed:', error);
-                        return Promise.resolve();
-                    }
-                },
-                credentialHelper: firebaseui.auth.CredentialHelper.NONE
-            });
-            console.log('✅ FirebaseUI started on', window.location.hostname);
-        } catch (error) {
-            console.error('❌ FirebaseUI error:', error);
-            
-            // Fallback: Show error message to user
-            alert('Không thể khởi tạo đăng nhập. Vui lòng thử lại hoặc liên hệ admin.');
-            firebaseuiContainer.classList.add('hidden');
-        }
-    });    // Debug button removed - login functionality now works properly
+    // Auth state + login UI are handled by AuthService (loaded separately)
     firebaseuiContainer.addEventListener('click', (e) => { if (e.target === firebaseuiContainer) firebaseuiContainer.classList.add('hidden'); });
 
     // Load listings from Firestore
