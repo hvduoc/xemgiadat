@@ -111,6 +111,18 @@
                     const avatar = document.getElementById('user-avatar');
                     if (avatar) avatar.src = user.photoURL || 'https://placehold.co/40x40/e2e8f0/64748b?text=A';
                     if (addLocationBtn) addLocationBtn.disabled = false;
+                    
+                    // Initialize Portfolio Module after login
+                    if (window.PortfolioManager && typeof window.PortfolioManager.init === 'function') {
+                        console.log('📁 Initializing Portfolio Module...');
+                        window.PortfolioManager.init();
+                        // Load user's portfolio
+                        if (typeof window.PortfolioManager.loadUserPortfolio === 'function') {
+                            window.PortfolioManager.loadUserPortfolio().catch(err => {
+                                console.error('❌ Portfolio load error:', err);
+                            });
+                        }
+                    }
                 } else {
                     window.currentUser = null;
                     window.userPortfolio = [];

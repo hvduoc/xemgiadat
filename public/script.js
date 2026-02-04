@@ -84,154 +84,9 @@ const debugWarn = (...args) => { if (DEBUG_MODE) console.warn(...args); };
  * @param {string} event - Event name (e.g., 'click')
  * @param {Function} handler - Event handler function
  * @param {string} handlerName - Unique name for this handler
- * @returns {boolean} - true if bound, false if already bound
- */
-function bindOnce(el, event, handler, handlerName) {
-    if (!el) {
-        if (DEBUG_MODE) console.warn('[BIND] Element not found for', handlerName);
-        return false;
-    }
-    const boundKey = `xgd-bound-${event}-${handlerName}`;
-    if (el.dataset[boundKey]) {
-        if (DEBUG_MODE) console.log('[BIND] Already bound:', handlerName);
-        return false;
-    }
-    el.addEventListener(event, handler);
-    el.dataset[boundKey] = '1';
-    if (DEBUG_MODE) console.log('[BIND] Bound:', handlerName);
-    return true;
+async function handlePortfolioFormSubmit(e) {
+    return window.PortfolioManager?.handlePortfolioFormSubmit?.(e);
 }
-
-/**
- * Check if we're in lite mode - skip heavy modules
- * Lite mode only loads: map + parcels + query + copy link + deep-link zoom
- */
-function isLiteMode() {
-    return LITE_MODE === true;
-}
-
-/**
- * Guard function for non-essential modules - skip in lite mode
- */
-function initIfNotLite(moduleName, initFn) {
-    if (isLiteMode()) {
-        if (DEBUG_MODE) console.log('[LITE] Skipping:', moduleName);
-        return false;
-    }
-    try {
-        initFn();
-        if (DEBUG_MODE) console.log('[INIT_OK]', moduleName);
-        return true;
-    } catch (error) {
-        console.error('[INIT_ERR]', moduleName, error);
-        window.__XGD_BOOT__.bootErrors.push({
-            module: moduleName,
-            error: error.message,
-            time: Date.now()
-        });
-        return false;
-    }
-}
-
-// Runtime error instrumentation (debug only)
-if (DEBUG_MODE) {
-    window.addEventListener('error', (event) => {
-        console.error('[RUNTIME_ERROR]', event.message, event.error || event.filename);
-    });
-    window.addEventListener('unhandledrejection', (event) => {
-        console.error('[RUNTIME_ERROR]', event.reason);
-    });
-}
-
-// Image lazy loading with Intersection Observer
-const initLazyLoading = () => {
-    const imageObserver = new IntersectionObserver((entries, observer) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const img = entry.target;
-                img.src = img.dataset.src;
-                img.classList.remove('loading-skeleton');
-                img.setAttribute('data-loaded', 'true');
-                observer.unobserve(img);
-            }
-        });
-    }, {
-        threshold: 0.1,
-        rootMargin: '50px'
-    });
-
-    // Observe all images with data-src
-    document.querySelectorAll('img[data-src]').forEach(img => {
-        imageObserver.observe(img);
-    });
-};
-
-// Performance monitoring (simple)
-const simplePerformanceMonitor = {
-    marks: new Map(),
-    
-    mark(name) {
-        const mark = performance.now();
-        this.marks.set(name, mark);
-        return mark;
-    },
-    
-    measure(name, startMark) {
-        const start = this.marks.get(startMark);
-        const end = performance.now();
-        const duration = end - start;
-        
-        console.log(`⏱️ ${name}: ${duration.toFixed(2)}ms`);
-        
-        // Send to analytics if available
-        if (window.gtag) {
-            gtag('event', 'performance_timing', {
-                event_category: 'Performance',
-                event_label: name,
-                value: Math.round(duration),
-                custom_parameter_duration: duration
-            });
-        }
-        
-        return duration;
-    }
-};
-
-// Initialize performance optimizations
-const initPerformanceOptimizations = () => {
-    simplePerformanceMonitor.mark('init-start');
-    
-    // Initialize lazy loading
-    if ('IntersectionObserver' in window) {
-        initLazyLoading();
-    }
-    
-    simplePerformanceMonitor.measure('Performance optimization complete', 'init-start');
-};
-
-// =============================================================================
-// FIREBASE CONFIGURATION & CORE FUNCTIONALITY
-// =============================================================================
-
-// --- FIREBASE CONFIGURATION ---
-const firebaseConfig = {
-    apiKey: "AIzaSyDu9tYpJdMPT7Hvk2_Ug8XHwxRQXoakRfs",
-    authDomain: "xemgiadat-dfe15.firebaseapp.com",
-    projectId: "xemgiadat-dfe15",
-    storageBucket: "xemgiadat-dfe15.appspot.com",
-    messagingSenderId: "361952598367",
-    appId: "1:361952598367:web:c1e2e3b1a6d5d8c797beea",
-    measurementId: "G-XT932D9N1N"
-};
-
-// --- MAPBOX ACCESS TOKEN ---
-const mapboxAccessToken = "pk.eyJ1IjoiaHZkdW9jIiwiYSI6ImNtZDFwcjVxYTAzOGUybHEzc3ZrNTJmcnIifQ.D5VlPC8c_n1i3kezgqtzwg";
-
-// --- GOOGLE DRIVE API CONFIGURATION ---
-const GOOGLE_CONFIG = {
-    apiKey: "AIzaSyClLHGUQnD062f6KW-SG1R36pNw-7rmdGI",
-    clientId: "895990431722-7oeoa9vmib64n88g29omn5p6jgv7uqvn.apps.googleusercontent.com",
-    discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"],
     scope: "https://www.googleapis.com/auth/drive.file",
     // Add hosted domain and redirect URI for better compatibility
     hostedDomain: "xemgiadat.com",
@@ -292,131 +147,9 @@ async function getCachedAddress(lat, lng) {
   }
 }
 
-    function extractLatLngsFromVectorLayer(layer, map) {
-        try {
-            const rings = layer._rings?.[0];
-            if (!Array.isArray(rings)) return null;
-
-            const coords = rings.map(pt => {
-                const latlng = map.layerPointToLatLng(pt);
-                return [latlng.lng, latlng.lat];
-            });
-
-            // Đảm bảo polygon đóng kín
-            if (coords.length > 0 && (coords[0][0] !== coords[coords.length - 1][0] || coords[0][1] !== coords[coords.length - 1][1])) {
-                coords.push(coords[0]);
-            }
-
-            return {
-                type: 'Feature',
-                geometry: {
-                    type: 'Polygon',
-                    coordinates: [coords]
-                }
-            };
-        } catch (err) {
-            console.warn("❌ Không thể dựng GeoJSON từ layer:", err);
-            return null;
-        }
+    async function uploadPortfolioImages(portfolioId, userId) {
+        return window.PortfolioManager?.uploadPortfolioImages?.(portfolioId, userId) ?? [];
     }
-
-// =============================================================================
-// LAZY MODULE LOADING — Deferred non-critical features
-// =============================================================================
-
-async function loadDeferredModules() {
-    console.log('🚀 Loading deferred modules...');
-    const t0 = performance.now();
-    
-    try {
-        // Load analytics tracker (non-blocking)
-        import('/js/modules/analytics-tracker.js')
-            .then(module => {
-                module.initAnalytics();
-                console.log('✅ Analytics module loaded');
-            })
-            .catch(err => console.warn('⚠️ Analytics module failed:', err));
-        
-        // Initialize Firebase Auth (but don't show UI yet)
-        import('/js/modules/firebase-auth.js')
-            .then(module => {
-                window.__firebaseAuthModule = module;
-                module.initFirebaseAuth();
-                console.log('✅ Firebase Auth module loaded');
-            })
-            .catch(err => console.warn('⚠️ Firebase Auth module failed:', err));
-        
-        const t1 = performance.now();
-        console.log(`✅ Deferred modules initiated in ${(t1-t0).toFixed(0)}ms`);
-    } catch (error) {
-        console.error('❌ Failed to load deferred modules:', error);
-    }
-}
-
-// =============================================================================
-// CENTRALIZED BOOT FUNCTION — All initialization happens here (ONCE)
-// =============================================================================
-
-// Helper: Guard secondary DOMContentLoaded handlers (skip if lite mode or already processed)
-function __XGD_guardedInit(initName, fn) {
-    // Skip if already booted (prevents secondary listener race conditions)
-    if (window.__XGD_BOOT__ && window.__XGD_BOOT__.booted) {
-        if (DEBUG_MODE) console.log('[SKIP]', initName, '(secondary listener after boot)');
-        return;
-    }
-    
-    if (LITE_MODE) {
-        if (DEBUG_MODE) console.log('[SKIP]', initName, '(lite mode)');
-        return;
-    }
-    try {
-        fn();
-        if (DEBUG_MODE) console.log('[INIT_OK]', initName);
-    } catch (error) {
-        console.error('[INIT_ERR]', initName, error);
-        window.__XGD_BOOT__.bootErrors.push({
-            phase: 'post-boot',
-            name: initName,
-            error: error.message,
-            time: Date.now()
-        });
-    }
-}
-
-// =============================================================================
-// P0 FIX: SINGLE BOOT ENTRY POINT — All map init happens HERE only
-// =============================================================================
-function __XGD_bootApp() {
-    if (window.__XGD_BOOT__.booted) {
-        console.warn('[BOOT] Already booted, skipping duplicate init');
-        return false;
-    }
-
-    window.__XGD_BOOT__.booted = true;
-    window.__XGD_BOOT__.bootTime = performance.now();
-    
-    try {
-        // Initialize performance monitoring
-        simplePerformanceMonitor.mark('app-init-start');
-        
-        // Initialize performance optimizations (lazy loading etc)
-        initPerformanceOptimizations();
-
-        // P0 FIX: Map initialization happens ONLY HERE
-        // Check if Leaflet is available
-        if (typeof L === 'undefined') {
-            throw new Error('Leaflet not loaded - check script order in index.html');
-        }
-        
-        // --- MAP AND LAYERS INITIALIZATION ---
-        // FIXED: maxZoom = 20 to match PMTiles data, ensures click/query works at all zoom levels
-        window.map = L.map('map', { 
-            center: [16.054456, 108.202167], 
-            zoom: 13, 
-            zoomControl: false,           // Ẩn zoom control mặc định
-            attributionControl: false,    // Ẩn attribution control mặc định
-            maxZoom: 20,                  // Match PMTiles maxNativeZoom
-            zoomSnap: 0.5,                // Smoother zoom steps on mobile
             wheelDebounceTime: 100,       // Reduce wheel jitter for touchpads/mouse
             tap: true,                    // Better touch handling for iOS
             touchZoom: 'center',          // Zoom to center on pinch (better UX)
@@ -639,134 +372,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 5. Tạo lớp bản đồ phân lô với RETRY mechanism để xử lý race condition
     // P0 FIX: Wait for VectorTileConfig/PMTilesAdapter to be ready before creating layer
     function createParcelLayer(retryCount = 0) {
-        const MAX_RETRIES = 30; // Increased for PMTiles init time
-        const RETRY_DELAY = 200; // ms
-        
-        try {
-            // Check if dependencies are ready
-            const leafletReady = typeof L !== 'undefined' && L.vectorGrid;
-            // CRITICAL: Check for L.vectorGrid.pmtiles FUNCTION specifically
-            const pmtilesMethodReady = leafletReady && typeof L.vectorGrid.pmtiles === 'function';
-            const configReady = typeof VectorTileConfig !== 'undefined' && VectorTileConfig.createVectorLayer;
-            
-            if (!leafletReady) {
-                if (retryCount < MAX_RETRIES) {
-                    console.warn(`⏳ [${retryCount + 1}/${MAX_RETRIES}] Waiting for Leaflet.VectorGrid...`);
-                    setTimeout(() => createParcelLayer(retryCount + 1), RETRY_DELAY);
-                    return;
-                }
-                throw new Error('Leaflet.VectorGrid not available after max retries');
-            }
-            
-            // P0 FIX: Wait for pmtiles method to be available before proceeding
-            // This prevents falling back to Mapbox when PMTiles is just slow to init
-            if (!pmtilesMethodReady && retryCount < MAX_RETRIES) {
-                console.warn(`⏳ [${retryCount + 1}/${MAX_RETRIES}] Waiting for L.vectorGrid.pmtiles()...`);
-                setTimeout(() => createParcelLayer(retryCount + 1), RETRY_DELAY);
-                return;
-            }
-            
-            // Create the layer
-            let layer;
-            if (configReady && pmtilesMethodReady) {
-                layer = VectorTileConfig.createVectorLayer(vectorTileOptions);
-                console.log('✅ Using VectorTileConfig:', VectorTileConfig.getConfig());
-            } else if (pmtilesMethodReady) {
-                console.log('✅ Using L.vectorGrid.pmtiles directly');
-                layer = L.vectorGrid.pmtiles('/tiles/danang_parcels_final.pmtiles', vectorTileOptions);
-            } else {
-                // Last resort: This should NOT happen in production
-                console.error('❌ PMTiles not available after max retries - tiles will not load');
-                console.error('❌ Check that pmtiles.js and PMTilesAdapter.js are loading correctly');
-                layer = L.layerGroup(); // Empty layer to prevent crash
-            }
-            
-            // Add error handler
-            layer.on('tileerror', function(e) {
-                if (e.error && !e.error.message?.includes('404')) {
-                    console.warn('Lỗi tải vector tile:', e.error);
-                }
-            });
-            
-            // AGGRESSIVE: Remove skeleton on first tile load event
-            layer.once('tileload', function() {
-                const skelEl = document.getElementById('loading-skeleton');
-                if (skelEl) {
-                    try {
-                        skelEl.remove();
-                        console.log('✅ Skeleton removed on first tile load');
-                    } catch (e) {
-                        console.warn('[Skeleton] Error removing:', e);
-                    }
-                }
-            });
-            
-            // Assign to parcelLayer and add to map
-            parcelLayer = layer;
-            
-            // MEMORY CLEANUP: Force redraw on zoom change to free old zoom level resources
-            if (map) {
-                map.on('zoomend', function() {
-                    if (parcelLayer && typeof parcelLayer.redraw === 'function') {
-                        // Use requestAnimationFrame to prevent blocking UI interactions
-                        requestAnimationFrame(() => {
-                            parcelLayer.redraw();
-                            console.log('♻️ Memory cleanup: parcelLayer redrawn after zoom change');
-                        });
-                    }
-                });
-                
-                // INTERACTION PRIORITY: Pause rendering when user interacts
-                let renderDelayTimer = null;
-                const pauseRendering = () => {
-                    if (renderDelayTimer) clearTimeout(renderDelayTimer);
-                    renderDelayTimer = setTimeout(() => {
-                        if (parcelLayer && typeof parcelLayer.redraw === 'function') {
-                            requestAnimationFrame(() => parcelLayer.redraw());
-                        }
-                    }, 1000);  // Delay 1000ms after interaction
-                };
-                
-                // Pause when search input is focused
-                const searchInput = document.getElementById('search-input');
-                if (searchInput) {
-                    searchInput.addEventListener('focus', pauseRendering);
-                    searchInput.addEventListener('input', pauseRendering);
-                }
-                
-                // Pause when action toolbar buttons are clicked
-                const toolbarBtns = document.querySelectorAll('#action-toolbar button');
-                toolbarBtns.forEach(btn => {
-                    btn.addEventListener('click', pauseRendering);
-                    btn.addEventListener('touchstart', pauseRendering);
-                });
-            }
-            
-            // FORCE parcel layer to be visible by default
-            if (map && !map.hasLayer(parcelLayer)) {
-                parcelLayer.addTo(map);
-                console.log('✅ Parcel layer added to map (DEFAULT ENABLED)');
-            }
-            
-            // Add to overlay maps for custom layer panel
-            if (window._overlayMaps) {
-                window._overlayMaps["🗺️ Bản đồ phân lô"] = parcelLayer;
-                console.log('✅ Parcel layer added to overlay maps');
-                
-                // Force parcel layer to be active in layer panel UI
-                setTimeout(() => {
-                    const parcelGridItem = document.querySelector('#overlay-layers-grid button[title*="Bản đồ phân lô"]');
-                    if (parcelGridItem) {
-                        parcelGridItem.classList.add('active');
-                        console.log('✅ Parcel layer marked as active in UI');
-                    }
-                }, 500);
-            }
-            
-        } catch (err) {
-            console.warn('Map layer failed to load (non-fatal):', err);
-            parcelLayer = L.layerGroup();
-        }
+        return window.ParcelService?.createParcelLayer?.(retryCount);
     }
     
     // Start the layer creation with retry
@@ -1372,181 +978,20 @@ document.addEventListener('DOMContentLoaded', () => {
     window.openStreetView = (lat, lng) => window.open(`http://maps.google.com/?q=&layer=c&cbll=${lat},${lng}`, '_blank');
 
     function showInfoPanel(title, props, lat, lng) {
-        // Null safety check
-        if (!infoPanel || !panelTitle || !panelContent || !togglePanelBtn) {
-            console.error('❌ Info panel elements not found. Cannot display info.');
-            return;
-        }
-        
-        // Remove collapsed state
-        infoPanel.classList.remove('is-collapsed');
-        
-        // Update toggle button icon (text-based now, not <i> tag)
-        if (togglePanelBtn) {
-            togglePanelBtn.textContent = '−'; // Collapse icon
-            togglePanelBtn.title = 'Thu gọn';
-        }
-
-        panelTitle.textContent = title;
-        const soTo = props['Số hiệu tờ bản đồ'] ?? 'N/A';
-        const soThua = props['Số thửa'] ?? 'N/A';
-        const loaiDat = props['Ký hiệu mục đích sử dụng'] ?? 'N/A';
-        const dienTich = props['Diện tích'] ? parseFloat(props['Diện tích']).toFixed(1) : 'N/A';
-        const diaChi = (props['Địa chỉ'] && props['Địa chỉ'] !== 'Null') ? props['Địa chỉ'] : 'Chưa có';
-
-        panelContent.innerHTML = `
-        <div class="info-row">
-            <span class="info-label">Thửa số:</span><strong class="info-value">${soThua}</strong>
-            <span class="info-label ml-4">Tờ bản đồ:</span><strong class="info-value">${soTo}</strong>
-        </div>
-        <div class="info-row">
-            <span class="info-label">Loại đất:</span><strong class="info-value">${loaiDat}</strong>
-            <span class="info-label ml-4">Diện tích:</span><strong class="info-value">${dienTich} m²</strong>
-        </div>
-        <div class="info-row">
-            <span class="info-label">Địa chỉ:</span><span class="info-value text-left flex-1">${diaChi}</span>
-        </div>
-        <div id="panel-actions">
-            <button onclick="getDirections(${lat}, ${lng})">
-                <i class="icon fas fa-directions text-blue-600"></i>
-                <span class="text">Chỉ đường</span>
-            </button>
-            <button onclick="openStreetView(${lat}, ${lng})">
-                <i class="icon fas fa-street-view text-green-600"></i>
-                <span class="text">Street View</span>
-            </button>
-            <button onclick="copyLocationLink(${lat}, ${lng})">
-                <i class="icon fas fa-link text-gray-500"></i>
-                <span class="text">Sao chép</span>
-            </button>
-            <button onclick="addToPortfolioFromPanel('${soThua}', '${soTo}', '${loaiDat}', ${dienTich}, ${lat}, ${lng})">
-                <i class="icon fas fa-briefcase text-indigo-600"></i>
-                <span class="text">Thêm vào ví</span>
-            </button>
-            <button onclick="toggleShareMenu()" id="share-btn">
-                <i class="icon fas fa-share-alt text-indigo-600"></i>
-                <span class="text">Chia sẻ</span>
-            </button>
-            <div id="share-submenu">
-            <button onclick="share('facebook', ${lat}, ${lng}, '${soTo}', '${soThua}')" title="Facebook">
-                <i class="icon fab fa-facebook-f text-blue-700"></i>
-            </button>
-            <button onclick="share('whatsapp', ${lat}, ${lng}, '${soTo}', '${soThua}')" title="WhatsApp">
-                <i class="icon fab fa-whatsapp text-green-500"></i>
-            </button>
-            </div>
-        </div>`;
-
-        requestAnimationFrame(() => {
-            infoPanel.classList.add('is-open');
-        });
-        
-        // Raise action toolbar if available
-        if (actionToolbar) {
-            actionToolbar.classList.add('is-raised');
-        }
+        return window.ParcelService?.showInfoPanel?.(title, props, lat, lng);
     }
 
     // Quick function to show parcel info from search results
     async function showParcelFromSearchResult(soThua, soTo, maXa, lat, lng) {
-        // Highlight the parcel on map if it's a vector tile
-        try {
-            // Try to find and highlight the parcel in vector tiles
-            await queryAndDisplayParcelByLatLng(lat, lng);
-        } catch (error) {
-            // If vector tile method fails, show basic info
-            const basicProps = {
-                'Số thửa': soThua,
-                'Số hiệu tờ bản đồ': soTo,
-                'Diện tích': 'Đang tải...',
-                'Ký hiệu mục đích sử dụng': 'Đang tải...',
-                'Địa chỉ': 'Đang tìm địa chỉ...'
-            };
-            showInfoPanel('Thông tin Thửa đất', basicProps, lat, lng);
-            
-            // Load detailed info from GeoJSON
-            fetchAndDrawDimensions(maXa, soTo, soThua);
-        }
+        return window.ParcelService?.showParcelFromSearchResult?.(soThua, soTo, maXa, lat, lng);
     }
 
     // --- BẮT ĐẦU CODE MỚI: Thêm hàm này vào file script.js ---
 
     async function queryAndDisplayParcelByLatLng(lat, lng) {
-        console.log('🔍 Starting parcel query:', { lat, lng });
-        
-        // Kiểm tra xem map đã sẵn sàng chưa
-        if (!window.map) {
-            console.error('❌ Map not available for parcel query');
-            return;
-        }
-        
-        // Hiển thị một thông báo cho người dùng biết hệ thống đang xử lý
-        const loadingPopup = L.popup()
-            .setLatLng([lat, lng])
-            .setContent('Đang tìm thông tin thửa đất tại đây...')
-            .openOn(window.map);
-
-        const tilesetId = 'hvduoc.danang_parcels_final'; // Lấy từ code của bạn
-        const queryUrl = `https://api.mapbox.com/v4/${tilesetId}/tilequery/${lng},${lat}.json?limit=1&access_token=${mapboxAccessToken}`;
-        
-        console.log('🌐 Making request to:', queryUrl);
-
-        try {
-            const response = await fetch(queryUrl);
-            const data = await response.json();
-            
-            console.log('📡 Received response:', data);
-
-            if (!data.features || data.features.length === 0) {
-                console.log('⚠️ No parcel found at coordinates');
-                loadingPopup.setContent('Không tìm thấy thửa đất nào tại vị trí này.');
-                setTimeout(() => window.map.closePopup(loadingPopup), 3000); // Tự đóng sau 3s
-                return;
-            }
-
-            // Đã tìm thấy thửa đất!
-            console.log('✅ Found parcel:', data.features[0]);
-            window.map.closePopup(loadingPopup); // Đóng thông báo loading
-            const feature = data.features[0];
-            const props = feature.properties;
-
-            // 1. Xóa các thông tin cũ và highlight thửa đất mới
-            hideInfoPanel();
-            highlightedFeature = props.OBJECTID;
-            if (parcelLayer && typeof parcelLayer.setFeatureStyle === 'function') {
-                parcelLayer.setFeatureStyle(highlightedFeature, {
-                    color: '#EF4444', weight: 3, fillColor: '#EF4444', fill: true, fillOpacity: 0.3
-                });
-            }
-
-            // 2. Vẽ kích thước thửa đất
-            if (props.MaXa && props.SoHieuToBanDo && props.SoThuTuThua) {
-                fetchAndDrawDimensions(props.MaXa, props.SoHieuToBanDo, props.SoThuTuThua);
-            }
-
-            // 3. Hiển thị bảng thông tin (sao chép logic từ hàm on.click)
-            const formattedProps = {
-                'Số thửa': props.SoThuTuThua,
-                'Số hiệu tờ bản đồ': props.SoHieuToBanDo,
-                'Diện tích': props.DienTich,
-                'Ký hiệu mục đích sử dụng': props.KyHieuMucDichSuDung,
-                'Địa chỉ': '<i class="text-gray-400">Đang tìm địa chỉ...</i>'
-            };
-            showInfoPanel('Thông tin Thửa đất', formattedProps, lat, lng);
-
-            // 4. Lấy địa chỉ và cập nhật lại bảng thông tin
-            const finalAddress = await getCachedAddress(lat, lng); // Dùng lại hàm getCachedAddress bạn đã có
-            formattedProps['Địa chỉ'] = finalAddress;
-            showInfoPanel('Thông tin Thửa đất', formattedProps, lat, lng);
-
-        } catch (error) {
-            console.error("Lỗi khi truy vấn thửa đất từ tọa độ:", error);
-            loadingPopup.setContent('Đã xảy ra lỗi. Vui lòng thử lại.');
-            setTimeout(() => window.map.closePopup(loadingPopup), 3000);
-        }
+        return window.ParcelService?.queryAndDisplayParcelByLatLng?.(lat, lng);
     }
-    // --- KẾT THÚC CODE MỚI ---
-  
+
     async function showListingInfoPanel(item) {
         const ADMIN_UID = "FEpPWWT1EaTWQ9FOqBxWN5FeEJk1";
         const currentUser = firebase.auth().currentUser;
@@ -1973,28 +1418,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Parse Vietnamese parcel input formats with enhanced pattern matching
     function parseParcelQuery(query) {
-        const patterns = [
-            /(?:thửa|thua)\s*(\d+)[\s,]*(?:tờ|to)\s*(\d+)/i, // "Thửa 123, Tờ 45"
-            /(?:tờ|to)\s*(\d+)[\s,]*(?:thửa|thua)\s*(\d+)/i, // "Tờ 45, Thửa 123"
-            /(\d+)\/(\d+)/, // "123/45" format
-            /(\d+)-(\d+)/, // "123-45" format
-            /^(\d+)$/ // Just number - assume parcel number
-        ];
-        
-        for (let i = 0; i < patterns.length; i++) {
-            const pattern = patterns[i];
-            const match = query.match(pattern);
-            if (match) {
-                if (i === 4) { // Just number
-                    return { soThua: match[1], soTo: null };
-                } else if (i === 1) { // Reversed order "Tờ X, Thửa Y"
-                    return { soThua: match[2], soTo: match[1] };
-                } else {
-                    return { soThua: match[1], soTo: match[2] };
-                }
-            }
-        }
-        return null;
+        return window.SearchModule?.parseParcelQuery?.(query) ?? null;
     }
     
     // Advanced parallel search with smart loading strategy
@@ -2005,30 +1429,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Initialize Web Worker (lazy loaded on first search)
     function ensureParcelSearchWorker() {
-        if (parcelSearchWorker) return parcelSearchWorker;
-        
-        try {
-            parcelSearchWorker = new Worker('/workers/geojson-search.js');
-            parcelSearchWorker.onmessage = function(event) {
-                const { command, taskId, success, results, error } = event.data;
-                
-                if (command === 'SEARCH_PARCEL' && searchTaskPromises.has(taskId)) {
-                    const { resolve, reject } = searchTaskPromises.get(taskId);
-                    searchTaskPromises.delete(taskId);
-                    
-                    if (success) {
-                        resolve(results);
-                    } else {
-                        reject(new Error(error));
-                    }
-                }
-            };
-            console.log('✅ Parcel search Web Worker initialized');
-        } catch(error) {
-            console.warn('⚠️ Web Worker not available, falling back to main thread:', error.message);
-            parcelSearchWorker = null;
-        }
-        return parcelSearchWorker;
+        return window.SearchModule?.ensureParcelSearchWorker?.();
     }
     
     // ========================================================================
@@ -2038,278 +1439,26 @@ document.addEventListener('DOMContentLoaded', () => {
     let searchIndexLoadPromise = null;
     
     async function loadSearchIndex() {
-        if (searchIndexCache) return searchIndexCache;
-        if (searchIndexLoadPromise) return searchIndexLoadPromise;
-        
-        searchIndexLoadPromise = fetch('/data/search_index.json')
-            .then(r => r.json())
-            .then(data => {
-                searchIndexCache = data;
-                console.log('✅ Search index loaded:', data.total_parcels, 'parcels indexed');
-                return data;
-            })
-            .catch(err => {
-                console.warn('⚠️ Search index failed to load, falling back to legacy search:', err);
-                searchIndexLoadPromise = null;
-                return null;
-            });
-        
-        return searchIndexLoadPromise;
+        return window.SearchModule?.loadSearchIndex?.();
     }
     
     async function searchParcelsInCache(soThua, soTo = null) {
-        const t0 = performance.now();
-        
-        // Try optimized index-based search first
-        const searchIndex = await loadSearchIndex();
-        if (searchIndex) {
-            const results = await performIndexSearch(searchIndex, soThua, soTo);
-            const t1 = performance.now();
-            console.log(`🚀 INDEX SEARCH: ${results.length} results in ${(t1-t0).toFixed(0)}ms`);
-            return results;
-        }
-        
-        // Fallback to legacy search
-        await ensureMaxaListLoaded();
-        console.log(`🔍 LEGACY SEARCH: Thửa ${soThua}, Tờ ${soTo || 'bất kỳ'}`);
-        console.log(`📊 Scanning ${ALL_AVAILABLE_AREAS.length} areas...`);
-        if (!ALL_AVAILABLE_AREAS.length) {
-            console.warn('⚠️ Maxa list not available yet. Skipping parcel search.');
-            return [];
-        }
-        
-        // Try to use Web Worker if available, fall back to main thread
-        const worker = ensureParcelSearchWorker();
-        
-        if (worker) {
-            // Use Web Worker for heavy processing
-            try {
-                return await performWorkerSearch(worker, soThua, soTo);
-            } catch(error) {
-                console.warn('⚠️ Worker search failed, falling back to main thread:', error.message);
-                // Fall through to main thread search
-            }
-        }
-        
-        // Fallback: Main thread search (original logic)
-        return await performMainThreadSearch(soThua, soTo);
+        return window.SearchModule?.searchParcelsInCache?.(soThua, soTo) ?? [];
     }
     
     // New: O(1) Index-based search
     async function performIndexSearch(searchIndex, soThua, soTo) {
-        const results = [];
-        const maxResults = 12;
-        
-        // Determine shard from first digit of SoThua
-        const soThuaStr = String(soThua);
-        const firstDigit = soThuaStr.charAt(0);
-        const shard = searchIndex.index[firstDigit] || {};
-        
-        // O(1) lookup in index
-        const entries = shard[soThuaStr];
-        if (!entries || entries.length === 0) {
-            console.log(`📭 No results found in index for SoThua: ${soThua}`);
-            return results;
-        }
-        
-        console.log(`📍 Index found ${entries.length} potential matches`);
-        
-        // Parse entries: "20194:123" or "20194"
-        const targetAreas = [];
-        for (const entry of entries) {
-            const [maXa, indexedSoTo] = entry.split(':');
-            if (!soTo || !indexedSoTo || indexedSoTo === String(soTo)) {
-                targetAreas.push({ maXa, indexedSoTo });
-            }
-        }
-        
-        if (targetAreas.length === 0) {
-            console.log(`📭 No results match SoTo filter: ${soTo}`);
-            return results;
-        }
-        
-        // Load only the needed GeoJSON files (not all 56!)
-        const loadPromises = targetAreas.slice(0, maxResults).map(async ({ maXa, indexedSoTo }) => {
-            if (!cachedGeojsonByMaXa[maXa]) {
-                try {
-                    const response = await fetch(`data/parcels/${maXa}.geojson`);
-                    if (response.ok) {
-                        cachedGeojsonByMaXa[maXa] = await response.json();
-                    }
-                } catch (error) {
-                    console.warn(`Failed to load ${maXa}:`, error);
-                }
-            }
-            
-            const geojson = cachedGeojsonByMaXa[maXa];
-            if (!geojson || !geojson.features) return null;
-            
-            // Find exact match in GeoJSON
-            for (const feature of geojson.features) {
-                const props = feature.properties;
-                if (!props) continue;
-                
-                const matchThua = props.SoThuTuThua == soThua;
-                const matchTo = !soTo || props.SoHieuToBanDo == soTo || props.SoHieuToBanDo == indexedSoTo;
-                
-                if (matchThua && matchTo) {
-                    let coords = feature.geometry?.coordinates?.[0];
-                    if (!coords || coords.length < 3) continue;
-                    
-                    let centerLng = 0, centerLat = 0, validCount = 0;
-                    for (const coord of coords) {
-                        if (Array.isArray(coord) && coord.length >= 2 && 
-                            typeof coord[0] === 'number' && typeof coord[1] === 'number') {
-                            centerLng += coord[0];
-                            centerLat += coord[1];
-                            validCount++;
-                        }
-                    }
-                    
-                    if (validCount === 0) continue;
-                    
-                    centerLng /= validCount;
-                    centerLat /= validCount;
-                    
-                    return {
-                        soThua: props.SoThuTuThua,
-                        soTo: props.SoHieuToBanDo,
-                        dienTich: props.DienTich ? Math.round(props.DienTich * 10) / 10 : null,
-                        loaiDat: props.KyHieuMucDichSuDung || 'N/A',
-                        maXa: maXa,
-                        lat: centerLat,
-                        lng: centerLng,
-                        feature: feature,
-                        area: maXa,
-                        quality: 'high'
-                    };
-                }
-            }
-            return null;
-        });
-        
-        const loadedResults = await Promise.all(loadPromises);
-        results.push(...loadedResults.filter(r => r !== null));
-        
-        return results.slice(0, maxResults);
+        return window.SearchModule?.performIndexSearch?.(searchIndex, soThua, soTo) ?? [];
     }
     
     // Helper: Web Worker search
     async function performWorkerSearch(worker, soThua, soTo) {
-        const taskId = ++searchTaskCounter;
-        const searchOrder = [...PRIORITY_AREAS, ...ALL_AVAILABLE_AREAS.filter(area => !PRIORITY_AREAS.includes(area))];
-        
-        return new Promise((resolve, reject) => {
-            searchTaskPromises.set(taskId, { resolve, reject });
-            
-            worker.postMessage({
-                command: 'SEARCH_PARCEL',
-                taskId,
-                payload: {
-                    soThua,
-                    soTo,
-                    areas: searchOrder
-                }
-            });
-            
-            // Timeout after 10 seconds
-            setTimeout(() => {
-                if (searchTaskPromises.has(taskId)) {
-                    searchTaskPromises.delete(taskId);
-                    reject(new Error('Worker search timeout'));
-                }
-            }, 10000);
-        });
+        return window.SearchModule?.performWorkerSearch?.(worker, soThua, soTo) ?? [];
     }
     
     // Helper: Main thread search (fallback)
     async function performMainThreadSearch(soThua, soTo) {
-        const results = [];
-        const maxResults = 12;
-        const maxConcurrent = 6;
-        
-        const searchOrder = [...PRIORITY_AREAS, ...ALL_AVAILABLE_AREAS.filter(area => !PRIORITY_AREAS.includes(area))];
-        
-        const searchArea = async (maXa) => {
-            if (!cachedGeojsonByMaXa[maXa]) {
-                try {
-                    const response = await fetch(`data/parcels/${maXa}.geojson`);
-                    if (response.ok) {
-                        const geojson = await response.json();
-                        cachedGeojsonByMaXa[maXa] = geojson;
-                    } else {
-                        return [];
-                    }
-                } catch (error) {
-                    return [];
-                }
-            }
-            
-            const geojson = cachedGeojsonByMaXa[maXa];
-            if (!geojson || !geojson.features) return [];
-            
-            const matches = [];
-            for (const feature of geojson.features) {
-                const props = feature.properties;
-                if (!props) continue;
-                
-                const matchThua = props.SoThuTuThua == soThua;
-                const matchTo = !soTo || props.SoHieuToBanDo == soTo;
-                
-                if (matchThua && matchTo) {
-                    let coords = feature.geometry?.coordinates?.[0];
-                    if (!coords || coords.length < 3) continue;
-                    
-                    let centerLng = 0, centerLat = 0, validCount = 0;
-                    for (const coord of coords) {
-                        if (Array.isArray(coord) && coord.length >= 2 && 
-                            typeof coord[0] === 'number' && typeof coord[1] === 'number') {
-                            centerLng += coord[0];
-                            centerLat += coord[1];
-                            validCount++;
-                        }
-                    }
-                    
-                    if (validCount === 0) continue;
-                    
-                    centerLng /= validCount;
-                    centerLat /= validCount;
-                    
-                    matches.push({
-                        soThua: props.SoThuTuThua,
-                        soTo: props.SoHieuToBanDo,
-                        dienTich: props.DienTich ? Math.round(props.DienTich * 10) / 10 : null,
-                        loaiDat: props.KyHieuMucDichSuDung || 'N/A',
-                        maXa: maXa,
-                        lat: centerLat,
-                        lng: centerLng,
-                        feature: feature,
-                        area: maXa,
-                        quality: 'high'
-                    });
-                }
-            }
-            return matches;
-        };
-        
-        for (let i = 0; i < searchOrder.length && results.length < maxResults; i += maxConcurrent) {
-            const batch = searchOrder.slice(i, i + maxConcurrent);
-            
-            try {
-                const batchPromises = batch.map(area => searchArea(area));
-                const batchResults = await Promise.all(batchPromises);
-                
-                for (const areaResults of batchResults) {
-                    results.push(...areaResults);
-                    if (results.length >= maxResults) break;
-                }
-            } catch (error) {
-                console.error('Batch processing error:', error);
-            }
-        }
-        
-        console.log(`🎯 SEARCH COMPLETE: ${results.length} results found`);
-        return results.slice(0, maxResults);
+        return window.SearchModule?.performMainThreadSearch?.(soThua, soTo) ?? [];
     }
 
 // Global search performance cache
@@ -2319,167 +1468,12 @@ const maxCacheSize = 100;
 
 // Enhanced search with caching and fuzzy matching
 const performSearch = async (query) => {
-    if (!searchResultsContainer) {
-        console.error('❌ Search results container not found');
-        return;
-    }
-    
-    if (!query) {
-        searchResultsContainer.innerHTML = '';
-        searchResultsContainer.classList.add('hidden');
-        return;
-    }
-    
-    // Check cache first
-    const cacheKey = query.toLowerCase().trim();
-    const cached = searchCache.get(cacheKey);
-    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-        console.log(`⚡ Cache hit for query: "${query}"`);
-        displaySearchResults(cached.html);
-        return;
-    }
-    
-    await ensureMaxaListLoaded();
-    searchResultsContainer.innerHTML = '<div class="p-4 text-center text-gray-500"><i class="fas fa-search animate-spin mr-2"></i>Đang tìm kiếm toàn bộ hệ thống...</div>';
-    searchResultsContainer.classList.remove('hidden');
-    
-    const startTime = performance.now();
-    let html = '';
-    let totalResults = 0;
-    
-    // 1. ENHANCED PARCEL SEARCH (highest priority)
-    const parcelQuery = parseParcelQuery(query);
-    if (parcelQuery) {
-        console.log(`🎯 Executing enterprise parcel search for: Thửa ${parcelQuery.soThua}, Tờ ${parcelQuery.soTo || 'ANY'}`);
-        
-        const parcelResults = await searchParcelsInCache(parcelQuery.soThua, parcelQuery.soTo);
-        totalResults += parcelResults.length;
-        
-        if (parcelResults.length > 0) {
-            html += '<div class="result-category"><i class="fas fa-map-marked-alt mr-2 text-blue-600"></i>🎯 Thửa đất (Tìm thấy ' + parcelResults.length + ' kết quả)</div>';
-            
-            parcelResults.forEach((parcel, index) => {
-                const displayText = `Thửa ${parcel.soThua}, Tờ ${parcel.soTo}`;
-                const areaName = getAreaName(parcel.maXa); // We'll add this helper
-                const subText = `${parcel.dienTich ? parcel.dienTich + ' m²' : 'N/A'} • ${parcel.loaiDat} • ${areaName}`;
-                const qualityBadge = parcel.quality === 'high' ? '<span class="text-green-600 text-xs">✓ Chính xác</span>' : '';
-                
-                html += `<div class="result-item hover:bg-blue-50 transition-colors duration-200" 
-                         data-type="parcel" data-lat="${parcel.lat}" data-lng="${parcel.lng}" 
-                         data-so-thua="${parcel.soThua}" data-so-to="${parcel.soTo}" data-ma-xa="${parcel.maXa}">
-                    <i class="icon fas fa-map-marker-alt text-red-500"></i>
-                    <div class="flex-1">
-                        <strong class="text-gray-900">${displayText}</strong>
-                        <div class="text-sm text-gray-600">${subText}</div>
-                        ${qualityBadge}
-                    </div>
-                    <div class="text-xs text-gray-400">#${index + 1}</div>
-                </div>`;
-            });
-        } else {
-            html += '<div class="result-category text-yellow-600"><i class="fas fa-exclamation-triangle mr-2"></i>Không tìm thấy thửa đất</div>';
-            html += '<div class="p-3 text-sm text-gray-600 bg-yellow-50 rounded">💡 Gợi ý: Thử "Thửa 123" hoặc "123/45" hoặc "Tờ 45, Thửa 123"</div>';
-        }
-    }
-    
-    // 2. LISTING SEARCH (if not pure parcel query)
-    if (!parcelQuery || query.length > 5) {
-        const listingResults = localListings.filter(item => 
-            item.name.toLowerCase().includes(query.toLowerCase()) ||
-            item.notes?.toLowerCase().includes(query.toLowerCase()) ||
-            item.contactName?.toLowerCase().includes(query.toLowerCase())
-        );
-        
-        totalResults += listingResults.length;
-        
-        if (listingResults.length > 0) {
-            html += '<div class="result-category"><i class="fas fa-tags mr-2 text-green-600"></i>📋 Tin đăng bất động sản (' + listingResults.length + ')</div>';
-            listingResults.slice(0, 6).forEach((item, index) => {
-                const priceDisplay = item.isNegotiable ? '💬 Thương lượng' : `${item.priceValue} ${item.priceUnit}`;
-                html += `<div class="result-item hover:bg-green-50 transition-colors duration-200" data-type="listing" data-id="${item.id}">
-                    <i class="icon fa-solid fa-tag text-yellow-500"></i>
-                    <div class="flex-1">
-                        <strong class="text-gray-900">${item.name}</strong>
-                        <div class="text-sm">
-                            <span class="price text-red-600 font-medium">${priceDisplay}</span>
-                            ${item.area ? ` • ${item.area} m²` : ''}
-                        </div>
-                    </div>
-                    <div class="text-xs text-gray-400">#${index + 1}</div>
-                </div>`;
-            });
-        }
-    }
-    
-    // 3. LOCATION SEARCH (only when not pure parcel query and no exact matches)
-    if (!parcelQuery && totalResults === 0 && !/^\d+/.test(query)) {
-        const mapCenter = map.getCenter();
-        const endpointUrl = `/.netlify/functions/mapbox-proxy?mode=geocode&query=${encodeURIComponent(query)}&autocomplete=true&proximity=${mapCenter.lng},${mapCenter.lat}`;
-        
-        try {
-            const response = await fetch(endpointUrl);
-            if (response.ok) {
-                const data = await response.json();
-                if (data.features && data.features.length > 0) {
-                    totalResults += data.features.length;
-                    html += '<div class="result-category"><i class="fas fa-map-pin mr-2 text-purple-600"></i>🌍 Địa điểm (' + data.features.length + ')</div>';
-                    data.features.slice(0, 3).forEach((feature, index) => {
-                        html += `<div class="result-item hover:bg-purple-50 transition-colors duration-200" data-type="location" data-lat="${feature.center[1]}" data-lng="${feature.center[0]}">
-                            <i class="icon fa-solid fa-map-marker-alt text-blue-500"></i>
-                            <div class="flex-1">
-                                <strong class="text-gray-900">${feature.text || feature.place_name}</strong>
-                                <div class="text-sm text-gray-600">${feature.place_name}</div>
-                            </div>
-                            <div class="text-xs text-gray-400">#${index + 1}</div>
-                        </div>`;
-                    });
-                }
-            }
-        } catch (error) { 
-            console.error("❌ Mapbox geocoding error:", error); 
-        }
-    }
-    
-    const searchTime = performance.now() - startTime;
-    console.log(`⚡ Search completed in ${searchTime.toFixed(2)}ms with ${totalResults} total results`);
-    
-    // Performance summary
-    if (totalResults === 0) {
-        let helpText = '💡 Gợi ý: "Thửa 123, Tờ 45" hoặc "123/45" hoặc tên đường';
-        if (parcelQuery) {
-            helpText = `🔍 Không tìm thấy thửa ${parcelQuery.soThua}${parcelQuery.soTo ? ', tờ ' + parcelQuery.soTo : ''} trong ${ALL_AVAILABLE_AREAS.length} khu vực. Vui lòng kiểm tra lại số thửa.`;
-        }
-        html = `<div class="p-4 text-center text-gray-500">
-            <i class="fas fa-search-minus mr-2"></i>Không tìm thấy kết quả nào<br>
-            <small class="text-xs text-gray-400">${helpText}</small>
-            <div class="mt-2 text-xs text-blue-600">⚡ Đã tìm kiếm ${ALL_AVAILABLE_AREAS.length} khu vực trong ${searchTime.toFixed(0)}ms</div>
-        </div>`;
-    } else {
-        html += `<div class="p-2 text-xs text-gray-400 text-center border-t">
-            ⚡ ${totalResults} kết quả • ${searchTime.toFixed(0)}ms • ${ALL_AVAILABLE_AREAS.length} khu vực
-        </div>`;
-    }
-    
-    // Cache the results
-    if (searchCache.size >= maxCacheSize) {
-        const firstKey = searchCache.keys().next().value;
-        searchCache.delete(firstKey);
-    }
-    searchCache.set(cacheKey, { html, timestamp: Date.now() });
-    
-    displaySearchResults(html);
+    return window.SearchModule?.performSearch?.(query);
 };
 
 // Helper function to display search results
 function displaySearchResults(html) {
-    if (!searchResultsContainer) {
-        console.error('❌ Search results container not found');
-        return;
-    }
-    searchResultsContainer.innerHTML = html;
-    searchResultsContainer.classList.remove('hidden');
-    searchResultsContainer.style.display = 'block'; // Force display
-    console.log('✅ Search results displayed:', html.length, 'chars');
+    return window.SearchModule?.displaySearchResults?.(html);
 }
 
 // Helper function to get area name from code
@@ -6179,393 +5173,60 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Load user portfolio from Firestore
 async function loadUserPortfolio() {
-    if (!currentUser) {
-        userPortfolio = [];
-        return;
-    }
-
-    try {
-        console.log('🔍 Loading portfolio for user:', currentUser.uid);
-        
-        // Simple query without composite index requirement
-        const portfolioSnapshot = await db.collection('portfolios')
-            .where('userId', '==', currentUser.uid)
-            .get();
-
-        userPortfolio = [];
-        portfolioSnapshot.forEach(doc => {
-            const data = doc.data();
-            console.log('📄 Portfolio data loaded:', { id: doc.id, images: data.images });
-            userPortfolio.push({ 
-                id: doc.id, 
-                ...data,
-                createdAt: data.createdAt || firebase.firestore.Timestamp.now()
-            });
-        });
-
-        // Sort by createdAt on client side (avoid composite index)
-        userPortfolio.sort((a, b) => {
-            const timeA = a.createdAt?.toDate?.() || new Date(0);
-            const timeB = b.createdAt?.toDate?.() || new Date(0);
-            return timeB - timeA; // Newest first
-        });
-
-        console.log(`📁 Loaded ${userPortfolio.length} items in portfolio`);
-    } catch (error) {
-        console.error('❌ Error loading portfolio:', error);
-        
-        // Initialize empty portfolio on error
-        userPortfolio = [];
-        
-        // Show user-friendly message
-        if (error.code === 'failed-precondition' || error.message?.includes('index')) {
-            console.log('📝 Index not ready yet, showing empty portfolio');
-        } else {
-            console.error('🚨 Unexpected portfolio error:', error);
-        }
-        userPortfolio = [];
-    }
+    return window.PortfolioManager?.loadUserPortfolio?.();
 }
 
 // Add parcel to portfolio from info panel
 window.addToPortfolioFromPanel = function(soThua, soTo, loaiDat, dienTich, lat, lng) {
-    if (!currentUser) {
-        alert('Vui lòng đăng nhập để sử dụng tính năng ví bất động sản!');
-        return;
-    }
-
-    // Store selected parcel data
-    selectedParcelData = {
-        soThua: soThua,
-        soTo: soTo,
-        loaiDat: loaiDat,
-        dienTich: dienTich,
-        lat: lat,
-        lng: lng,
-        locationUrl: `${window.location.origin}${window.location.pathname}?lat=${lat}&lng=${lng}` // Add locationUrl
-    };
-
-    // Pre-fill form
-    document.getElementById('portfolio-name').value = `Thửa ${soThua}, Tờ ${soTo}`;
-    document.getElementById('portfolio-area').value = dienTich || '';
-    document.getElementById('portfolio-notes').value = `Loại đất: ${loaiDat || 'N/A'}`;
-
-    // Show add portfolio modal
-    showModal(addPortfolioModal);
+    return window.PortfolioManager?.addToPortfolioFromPanel?.({
+        soThua,
+        soTo,
+        loaiDat,
+        dienTich,
+        lat,
+        lng,
+        locationUrl: `${window.location.origin}${window.location.pathname}?lat=${lat}&lng=${lng}`
+    });
 };
 
 // Show portfolio modal
 function showPortfolioModal() {
-    console.log('🎯 showPortfolioModal called', {
-        currentUser: currentUser ? {
-            uid: currentUser.uid,
-            email: currentUser.email
-        } : null,
-        portfolioModal: !!portfolioModal
-    });
-    
-    if (!currentUser) {
-        console.log('⚠️ User not logged in, showing alert');
-        alert('Vui lòng đăng nhập để xem ví bất động sản!');
-        
-        // Trigger login flow
-        const loginBtn = document.getElementById('login-btn');
-        if (loginBtn) {
-            console.log('🔄 Triggering login button click');
-            loginBtn.click();
-        }
-        return;
-    }
-
-    console.log('✅ User authenticated, loading portfolio...');
-    loadUserPortfolio().then(() => {
-        console.log('📊 Portfolio loaded, rendering list...');
-        renderPortfolioList();
-        showModal(portfolioModal);
-        console.log('✅ Portfolio modal shown');
-    }).catch(error => {
-        console.error('❌ Error loading portfolio:', error);
-        alert('Có lỗi khi tải ví bất động sản. Vui lòng thử lại.');
-    });
+    return window.PortfolioManager?.showPortfolioModal?.();
 }
 
 // Render portfolio list
 function renderPortfolioList() {
-    console.log('🎨 Rendering portfolio list...', {
-        totalItems: userPortfolio.length,
-        currentUser: currentUser ? currentUser.uid : 'null'
-    });
-    
-    const portfolioList = document.getElementById('portfolio-list');
-    const portfolioCount = document.getElementById('portfolio-count');
-    const portfolioEmpty = document.getElementById('portfolio-empty');
-    const filter = document.getElementById('portfolio-filter')?.value || 'all';
-
-    console.log('📋 Portfolio elements:', {
-        portfolioList: !!portfolioList,
-        portfolioCount: !!portfolioCount,
-        portfolioEmpty: !!portfolioEmpty,
-        filter: filter
-    });
-
-    // Filter portfolio
-    let filteredPortfolio = userPortfolio;
-    if (filter !== 'all') {
-        filteredPortfolio = userPortfolio.filter(item => item.visibility === filter);
-    }
-
-    if (portfolioCount) portfolioCount.textContent = filteredPortfolio.length;
-
-    if (filteredPortfolio.length === 0) {
-        console.log('📭 No portfolio items to display');
-        if (portfolioList) portfolioList.classList.add('hidden');
-        if (portfolioEmpty) portfolioEmpty.classList.remove('hidden');
-        return;
-    }
-
-    console.log(`📊 Displaying ${filteredPortfolio.length} portfolio items`);
-    if (portfolioList) portfolioList.classList.remove('hidden');
-    if (portfolioEmpty) portfolioEmpty.classList.add('hidden');
-
-    if (portfolioList) {
-        portfolioList.innerHTML = filteredPortfolio.map(item => {
-            // Get first image as thumbnail
-            const thumbnail = item.images && item.images.length > 0 ? item.images[0] : null;
-            console.log('🖼️ Portfolio item:', { id: item.id, name: item.name, images: item.images, thumbnail });
-            
-            return `
-            <div class="portfolio-card">
-                <div class="portfolio-card-header">
-                    ${item.visibility === 'private' 
-                        ? '<div class="portfolio-badge-private"><i class="fa-solid fa-lock mr-1"></i>Riêng tư</div>'
-                        : '<div class="portfolio-badge-public"><i class="fa-solid fa-globe mr-1"></i>Công khai</div>'
-                    }
-                </div>
-                ${thumbnail ? `
-                <div class="portfolio-image">
-                    <img src="${thumbnail}" alt="Hình ảnh bất động sản" 
-                         onerror="console.error('❌ Image load error:', '${thumbnail}'); this.closest('.portfolio-image').style.display='none'"
-                         onload="console.log('✅ Image loaded:', '${thumbnail}')"
-                         onclick="viewPortfolioImages('${item.id}')">
-                    ${item.images && item.images.length > 1 ? 
-                        `<div class="image-count-badge">
-                            <i class="fa-solid fa-images mr-1"></i>${item.images.length}
-                        </div>` : ''
-                    }
-                </div>
-                ` : `
-                <div class="portfolio-no-image">
-                    <div style="text-align: center;">
-                        <i class="fa-solid fa-image block mb-2"></i>
-                        <span>Chưa có hình ảnh</span>
-                    </div>
-                </div>
-                `}
-                <div class="portfolio-card-body">
-                    <div class="portfolio-price">${item.price ? item.price + ' tỷ VNĐ' : 'Chưa có giá'}</div>
-                    <div class="portfolio-name">${item.name}</div>
-                    <div class="portfolio-details">
-                        ${item.area ? `<div><i class="fa-solid fa-ruler-combined mr-1"></i>${item.area} m²</div>` : ''}
-                        ${item.soThua ? `<div><i class="fa-solid fa-map-marker-alt mr-1"></i>Thửa ${item.soThua}, Tờ ${item.soTo}</div>` : ''}
-                        ${item.notes ? `<div><i class="fa-solid fa-sticky-note mr-1"></i>${item.notes.substring(0, 50)}${item.notes.length > 50 ? '...' : ''}</div>` : ''}
-                        <div><i class="fa-solid fa-calendar mr-1"></i>${formatPortfolioDate(item.createdAt?.toDate())}</div>
-                    </div>
-                    <div class="portfolio-actions">
-                        <button class="portfolio-btn portfolio-btn-primary" onclick="viewPortfolioItem('${item.id}')">
-                            <i class="fa-solid fa-eye mr-1"></i>Xem
-                        </button>
-                        <button class="portfolio-btn portfolio-btn-secondary" onclick="editPortfolioItem('${item.id}')">
-                            <i class="fa-solid fa-edit mr-1"></i>Sửa
-                        </button>
-                        <button class="portfolio-btn portfolio-btn-danger" onclick="deletePortfolioItem('${item.id}')">
-                            <i class="fa-solid fa-trash mr-1"></i>Xóa
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `;
-        }).join('');
-    }
+    return window.PortfolioManager?.renderPortfolioList?.();
 }
 
 // View portfolio images gallery
 window.viewPortfolioImages = function(itemId) {
-    const item = userPortfolio.find(p => p.id === itemId);
-    if (!item || !item.images || item.images.length === 0) {
-        showToast('❌ Không có hình ảnh nào', 'error');
-        return;
-    }
-
-    // Create image gallery modal
-    const galleryModal = document.createElement('div');
-    galleryModal.className = 'modal-overlay active';
-    galleryModal.innerHTML = `
-        <div class="modal-content max-w-4xl">
-            <div class="modal-header">
-                <h3 class="modal-title">
-                    <i class="fa-solid fa-images mr-2"></i>
-                    Hình ảnh - ${item.name}
-                </h3>
-                <button type="button" class="modal-close" onclick="this.closest('.modal-overlay').remove()">
-                    <i class="fa-solid fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="image-gallery">
-                    ${item.images.map((imageUrl, index) => `
-                        <div class="gallery-item">
-                            <img src="${imageUrl}" alt="Hình ảnh ${index + 1}" 
-                                 onclick="openImageFullscreen('${imageUrl}')"
-                                 onerror="this.closest('.gallery-item').style.display='none'">
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        </div>
-    `;
-    
-    document.body.appendChild(galleryModal);
+    return window.PortfolioManager?.viewPortfolioImages?.(itemId);
 };
 
 // Open image in fullscreen
 window.openImageFullscreen = function(imageUrl) {
-    const fullscreenModal = document.createElement('div');
-    fullscreenModal.className = 'fullscreen-image-modal';
-    fullscreenModal.innerHTML = `
-        <div class="fullscreen-overlay" onclick="this.closest('.fullscreen-image-modal').remove()">
-            <img src="${imageUrl}" alt="Hình ảnh phóng to">
-            <button class="fullscreen-close" onclick="this.closest('.fullscreen-image-modal').remove()">
-                <i class="fa-solid fa-times"></i>
-            </button>
-        </div>
-    `;
-    
-    document.body.appendChild(fullscreenModal);
+    return window.PortfolioManager?.openImageFullscreen?.(imageUrl);
 };
 
 // View portfolio item on map
 window.viewPortfolioItem = function(itemId) {
-    const item = userPortfolio.find(p => p.id === itemId);
-    if (!item) {
-        console.error('❌ Portfolio item not found:', itemId);
-        return;
-    }
-
-    console.log('👀 Viewing portfolio item:', item);
-
-    // Check if we have a saved location URL
-    if (item.locationUrl) {
-        console.log('🔗 Opening location URL:', item.locationUrl);
-        
-        // Close portfolio modal
-        hideModal(portfolioModal);
-        
-        // Open the location URL which will trigger coordinate-based search
-        window.location.href = item.locationUrl;
-        return;
-    }
-
-    // Fallback: if no location URL but has coordinates
-    if (item.lat && item.lng) {
-        console.log('� Creating location URL from coordinates');
-        
-        // Create location URL from coordinates
-        const locationUrl = `${window.location.origin}${window.location.pathname}?lat=${item.lat}&lng=${item.lng}`;
-        
-        // Close portfolio modal
-        hideModal(portfolioModal);
-        
-        // Open the location URL
-        window.location.href = locationUrl;
-        return;
-    }
-
-    // No location data available
-    alert('❌ Không có tọa độ để hiển thị trên bản đồ.\n\nBĐS này có thể được thêm thủ công mà không có vị trí địa lý.');
-    showToast('⚠️ Không có tọa độ GPS', 'warning');
+    return window.PortfolioManager?.viewPortfolioItem?.(itemId);
 };
 
 // Edit portfolio item
 window.editPortfolioItem = function(itemId) {
-    const item = userPortfolio.find(p => p.id === itemId);
-    if (!item) return;
-
-    selectedParcelData = item; // Store for editing
-    
-    // Ensure locationUrl exists for editing
-    if (item.lat && item.lng && !item.locationUrl) {
-        selectedParcelData.locationUrl = `${window.location.origin}${window.location.pathname}?lat=${item.lat}&lng=${item.lng}`;
-    }
-    
-    // Pre-fill form
-    document.getElementById('portfolio-name').value = item.name || '';
-    document.getElementById('portfolio-price').value = item.price || '';
-    document.getElementById('portfolio-area').value = item.area || '';
-    document.getElementById('portfolio-notes').value = item.notes || '';
-    
-    // Set visibility
-    const visibilityRadio = document.querySelector(`input[name="portfolio-visibility"][value="${item.visibility}"]`);
-    if (visibilityRadio) visibilityRadio.checked = true;
-
-    // Display existing images if any
-    if (item.images && item.images.length > 0) {
-        const imagePreview = document.getElementById('image-preview');
-        const imageUploadText = document.querySelector('.image-upload-text');
-        
-        imagePreview.innerHTML = item.images.map((imageUrl, index) => `
-            <div class="image-preview-item" data-existing="true" data-url="${imageUrl}">
-                <img src="${imageUrl}" alt="Existing image ${index + 1}" onerror="this.closest('.image-preview-item').remove()">
-                <div class="image-preview-overlay">
-                    <button type="button" class="image-remove-btn" onclick="removeExistingImage('${imageUrl}', this)">
-                        <i class="fa-solid fa-times"></i>
-                    </button>
-                </div>
-            </div>
-        `).join('');
-        
-        if (imageUploadText) {
-            imageUploadText.style.display = 'none';
-        }
-    }
-
-    // Change modal title
-    document.getElementById('add-portfolio-title').innerHTML = '<i class="fa-solid fa-edit mr-2 text-indigo-600"></i>Chỉnh sửa BĐS';
-    
-    // Store item ID for updating
-    portfolioForm.dataset.editingId = itemId;
-    
-    showModal(addPortfolioModal);
+    return window.PortfolioManager?.editPortfolioItem?.(itemId);
 };
 
 // Remove existing image
 window.removeExistingImage = function(imageUrl, buttonElement) {
-    const imageItem = buttonElement.closest('.image-preview-item');
-    if (imageItem) {
-        imageItem.remove();
-        
-        // Check if preview is empty and show upload text
-        const imagePreview = document.getElementById('image-preview');
-        const imageUploadText = document.querySelector('.image-upload-text');
-        
-        if (imagePreview.children.length === 0 && imageUploadText) {
-            imageUploadText.style.display = 'block';
-        }
-    }
+    return window.PortfolioManager?.removeExistingImage?.(imageUrl, buttonElement);
 };
 
 // Delete portfolio item
 window.deletePortfolioItem = async function(itemId) {
-    if (!confirm('Bạn có chắc muốn xóa bất động sản này khỏi ví?')) return;
-
-    try {
-        await db.collection('portfolios').doc(itemId).delete();
-        await loadUserPortfolio();
-        renderPortfolioList();
-        showToast('✅ Đã xóa khỏi ví bất động sản', 'success');
-    } catch (error) {
-        console.error('❌ Error deleting portfolio item:', error);
-        showToast('❌ Có lỗi khi xóa khỏi ví', 'error');
-    }
+    return window.PortfolioManager?.deletePortfolioItem?.(itemId);
 };
 
 // Handle portfolio form submission
@@ -7478,8 +6139,13 @@ if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) {
     };
 }
 
-// Upload portfolio images to Google Drive
+// Upload portfolio images to Google Drive (delegated to PortfolioManager)
 async function uploadPortfolioImagesToGoogleDrive(portfolioId, files) {
+    return window.PortfolioManager?.uploadPortfolioImagesToGoogleDrive?.(portfolioId, files) ?? [];
+}
+
+// Legacy implementation (kept for reference)
+async function __uploadPortfolioImagesToGoogleDrive_Legacy(portfolioId, files) {
     if (DEBUG_MODE) console.log('📤 Starting Google Drive upload for portfolio:', portfolioId);
     
     try {
@@ -7637,8 +6303,13 @@ async function uploadToImgur(file, fileName) {
 // NOTE: Firebase Storage function removed due to billing requirements
 // Fallback system now uses: Google Drive → Imgur (multiple keys) → Base64 compression
 
-// Upload portfolio images to Imgur
+// Upload portfolio images to Imgur (delegated to PortfolioManager)
 async function uploadPortfolioImagesToImgur(portfolioId, files) {
+    return window.PortfolioManager?.uploadPortfolioImagesToImgur?.(portfolioId, files) ?? [];
+}
+
+// Legacy implementation (kept for reference)
+async function __uploadPortfolioImagesToImgur_Legacy(portfolioId, files) {
     console.log('📤 Starting Imgur upload for portfolio:', portfolioId);
     
     try {

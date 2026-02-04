@@ -699,6 +699,225 @@ input[type=range][orient=vertical] {
     background-color: #f3f4f6;
 }
 
+/* ============================================================================ */
+/* PRICE DISPLAY SECTION - Government Land Price & Comparison */
+/* ============================================================================ */
+
+/* Government Price Display */
+.price-row {
+    margin: 8px 0;
+    padding: 10px 8px;
+    border-radius: 8px;
+    border-left: 4px solid #3b82f6;
+    background-color: #f0f9ff;
+}
+
+.price-row.success {
+    border-left-color: #10b981;
+    background-color: #f0fdf4;
+}
+
+.price-row.error {
+    border-left-color: #ef4444;
+    background-color: #fef2f2;
+    color: #7f1d1d;
+}
+
+.price-row.warning {
+    border-left-color: #f59e0b;
+    background-color: #fffbeb;
+}
+
+.price-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 6px;
+}
+
+.price-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1f2937;
+    display: inline-block;
+}
+
+.price-value-main {
+    font-size: 18px;
+    font-weight: 700;
+    color: #059669;
+    letter-spacing: -0.5px;
+}
+
+.price-details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid rgba(16, 185, 129, 0.2);
+    font-size: 12px;
+}
+
+.price-detail-item {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+
+.detail-label {
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.detail-value {
+    color: #1f2937;
+    font-weight: 600;
+}
+
+/* Price Comparison Tool */
+.price-comparison-tool {
+    margin: 8px 0;
+    padding: 10px 8px;
+    border-radius: 8px;
+    border: 2px solid #e5e7eb;
+    background-color: #fafafa;
+}
+
+.comparison-header {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.comparison-label {
+    display: inline-block;
+}
+
+.comparison-input-group {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+
+.comparison-input {
+    flex: 1;
+    padding: 8px 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.comparison-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.comparison-input::placeholder {
+    color: #9ca3af;
+}
+
+.comparison-btn {
+    padding: 8px 14px;
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+    white-space: nowrap;
+}
+
+.comparison-btn:hover {
+    background-color: #2563eb;
+}
+
+.comparison-btn:active {
+    transform: scale(0.98);
+}
+
+/* Comparison Result Display */
+.comparison-result {
+    padding: 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    margin-top: 6px;
+    transition: all 0.3s ease;
+}
+
+.comparison-result.hidden {
+    display: none;
+}
+
+.comparison-result .result-higher,
+.comparison-result .result-lower,
+.comparison-result .result-equal,
+.comparison-result .result-error {
+    border-radius: 6px;
+    padding: 8px;
+}
+
+.result-higher {
+    background-color: #fee2e2;
+    border-left: 4px solid #dc2626;
+    color: #7f1d1d;
+}
+
+.result-lower {
+    background-color: #dbeafe;
+    border-left: 4px solid #2563eb;
+    color: #1e40af;
+}
+
+.result-equal {
+    background-color: #fef3c7;
+    border-left: 4px solid #f59e0b;
+    color: #78350f;
+}
+
+.result-error {
+    background-color: #fecaca;
+    border-left: 4px solid #ef4444;
+    color: #991b1b;
+}
+
+.result-assessment {
+    font-weight: 600;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.result-details {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 6px;
+    font-size: 11px;
+    padding-top: 6px;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.result-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.result-item span:last-child {
+    font-weight: 700;
+    font-size: 12px;
+}
+
 #panel-actions .icon {
     font-size: 18px;
     margin-bottom: 2px;
