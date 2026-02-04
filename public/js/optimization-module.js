@@ -414,6 +414,78 @@
     }
     
     // ============================================================================
+    // PERFORMANCE MONITORING
+    // ============================================================================
+    
+    /**
+     * Track search performance metrics for analytics
+     * Sends data to GA if available
+     */
+    function trackSearchPerformance(metric, value, additionalData = {}) {
+        const timestamp = new Date().toISOString();
+        const performanceData = {
+            event: 'search_performance',
+            metric,
+            value,
+            timestamp,
+            ...additionalData
+        };
+        
+        console.log(`📊 Search Performance [${metric}]:`, value, 'ms');
+        
+        // Send to Google Analytics if available
+        if (typeof gtag !== 'undefined') {
+            gtag('event', 'search_performance', {
+                event_category: 'performance',
+                event_label: metric,
+                value: Math.round(value),
+                ...additionalData
+            });
+        }
+        
+        // Send to Firebase Analytics if available
+        if (window.firebase && window.firebase.analytics) {
+            try {
+                window.firebase.analytics().logEvent('search_performance', performanceData);
+            } catch (e) {
+                console.warn('Firebase analytics unavailable:', e);
+            }
+        }
+        
+        // Store locally for batch reporting
+        const metrics = JSON.parse(localStorage.getItem('xgd_search_metrics') || '[]');
+        metrics.push(performanceData);
+        // Keep last 100 metrics
+        if (metrics.length > 100) metrics.shift();
+        localStorage.setItem('xgd_search_metrics', JSON.stringify(metrics));
+    }
+    
+    /**
+     * Report average search performance periodically
+     */
+    function reportSearchMetrics() {
+        const metrics = JSON.parse(localStorage.getItem('xgd_search_metrics') || '[]');
+        if (metrics.length === 0) return;
+        
+        const lookup = metrics.filter(m => m.metric === 'lookup_time');
+        const flyto = metrics.filter(m => m.metric === 'flyto_time');
+        
+        if (lookup.length > 0) {
+            const avg = lookup.reduce((sum, m) => sum + m.value, 0) / lookup.length;
+            console.log(`📈 Average Search Lookup: ${avg.toFixed(1)}ms (Target: <100ms) ${avg < 100 ? '✅' : '⚠️'}`);
+        }
+        
+        if (flyto.length > 0) {
+            const avg = flyto.reduce((sum, m) => sum + m.value, 0) / flyto.length;
+            console.log(`📈 Average FlyTo Time: ${avg.toFixed(0)}ms`);
+        }
+    }
+    
+    // Export tracking functions
+    window.trackSearchPerformance = trackSearchPerformance;
+    window.reportSearchMetrics = reportSearchMetrics;
+    
+    // ============================================================================
     // INITIALIZATION
     // ============================================================================
     
@@ -435,6 +507,9 @@
             optimizeUtilityButtonPositioning();
             hideUnfinishedFeatures();
         }, 1000);
+        
+        // Performance monitoring (report metrics every 5 minutes)
+        setInterval(reportSearchMetrics, 5 * 60 * 1000);
         
         console.log('✅ Optimizations initialized');
     }
@@ -462,6 +537,10 @@
         removeAnimationLag,
         hideUnfinishedFeatures,
         
+        // Performance monitoring
+        trackSearchPerformance,
+        reportSearchMetrics,
+        
         // Initialization
         initializeOptimizations
     };
@@ -470,6 +549,8 @@
     window.handleSearchResultSelect = handleSearchResultSelect;
     window.openPostFormWithAutoFill = openPostFormWithAutoFill;
     window.compressImage = compressImage;
+    window.trackSearchPerformance = trackSearchPerformance;
+    window.reportSearchMetrics = reportSearchMetrics;
     
     console.log('✅ Optimization module loaded and exposed to window.OptimizationModule');
 })();

@@ -205,7 +205,17 @@
         if (searchIndex) {
             const results = await performIndexSearch(searchIndex, soThua, soTo);
             const t1 = performance.now();
-            console.log(`🚀 INDEX SEARCH: ${results.length} results in ${(t1-t0).toFixed(0)}ms`);
+            const lookupTime = t1 - t0;
+            console.log(`🚀 INDEX SEARCH: ${results.length} results in ${lookupTime.toFixed(1)}ms`);
+            
+            // Track performance for monitoring
+            if (window.trackSearchPerformance) {
+                window.trackSearchPerformance('lookup_time', lookupTime, {
+                    results: results.length,
+                    query: soTo ? `${soThua}/${soTo}` : `${soThua}/*`
+                });
+            }
+            
             return results;
         }
         
